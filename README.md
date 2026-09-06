@@ -107,7 +107,7 @@ Modul schreibt bislang das Manifest selbst.
 
 Erledigt: Code-Übernahme der Widmung-v2-Kette, `windkraft/`-Paket,
 `scripts/`, Tests, `config.json` im Wurzelverzeichnis, Layer-Viewer
-(`scripts/webmap/build_osm_wka_layer_viewer.py`), gemeinsame Bandmetadaten
+(`scripts/webmap/build_layer_viewer.py`), gemeinsame Bandmetadaten
 (`windkraft/viz/band_metadata.py`), Migrations- und Follow-up-Dokumentation.
 
 Fehlt: ein tatsächlich verifizierter Lauf der vollständigen Kette gegen

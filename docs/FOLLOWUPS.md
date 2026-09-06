@@ -212,3 +212,14 @@ OSM-PBF-Caches in `abschichtung_common.py` schreiben beide unter
 Migration umgesetzt): `--cache-dir` in `02_build_hig_sources.py` auf einen
 Pfad unter `output/` umstellen, damit `data/` beschreibungsgemäß
 ausschließlich Lesezugriffe sieht.
+
+## Vergleichstests gegen das Alt-Repo
+
+- `tests/test_distance_engine_equivalence.py` vergleicht gegen ein zweites
+  Repo, das ebenfalls ein Top-Level-Paket `windkraft` definiert. Der Test
+  sichert und restauriert deshalb `sys.modules` um den Import der
+  Alt-Implementierung herum. Ohne das löst deren eigenes
+  `from windkraft.calc... import ...` gegen das bereits importierte **neue**
+  Paket auf — der Test vergleicht dann neu gegen neu und ist grün, ohne
+  etwas zu prüfen. Wer einen weiteren Vergleichstest schreibt, muss dieselbe
+  Vorkehrung treffen.

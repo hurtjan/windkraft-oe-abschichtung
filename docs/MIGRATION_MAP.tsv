@@ -14,7 +14,7 @@ scripts/noe/derive_pdf_hig_sources.py	scripts/noe/derive_pdf_hig_sources.py	verb
 scripts/noe/extract_noe_vector_layers.py	scripts/noe/extract_noe_vector_layers.py	verbatim kopiert
 scripts/main/create_noe_dkm_polygon_fill_map.py	scripts/preprocessing/create_noe_dkm_polygon_fill_map.py	verschoben nach scripts/preprocessing/; Inhalt verbatim
 scripts/main/export_at_dkm_geoparquet.py	scripts/preprocessing/export_at_dkm_geoparquet.py	verschoben nach scripts/preprocessing/; Inhalt verbatim (Geschwister-Import ueber SCRIPT_DIR bleibt gueltig)
-scripts/webmap/build_osm_wka_layer_viewer.py	scripts/webmap/build_osm_wka_layer_viewer.py	Inspektionswerkzeug, Metadaten umgehaengt
+scripts/webmap/build_osm_wka_layer_viewer.py	scripts/webmap/build_layer_viewer.py	Inspektionswerkzeug, Metadaten umgehaengt; spaeter umbenannt: dieses Repo hat keine OSM-Ingestion-Kette, der alte Dateiname war ein irrefuehrender Rest aus der Historie
 scripts/main/build_official_zoning_layers.py	scripts/widmung_v2/01_build_official_zoning_layers.py	umbenannt nach Nummerierungsschema; Inhalt verbatim (OUT_DIR zeigte bereits auf v2)
 scripts/main/build_hig_sources.py	scripts/widmung_v2/02_build_hig_sources.py	umbenannt nach Nummerierungsschema; nur --config-Default auf config/config.json
 scripts/main/build_widmung_v2_layers.py	scripts/widmung_v2/03_build_osm_layers.py	umbenannt nach Nummerierungsschema; nur --config-Default auf config/config.json
