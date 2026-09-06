@@ -1,0 +1,23 @@
+[project]
+name = "windkraft"
+version = "2.0.0"
+description = "Windkraft-Potentialberechnung Oesterreich (Energiewerkstatt/IG Windkraft 2023)"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "scipy",
+    "rasterio",
+    "geopandas",
+    "pandas",
+    "pyarrow",
+    "pyogrio",
+    "pyproj",
+    "Pillow",
+    "matplotlib",
+]
+
+[project.optional-dependencies]
+pdf = ["PyMuPDF"]
+
+[project.scripts]
+windkraft = "windkraft.__main__:main"

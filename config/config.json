@@ -1,0 +1,176 @@
+{
+  "_comment": "Konfiguration: Windkraft-Potentialberechnung Österreich – Energiewerkstatt/IG Windkraft 2023",
+
+  "paths": {
+    "data_dir": "data",
+    "vgd": "data/admin_boundaries/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp",
+    "osm_dir": "data/austria-260328-free.shp",
+    "wind_pd_150": "data/AUT_power-density_150m.tif",
+    "wind_pd_100": "data/AUT_power-density_100m.tif",
+    "dgm": "data/DGM_R25.tif",
+    "nsg_zip": "data/naturschutzgebiete/SG_AT_2024_v_April_Stand_3_April_2024.zip",
+    "nsg_gpkg": "SG_AT_2024_v_April.gpkg",
+    "nsg_layers": ["NP_AT_2024", "NSG_AT_2024", "ESG_AT_2024", "RAMSAR_AT_2024"],
+    "powerlines_gpkg": "data/osm_power_lines.gpkg",
+    "_comment_powerlines_gpkg": "Wird auch in der Widmung-v2-Kette gelesen (abschichtung_common.py ~934), das daraus gebaute Band power_380_400kv aber seit dem Clean-Schema nicht mehr gespeichert (build_widmung_v2_layers.py ~92-94 - Stromleitungen sind kein Ausschlusskriterium mehr). Für v2 wirkungslos; weiterhin aktiv für die OSM-Kette und Widmung v1.",
+    "output_dir": "output"
+  },
+
+  "raster": {
+    "_comment": "Wird von der Widmung-v2-Kette IGNORIERT, deren Grid/CRS kommt aus dem DGM (paths.dgm). Wirksam nur für: python -m windkraft calc, viz/pdf_map.py, scripts/main/calc_potential_energiewerkstatt_v2.py, scripts/analysis/analyse_*.py, windkraft/placement/*.",
+    "crs": "EPSG:31287",
+    "cellsize": 25
+  },
+
+  "wind": {
+    "shear_alpha": 0.143,
+    "pd_min": 150,
+    "pd_min_height_m": 130,
+    "pd_data_heights_m": [100, 150],
+    "gk_a_threshold": 350,
+    "gk_b_threshold": 280,
+    "gk_threshold_height_m": 100,
+    "_comment_gk": "Güteklasse A: >= gk_a W/m² @100m, B: >= gk_b, C: Rest (>= pd_min @130m)"
+  },
+
+  "terrain_correction": {
+    "baseline": 0.90,
+    "tri": {
+      "half": 80.0,
+      "steep": 0.025,
+      "floor": 0.15
+    },
+    "tpi": {
+      "weight": 0.25,
+      "scale": 120.0
+    },
+    "elevation_bands": [
+      [0,    1000, 1.00],
+      [1000, 1500, 0.80],
+      [1500, 2000, 0.50],
+      [2000, 2500, 0.35]
+    ]
+  },
+
+  "exclusion": {
+    "slope_max_deg": 15,
+    "elevation_max": 2500,
+    "sieve_pixels": 20
+  },
+
+  "buffers": {
+    "_comment_settlement_individual_objects": "settlement und individual_objects werden von der Widmung-v2-Kette IGNORIERT; wirksam sind dort stattdessen SETTLEMENT_BUFFER_BY_BL und INDIVIDUAL_BUFFER_BY_BL in windkraft/calc/abschichtung_common.py:58-80 (1.000 m, NÖ 1.200 m / einheitlich 750 m). Eine Änderung hier hat auf output/abschichtung_widmung_v2/*.tif KEINE Wirkung. Wirksam bleibt dieser Block für die Legacy-Ketten (python -m windkraft calc, viz/pdf_map.py, scripts/main/calc_potential_energiewerkstatt_v2.py, scripts/analysis/analyse_*.py, windkraft/placement/*). NICHT als Key innerhalb von settlement/individual_objects setzen: beide Dicts werden mit .items() als {Bundesland: Meter} durchlaufen (z. B. potential.py:144, calc_potential_energiewerkstatt_v2.py:185) - ein zusätzlicher _comment-Key dort würde als Bundesland-Eintrag fehlinterpretiert.",
+    "settlement": {
+      "Burgenland": 1000,
+      "Niederösterreich": 1200,
+      "Oberösterreich": 1000,
+      "Wien": 1000,
+      "Steiermark": 1000,
+      "Kärnten": 1000,
+      "Salzburg": 1000,
+      "Tirol": 1000,
+      "Vorarlberg": 1000
+    },
+    "individual_objects": {
+      "Burgenland": 750,
+      "Niederösterreich": 750,
+      "Oberösterreich": 750,
+      "Wien": 750,
+      "Steiermark": 750,
+      "Kärnten": 750,
+      "Salzburg": 750,
+      "Tirol": 750,
+      "Vorarlberg": 750
+    },
+    "airport_major": 4000,
+    "airport_minor": 2000,
+    "road": 150,
+    "railway": 150,
+    "powerline": 150,
+    "major_airport_osm_ids": [75732093, 29566108, 30266004, 30514270, 98446291, 282147138]
+  },
+
+  "turbine": {
+    "specific_area_m2_per_kw": 49,
+    "_comment_area": "3×172m × 4×172m = 516×688m = 355008m² / 7200kW = 49.3 m²/kW",
+    "spacing": "3x4 RD",
+    "placement": {
+      "snap_px": 0,
+      "enable_greedy_densification": true,
+      "park_dilation_px": 2,
+      "display_class_suitable_min": 12,
+      "display_class_zone_a": 13,
+      "display_class_zone_b": 14
+    },
+    "reference_turbines": [
+      {"rotor_d_m": 126, "power_kw": 3450, "area_m2_per_kw": 55},
+      {"rotor_d_m": 136, "power_kw": 4200, "area_m2_per_kw": 53},
+      {"rotor_d_m": 150, "power_kw": 4200, "area_m2_per_kw": 64},
+      {"rotor_d_m": 162, "power_kw": 5600, "area_m2_per_kw": 56},
+      {"rotor_d_m": 172, "power_kw": 7200, "area_m2_per_kw": 49}
+    ],
+    "norm_turbine": {
+      "_comment": "Vestas V172-7.2 MW (172m Rotor, 140m Nabenhöhe)",
+      "power_kw": 7200,
+      "rotor_d_m": 172,
+      "hub_height_m": 140,
+      "mean_wind_speed_ms": 6.5,
+      "park_losses_pct": 18,
+      "specific_yield_kwh_per_m2": 694
+    }
+  },
+
+  "full_load_hours": {
+    "A": {"min": 2676, "max": 3211},
+    "B": {"min": 2363, "max": 2836},
+    "C": {"min": 2034, "max": 2441}
+  },
+
+  "economics": {
+    "_comment": "Wirtschaftlichkeitsparameter für place_turbines_economic.py",
+    "park_fixed_cost_meur": 5.0,
+    "turbine_cost_meur": 6.0,
+    "electricity_price_eur_mwh": 80.0,
+    "turbine_lifetime_years": 25,
+    "min_roi_ratio": 1.0,
+    "access": {
+      "_comment": "Terrain-abhängige Erschließungskosten (Least-Cost-Path zum Straßennetz)",
+      "road_classes_primary": ["motorway", "trunk", "primary", "secondary", "tertiary", "unclassified"],
+      "road_classes_track":   ["track_grade1", "track_grade2", "track_grade3"],
+      "track_upgrade_eur_per_m": 150,
+      "new_road_base_eur_per_m": 800,
+      "slope_cost_scale_deg":    15.0,
+      "slope_cost_exponent":      2.0,
+      "slope_cost_max_factor":    8.0
+    }
+  },
+
+  "installed_capacity_mw": {
+    "_comment": "Installierte Windkraftleistung per Ende 2024 (Quelle: IG Windkraft / E-Control)",
+    "Burgenland":       1220,
+    "Kärnten":            17,
+    "Niederösterreich": 1750,
+    "Oberösterreich":    170,
+    "Salzburg":            0,
+    "Steiermark":        590,
+    "Tirol":               0,
+    "Vorarlberg":          0,
+    "Wien":              110
+  },
+
+  "study_reference": {
+    "total_area_km2": 2636,
+    "total_mw": 46131,
+    "by_bundesland": {
+      "Burgenland":       [3163, 1060, 2068,  6291, 15174, 18209],
+      "Kärnten":          [ 308,  923, 2098,  3329,  7272,  8727],
+      "Niederösterreich": [6476, 5302, 8589, 20366, 47328, 56793],
+      "Oberösterreich":   [ 227,  580, 2404,  3210,  6865,  8238],
+      "Salzburg":         [   7,  143, 1170,  1319,  2735,  3282],
+      "Steiermark":       [1469, 3094, 5084,  9646, 21582, 25898],
+      "Tirol":            [  87,  248, 1047,  1382,  2949,  3539],
+      "Vorarlberg":       [   1,  129,  420,   550,  1163,  1395],
+      "Wien":             [   3,   24,   11,    38,    87,   104]
+    }
+  }
+}
