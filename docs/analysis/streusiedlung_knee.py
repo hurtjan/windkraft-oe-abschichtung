@@ -50,7 +50,7 @@ import shapely  # noqa: E402
 
 from windkraft.config import load_config  # noqa: E402
 from windkraft.calc.abschichtung_common import load_grid, timed  # noqa: E402
-from windkraft.calc.cluster_knee import (  # noqa: E402
+from cluster_knee import (  # noqa: E402
     chord_knee,
     cluster_stats,
     dbscan_labels,
