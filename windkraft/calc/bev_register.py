@@ -110,7 +110,10 @@ def _to_target_crs(df: pd.DataFrame) -> pd.DataFrame:
 
 def load_address_points(data_dir: Path, cache_dir: Path | None = None, rebuild: bool = False) -> np.ndarray:
     """(N, 2)-Array aller BEV-Adresskoordinaten in EPSG:31287."""
+    legacy_cache = data_dir / ADDRESS_CACHE_NAME
     cache = (cache_dir or data_dir) / ADDRESS_CACHE_NAME
+    if legacy_cache.exists() and not rebuild:
+        cache = legacy_cache
     if cache.exists() and not rebuild:
         frame = pd.read_parquet(cache)
         print(f"[info]  BEV-Adress-Cache: {len(frame):,} Punkte aus {cache}", flush=True)
@@ -124,7 +127,10 @@ def load_address_points(data_dir: Path, cache_dir: Path | None = None, rebuild: 
 
 def load_building_points(data_dir: Path, cache_dir: Path | None = None, rebuild: bool = False) -> pd.DataFrame:
     """DataFrame(x, y, eigenschaft) aller BEV-Gebäude in EPSG:31287."""
+    legacy_cache = data_dir / BUILDING_CACHE_NAME
     cache = (cache_dir or data_dir) / BUILDING_CACHE_NAME
+    if legacy_cache.exists() and not rebuild:
+        cache = legacy_cache
     if cache.exists() and not rebuild:
         frame = pd.read_parquet(cache)
         print(f"[info]  BEV-Gebäude-Cache: {len(frame):,} Punkte aus {cache}", flush=True)
