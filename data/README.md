@@ -663,19 +663,44 @@ im neuen Baum modifiziert wird (Hardlinks teilen sich die Inode, ein Schreib-
 zugriff auf eine Kopie würde — je nach Dateisystem — die andere mit
 verändern oder Copy-on-Write auslösen; beides ist nicht getestet).
 
-**Standing Rule — Eingaben hardlinken, Ausgaben kopieren:** Quelldaten unter
-`data/` sind per Hardlink mit `windkraft_ö_karten` verbunden — das kostet
-keinen Speicher und ist für rein lesende Zugriffe richtig. Für jedes
-Artefakt, das die Kette **schreibt**, gilt das Gegenteil: es muss eine echte
-Kopie sein. Ein Schreibvorgang auf eine hardgelinkte Datei kürzt den
-geteilten Inode und zerstört dieselbe Datei im Alt-Repo im selben Moment,
-ohne Fehlermeldung. Für jedes künftige Artefakt ist daher zuerst zu klären,
-ob es gelesen oder geschrieben wird.
+**Die Invariante:** Jede Datei, die irgendein Codepfad schreiben kann, ist
+eine echte Kopie — nie ein Hardlink. Unabhängig von Größe, Verzeichnis und
+davon, ob im Code ein Guard (Overwrite-Schutz) existiert. Quelldaten unter
+`data/`, die die Kette ausschließlich liest, bleiben davon unberührt: per
+Hardlink mit `windkraft_ö_karten` verbunden ist für sie richtig, kostet
+keinen Speicher.
 
-**Bekannter Verstoß gegen diese Regel (offener Punkt, nicht behoben):** Bei
-der Migration wurden mehrere echte Ketten-Ausgaben per Hardlink statt per
-Kopie übernommen — 7 Dateien unter `output/noe/` sowie das Geoparquet unter
-`output/kataster/` (`at_dkm_gst_nfl_epsg31287.geoparquet`). Diese Dateien
-sind damit aktuell Schreibziele auf einem geteilten Inode mit dem Alt-Repo.
-Das Verlinken wird an dieser Stelle **nicht** geändert — das ist nicht
-autorisiert.
+Die Vorgängerformulierung dieser Regel lautete „Eingaben hardlinken,
+Ausgaben kopieren" — schwächer, und zwar auf eine Art, die den eigentlichen
+Fehler verdeckt hat: sie verlangt eine **Einordnung** (ist diese Datei
+Eingabe oder Ausgabe?), und genau diese Einordnung schlug fehl, obwohl sie
+korrekt war. Die Adressregister-Parquet-Caches und die betroffenen
+`output/`-Dateien wurden zu Recht als „Artefakte, die (auch) gelesen
+werden" eingestuft — sie werden tatsächlich als Cache bzw. als
+weiterverarbeitetes Zwischenergebnis gelesen. Nur schreibt dieselbe Kette
+eben auch in sie hinein. Eine Regel, die bei einer korrekten Einordnung
+trotzdem zum falschen Ergebnis führt, ist die falsche Regel. Die neue
+Formulierung braucht keine Einordnung mehr, nur eine mechanisch prüfbare
+Tatsache: den Link-Count. Ein Schreibvorgang auf eine hardgelinkte Datei
+kürzt den geteilten Inode und zerstört dieselbe Datei im Alt-Repo im selben
+Moment, ohne Fehlermeldung — das gilt unabhängig davon, wie die Datei
+eingeordnet wurde.
+
+**Bekannter Verstoß — behoben.** Bei der Migration wurden mehrere echte
+Ketten-Ausgaben per Hardlink statt per Kopie übernommen: die Dateien unter
+`output/noe/` (13 Stück, darunter die 7 tatsächlichen Schreibziele
+`alignment_mindestabstand.json`, `pdf_750m_{geb,gwr,gruenland_widmung}.geojson`
+und `pdf_hig_source_{geb,gwr,gruenland_widmung}.geojson`, sowie 6 weitere
+`alignment_*.json`, die zwar aktuell von keinem migrierten Skript
+geschrieben werden, aber unter demselben Verzeichnis liegen und derselben
+Invariante unterliegen), das Geoparquet unter `output/kataster/`
+(`at_dkm_gst_nfl_epsg31287.geoparquet`, ≈ 5,0 GB) sowie die beiden
+Adressregister-Caches unter `data/adressregister/`
+(`adressen_31287.parquet`, `bev_gebaeude_31287.parquet`). Alle 16 Dateien
+sind inzwischen echte Kopien: per `cp`/`mv` neu angelegt, Link-Count 1,
+eigener Inode, Inhalt byteidentisch zum Alt-Repo geprüft (`cmp`). Das
+Alt-Repo ist davon unberührt — sein eigener Link-Count auf dieselben
+Dateien ist ebenfalls auf 1 zurückgefallen. `make check-hardlinks`
+(`tools/check_hardlink_safety.py`) weist das jetzt mechanisch nach, statt
+es einer Einordnung zu überlassen — siehe README.md, Abschnitt
+„Hardlink-Sicherheit prüfen".

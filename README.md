@@ -94,6 +94,29 @@ das Manifest statt es zu erraten. **Der Emitter ist noch nicht eingebaut** —
 Farb-/Kategorie-/Sichtbarkeits-Tabellen für Writer und Viewer, aber kein
 Modul schreibt bislang das Manifest selbst.
 
+## Hardlink-Sicherheit prüfen
+
+`data/` ist überwiegend echtes, per Hardlink aus `windkraft_ö_karten`
+übernommenes Quellmaterial — rein lesend, das kostet keinen Speicher und
+ist korrekt so. Für jede Datei, die irgendein Codepfad **schreibt**, gilt
+das Gegenteil: sie muss eine echte Kopie sein, nie ein Hardlink. Ein
+Schreibvorgang auf eine hardgelinkte Datei kürzt den geteilten Inode und
+zerstört dieselbe Datei im Alt-Repo im selben Moment, ohne Fehlermeldung.
+
+```
+make check-hardlinks
+```
+
+**Nach dem Hinzufügen jedes neuen Datensatzes ausführen.** Das Werkzeug
+(`tools/check_hardlink_safety.py`) prüft mechanisch, ohne Abhängigkeiten
+und in Sekunden: kein File unter `output/` darf einen Link-Count > 1 haben
+(ausnahmslos), und eine explizit deklarierte Liste bekannter Schreibziele
+unter `data/` (aktuell die beiden Adressregister-Parquet-Caches) muss
+Link-Count 1 haben. Details, Begründung und die Historie des behobenen
+Verstoßes: [`data/README.md`](data/README.md), Abschnitt 9, und
+[`docs/FOLLOWUPS.md`](docs/FOLLOWUPS.md), Abschnitt „Regel: die
+Hardlink-Invariante".
+
 ## Verweise
 
 - [`data/README.md`](data/README.md) — Provenienz jeder Datei unter `data/`.

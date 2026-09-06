@@ -5,7 +5,7 @@ V2_DIR = output/abschichtung_widmung_v2
 V2_TIF = $(V2_DIR)/osm_wka_distance_zones_widmung_v2.tif
 
 .PHONY: widmung-v2 widmung-v2-zoning widmung-v2-hig widmung-v2-osm widmung-v2-tif \
-        widmung-v2-validate
+        widmung-v2-validate check-hardlinks
 
 ## Widmungs-Abschichtung v2 — die Referenzkarte
 ## Doku: docs/widmung_v2.md
@@ -28,3 +28,9 @@ widmung-v2-validate:
 
 ## Volle v2-Kette inkl. Testpunkt-Prüfung (mehrstündig)
 widmung-v2: widmung-v2-zoning widmung-v2-hig widmung-v2-osm widmung-v2-tif widmung-v2-validate
+
+## Prüft mechanisch, dass kein Schreibziel unter data/ oder output/ noch ein
+## Hardlink ist (siehe tools/check_hardlink_safety.py). Nach jedem Hinzufügen
+## neuer Daten laufen lassen — schnell, ohne Abhängigkeiten.
+check-hardlinks:
+	$(PYTHON) tools/check_hardlink_safety.py
