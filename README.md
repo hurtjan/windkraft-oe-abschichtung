@@ -87,9 +87,26 @@ Reihenfolge laufen müssen:
 4. `make widmung-v2-tif` — kombiniert alle Layer zum finalen GeoTIFF.
 5. `make widmung-v2-validate` — validiert das GeoTIFF gegen die Testpunkte.
 
-`make widmung-v2` führt alle fünf nacheinander aus. Laufzeit: mehrere
-Stunden, in diesem Repo nie verifiziert — die Kette wurde in diesem Repo
-noch kein einziges Mal end-to-end ausgeführt (siehe Abschnitt „Status“).
+`make widmung-v2` führt alle fünf nacheinander aus. Laufzeit, gemessen am
+06.09.2026 auf einer Maschine mit bereits vorhandenen Caches/Checkpoints
+(Adressregister-Parquets, teilweise befüllter OSM-PBF-Extract-Cache) —
+**ein** gemessener Lauf auf **einer** Maschine, keine Garantie für andere
+Umgebungen oder einen Kaltstart ohne Caches:
+
+| Stufe | Skript | Dauer |
+| --- | --- | --- |
+| 1 build_official_zoning_layers | `01_build_official_zoning_layers.py` | 49 s |
+| 2 build_hig_sources | `02_build_hig_sources.py` | 143 s (2 min 23 s) |
+| 3 build_osm_layers | `03_build_osm_layers.py` | 375 s (6 min 15 s) |
+| 4 create_distance_zones | `04_create_distance_zones.py` | 298 s (4 min 58 s) |
+| 5 validate | `05_validate.py` | 1 s |
+| **Gesamt** | | **866 s (14 min 26 s)** |
+
+Bei einem Kaltstart ohne vorhandene Caches (insbesondere ein leerer
+OSM-PBF-Extract-Cache unter `output/abschichtung/osm_pbf_layers/`, ca. 4,6 GB)
+ist mit deutlich längerer Laufzeit zu rechnen als hier gemessen — die Kette
+wurde in diesem Repo bis zu diesem Lauf noch kein einziges Mal end-to-end
+ausgeführt (siehe Abschnitt „Status“).
 Wichtig: die Kopplung zwischen den Schritten läuft über Dateien im
 gemeinsamen Ausgabeordner (`output/abschichtung_widmung_v2/...`), nicht über
 Make-Abhängigkeiten — die Targets selbst kennen sich gegenseitig nicht, ein
