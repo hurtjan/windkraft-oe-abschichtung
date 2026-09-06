@@ -108,18 +108,76 @@ Verifiziert am Quellcode von `windkraft_ö_karten` (Stand dieser Prüfung):
   Filter/Clip übrig (`[warn] wind zone source '<key>' has no usable
   features`), keine Quelle überhaupt ladbar (`[warn] zones enabled but no
   source could be loaded`, liefert `None` statt zu werfen).
-- **Checkpoints prüfen keinen Rohdaten-Fingerprint.** Für Infrastruktur-,
-  Flughafen-, Natur-, Geographie- und Zonierungs-Checkpoints wird **kein**
-  `SOURCE_FINGERPRINT`-Tag angelegt (nur Gebäudebänder tragen
-  `HIG_SOURCE_FINGERPRINT`). Ein neues OSM-PBF, neue Schutzgebiete, ein neues
-  DGM oder geänderte `config.json`-Schwellen werden **ohne
-  `--force-layers`** nicht erkannt — die Pipeline meldet `[keep]` und liefert
-  wortlos veraltete Bänder.
+- **Checkpoints prüfen keinen Rohdaten-Fingerprint** für Infra-, Flughafen-,
+  Natur-, Geographie-, Wasser- und Zonierungs-Bänder — siehe §0.3, eigene
+  Warnung, weil die Konsequenz gravierender ist als bei den übrigen
+  Fallbacks hier.
 
 Hart abgebrochen wird nur bei fehlenden **Zwischenprodukten der eigenen
 Pipeline** (Stufe-2-Cover-Layer, Stufe-4-Pflicht-Checkpoints) — nicht bei
 fehlenden Rohdaten. Faustregel: nach neuen Rohdaten oder geänderter Config
 immer `--force-layers` auf Stufe 3 und 4 verwenden.
+
+---
+
+### 3. Checkpoints ohne Rohdaten-Fingerprint — kein Fehlschlag, sondern stille Vermischung alt/neu
+
+> **Man tauscht eine Quelldatei aus, lässt die Pipeline laufen, sie meldet
+> Erfolg — und das Ergebnis mischt still alte und neue Daten.**
+
+Das ist schlimmer als die übrigen unter §0.2 dokumentierten stillen
+Fallbacks: Dort bleibt ein Band leer oder degeneriert — ein unvollständiges,
+aber als solches erkennbares Ergebnis. Hier dagegen bleibt jedes einzelne
+Band für sich genommen plausibel; nur die Kombination ist inkonsistent (ein
+Teil der Bänder rechnet noch mit der alten Quelldatei, ein anderer Teil
+schon mit der neuen), ohne dass die Pipeline dafür ein Signal liefert.
+
+**Mechanismus, verifiziert im Quellcode von `windkraft_ö_karten`:**
+`layer_done()` (`windkraft/calc/abschichtung_common.py:1421-1439`) hält
+einen Checkpoint für gültig, sobald Shape/CRS/Transform/Bandname passen —
+einen Fingerprint der Eingabedatei prüft es nur, wenn `ensure_group_layers()`
+(`abschichtung_common.py:1458-1483`) ihm eine `extra_ok`-Funktion mitgibt.
+
+Das geschieht **nicht** für folgende Gruppen (kein `extra_ok`/`extra_tags`
+beim jeweiligen `ensure_group_layers()`-Aufruf):
+
+| Gruppe | Fundstelle (kein Fingerprint) |
+|---|---|
+| Infrastruktur-Masken | `scripts/main/build_widmung_v2_layers.py:264` |
+| Flughafen-Korridor-Masken | `scripts/main/build_widmung_v2_layers.py:265` |
+| Natur-Masken | `scripts/main/create_widmung_v2_distance_zones.py:441` |
+| Geographie-Masken | `scripts/main/create_widmung_v2_distance_zones.py:442` |
+| Wasser-Masken | `scripts/main/create_widmung_v2_distance_zones.py:443` |
+| Amtliche Windzonen-Referenz (Zonierung) | `scripts/main/create_widmung_v2_distance_zones.py:454` |
+
+Zum Vergleich, wo es **wohl** einen Fingerprint gibt (`extra_tags` wird
+gesetzt): Gebäudebänder tragen `HIG_SOURCE_FINGERPRINT`
+(`scripts/main/build_widmung_v2_layers.py:246-249`), HiG-Familie und Puffer
+tragen `SOURCE_FINGERPRINT` (`scripts/main/create_widmung_v2_distance_zones.py:240,394-406`).
+
+**Abweichung von der Vorgabe-Annahme:** Die Vorgabe für diese Prüfung
+nannte fünf betroffene Gruppen (Infra, Flughafen, Natur, Geographie,
+Zonierung). Der Code zeigt eine **sechste, zusätzliche** Gruppe ohne
+Fingerprint: die **Wasser-Masken** (`WATER_BANDS`,
+`create_widmung_v2_distance_zones.py:443`) — oben mit aufgenommen, nicht nur
+der Vorgabe halber weggelassen. Die Vorgabe-Bezeichnung „SOURCE_FINGERPRINT“
+selbst stimmt; Gebäudebänder nutzen daneben die Variante
+`HIG_SOURCE_FINGERPRINT` (siehe Vergleichstabelle oben).
+
+Diese Einstufung deckt sich mit der Warm-Check-Matrix im Vorgängerdokument
+(`windkraft_ö_karten/docs/README_widmung_v2_provenance.md`, Abschnitt 8,
+Zeilen ~505-517): dort stehen exakt „Infra, Flughäfen“ (Stufe 3) und „Natur,
+Geographie, Wasser, Zonierung“ (Stufe 4) als einzige Gruppen mit „wird nicht
+erkannt: … nur `--force-layers`".
+
+**Workaround:** Es gibt keinen automatischen Invalidierungsweg für diese
+sechs Gruppen. Einzige Möglichkeit, einen veralteten Checkpoint zu
+verwerfen, ist der manuelle Aufruf mit `--force-layers` (verifiziert u. a.
+in `build_widmung_v2_layers.py:233`, `create_widmung_v2_distance_zones.py:378`
+— beide definieren `--force-layers` als `argparse`-Flag, das
+`ensure_group_layers()` den erzwungenen Neubau auslösen lässt). Ohne dieses
+Flag meldet die Pipeline für die betroffene Gruppe `[skip]`/`[keep]` und
+liefert wortlos die alten Bänder weiter — Faustregel siehe §0.2, Ende.
 
 ---
 
@@ -201,14 +259,36 @@ sondern dient nur dem Soll/Ist-Vergleich. Zusammen unter 1 MB (ohne
 | — | `data/WINDKRAFT_AUSSCHLUSSZONE.zip` | unbekannt — zu klären | unbekannt — zu klären | unbekannt — zu klären | **4,4 MB** | unbekannt — zu klären | unbekannt — zu klären |
 
 **Datenqualitäts-Hinweis (verifiziert bei dieser Prüfung, weicht von der
-Vorgabe-Annahme ab):** `data/windkraftzonen_shapefile_2024.json` (im alten
-Repo, nicht migriert, siehe §5) wurde bislang als „byte-identisches
-Duplikat“ von `zonierung_noe.json` beschrieben. Ein `cmp -l` zeigt: beide
-Dateien sind exakt **600.056 Byte** groß, unterscheiden sich aber an
-**11 Bytes** — sie sind **nicht** byte-identisch, wohl aber ein Nahe-Duplikat
-(gleicher Inhalt, geringfügig abweichend, vermutlich Metadaten/Zeitstempel).
-Das ändert nichts an der Entscheidung, `windkraftzonen_shapefile_2024.json`
-nicht zu migrieren (§5) — nur die Begründung „byte-identisch“ war ungenau.
+Vorgabe-Annahme ab):** `data/windkraftzonen_shapefile_2024.json` wurde
+bislang als „byte-identisches Duplikat“ von `zonierung_noe.json`
+beschrieben. Ein `cmp -l` zeigt: beide Dateien sind exakt **600.056 Byte**
+groß, unterscheiden sich aber an **11 Bytes** (Offsets 599964, 599966,
+599967, 599970, 599972, 599973, 599975, 599976, 599978, 599979, 599980) —
+sie sind **nicht** byte-identisch. Die Differenz ist trivial erklärt: alle
+11 Bytes liegen innerhalb des `"timeStamp"`-Felds am Dateiende (WFS-
+Exportzeitstempel `2026-04-30T10:27:19.593Z` in `zonierung_noe.json` gegen
+`2026-03-29T19:46:44.865Z` in `windkraftzonen_shapefile_2024.json`) — alle
+sonstigen Felder (`totalFeatures`, `numberMatched`, `numberReturned`, `crs`,
+alle 71 Features) sind identisch. Es handelt sich also um zwei WFS-Exports
+derselben 71 Zonen zu unterschiedlichen Zeitpunkten, kein inhaltlicher
+Unterschied.
+
+**Migrationsstatus (aktualisiert, ersetzt die Einstufung in §6/§7):**
+`windkraftzonen_shapefile_2024.json` liegt Stand dieser Prüfung nur unter
+`windkraft_ö_karten/data/`, noch nicht unter `data/` im neuen Repo.
+Entschieden ist: **beide** Dateien werden per Hardlink nach `data/`
+übernommen (ein späterer Migrationsschritt, hier nicht ausgeführt) — die
+in §6/§7 dokumentierte Einstufung als „nicht migriert“ ist damit überholt.
+Welche der beiden Dateien als **autoritativ** gilt, ist bewusst **offen**
+gelassen — das ist eine Datenfrage (welcher Exportzeitpunkt maßgeblich ist),
+keine Migrationsfrage, und wird hier nicht entschieden. Band 37
+(`official_wind_zoning`) liest per Default `data/zonierung_noe.json` —
+verifiziert direkt im Quellcode:
+`scripts/main/create_widmung_v2_distance_zones.py:363` definiert
+`--official-zoning-geojson` mit Default `"data/zonierung_noe.json"`, dieser
+Pfad speist `build_official_zoning_masks()` und damit `OFFICIAL_ZONING_BANDS`
+(Band 37). `windkraftzonen_shapefile_2024.json` wird von keinem Skript der
+Referenzkette gelesen (per Grep über alle `.py`-Dateien, siehe auch §6).
 
 ### 3.2 NÖ-SekROP, Mindestabstandszonen (Precondition)
 
@@ -276,6 +356,25 @@ Industrie gelten, steht vollständig in `windkraft/calc/widmung_sources.py`
 `data/kataster/` (9,1 GB Rohdaten, 9 Archive à Bundesland, siehe unten) und
 ist mit **5,0 GB** selbst größer als jedes einzelne Quell-Archiv.
 
+> **Keine verlustfreie Umwandlung des 9,1-GB-Quellbestands.** Vollständige
+> Übernahme zweier DKM-Ebenen (`GST_V2` Grundstücke, `NFL_V2`
+> Nutzungsflächen) für acht Bundesländer, reprojiziert auf EPSG:31287 — plus
+> eine Neu-Konstruktion für Niederösterreich aus DXF-Linienwerk, dort **ohne**
+> Grundstücksebene. Sieben der neun Ebenen, die jede KG-Lieferung enthält
+> (`FPT_V2, GNR_V2, NSL_V2, NSY_V2, SGG_V2, SSB_V2, VGG_V2` — verifiziert an
+> einer KG aus `data/kataster/KAT_DKM_Vorarlberg_SHP_20221001.zip`, KG
+> `90001`, die alle neun Ebenen enthält), werden nie gelesen. Die 9,1 GB
+> unter `data/kataster/` sind deshalb keine bloße Zwischenkopie — sie
+> enthalten Ebenen, die im Geoparquet gar nicht vorkommen.
+
+**Lizenz — ungeklärt, vor jeder Weitergabe mit dem BEV zu klären.** Die
+DKM-Lizenz ist im Repo nicht belegt (siehe bereits das Vorgängerdokument
+`windkraft_ö_karten/source_data_README.md`, dortige Lizenz-Einleitung). Weil
+`data/` per `.gitignore` vollständig ausgeschlossen ist, blockiert das den
+Betrieb dieses Repos **nicht** — es blockiert aber die Weitergabe der
+DKM-Rohdaten selbst **und** jeder daraus abgeleiteten Karte an Dritte, bis
+die Lizenzfrage beim BEV geklärt ist.
+
 | Bundesland | Archiv unter `data/kataster/` | Größe |
 |---|---|---|
 | Burgenland | `KAT_DKM_Burgenland_SHP_20210401.zip` | 789 MB |
@@ -289,13 +388,61 @@ ist mit **5,0 GB** selbst größer als jedes einzelne Quell-Archiv.
 | Wien | `KAT_DKM_Wien_SHP_20221001.zip` | 621 MB |
 | (Symboltabelle) | `BEV_DKM_DXF_Symbole_V2.6.csv` | 8 KB — nur für NÖ-DXF nötig |
 
-Herkunft: BEV-Katalog, manueller Download. Lizenz: unbekannt — zu klären.
+Stand der Archive (Dateidatum im Namen): überwiegend Oktober 2022 (Ktn, OÖ,
+Sbg, Stmk, Tirol, Vlbg, Wien — `_20221001`), Burgenland April 2021
+(`_20210401`), Niederösterreich April 2023 (`_20230401`). Herkunft:
+BEV-Katalog, manueller Download — kein automatisierter Abrufweg im Repo.
 Neu beschaffbar: ja, eingeschränkt (Portal/Lizenz zu klären).
+
+**Was tatsächlich übernommen wird.** `SHP_LAYER_NAMES = ("GST_V2", "NFL_V2")`
+(`scripts/main/export_at_dkm_geoparquet.py:71`, altes Repo, byteidentisch im
+neuen Repo unter `scripts/preprocessing/export_at_dkm_geoparquet.py`) — nur
+diese zwei der neun Ebenen werden je KG-Archiv extrahiert
+(`extract_layer_shapefiles()`/`extract_layer_shapefiles_from_members()`,
+`export_at_dkm_geoparquet.py:383-427`). Innerhalb dieser zwei Ebenen ist die
+Übernahme für die acht SHP-Bundesländer (Bgld, Ktn, OÖ, Sbg, Stmk, Tirol,
+Vlbg, Wien) tatsächlich vollständig — verifiziert gegen
+`output/kataster/at_dkm_gst_nfl_epsg31287_summary.csv` (altes Repo):
+**7.118.537** `GST_V2`-Features rein, 7.118.537 raus; **13.505.334**
+`NFL_V2`-Features rein, 13.505.334 raus — kein Zeilenfilter.
+`process_shp_gdf()` (`export_at_dkm_geoparquet.py:437-483`) übernimmt je
+Zeile alle DBF-Attribute (`GST_V2`: `KG, GNR, RSTATUS, MST`; `NFL_V2`: `KG,
+NS, NS_RECHT` — das ist bereits der volle DBF-Attributsatz dieser beiden
+Ebenen, verifiziert an einer KG-Shapefile aus demselben Vorarlberg-Archiv).
+Geometrien werden repariert statt verworfen: `cleaned_polygon_parts()`
+(`export_at_dkm_geoparquet.py:304-355`) ruft `make_valid()` auf ungültige
+Geometrien auf und zerlegt Multipart-Geometrien in einzelne Zeilen
+(`multipart_features`/`exploded_extra_parts` in der Summary-CSV) — ohne
+Geometrien zu verwerfen.
+
+**Niederösterreich ist eine Neu-Konstruktion, keine Konvertierung — und NÖ
+ist das wichtigste Bundesland dieses Projekts.** Seine Katasterbasis hat
+deshalb eine andere Qualität als die der übrigen acht Bundesländer. NÖ liegt
+nur als DXF-Linienwerk vor; es gibt **keine** `GST_V2`-Parzellenebene für NÖ
+im Geoparquet (`export_at_dkm_geoparquet.py:657`, altes Repo: „Niederoesterreich
+has no GST_V2 parcel layer in this export“). Statt einer Konvertierung baut
+`export_noe_tile()` (`export_at_dkm_geoparquet.py:661-792`) Polygone per
+Tile+Halo-Kachelung, `shapely.ops.polygonize` über die DXF-Linien und einer
+Mehrheitsabstimmung (`Counter` über `STRtree`-Treffer benachbarter
+NS-Symbolpunkte) je Polygon. Der Code selbst führt Buch über die
+Unsicherheit dieser Rekonstruktion: von 3.491.407 erzeugten
+NÖ-Polygonen sind **684.249 als `ambiguous_polygons`** markiert (mehr als
+eine NS-Kategorie unter den Stimmen) und **338.674 als
+`unassigned_polygons`** verworfen (keine NS-Stimme traf das Polygon) —
+zusammen rund 29 % der NÖ-Polygone mit unsicherer oder fehlender
+Klassifikation (Zahlen aus `at_dkm_gst_nfl_epsg31287_summary.csv`, altes
+Repo). Polygone unter 4 m² werden verworfen (`--noe-min-area-m2`, Default
+`4.0`, `export_at_dkm_geoparquet.py:910`). Diese Unsicherheit betrifft **nur**
+Niederösterreich — bei den acht SHP-Bundesländern gibt es weder
+Mehrheitsabstimmung noch Ambiguität, dort stammt jede Zeile 1:1 aus einer
+amtlichen DBF-Zeile.
 
 Erzeugt wird das Geoparquet mit
 `scripts/preprocessing/export_at_dkm_geoparquet.py` (im neuen Repo identisch
 zum alten `scripts/main/export_at_dkm_geoparquet.py` — byteidentisch
-geprüft). Wesentliche CLI-Optionen (per `argparse`):
+geprüft). Anders als bei der OSM-Kette gibt es hier **keine externe
+Binärabhängigkeit** — kein `osmium` o. Ä., nur Python-Pakete. Wesentliche
+CLI-Optionen (per `argparse`):
 
 ```
 --data-dir            Default: <ROOT>/data/kataster
@@ -320,16 +467,43 @@ geprüft). Wesentliche CLI-Optionen (per `argparse`):
 `ROOT` ist `Path(__file__).resolve().parents[2]` — vom neuen Skriptpfad
 `scripts/preprocessing/export_at_dkm_geoparquet.py` aus ist das
 `abschichtung/` selbst, die Defaults passen also unverändert. Beispielaufruf
-aus dem Repo-Root:
+aus dem Repo-Root (mit `--overwrite`, falls die Zieldatei schon existiert):
 
 ```bash
 uv run python scripts/preprocessing/export_at_dkm_geoparquet.py --overwrite
 ```
 
-Niederösterreich liegt nur als DXF vor und wird über
-`create_noe_dkm_polygon_fill_map.py`-Hilfsfunktionen (Tile+Halo-
-Polygonisierung, NS-Symbole) zu klassifizierten NFL-ähnlichen Polygonen
-verarbeitet — es entstehen dabei **keine** `GST_V2`-Parzellen für NÖ.
+Laufzeit: unbekannt, wird beim nächsten Lauf selbst protokolliert (das
+Skript loggt Zeiten pro Abschnitt selbst, aber vom letzten tatsächlichen Lauf
+ist keine Log-Ausgabe erhalten).
+
+**Der Lesefilter stromabwärts ist eng — der Großteil des Geoparquets ist
+Reserve, kein Arbeitsmaterial.** Zwei Stellen lesen das Geoparquet für die
+Widmung-v2-Referenzkette, beide mit demselben engen Filter: nur die Spalten
+`bundesland`, `ns`, `ns_category`, `geometry` (4 von 17 Feldern im Schema),
+nur die Zeilen mit `source_layer` in `NFL_V2`/`NFL_DXF_POLYGONIZED`, und nur
+NS-Codes `41/52/66/71` (bzw. deren Schreibvarianten) oder die Kategorien
+„Baufläche“/„Garten“.
+
+- `windkraft/calc/kataster_layers.py:411-424`, Funktion
+  `load_kataster_symbols()` — **nur im alten Repo** (`windkraft_ö_karten`).
+  Diese Datei ist **nicht** ins neue Repo migriert; sie existiert dort
+  nicht (verifiziert per Suche unter `master_windkraft/abschichtung/`).
+- `windkraft/calc/hig_detection.py:164-170` — identisch in beiden Repos
+  vorhanden (alter Repo `windkraft_ö_karten/windkraft/calc/hig_detection.py`,
+  neuer Repo `master_windkraft/abschichtung/windkraft/calc/hig_detection.py`;
+  ein Diff der beiden Dateien zeigt nur eine Abweichung, Zeile 51: der
+  Import von `fft_circle_dilation`/`ns_kind` kommt im neuen Repo aus
+  `windkraft.calc.distance_engine` statt aus `windkraft.calc.kataster_layers`
+  — die Lesefilter-Logik selbst, Zeilen 164-170, ist unverändert).
+
+`GST_V2` (alle Grundstücke) und die meisten `NFL_V2`-Kategorien (Wald,
+Landwirtschaft, Gewässer, Verkehrsfläche, Alpen, Weingarten, Sonstige
+Nutzung — siehe die Flächentabelle in
+`at_dkm_gst_nfl_epsg31287_overview.md`) werden von keinem Skript der
+Referenzkette gelesen. Genau deshalb hat das Vorhalten der vollen 9,1-GB-
+Quelle (statt nur des Geoparquets) einen Wert: Wer je einmal mehr als
+Baufläche/Garten aus der DKM braucht, muss neu exportieren.
 
 ### 4.2 `output/noe/alignment_mindestabstand.json` — reproduzierbar, kein Rohdatum
 

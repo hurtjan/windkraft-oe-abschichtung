@@ -43,3 +43,42 @@ windkraft/util/__init__.py	windkraft/util/__init__.py	verbatim kopiert (leer)
 windkraft/util/admin.py	windkraft/util/admin.py	verbatim kopiert
 -	windkraft/viz/__init__.py	neu angelegt, leer; band_metadata.py folgt durch anderen Agenten
 scripts/webmap/build_osm_wka_layer_viewer.py (Z. 34-234)	windkraft/viz/band_metadata.py	gemeinsame Quelle fuer Writer und Viewer
+windkraft_ö_karten/data/DGM_R25.tif	data/DGM_R25.tif	Hardlink: Referenz-Grid (25m Hoehenmodell), 750 MB, 1 Datei
+windkraft_ö_karten/data/austria-260330.osm.pbf	data/austria-260330.osm.pbf	Hardlink: Geofabrik-PBF, 760 MB, 1 Datei
+windkraft_ö_karten/data/AUT_power-density_150m.tif	data/AUT_power-density_150m.tif	Hardlink: Global Wind Atlas Leistungsdichte 150m, 6,6 MB, 1 Datei
+windkraft_ö_karten/data/osm_power_lines.gpkg	data/osm_power_lines.gpkg	Hardlink: OSM-Stromleitungen, 13 MB, 1 Datei
+windkraft_ö_karten/data/admin_boundaries/	data/admin_boundaries/	Hardlink: VGD-Verwaltungsgrenzen, 20 MB, 5 Dateien (ganzer Ordner)
+windkraft_ö_karten/data/naturschutzgebiete/SG_AT_2024_v_April_Stand_3_April_2024.zip	data/naturschutzgebiete/SG_AT_2024_v_April_Stand_3_April_2024.zip	Hardlink: Naturschutzgebiete-ZIP, 73 MB, 1 Datei; entpackte Ordner und NATURSCHUTZGEBIETE_ZONIERUNG.zip bewusst NICHT uebernommen (Laufzeit-Entpackung, siehe data/README.md Abschnitt 6)
+windkraft_ö_karten/data/adressregister/	data/adressregister/	Hardlink: BEV-Adressregister komplett inkl. 2 Parquet-Caches, 484 MB, 5 Dateien (ganzer Ordner)
+windkraft_ö_karten/data/luca_zonen/	data/luca_zonen/	Hardlink: handdigitalisierte Vorrangzonen Stmk+Sbg, NICHT reproduzierbar, 300 KB, 12 Dateien (ganzer Ordner)
+windkraft_ö_karten/data/zonierung_noe.json	data/zonierung_noe.json	Hardlink: amtliche NOE-Zonierung (WFS-Export), 588 KB, 1 Datei
+windkraft_ö_karten/data/windkraftzonen_shapefile_2024.json	data/windkraftzonen_shapefile_2024.json	Hardlink: zweiter WFS-Export derselben 71 Zonen (11 Byte Unterschied im timeStamp-Feld); explizit beide Dateien uebernommen, welche massgeblich ist bleibt bewusst offen, 588 KB, 1 Datei
+windkraft_ö_karten/data/WK_Eignungszonen.zip	data/WK_Eignungszonen.zip	Hardlink: Windkraft-Eignungszonen Burgenland, 268 KB, 1 Datei
+windkraft_ö_karten/data/RED_III_Windkraftbeschleunigungszone.zip	data/RED_III_Windkraftbeschleunigungszone.zip	Hardlink: RED-III-Beschleunigungszone Kaernten, 28 KB, 1 Datei
+windkraft_ö_karten/data/WINDKRAFT_AUSSCHLUSSZONE.zip	data/WINDKRAFT_AUSSCHLUSSZONE.zip	Hardlink: Windkraft-Ausschlusszone, 4,4 MB, 1 Datei
+windkraft_ö_karten/data/nö_zonierung/TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf	data/nö_zonierung/TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf	Hardlink: NOE-SekROP Mindestabstandszonen-Karte, 16 MB, 1 Datei; die uebrigen 6 TeilC-PDFs des Ordners (~109 MB) bewusst NICHT uebernommen
+windkraft_ö_karten/data/flächenwidmungen/WIDMUNGSFLAECHEN.zip	data/flächenwidmungen/WIDMUNGSFLAECHEN.zip	Hardlink: Flaechenwidmung Burgenland, 48 MB, 1 Datei; Pfad folgt windkraft/calc/widmung_sources.py (ROOT/data/flächenwidmungen), nicht dem in data/README.md vorgeschlagenen data/widmung/-Baum
+windkraft_ö_karten/data/flächenwidmungen/Flaewi.shp.zip	data/flächenwidmungen/Flaewi.shp.zip	Hardlink: Flaechenwidmung Steiermark Gruenland/Freizeit (EPSG:4258), 916 MB, 1 Datei; groesste einzelne Rohdatendatei der Migration
+windkraft_ö_karten/data/new_widmungs_data/kaernten/flawi_ktn_gpkg.zip	data/new_widmungs_data/kaernten/flawi_ktn_gpkg.zip	Hardlink: Flaechenwidmung Kaernten, 142 MB, 1 Datei
+windkraft_ö_karten/data/new_widmungs_data/niederoesterreich/RRU_WI_HUELLE.gpkg	data/new_widmungs_data/niederoesterreich/RRU_WI_HUELLE.gpkg	Hardlink: Flaechenwidmung Niederoesterreich, 110 MB, 1 Datei
+windkraft_ö_karten/data/new_widmungs_data/oberoesterreich/FLWI_WIDMUNGEN_F.zip	data/new_widmungs_data/oberoesterreich/FLWI_WIDMUNGEN_F.zip	Hardlink: Flaechenwidmung Oberoesterreich (CC-BY 4.0), 138 MB, 1 Datei
+windkraft_ö_karten/data/new_widmungs_data/salzburg/Flaechenwidmung_Shapefile.zip	data/new_widmungs_data/salzburg/Flaechenwidmung_Shapefile.zip	Hardlink: Flaechenwidmung Salzburg, 30 MB, 1 Datei
+windkraft_ö_karten/data/new_widmungs_data/steiermark/Bauland.zip	data/new_widmungs_data/steiermark/Bauland.zip	Hardlink: Flaechenwidmung Steiermark Wohn/Misch/Industrie, 42 MB, 1 Datei
+windkraft_ö_karten/data/new_widmungs_data/tirol/FLW_Flaechenwidmung_270349538825189369.gpkg	data/new_widmungs_data/tirol/FLW_Flaechenwidmung_270349538825189369.gpkg	Hardlink: Flaechenwidmung Tirol (CC-BY 4.0), 106 MB, 1 Datei
+windkraft_ö_karten/data/new_widmungs_data/vorarlberg/fwp_flaeche.gpkg	data/new_widmungs_data/vorarlberg/fwp_flaeche.gpkg	Hardlink: Flaechenwidmung Vorarlberg, 144 MB, 1 Datei
+windkraft_ö_karten/data/new_widmungs_data/wien/genflwidmung_wien.geojson	data/new_widmungs_data/wien/genflwidmung_wien.geojson	Hardlink: generalisierte Flaechenwidmung Wien (WFS-Export), 41 MB, 1 Datei
+windkraft_ö_karten/data/kataster/	data/kataster/	Hardlink: DKM-Rohdaten aller 9 Bundeslaender (9 Archive + Symboltabelle), Quellbestand fuer das DKM-Geoparquet, 9,1 GB, 10 Dateien (ganzer Ordner)
+windkraft_ö_karten/output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet	output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet	Hardlink: erzeugtes DKM-Geoparquet (GST_V2+NFL_V2, EPSG:31287), 5,0 GB, 1 Datei; Subpfad output/kataster/... beibehalten, damit Default-Argumente der Kette (z. B. scripts/widmung_v2/02_build_hig_sources.py --dkm-parquet) aufloesen
+windkraft_ö_karten/output/noe/pdf_750m_geb.geojson	output/noe/pdf_750m_geb.geojson	Hardlink: PDF-Grundlage 750m Gebaeude, 8,3 MB, 1 Datei
+windkraft_ö_karten/output/noe/pdf_750m_gruenland_widmung.geojson	output/noe/pdf_750m_gruenland_widmung.geojson	Hardlink: PDF-Grundlage 750m Gruenland-Widmung, 1,4 MB, 1 Datei
+windkraft_ö_karten/output/noe/pdf_750m_gwr.geojson	output/noe/pdf_750m_gwr.geojson	Hardlink: PDF-Grundlage 750m GWR, 8,0 MB, 1 Datei
+windkraft_ö_karten/output/noe/pdf_hig_source_geb.geojson	output/noe/pdf_hig_source_geb.geojson	Hardlink: HiG-Quelle Gebaeude, 8,2 MB, 1 Datei; _wgs84-Variante bewusst NICHT uebernommen (Duplikat in anderer Projektion, nicht von der Referenzkette gelesen)
+windkraft_ö_karten/output/noe/pdf_hig_source_gruenland_widmung.geojson	output/noe/pdf_hig_source_gruenland_widmung.geojson	Hardlink: HiG-Quelle Gruenland-Widmung, 1,3 MB, 1 Datei; _wgs84-Variante bewusst NICHT uebernommen
+windkraft_ö_karten/output/noe/pdf_hig_source_gwr.geojson	output/noe/pdf_hig_source_gwr.geojson	Hardlink: HiG-Quelle GWR, 8,0 MB, 1 Datei; _wgs84-Variante bewusst NICHT uebernommen
+windkraft_ö_karten/output/noe/alignment_industrieviertel.json	output/noe/alignment_industrieviertel.json	Hardlink: Georeferenzierungs-Eckkoordinaten Industrieviertel, 1,7 KB, 1 Datei
+windkraft_ö_karten/output/noe/alignment_landschaftsraum.json	output/noe/alignment_landschaftsraum.json	Hardlink: Georeferenzierungs-Eckkoordinaten Landschaftsraum, 1,8 KB, 1 Datei
+windkraft_ö_karten/output/noe/alignment_mindestabstand.json	output/noe/alignment_mindestabstand.json	Hardlink: Georeferenzierungs-Eckkoordinaten Mindestabstand (reproduzierbar, siehe data/README.md Abschnitt 4.2), 1,7 KB, 1 Datei
+windkraft_ö_karten/output/noe/alignment_mostviertel.json	output/noe/alignment_mostviertel.json	Hardlink: Georeferenzierungs-Eckkoordinaten Mostviertel, 1,7 KB, 1 Datei
+windkraft_ö_karten/output/noe/alignment_naturschutz.json	output/noe/alignment_naturschutz.json	Hardlink: Georeferenzierungs-Eckkoordinaten Naturschutz, 1,7 KB, 1 Datei
+windkraft_ö_karten/output/noe/alignment_waldviertel.json	output/noe/alignment_waldviertel.json	Hardlink: Georeferenzierungs-Eckkoordinaten Waldviertel, 1,7 KB, 1 Datei
+windkraft_ö_karten/output/noe/alignment_weinviertel.json	output/noe/alignment_weinviertel.json	Hardlink: Georeferenzierungs-Eckkoordinaten Weinviertel, 1,7 KB, 1 Datei

@@ -182,3 +182,33 @@ dieses Repo (`/Users/jhurt/Documents/master_windkraft/abschichtung`).
   die von seinen unbedingten Modul-Imports mitgezogenen Ballast-Module
   (terrain/siedlung_method/util-admin) zusammengenommen, nicht auf die Datei
   selbst. Nur hier vermerkt, keine Code-Änderung.
+
+## ⚠️ Datenmigration per Hardlink — Schreibzugriff auf `data/` verändert das Alt-Repo
+
+**`data/` und die übernommenen `output/`-Artefakte sind per Hardlink mit
+`windkraft_ö_karten` verbunden; ein In-place-Schreibzugriff auf eine dieser
+Dateien verändert auch das Alt-Repo. Solange das Alt-Repo als Sicherheitsnetz
+dient, darf in `data/` ausschließlich gelesen werden; neue oder ersetzte
+Dateien müssen neu angelegt statt überschrieben werden.**
+
+Konkret gefundene Gefahrenstelle (nicht gefixt, nur dokumentiert): die
+Widmung-v2-Kette schreibt unter genau einer Bedingung standardmäßig in
+`data/` hinein. `windkraft/calc/bev_register.py` (`load_address_points`,
+`load_building_points`) legt einen Parquet-Cache unter
+`(cache_dir or data_dir) / ADDRESS_CACHE_NAME` bzw. `.../BUILDING_CACHE_NAME`
+per `to_parquet()` an — ein In-place-Schreibzugriff, kein Neuanlegen unter
+neuem Namen. `scripts/widmung_v2/02_build_hig_sources.py:199` setzt
+`--cache-dir` standardmäßig auf `data/adressregister` (identisch mit
+`--address-dir`). Solange die per Hardlink übernommenen Caches
+(`adressen_31287.parquet`, `bev_gebaeude_31287.parquet`) vorhanden bleiben
+und `rebuild=False` (Default) gilt, liest der Code nur — schreibt aber genau
+dann in die Hardlink-Datei hinein (und damit ins Alt-Repo), wenn einer der
+beiden Caches fehlt, gelöscht oder mit `rebuild=True`/einem expliziten
+`--cache-dir data/adressregister`-Aufruf neu gebaut wird. Sonst wurde bei
+dieser Prüfung kein weiterer Schreibzugriff der Referenzkette auf `data/`
+gefunden (`windkraft/calc/widmung_sources.py::_ensure_ktn_gpkg` und die
+OSM-PBF-Caches in `abschichtung_common.py` schreiben beide unter
+`output/…`, nicht unter `data/…`). Sauberer Fix (nicht während der
+Migration umgesetzt): `--cache-dir` in `02_build_hig_sources.py` auf einen
+Pfad unter `output/` umstellen, damit `data/` beschreibungsgemäß
+ausschließlich Lesezugriffe sieht.
