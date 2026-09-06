@@ -121,6 +121,8 @@ from windkraft.calc.abschichtung_common import (  # noqa: E402
     uniform_buffer_cell_mask,
 )
 
+from windkraft.calc.band_manifest import write_band_manifest  # noqa: E402
+
 PIPELINE_TAG = "widmung_v2"
 SETTLEMENT_VARIANT_SOURCE_BAND = "settlement_buffer"
 # Ins extra_ok/extra_tags der abgeleiteten Checkpoint-Gruppen: ein Bump
@@ -516,6 +518,11 @@ def main(argv: list[str] | None = None) -> None:
             blur_source="raw",
         )
 
+    # Sidecar direkt aus dem, was gerade geschrieben wurde: band_names ist die
+    # tatsaechliche Bandreihenfolge, tags sind die Datei-Tags. Kein zweites
+    # Oeffnen des Rasters, keine zweite Wahrheit ueber die Bandzahl.
+    manifest_path = write_band_manifest(Path(args.output), band_names, tags, grid, {b.name: b.description for b in BANDS})
+
     print(
         f"Wrote {args.output} from checkpoint layers in {layer_dir} "
         f"({len(BANDS)} condition bands + 3 category aggregates + all/raw/cleaned + "
@@ -523,6 +530,7 @@ def main(argv: list[str] | None = None) -> None:
         f"official_zoning + wka_bestand + {len(variants)} settlement-buffer variants x 4 bands "
         f"= {len(band_names)} bands), shape={grid['shape']}"
     )
+    print(f"Wrote {manifest_path} ({len(band_names)} bands, schema {tags['BAND_SCHEMA']})")
 
 
 if __name__ == "__main__":
