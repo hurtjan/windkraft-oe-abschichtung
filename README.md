@@ -2,11 +2,17 @@
 
 ## Zweck
 
-Dies ist ein neues, eigenständiges Repo für die Widmung-v2-Kette der
-Windkraft-Potentialberechnung. Es wurde additiv neben dem alten, gewachsenen
-Repo `windkraft_ö_karten` angelegt — das alte Repo bleibt unangetastet als
-Sicherheitsnetz bestehen, bis dieses Repo einen verifizierten Lauf hinter
-sich hat. Bis dahin ist `windkraft_ö_karten` die Quelle der Wahrheit.
+Dieses Repo berechnet aus amtlichen Widmungs-/Zonierungsdaten, OSM-Extrakten
+und Geodaten (DGM, Windatlas, Verwaltungsgrenzen) die österreichweite
+Windkraft-Potentialfläche nach dem Widmung-v2-Verfahren (Ausschluss- und
+Abstandskriterien für Mensch, Natur und Geografie). Es ist die additive
+Neufassung der Widmung-v2-Kette aus dem alten, gewachsenen Repo
+`windkraft_ö_karten` — das alte Repo bleibt unangetastet als Sicherheitsnetz
+bestehen, bis dieses Repo einen verifizierten Lauf hinter sich hat, und ist
+bis dahin die Quelle der Wahrheit. Ergebnis der Kette ist ein 38-Band-GeoTIFF
+(`output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2.tif`) plus
+das dazugehörige Sidecar-Manifest `<stem>.bands.json`; wer dieses Ergebnis
+konsumiert, findet den Vertrag dafür in [`docs/HANDOFF.md`](docs/HANDOFF.md).
 
 ## Struktur
 
@@ -50,6 +56,23 @@ sich hat. Bis dahin ist `windkraft_ö_karten` die Quelle der Wahrheit.
   Abschnitt „Stille Fallbacks und Drift“). Ein Lauf ohne `osmium-tool` sieht
   danach erfolgreich aus, ist aber inhaltlich falsch — es gibt keine
   Warnung.
+- **Speicherbedarf:** `data/` und `output/` zusammen ≈ 18 GB (`du -sch data
+  output`: 13 GB + 5,1 GB, Stand nach der Migration in dieses Repo). Beide
+  Ordner sind gitignored; nur `data/README.md` ist versioniert.
+
+## Daten besorgen
+
+`data/` ist gitignored und wird nicht mit diesem Repo mitgeliefert.
+Provenienz und Bezugsquelle jeder einzelnen Datei stehen in
+[`data/README.md`](data/README.md) — vor dem ersten Lauf lesen, insbesondere
+Abschnitt „Warnung: stille Fallbacks bei fehlenden Rohdaten“:
+
+> Eine unvollständige `data/`-Kopie erzeugt ein plausibel aussehendes, aber
+> falsches TIF, ohne dass irgendwo ein Fehler erscheint.
+
+Die Kette bricht bei fehlenden Rohdaten in den meisten Fällen **nicht** ab,
+sondern rechnet mit leeren oder degenerierten Eingaben weiter — siehe die
+Fallback-Tabelle in `data/README.md` für die einzelnen Mechanismen.
 
 ## Die Kette
 
@@ -64,35 +87,55 @@ Reihenfolge laufen müssen:
 4. `make widmung-v2-tif` — kombiniert alle Layer zum finalen GeoTIFF.
 5. `make widmung-v2-validate` — validiert das GeoTIFF gegen die Testpunkte.
 
-`make widmung-v2` führt alle fünf nacheinander aus (mehrstündig). Wichtig:
-die Kopplung zwischen den Schritten läuft über Dateien im gemeinsamen
-Ausgabeordner (`output/abschichtung_widmung_v2/...`), nicht über
+`make widmung-v2` führt alle fünf nacheinander aus. Laufzeit: mehrere
+Stunden, in diesem Repo nie verifiziert — die Kette wurde in diesem Repo
+noch kein einziges Mal end-to-end ausgeführt (siehe Abschnitt „Status“).
+Wichtig: die Kopplung zwischen den Schritten läuft über Dateien im
+gemeinsamen Ausgabeordner (`output/abschichtung_widmung_v2/...`), nicht über
 Make-Abhängigkeiten — die Targets selbst kennen sich gegenseitig nicht, ein
 Schritt scheitert erst zur Laufzeit, wenn eine erwartete Datei fehlt.
 Details und Hintergrund: `docs/widmung_v2.md`.
 
-## Das Band-Manifest — Begründung (geplant, noch nicht umgesetzt)
+## Das Band-Manifest — Begründung und Stand
 
-Downstream-Artefakte kennen die Bandnamen und die Bandreihenfolge des
-finalen GeoTIFF bisher nur, indem sie sie selbst nachbauen — mit der Folge,
-dass sie vom tatsächlichen Raster wegdriften können, ohne dass es jemandem
-auffällt. Die Belege dafür liegen bereits vor: `dashboard_data.json` trägt
-63 Bänder vom 06.08., `viewer/manifest.json` 39 Layer vom 10.08., das
-aktuelle TIF hat 38 Bänder vom 04.09. — drei verschiedene Zählungen zu drei
-verschiedenen Zeitpunkten. Sichtbarste Konsequenz:
-`scripts/analysis/build_v2_dashboard_data.py` bricht am aktuellen TIF hart
-ab, weil sein `EXCLUSION_LAYERS` noch sieben Bandnamen aus dem
-Pre-Clean-Schema nennt (siehe `docs/FOLLOWUPS.md`).
+Downstream-Artefakte kannten die Bandnamen und die Bandreihenfolge des
+finalen GeoTIFF bisher nur, indem sie sie selbst nachbauten — mit der Folge,
+dass sie vom tatsächlichen Raster wegdriften konnten, ohne dass es jemandem
+auffiel. Die Belege dafür liegen vor: `dashboard_data.json` trug 63 Bänder
+vom 06.08., `viewer/manifest.json` 39 Layer vom 10.08., das aktuelle TIF hat
+38 Bänder vom 04.09. — drei verschiedene Zählungen zu drei verschiedenen
+Zeitpunkten. Sichtbarste Konsequenz: `scripts/analysis/build_v2_dashboard_data.py`
+bricht am aktuellen TIF hart ab, weil sein `EXCLUSION_LAYERS` noch sieben
+Bandnamen aus dem Pre-Clean-Schema nennt (siehe `docs/FOLLOWUPS.md`).
 
-Geplante Lösung: der Writer-Schritt (`04_create_distance_zones.py`) soll
-künftig neben dem GeoTIFF ein Sidecar `<stem>.bands.json` schreiben — ein
-vom Erzeuger selbst stammendes Manifest mit Bandnamen, Reihenfolge und
-Kategorie. Das behebt diese Drift-Klasse strukturell, weil Erzeuger und
-Beschreibung dann nicht mehr auseinanderlaufen können; jeder Konsument liest
-das Manifest statt es zu erraten. **Der Emitter ist noch nicht eingebaut** —
-`windkraft/viz/band_metadata.py` liefert bereits die gemeinsamen
-Farb-/Kategorie-/Sichtbarkeits-Tabellen für Writer und Viewer, aber kein
-Modul schreibt bislang das Manifest selbst.
+**Umgesetzt:** der Writer-Schritt (`scripts/widmung_v2/04_create_distance_zones.py`)
+schreibt seit `windkraft/calc/band_manifest.py` (`write_band_manifest()`)
+direkt nach dem Komponieren des GeoTIFF ein Sidecar `<stem>.bands.json`
+neben die Datei — aus genau den Werten, die der Writer ohnehin schon kennt
+(Bandnamenliste, Datei-Tags), ohne das fertige Raster erneut zu öffnen.
+Bandzahl, -namen und -reihenfolge im Manifest sind damit per Konstruktion
+identisch mit dem TIF. Farben, Kategorien und Default-Sichtbarkeit kommen
+aus der gemeinsamen Quelle `windkraft/viz/band_metadata.py`. Der Vertrag,
+den ein Konsument gegen dieses Manifest einhalten muss, steht in
+[`docs/HANDOFF.md`](docs/HANDOFF.md) — **noch nicht verifiziert ist nur der
+End-to-End-Lauf, der den Emitter tatsächlich in Produktion schreiben lässt**
+(siehe „Status“); das Referenz-Manifest in `docs/HANDOFF.md` stammt aus
+einem älteren Artefakt.
+
+## Was dieses Repo nicht ist
+
+- **Keine Widmung v1.** Die alte, 54-bändige Widmung-Kette
+  (`scripts/main/create_widmung_wka_distance_zones.py` im alten Repo) wurde
+  nicht übernommen und ist hier nicht lauffähig.
+- **Keine eigenständige OSM-Kette.** `scripts/main/create_osm_wka_distance_zones.py`
+  (reine OSM-Abstandszonen ohne Widmung) ist nicht Teil dieses Repos.
+- **Keine Kataster-Kette.** Die Erzeugung von `at_dkm_gst_nfl_epsg31287.geoparquet`
+  und der übrigen Kataster-Layer läuft weiterhin ausschließlich im alten
+  Repo; dieses Repo liest ihr Ergebnis nur als Eingabedatensatz.
+- **Keine Präsentations-/Auswertungsskripte** über den unter „Struktur“
+  genannten Layer-Viewer hinaus — insbesondere keine Dashboards.
+
+Für all das ist `windkraft_ö_karten` weiterhin die Quelle der Wahrheit.
 
 ## Hardlink-Sicherheit prüfen
 
@@ -125,17 +168,23 @@ Hardlink-Invariante".
 - [`docs/MIGRATION_MAP.tsv`](docs/MIGRATION_MAP.tsv) — alte Pfade in
   `windkraft_ö_karten` → neue Pfade in diesem Repo, mit Begründung.
 - [`docs/widmung_v2.md`](docs/widmung_v2.md) — Referenzkarte der Kette.
+- [`docs/HANDOFF.md`](docs/HANDOFF.md) — Vertrag für Konsumenten des
+  GeoTIFF und seines Band-Manifests.
 
 ## Status
 
 Erledigt: Code-Übernahme der Widmung-v2-Kette, `windkraft/`-Paket,
 `scripts/`, Tests, `config.json` im Wurzelverzeichnis, Layer-Viewer
 (`scripts/webmap/build_layer_viewer.py`), gemeinsame Bandmetadaten
-(`windkraft/viz/band_metadata.py`), Migrations- und Follow-up-Dokumentation.
+(`windkraft/viz/band_metadata.py`), der Band-Manifest-Emitter
+(`windkraft/calc/band_manifest.py`), Migrations- und
+Follow-up-Dokumentation.
 
 Fehlt: ein tatsächlich verifizierter Lauf der vollständigen Kette gegen
 `windkraft_ö_karten` (Voraussetzung dafür, dass das alte Repo abgelöst werden
-kann), der Band-Manifest-Emitter, sowie die in `docs/FOLLOWUPS.md`
-gesammelten offenen Entscheidungen (u. a. `config.py`-Pfadauflösung,
-Projektname/Entry-Point in `pyproject.toml`, veraltete
-`EXCLUSION_LAYERS`-Liste im Dashboard-Skript).
+kann) — die Kette wurde in diesem Repo noch kein einziges Mal end-to-end
+ausgeführt, das ist die einzige echte Absicherung, dass Code-Übernahme und
+Emitter zusammen tatsächlich funktionieren. Ebenfalls offen: die in
+`docs/FOLLOWUPS.md` gesammelten Entscheidungen (u. a.
+`config.py`-Pfadauflösung, Projektname/Entry-Point in `pyproject.toml`,
+veraltete `EXCLUSION_LAYERS`-Liste im Dashboard-Skript).
