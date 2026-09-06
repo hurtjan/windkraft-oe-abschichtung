@@ -33,8 +33,7 @@ from scipy import ndimage
 from shapely.geometry import LineString, Polygon, box
 from shapely.ops import linemerge, unary_union
 
-# TODO(distance_engine)
-from windkraft.calc.kataster_layers import fft_circle_dilation
+from windkraft.calc.distance_engine import fft_circle_dilation
 from windkraft.calc.wind_zones import load_wind_zones
 
 TARGET_CRS = "EPSG:31287"

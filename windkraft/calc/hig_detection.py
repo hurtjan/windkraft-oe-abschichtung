@@ -48,8 +48,7 @@ from scipy.spatial import cKDTree
 from shapely import from_wkb
 
 from windkraft.calc.bev_register import industrial_flags, residential_flags
-# TODO(distance_engine)
-from windkraft.calc.kataster_layers import fft_circle_dilation, ns_kind
+from windkraft.calc.distance_engine import fft_circle_dilation, ns_kind
 
 # DKM-Layer und Nutzungsschlüssel der Bauflächen/Gärten. NFL_DXF_POLYGONIZED ist
 # die NÖ-Variante (aus DXF polygonisiert) - siehe MAX_FOOTPRINT_M2 unten.
