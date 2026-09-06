@@ -360,7 +360,11 @@ NOE_DKM_CAVEAT = {
     "text_de": (
         "Die DKM-Basis für Niederösterreich ist aus DXF-Linienwerk rekonstruiert, "
         "nicht amtlich flächig geliefert. Rund 29 % der rekonstruierten Polygone "
-        "sind mehrdeutig klassifiziert oder ohne Klassifikation verworfen."
+        "sind mehrdeutig klassifiziert oder ohne Klassifikation verworfen. Der "
+        "Wirkungspfad läuft von der DKM-Rekonstruktion über Band 12 (dort werden "
+        "die NÖ-Streusiedlungs-Hüllen eingebunden) durch dessen Pufferband 13 in "
+        "die Gruppensummen 27/30/31/32 und weiter in die Unschärfebänder 33-36 - "
+        "Band 32, die veröffentlichte Potenzialfläche, eingeschlossen."
     ),
     "numbers": {
         "polygons_total": 3491407,
@@ -368,6 +372,30 @@ NOE_DKM_CAVEAT = {
         "unassigned": 338674,
     },
     "applies_to_other_states": False,
+}
+
+# --------------------------------------------------------------------------
+# Unschärfe-Caveat: die vier Blur-Bänder (33-36) sind zwar clipped_to_austria,
+# aber nur mittelbar - sie glätten ein bereits geclipptes Band, wodurch die
+# Gaußglocke geringfügig über die Staatsgrenze trägt.
+# --------------------------------------------------------------------------
+BLUR_BLEED_AFFECTED_PREFIXES = (PERCENT_BAND_PREFIX,)
+
+
+def _blur_bleed_affected(name: str) -> bool:
+    return name.startswith(BLUR_BLEED_AFFECTED_PREFIXES)
+
+
+BLUR_BLEED_CAVEAT = {
+    "id": "blur_bands_bleed_across_border",
+    "severity": "methodisch",
+    "text_de": (
+        "Diese vier Bänder erben den Österreich-Clip nur mittelbar, weil sie ein "
+        "bereits geclipptes Band weichzeichnen; die Gaußglocke trägt Werte "
+        "geringfügig über die Staatsgrenze. clipped_to_austria bleibt true, aber "
+        "wer daraus auf „exakt auf Österreich beschnitten\" schließt und Flächen "
+        "aufsummiert, rechnet falsch."
+    ),
 }
 
 
@@ -457,20 +485,33 @@ def build_band_manifest(
 
     bands = [band_entry(i, name, condition_descriptions) for i, name in enumerate(band_names, 1)]
 
-    caveat = dict(NOE_DKM_CAVEAT)
-    caveat["affects"] = {
+    noe_caveat = dict(NOE_DKM_CAVEAT)
+    noe_caveat["affects"] = {
         "bundesland": "NÖ",
         "bands": [b["index"] for b in bands if _noe_dkm_affected(b["name"])],
     }
     # Schlüsselreihenfolge wie im Contract: id, affects, severity, text_de, ...
-    caveat = {
-        "id": caveat["id"],
-        "affects": caveat["affects"],
-        "severity": caveat["severity"],
-        "text_de": caveat["text_de"],
-        "numbers": dict(caveat["numbers"]),
-        "applies_to_other_states": caveat["applies_to_other_states"],
+    noe_caveat = {
+        "id": noe_caveat["id"],
+        "affects": noe_caveat["affects"],
+        "severity": noe_caveat["severity"],
+        "text_de": noe_caveat["text_de"],
+        "numbers": dict(noe_caveat["numbers"]),
+        "applies_to_other_states": noe_caveat["applies_to_other_states"],
     }
+
+    blur_caveat = dict(BLUR_BLEED_CAVEAT)
+    blur_caveat["affects"] = {
+        "bands": [b["index"] for b in bands if _blur_bleed_affected(b["name"])],
+    }
+    blur_caveat = {
+        "id": blur_caveat["id"],
+        "affects": blur_caveat["affects"],
+        "severity": blur_caveat["severity"],
+        "text_de": blur_caveat["text_de"],
+    }
+
+    caveats = [noe_caveat, blur_caveat]
 
     return {
         "schema_version": SCHEMA_VERSION,
@@ -493,7 +534,7 @@ def build_band_manifest(
         "bands": bands,
         "parameters": dict(tags),
         "sources": {key: dict(value) for key, value in SOURCES.items()},
-        "caveats": [caveat],
+        "caveats": caveats,
     }
 
 

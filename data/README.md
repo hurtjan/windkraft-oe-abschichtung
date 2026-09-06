@@ -662,3 +662,20 @@ Migration erfolgt per Hardlink (Zielverzeichnis auf demselben Volume wie
 im neuen Baum modifiziert wird (Hardlinks teilen sich die Inode, ein Schreib-
 zugriff auf eine Kopie würde — je nach Dateisystem — die andere mit
 verändern oder Copy-on-Write auslösen; beides ist nicht getestet).
+
+**Standing Rule — Eingaben hardlinken, Ausgaben kopieren:** Quelldaten unter
+`data/` sind per Hardlink mit `windkraft_ö_karten` verbunden — das kostet
+keinen Speicher und ist für rein lesende Zugriffe richtig. Für jedes
+Artefakt, das die Kette **schreibt**, gilt das Gegenteil: es muss eine echte
+Kopie sein. Ein Schreibvorgang auf eine hardgelinkte Datei kürzt den
+geteilten Inode und zerstört dieselbe Datei im Alt-Repo im selben Moment,
+ohne Fehlermeldung. Für jedes künftige Artefakt ist daher zuerst zu klären,
+ob es gelesen oder geschrieben wird.
+
+**Bekannter Verstoß gegen diese Regel (offener Punkt, nicht behoben):** Bei
+der Migration wurden mehrere echte Ketten-Ausgaben per Hardlink statt per
+Kopie übernommen — 7 Dateien unter `output/noe/` sowie das Geoparquet unter
+`output/kataster/` (`at_dkm_gst_nfl_epsg31287.geoparquet`). Diese Dateien
+sind damit aktuell Schreibziele auf einem geteilten Inode mit dem Alt-Repo.
+Das Verlinken wird an dieser Stelle **nicht** geändert — das ist nicht
+autorisiert.

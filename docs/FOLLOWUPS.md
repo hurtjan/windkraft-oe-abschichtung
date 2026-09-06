@@ -339,3 +339,22 @@ und hätten beim Übernehmen kopiert statt gehardlinkt werden müssen. Diese
 Verlinkung wurde im Rahmen dieses Audits **nicht korrigiert** (das wäre eine
 Änderung an bestehenden Dateien außerhalb dessen, was in diesem Lauf selbst
 angelegt wurde) — nur gemeldet.
+
+## Regel: Eingaben hardlinken, Ausgaben kopieren
+
+**Eingaben hardlinken, Ausgaben kopieren.** Quelldaten unter `data/` sind
+per Hardlink mit `windkraft_ö_karten` verbunden — das kostet keinen
+Speicher und ist für rein lesende Zugriffe richtig. Für jedes Artefakt, das
+die Kette **schreibt**, gilt das Gegenteil: es muss eine echte Kopie sein.
+Ein Schreibvorgang auf eine hardgelinkte Datei kürzt den geteilten Inode und
+zerstört dieselbe Datei im Alt-Repo im selben Moment, ohne Fehlermeldung.
+Für jedes künftige Artefakt ist daher zuerst zu klären, ob es gelesen oder
+geschrieben wird.
+
+Diese Regel wurde während der Migration **verletzt**: mehrere echte
+Ketten-Ausgaben wurden per Hardlink statt per Kopie übernommen — 7 Dateien
+unter `output/noe/` sowie das Geoparquet unter `output/kataster/` (siehe
+Detailliste im Abschnitt „Schreibziel-Audit über die migrierte Kette“ oben).
+Diese Dateien sind damit weiterhin Schreibziele auf einem geteilten Inode
+mit dem Alt-Repo. Bekannter offener Punkt — die Verlinkung wird hier
+**nicht** geändert, das ist nicht autorisiert.

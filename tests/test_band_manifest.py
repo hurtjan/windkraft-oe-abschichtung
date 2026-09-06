@@ -197,8 +197,11 @@ def test_color_rgba_is_four_ints_in_range(manifest):
 
 
 def test_parameters_pass_through_tags_unchanged(manifest):
+    # Kein Längen-Check hier: `parameters` ist Dokumentation, kein Schema. Das
+    # echte Referenz-TIF traegt nur 25 Tags (vor SETTLEMENT_BUFFER_VARIANT_NAMES
+    # gebaut), waehrend TAGS hier 26 hat - der Writer prueft die Anzahl nicht
+    # nach, und dieser Test soll das nicht implizit tun.
     assert manifest["parameters"] == TAGS
-    assert len(manifest["parameters"]) == 26
 
 
 def test_raster_block_matches_grid(manifest):
@@ -242,6 +245,24 @@ def test_noe_dkm_caveat_present_with_numbers(manifest):
     assert caveat["applies_to_other_states"] is False
     assert caveat["affects"]["bundesland"] == "NÖ"
     assert caveat["affects"]["bands"] == [8, 9, 12, 13, 27, 30, 31, 32, 33, 34, 35, 36]
+    # Wirkungspfad bis Band 32 (die veröffentlichte Potenzialfläche) muss im
+    # Fließtext benannt sein, nicht nur implizit über die Bandliste.
+    assert "Band 32" in caveat["text_de"]
+    assert "33-36" in caveat["text_de"]
+
+
+def test_blur_bleed_caveat_present_for_bands_33_to_36(manifest):
+    caveats = manifest["caveats"]
+    match = [c for c in caveats if c["id"] == "blur_bands_bleed_across_border"]
+    assert len(match) == 1
+    caveat = match[0]
+    assert caveat["severity"] == "methodisch"
+    assert caveat["affects"]["bands"] == [33, 34, 35, 36]
+
+
+def test_exactly_two_caveats_present(manifest):
+    ids = {c["id"] for c in manifest["caveats"]}
+    assert ids == {"noe_dkm_reconstructed", "blur_bands_bleed_across_border"}
 
 
 def test_pixel_size_accepts_plain_affine_tuple():
