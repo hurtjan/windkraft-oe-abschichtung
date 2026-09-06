@@ -188,7 +188,7 @@ def build_sources(cfg: dict, grid: dict, args: argparse.Namespace) -> dict[str, 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Häuser-im-Grünen-Quellen v2 aus Widmung + DKM + BEV-Adressregister.")
-    p.add_argument("--config", default="config/config.json")
+    p.add_argument("--config", default="config.json")
     # v2-Zoning-Verzeichnis (8 BL inkl. Burgenland + industrie_negativ-Bucket).
     # Das v1-Verzeichnis output/abschichtung_widmung/zoning_vectors wäre ein
     # stiller Fehler: schwächerer Filter, keine Industrie-Negativmaske.

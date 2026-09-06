@@ -1,5 +1,5 @@
 PYTHON = uv run python
-CONFIG = config/config.json
+CONFIG = config.json
 
 V2_DIR = output/abschichtung_widmung_v2
 V2_TIF = $(V2_DIR)/osm_wka_distance_zones_widmung_v2.tif

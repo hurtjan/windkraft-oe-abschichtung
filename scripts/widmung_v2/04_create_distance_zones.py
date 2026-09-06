@@ -355,7 +355,7 @@ def build_settlement_variant_buffers(cfg: dict, grid: dict, layer_dir: Path, var
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Finales Widmungs-Abschichtungs-GeoTIFF v2 aus den Checkpoints von build_hig_sources.py + build_widmung_v2_layers.py.")
-    p.add_argument("--config", default="config/config.json")
+    p.add_argument("--config", default="config.json")
     p.add_argument("--output", default="output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2.tif")
     p.add_argument("--layer-dir", default="output/abschichtung_widmung_v2/distance_layers")
     p.add_argument("--bbox", default=None, help="EPSG:31287 bbox minx,miny,maxx,maxy für Smoke-Tests")

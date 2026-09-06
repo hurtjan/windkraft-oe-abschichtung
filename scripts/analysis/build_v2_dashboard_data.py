@@ -97,7 +97,7 @@ GROUP_LABELS = {"human": "Mensch", "nature": "Natur", "geography": "Geographie"}
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--config", default="config/config.json")
+    p.add_argument("--config", default="config.json")
     p.add_argument("--tif", default="output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2.tif")
     p.add_argument("--out", default="output/abschichtung_widmung_v2/dashboard_data.json")
     return p.parse_args()

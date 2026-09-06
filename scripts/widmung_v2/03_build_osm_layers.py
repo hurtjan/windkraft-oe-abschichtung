@@ -211,7 +211,7 @@ def _cover_fingerprint(layer_dir: Path) -> str:
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="OSM-Restlayer (wichtige Einzelobjekte, Seilbahnen, sonstige Gebäude) + Infrastruktur/Flughäfen für die Widmungs-Abschichtung v2.")
-    p.add_argument("--config", default="config/config.json")
+    p.add_argument("--config", default="config.json")
     p.add_argument("--layer-dir", default="output/abschichtung_widmung_v2/distance_layers", help="Geteilt mit build_hig_sources.py")
     p.add_argument("--bbox", default=None, help="EPSG:31287 bbox minx,miny,maxx,maxy für Smoke-Tests")
     p.add_argument("--mode", choices=["standard", "minimum"], default="standard",

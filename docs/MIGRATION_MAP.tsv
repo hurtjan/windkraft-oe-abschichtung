@@ -1,0 +1,45 @@
+# Migrationskarte Code: alte Pfade in windkraft_ö_karten -> neue Pfade in diesem Repo, mit Begruendung; Daten-Zeilen werden separat vom Hardlink-Schritt angehaengt und sind hier absichtlich nicht enthalten.
+alt-Pfad	neu-Pfad	Grund
+config.json	config.json	KORREKTUR (kein Umzug aus dem Altrepo, dort lag die Datei nie unter config/): zwischenzeitlich waehrend der Migration nach config/config.json verschoben, jetzt zurueck ins Wurzelverzeichnis - windkraft/config.py loest Pfade relativ zum Verzeichnis der Config-Datei auf, die Verschiebung haette data/-Pfade still gebrochen
+config.json	config/config.json	verbatim kopiert, nur verschoben; paths.* unveraendert (Entscheidung offen)
+windkraft/calc/cluster_knee.py	docs/analysis/cluster_knee.py	als Herleitungs-Doku nach docs/analysis/ verschoben; deutscher Kopfkommentar ergaenzt (Import in streusiedlung_knee.py dadurch offen, siehe followups)
+scripts/analysis/streusiedlung_knee.py	docs/analysis/streusiedlung_knee.py	als Herleitungs-Doku nach docs/analysis/ verschoben; deutscher Kopfkommentar ergaenzt, --config-Default auf config/config.json
+docs/README_widmung_v2_provenance.md	docs/widmung_v2_provenance.md	verbatim kopiert, nur umbenannt
+docs/README_osm_wka_distance_zones_widmung_v2.md	docs/widmung_v2.md	verbatim kopiert, nur umbenannt
+Makefile	Makefile	nur die fuenf v2-Targets + Sequencing-Target uebernommen; Skriptpfade auf neues Schema, CONFIG auf config/config.json
+pyproject.toml	pyproject.toml	verbatim kopiert; Projektname bewusst NICHT umbenannt (uv.lock bindet ihn)
+scripts/analysis/build_v2_dashboard_data.py	scripts/analysis/build_v2_dashboard_data.py	freigegebene Ausnahme: sys.path-Hack auf scripts/main entfernt, admin_boundaries jetzt aus windkraft.calc.abschichtung_common; --config-Default auf config/config.json
+scripts/noe/align_pdf_shapefile.py	scripts/noe/align_pdf_shapefile.py	verbatim kopiert
+scripts/noe/derive_pdf_hig_sources.py	scripts/noe/derive_pdf_hig_sources.py	verbatim kopiert
+scripts/noe/extract_noe_vector_layers.py	scripts/noe/extract_noe_vector_layers.py	verbatim kopiert
+scripts/main/create_noe_dkm_polygon_fill_map.py	scripts/preprocessing/create_noe_dkm_polygon_fill_map.py	verschoben nach scripts/preprocessing/; Inhalt verbatim
+scripts/main/export_at_dkm_geoparquet.py	scripts/preprocessing/export_at_dkm_geoparquet.py	verschoben nach scripts/preprocessing/; Inhalt verbatim (Geschwister-Import ueber SCRIPT_DIR bleibt gueltig)
+scripts/webmap/build_osm_wka_layer_viewer.py	scripts/webmap/build_osm_wka_layer_viewer.py	Inspektionswerkzeug, Metadaten umgehaengt
+scripts/main/build_official_zoning_layers.py	scripts/widmung_v2/01_build_official_zoning_layers.py	umbenannt nach Nummerierungsschema; Inhalt verbatim (OUT_DIR zeigte bereits auf v2)
+scripts/main/build_hig_sources.py	scripts/widmung_v2/02_build_hig_sources.py	umbenannt nach Nummerierungsschema; nur --config-Default auf config/config.json
+scripts/main/build_widmung_v2_layers.py	scripts/widmung_v2/03_build_osm_layers.py	umbenannt nach Nummerierungsschema; nur --config-Default auf config/config.json
+scripts/main/create_widmung_v2_distance_zones.py	scripts/widmung_v2/04_create_distance_zones.py	umbenannt nach Nummerierungsschema; nur --config-Default auf config/config.json
+scripts/analysis/validate_hig_v2.py	scripts/widmung_v2/05_validate.py	umbenannt nach Nummerierungsschema; Inhalt verbatim
+tests/test_drop_wind_power_buildings.py	tests/test_drop_wind_power_buildings.py	verbatim kopiert
+tests/test_min_area_filter.py	tests/test_min_area_filter.py	verbatim kopiert
+tests/test_uncertainty_blur.py	tests/test_uncertainty_blur.py	verbatim kopiert
+tests/test_water_bodies_mask.py	tests/test_water_bodies_mask.py	verbatim kopiert
+uv.lock	uv.lock	verbatim kopiert
+windkraft/__init__.py	windkraft/__init__.py	verbatim kopiert
+windkraft/calc/__init__.py	windkraft/calc/__init__.py	verbatim kopiert (leer)
+windkraft/calc/abschichtung_common.py	windkraft/calc/abschichtung_common.py	verbatim kopiert; nur Kommentarzeile # TODO(distance_engine) ueber dem kataster_layers-Import ergaenzt
+windkraft/calc/bev_register.py	windkraft/calc/bev_register.py	verbatim kopiert
+windkraft/calc/kataster_layers.py (Auszug: fft_circle_dilation, ns_kind)	windkraft/calc/distance_engine.py	byte-genau extrahiert, Rest des Moduls bewusst nicht uebernommen
+windkraft/calc/hig_detection.py	windkraft/calc/hig_detection.py	verbatim kopiert; nur Kommentarzeile # TODO(distance_engine) ueber dem kataster_layers-Import ergaenzt
+windkraft/calc/hig_source_masks.py	windkraft/calc/hig_source_masks.py	verbatim kopiert
+windkraft/calc/streusiedlung.py	windkraft/calc/streusiedlung.py	verbatim kopiert
+windkraft/calc/widmung_sources.py	windkraft/calc/widmung_sources.py	verbatim kopiert
+windkraft/calc/wind_zones.py	windkraft/calc/wind_zones.py	verbatim kopiert
+windkraft/config.py	windkraft/config.py	verbatim bis auf Default-Configpfad config.json -> config/config.json
+windkraft/noe/__init__.py	windkraft/noe/__init__.py	verbatim kopiert (leer)
+windkraft/noe/pdf_align.py	windkraft/noe/pdf_align.py	verbatim kopiert
+windkraft/noe/pdf_hig_sources.py	windkraft/noe/pdf_hig_sources.py	verbatim kopiert
+windkraft/util/__init__.py	windkraft/util/__init__.py	verbatim kopiert (leer)
+windkraft/util/admin.py	windkraft/util/admin.py	verbatim kopiert
+-	windkraft/viz/__init__.py	neu angelegt, leer; band_metadata.py folgt durch anderen Agenten
+scripts/webmap/build_osm_wka_layer_viewer.py (Z. 34-234)	windkraft/viz/band_metadata.py	gemeinsame Quelle fuer Writer und Viewer

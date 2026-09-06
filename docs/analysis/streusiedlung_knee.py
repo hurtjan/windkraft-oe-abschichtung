@@ -64,7 +64,7 @@ from windkraft.calc.streusiedlung import load_candidate_signals  # noqa: E402
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Knie-Suche für Verkettungs-ε und Adress-Schwelle.")
-    p.add_argument("--config", default="config/config.json")
+    p.add_argument("--config", default="config.json")
     p.add_argument("--zoning-dir", default="output/abschichtung_widmung_v2/zoning_vectors")
     p.add_argument("--noe-dir", default="output/noe")
     p.add_argument("--dkm-parquet", default="output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet")

@@ -12,7 +12,7 @@ def load_config(path=None):
     Abgeleitete Werte (SLOPE_THRESHOLD_PCT, PD_RATIO usw.) werden ergänzt.
     """
     if path is None:
-        path = Path("config/config.json")
+        path = Path("config.json")
     path = Path(path)
 
     with open(path, encoding="utf-8") as f:
