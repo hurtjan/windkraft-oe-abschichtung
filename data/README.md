@@ -195,7 +195,8 @@ data/
 ├── naturschutzgebiete/
 │   └── SG_AT_2024_v_April_Stand_3_April_2024.zip   73 MB
 ├── kataster/                       9,1 GB  DKM/BEV-Rohdaten, 9 Archive → Geoparquet (erzeugt, §4)
-├── widmung/                        ~1,7 GB  Flächenwidmung, 9 Bundesländer (siehe §3.3)
+├── flächenwidmungen/                964 MB  Flächenwidmung Bgld + Stmk-Grünland/Freizeit (siehe §3.3)
+├── new_widmungs_data/                754 MB  Flächenwidmung Ktn/NÖ/OÖ/Sbg/Stmk-Bauland/Tirol/Vbg/Wien (siehe §3.3)
 ├── zonierung_noe.json              588 KB  amtliche NÖ-Zonierung, 71 Zonen
 ├── luca_zonen/
 │   ├── Stmk.shp                    72 KB   NICHT reproduzierbar, siehe §0.1
@@ -273,13 +274,18 @@ alle 71 Features) sind identisch. Es handelt sich also um zwei WFS-Exports
 derselben 71 Zonen zu unterschiedlichen Zeitpunkten, kein inhaltlicher
 Unterschied.
 
-**Migrationsstatus (aktualisiert, ersetzt die Einstufung in §6/§7):**
-`windkraftzonen_shapefile_2024.json` liegt Stand dieser Prüfung nur unter
-`windkraft_ö_karten/data/`, noch nicht unter `data/` im neuen Repo.
-Entschieden ist: **beide** Dateien werden per Hardlink nach `data/`
-übernommen (ein späterer Migrationsschritt, hier nicht ausgeführt) — die
-in §6/§7 dokumentierte Einstufung als „nicht migriert“ ist damit überholt.
-Welche der beiden Dateien als **autoritativ** gilt, ist bewusst **offen**
+**Migrationsstatus (bei dieser Prüfung nachgemessen, ersetzt die Einstufung
+in §6/§7):** Entgegen einer früheren Fassung dieses Dokuments (die behauptete,
+`windkraftzonen_shapefile_2024.json` liege „nur unter
+`windkraft_ö_karten/data/`, noch nicht unter `data/` im neuen Repo”, und
+dass die Übernahme „ein späterer Migrationsschritt, hier nicht ausgeführt”
+sei) zeigt `ls -la data/windkraftzonen_shapefile_2024.json` im neuen Repo:
+die Datei liegt **bereits** dort, mit Link-Count 2 (also per Hardlink aus
+`windkraft_ö_karten/data/` übernommen), 600.056 Byte — identisch zur
+alten-Repo-Kopie. **Beide** Dateien (`zonierung_noe.json` und
+`windkraftzonen_shapefile_2024.json`) liegen also bereits nebeneinander im
+neuen Repo — die in §6/§7 dokumentierte Einstufung als „nicht migriert” ist
+damit überholt. Welche der beiden Dateien als **autoritativ** gilt, ist bewusst **offen**
 gelassen — das ist eine Datenfrage (welcher Exportzeitpunkt maßgeblich ist),
 keine Migrationsfrage, und wird hier nicht entschieden. Band 37
 (`official_wind_zoning`) liest per Default `data/zonierung_noe.json` —
@@ -307,34 +313,63 @@ tatsächlich liegen **9** vor, seit Wien am 29.07.2026 hinzukam. Gesamtgröße
 der tatsächlich von der Referenzkette gelesenen Dateien: **≈ 1,7 GB**
 (nachgemessen; die zuvor kolportierten „~1,76 GB“ treffen ungefähr zu).
 
-| BL | Zielpfad (unter `data/widmung/`) | Quellpfad (altes Repo) | Herkunft | Stand (Dateidatum) | Größe | Lizenz | Neu beschaffbar |
-|---|---|---|---|---|---|---|---|
-| Bgld | `bgld/WIDMUNGSFLAECHEN.zip` | `data/flächenwidmungen/WIDMUNGSFLAECHEN.zip` | Land Burgenland (OGD) | 22.06. | **48 MB** | unbekannt — zu klären | ja |
-| Ktn | `ktn/flawi_ktn_gpkg.zip` | `data/new_widmungs_data/kaernten/flawi_ktn_gpkg.zip` | Land Kärnten, KAGIS (OGD) | 12.07. | **142 MB** | unbekannt — zu klären | ja |
-| NÖ | `noe/RRU_WI_HUELLE.gpkg` | `data/new_widmungs_data/niederoesterreich/RRU_WI_HUELLE.gpkg` | Amt der NÖ Landesregierung, NÖ Atlas (OGD) | 10.07. | **110 MB** | unbekannt — zu klären | ja |
-| OÖ | `ooe/FLWI_WIDMUNGEN_F.zip` | `data/new_widmungs_data/oberoesterreich/FLWI_WIDMUNGEN_F.zip` | Land Oberösterreich, DORIS | 10.07. | **138 MB** | **CC-BY 4.0** | ja |
-| Sbg | `sbg/Flaechenwidmung_Shapefile.zip` | `data/new_widmungs_data/salzburg/Flaechenwidmung_Shapefile.zip` | Land Salzburg, SAGIS (OGD) | 12.07. | **30 MB** | unbekannt — zu klären | ja |
-| Stmk | `stmk/Bauland.zip` **+** `stmk/Flaewi.shp.zip` | `data/new_widmungs_data/steiermark/Bauland.zip` + `data/flächenwidmungen/Flaewi.shp.zip` | Land Steiermark (OGD) | 10.07. / 22.06. | **42 MB + 916 MB** | unbekannt — zu klären | ja |
-| Tirol | `tirol/FLW_Flaechenwidmung_*.gpkg` | `data/new_widmungs_data/tirol/FLW_Flaechenwidmung_270349538825189369.gpkg` | Land Tirol, tiris | 12.07. | **106 MB** | **CC-BY 4.0** | ja |
-| Vbg | `vlbg/fwp_flaeche.gpkg` | `data/new_widmungs_data/vorarlberg/fwp_flaeche.gpkg` | Land Vorarlberg, VoGIS (OGD) | 12.07. | **144 MB** | unbekannt — zu klären | ja |
-| Wien | `wien/genflwidmung_wien.geojson` | `data/new_widmungs_data/wien/genflwidmung_wien.geojson` | Stadt Wien, WFS `ogdwien:GENFLWIDMUNGOGD` | 29.07. | **41 MB** | unbekannt — zu klären | ja (WFS, siehe unten) |
+**Tatsächliche Ablage (verifiziert gegen den Baum, nicht `data/widmung/`):**
+Die Flächenwidmungsdaten liegen — sowohl im alten als auch im neuen Repo,
+identisch — auf **zwei** Verzeichnisse verteilt, nicht unter einem
+einheitlichen `data/widmung/<bl>/` (siehe Kasten am Ende dieses Abschnitts
+zu diesem nie umgesetzten Vorschlag). Maßgeblich sind die Pfade, die
+`windkraft/calc/widmung_sources.py` tatsächlich liest: die Konstanten
+`NEW = ROOT / "data" / "new_widmungs_data"` und
+`OLD = ROOT / "data" / "flächenwidmungen"` (Zeilen 38–40) sowie die
+`source`-Felder im `DATASETS`-Dict (Zeilen 58–126), das für jedes der 9
+Bundesländer den genauen Dateipfad und Layer/Spalten-Angaben trägt.
+Nachgeprüft per `find`/`ls`/`du` gegen den aktuellen `data/`-Baum:
+
+| BL | Tatsächlicher Pfad (altes UND neues Repo identisch) | Herkunft | Stand (Dateidatum) | Größe | Lizenz | Neu beschaffbar |
+|---|---|---|---|---|---|---|
+| Bgld | `data/flächenwidmungen/WIDMUNGSFLAECHEN.zip` | Land Burgenland (OGD) | 22.06. | **48 MB** | unbekannt — zu klären | ja |
+| Ktn | `data/new_widmungs_data/kaernten/flawi_ktn_gpkg.zip` | Land Kärnten, KAGIS (OGD) | 12.07. | **142 MB** | unbekannt — zu klären | ja |
+| NÖ | `data/new_widmungs_data/niederoesterreich/RRU_WI_HUELLE.gpkg` | Amt der NÖ Landesregierung, NÖ Atlas (OGD) | 10.07. | **110 MB** | unbekannt — zu klären | ja |
+| OÖ | `data/new_widmungs_data/oberoesterreich/FLWI_WIDMUNGEN_F.zip` | Land Oberösterreich, DORIS | 10.07. | **138 MB** | **CC-BY 4.0** | ja |
+| Sbg | `data/new_widmungs_data/salzburg/Flaechenwidmung_Shapefile.zip` | Land Salzburg, SAGIS (OGD) | 12.07. | **30 MB** | unbekannt — zu klären | ja |
+| Stmk | `data/new_widmungs_data/steiermark/Bauland.zip` **+** `data/flächenwidmungen/Flaewi.shp.zip` | Land Steiermark (OGD) | 10.07. / 22.06. | **42 MB + 916 MB** | unbekannt — zu klären | ja |
+| Tirol | `data/new_widmungs_data/tirol/FLW_Flaechenwidmung_*.gpkg` | Land Tirol, tiris | 12.07. | **106 MB** | **CC-BY 4.0** | ja |
+| Vbg | `data/new_widmungs_data/vorarlberg/fwp_flaeche.gpkg` | Land Vorarlberg, VoGIS (OGD) | 12.07. | **144 MB** | unbekannt — zu klären | ja |
+| Wien | `data/new_widmungs_data/wien/genflwidmung_wien.geojson` | Stadt Wien, WFS `ogdwien:GENFLWIDMUNGOGD` | 29.07. | **41 MB** | unbekannt — zu klären | ja (WFS, siehe unten) |
 
 Wien-Bezugsweg (kein Abrufskript im Repo, manuell nachzuziehen):
 
 ```bash
 curl "https://data.wien.gv.at/daten/geo?service=WFS&request=GetFeature&version=1.1.0&typeName=ogdwien:GENFLWIDMUNGOGD&srsName=EPSG:4326&outputFormat=json" \
-  -o data/widmung/wien/genflwidmung_wien.geojson
+  -o data/new_widmungs_data/wien/genflwidmung_wien.geojson
 ```
 
-**Zwei-Ordner-Falle im alten Repo (für die Migration wichtig):** Im alten
-Repo liegen dieselben Daten auf **zwei** Verzeichnisse verteilt
+**Zwei-Ordner-Falle (gilt für alten UND neuen Baum, nicht nur für die
+Migration):** Dieselben Daten liegen auf **zwei** Verzeichnisse verteilt
 (`data/new_widmungs_data/` für Ktn/NÖ/OÖ/Sbg/Stmk-Bauland/Tirol/Vbg/Wien,
 `data/flächenwidmungen/` für Bgld und die **vollständige** Steiermark-Quelle
 `Flaewi.shp.zip`). Wer nur eines der beiden Verzeichnisse kopiert, verliert
 entweder Burgenland komplett oder die Steiermark-Grünland-/Freizeit-Flächen.
-Die Zielstruktur oben (`data/widmung/<bl>/`) soll diese Falle beim Umzug
-auflösen — sie existiert im alten Repo so **nicht**, ist ein Vorschlag für
-den neuen Baum.
+Das gilt **unverändert auch im neuen Repo** — die Hardlink-Migration hat den
+bestehenden Zwei-Ordner-Baum 1:1 übernommen, nicht die unten beschriebene
+Zielstruktur.
+
+> **Nicht umgesetzter Vorschlag — existiert NICHT auf der Platte:** Eine
+> frühere Fassung dieses Dokuments beschrieb als Zielstruktur ein
+> einheitliches `data/widmung/<bl>/` (z. B.
+> `data/widmung/bgld/WIDMUNGSFLAECHEN.zip`,
+> `data/widmung/wien/genflwidmung_wien.geojson`), um genau die oben
+> beschriebene Zwei-Ordner-Falle beim Umzug aufzulösen. **Dieser Umzug
+> wurde nie durchgeführt.** Weder im alten noch im neuen Repo existiert ein
+> Verzeichnis `data/widmung/` — verifiziert per `find data -iname widmung`
+> (kein Treffer in `master_windkraft/abschichtung/data/`) und durch Lesen
+> von `windkraft/calc/widmung_sources.py`, das ausschließlich
+> `data/flächenwidmungen/` und `data/new_widmungs_data/<land>/` liest (siehe
+> Zeilenangaben oben). Die Hardlink-Migration ist dem tatsächlichen
+> Code-Pfad gefolgt, nicht diesem Vorschlag. Sollte die Vereinheitlichung
+> künftig gewünscht sein, ist sie ein eigener, bewusster Schritt (Dateien
+> verschieben/neu hardlinken UND `widmung_sources.py` entsprechend
+> anpassen) — nicht etwas, das die bestehende Migration schon erledigt hat.
 
 **Steiermark braucht zwei Dateien gleichzeitig:** `Bauland.zip` liefert
 Wohn-/Misch-/Industrieflächen, `Flaewi.shp.zip` (EPSG:4258, das einzige
@@ -558,9 +593,9 @@ wirksam für die Legacy-Ketten (`python -m windkraft calc`, `viz/pdf_map.py`,
 |---|---|
 | BEV-Adressregister-Parquet-Caches (`adressen_31287.parquet`, `bev_gebaeude_31287.parquet`) | Build-Artefakte von `windkraft/calc/bev_register.py`; werden beim ersten Lauf automatisch neu erzeugt. (Zählen in §2 trotzdem zur Adressregister-Gesamtgröße, weil sie bereits vorliegen und einen Lauf ohne `ADRESSE.csv`/`GEBAEUDE.csv` ermöglichen.) |
 | Entpackte Naturschutz-Ordner | Der Code entpackt das ZIP zur Laufzeit in ein `tempfile.TemporaryDirectory()` (`abschichtung_common.py:1131-1145`); bereits entpackte Ordner sind ungenutzte Zweitkopien |
-| `_problem/`-Unterordner bei den Flächenwidmungsdaten | Laut eigener `README.md` entbehrlich: kaputter, aber inhaltlich identischer Zweitdownload einer bereits vorhandenen Datei |
+| `_problem/`-Unterordner bei den Flächenwidmungsdaten | Laut eigener `README.md` entbehrlich: kaputter, aber inhaltlich identischer Zweitdownload einer bereits vorhandenen Datei. **Verifiziert bei dieser Prüfung:** `data/new_widmungs_data/_problem` existiert im neuen Repo tatsächlich **nicht** (`find`/`ls` liefern keinen Treffer), obwohl `new_widmungs_data/` als Ganzes hardlink-migriert wurde und die Ausnahme dort auf Unterordner-Ebene hätte greifen müssen — die Ausnahme wurde also korrekt umgesetzt. Im alten Repo liegt `data/new_widmungs_data/_problem` weiterhin, **28 MB**. `windkraft/calc/widmung_sources.py` referenziert `_problem` an keiner Stelle (per Grep) — der Ordner ist für die Referenzkette inert, unabhängig davon, ob er migriert wird. |
 | `.claude`-Ordner unter `data/` | Werkzeug-/Session-Metadaten, kein Rohdatenbezug |
-| Im Code unreferenzierte Dateien (`FLWI_WIDMUNGEN_L/`, `AUT_capacity-factor_IEC*.tif`, `rea_windrichtungen.grib`, `windkraftzonen_shapefile_2024.json`, `zonierung.qlr`) | Per Grep über alle `.py`-Dateien: kommen in keinem Skript der Referenzkette vor (Details und eine Einschränkung zu `FLWI_WIDMUNGEN_L` in §7) |
+| Im Code unreferenzierte Dateien (`FLWI_WIDMUNGEN_L/`, `AUT_capacity-factor_IEC*.tif`, `rea_windrichtungen.grib`, `windkraftzonen_shapefile_2024.json`, `zonierung.qlr`) | Per Grep über alle `.py`-Dateien: kommen in keinem Skript der Referenzkette vor (Details und eine Einschränkung zu `FLWI_WIDMUNGEN_L` in §7). **Ausnahme, bei dieser Prüfung verifiziert:** `windkraftzonen_shapefile_2024.json` ist trotz dieser Einstufung tatsächlich unter `data/` gelandet (Hardlink, Link-Count 2) — siehe §3.1. Die übrigen vier genannten Dateien/Ordner fehlen tatsächlich unter `data/` (verifiziert per `ls`). |
 
 ---
 
@@ -582,7 +617,7 @@ Wer sie sucht, findet sie nur im alten Repo:
 | `Birdlife_Zonierung_Wind_NOE_2024.zip` | **8,6 MB** | Nicht von der Referenzkette gelesen |
 | `steiermark_zonen/` | **18 MB** | Nicht von der Referenzkette gelesen |
 | `nö_zonierung/` (außer `TeilC_3_2_...pdf`, das migriert wird) | **~109 MB** (125 MB Ordner minus 16 MB PDF) | Weitere TeilC-PDFs, für v2 nicht relevant |
-| `windkraftzonen_shapefile_2024.json` | **588 KB** | Nahe-Duplikat von `zonierung_noe.json` — **nicht** byteidentisch (11 Bytes Unterschied bei gleicher Dateigröße, siehe §3.1), aber redundant genug, um nicht zu migrieren |
+| `windkraftzonen_shapefile_2024.json` | **588 KB** | Nahe-Duplikat von `zonierung_noe.json` — **nicht** byteidentisch (11 Bytes Unterschied bei gleicher Dateigröße, siehe §3.1), aber redundant genug, um nicht zu migrieren. **Überholt (bei dieser Prüfung verifiziert):** Die Datei liegt entgegen dieser Einstufung inzwischen doch auch unter `data/` im neuen Repo (per Hardlink, Link-Count 2) — siehe die aktualisierte Migrationsstatus-Notiz in §3.1. Dieser Tabelleneintrag ist insofern überholt; die Datei ist trotzdem weiterhin von keinem Skript der Referenzkette gelesen. |
 
 ---
 
