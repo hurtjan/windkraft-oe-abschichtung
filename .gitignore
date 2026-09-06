@@ -1,0 +1,12 @@
+/data/*
+!/data/README.md
+/output/
+
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+.DS_Store
