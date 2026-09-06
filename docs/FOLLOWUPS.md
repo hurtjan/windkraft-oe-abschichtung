@@ -223,3 +223,119 @@ ausschließlich Lesezugriffe sieht.
   Paket auf — der Test vergleicht dann neu gegen neu und ist grün, ohne
   etwas zu prüfen. Wer einen weiteren Vergleichstest schreibt, muss dieselbe
   Vorkehrung treffen.
+
+## Schreibziel-Audit über die migrierte Kette (`windkraft/`, `scripts/`, `Makefile`, `config.json`)
+
+Vollständige Erfassung aller Schreibziele der migrierten Kette (Job 2, im
+Anschluss an den `bev_register.py`-Fix aus Job 1). Ursprüngliches Kriterium
+war „schreibt unter `data/`?“; das griff zu kurz, weil `output/kataster/`
+und `output/noe/` ebenfalls per Hardlink mit `windkraft_ö_karten` geteilt
+sind. Maßgeblich ist deshalb **nicht das Verzeichnis, sondern der Link-Count**
+der tatsächlich getroffenen Datei. Ermittelt per
+`find data output -type f -links +1` (rein lesend) im Ziel-Repo, 68 Treffer.
+
+Die Tabelle ist so sortiert, dass die **Schnittmenge aus Schreibziel und
+Hardlink-Liste ganz oben steht** — das sind die scharfen Waffen: ein einziger
+Lauf kürzt dort den geteilten Inode und beschädigt beide Repos gleichzeitig,
+ohne Fehlermeldung. Danach folgt alles außerhalb der Schnittmenge, dokumentiert
+aber nicht angefasst.
+
+| Datei:Zeile | Schreibziel | Auslösebedingung | Risiko | hardgelinkt? |
+|---|---|---|---|---|
+| `scripts/noe/extract_noe_vector_layers.py:251-252` (`export_layer`) | `output/noe/pdf_750m_{geb,gwr,gruenland_widmung}.geojson` (+ `_wgs84`-Geschwister, diese nicht hardgelinkt) | **jeder Lauf** von `extract_noe_vector_layers.py` — kein Overwrite-Schutz im Code | Überschreibt beim ersten Lauf drei geteilte Dateien; kürzt den gemeinsamen Inode in beiden Repos gleichzeitig, ohne Fehlermeldung | **ja** (3 von 6 Zieldateien) |
+| `windkraft/noe/pdf_hig_sources.py:101-102` (`derive_layer_files`, aufgerufen aus `extract_noe_vector_layers.py:286` und `scripts/noe/derive_pdf_hig_sources.py:28`) | `output/noe/pdf_hig_source_{geb,gwr,gruenland_widmung}.geojson` (+ `_wgs84`) | **jeder Lauf** eines der beiden aufrufenden Skripte — kein Overwrite-Schutz | wie oben | **ja** (3 von 6) |
+| `scripts/noe/align_pdf_shapefile.py:174` (Default-Ziel: `OUT = Path("output/noe")` Z.31, `DEFAULT_OUT_JSON` Z.36) | `output/noe/alignment_mindestabstand.json` | nur mit explizitem `--overwrite` — das Skript selbst bricht sonst per `SystemExit` ab, wenn die Zieldatei existiert (Z. 54-58, bereits vorhandener Schutz im Code) | mit `--overwrite`: echter In-place-Schreibzugriff auf die Hardlink-Datei | **ja** (durch bestehenden Schutz entschärft, aktiv nur bei explizitem Flag) |
+| `scripts/preprocessing/export_at_dkm_geoparquet.py:262` (`GeoParquetBatchWriter.__init__` → `pq.ParquetWriter`); Default `output_path` Z. 65/895 | `output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet` | nur mit explizitem `--overwrite` — `main()` bricht sonst per `SystemExit` ab, wenn `output_path` existiert (Z. 923-925, bereits vorhandener Schutz im Code) | mit `--overwrite`: In-place-Schreibzugriff auf die Hardlink-Datei | **ja** (entschärft, aktiv nur bei explizitem Flag) |
+| `windkraft/calc/bev_register.py:113-141` + `scripts/widmung_v2/02_build_hig_sources.py:199` | *(vor Fix)* `data/adressregister/{adressen_31287,bev_gebaeude_31287}.parquet` | *(vor Fix)* `rebuild=True` (das war zuvor sogar der effektive Default über `--cache-dir data/adressregister`) oder explizites `--cache-dir data/adressregister` | *(vor Fix)* In-place-Schreibzugriff auf zwei Hardlink-Dateien | war **ja** — **GEFIXT in Job 1** (Commit `8054844`): Default-Schreibziel jetzt `output/adressregister_cache`, bestehender Legacy-Cache unter `data/adressregister` bleibt lesbar. Für den Standardfall jetzt **nein**; **ja** bleibt es nur bei weiterhin explizitem `--cache-dir data/adressregister` (bewusst nicht verändertes Verhalten, siehe Job-1-Bericht) |
+| `windkraft/calc/widmung_sources.py:387-394` (`_ensure_ktn_gpkg`) | `output/abschichtung_widmung_v2/zoning_vectors/_cache/flawi_ktn_gpkg.gpkg` (Default über `01_build_official_zoning_layers.py:122,131`) | jeder Lauf ohne vorhandenen Cache | schreibt eine neue Datei in einem neuen Output-Verzeichnis | nein |
+| `windkraft/calc/abschichtung_common.py:457,489` (`pbf_for_bounds`, `osm_layer_path`) | `output/abschichtung/osm_pbf_layers/*.osm.pbf`, `*.geojsonseq` (Default über `03_build_osm_layers.py:232`, `04_create_distance_zones.py:379`) | jeder Lauf ohne Cache-Treffer | neue Dateien in neuem Output-Verzeichnis | nein |
+| `windkraft/calc/abschichtung_common.py:1443-1444` (`write_layer`) und `:1487,1578` (`compose_exclusion_geotiff`/`output_profile`) | `output/abschichtung_widmung_v2/distance_layers/*.tif`, `output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2.tif` (Default über `--layer-dir`/`--output` in `02..05_*.py`) | jeder Pipeline-Lauf | neuer Output-Baum | nein |
+| `windkraft/calc/band_manifest.py:516-517` (`write_band_manifest`) | `<tif-stem>.bands.json` neben `args.output` (`output/abschichtung_widmung_v2/...tif`) | jeder Lauf von `04_create_distance_zones.py` | neuer Output-Baum | nein |
+| `scripts/widmung_v2/01_build_official_zoning_layers.py:113-114` (`write_bucket`) | `output/abschichtung_widmung_v2/zoning_vectors/*.gpkg` (Default `--out-dir`) | jeder Lauf | neuer Output-Baum | nein |
+| `scripts/widmung_v2/02_build_hig_sources.py:173-174` | `output/abschichtung_widmung_v2/{HULL_GPKG_NAME}` (Default `--out-dir`) | jeder Lauf ohne `--skip-gpkg` | neuer Output-Baum | nein |
+| `scripts/analysis/build_v2_dashboard_data.py:330-331` | `output/abschichtung_widmung_v2/dashboard_data.json` (Default `--out`) | jeder Lauf | neuer Output-Baum | nein |
+| `scripts/webmap/build_layer_viewer.py:262,326` (+ `mkdir` Z. 87,282) | `output/abschichtung/viewer/{index.html,manifest.json}` (Default `--output`) | jeder Lauf | neuer Output-Baum | nein |
+| `scripts/preprocessing/export_at_dkm_geoparquet.py:399,424` (`extract_layer_shapefiles[_from_members]`) | System-Temp via `tempfile.TemporaryDirectory(dir=args.temp_dir)`, Default `None` | jeder Lauf | System-Temp, außerhalb von `data/`/`output/` | nein |
+| `scripts/preprocessing/export_at_dkm_geoparquet.py:797` (Summary-CSV) und `:889` (Overview-MD) | `output/kataster/at_dkm_gst_nfl_epsg31287_{summary.csv,overview.md}` (Default `DEFAULT_SUMMARY_CSV`/`DEFAULT_OVERVIEW_MD`) | nur mit explizitem `--overwrite` bei vorhandener Datei, sonst Erstanlage (gleicher Schutz wie Z. 262) | Erstanlage unkritisch; Überschreiben nur eigener, nicht hardgelinkter Dateien | nein (nicht in der Hardlink-Liste) |
+| `scripts/preprocessing/create_noe_dkm_polygon_fill_map.py:561-563` (`write_bounds_cache`) | `output/kataster/diagnostics/noe_dkm_bounds_*.csv` (Default `--bounds-cache`) | jeder Lauf mit Bounds-Cache | neues, nicht hardgelinktes Diagnose-Verzeichnis | nein |
+| `scripts/preprocessing/create_noe_dkm_polygon_fill_map.py:1278,1352,1385,1900,1903` | `output/kataster/diagnostics/{output_prefix}_*.{png,csv}` (Default `--output-prefix`, `OUT_DIR` Z. 53) | nur mit `--diagnostics`/`--boundary-diagnostics` | neues, nicht hardgelinktes Diagnose-Verzeichnis | nein |
+| `scripts/noe/align_pdf_shapefile.py:253` (`fig.savefig`) | `output/noe/alignment_check_pdf_vs_shapefile.png` (neben `args.out`) | jeder Lauf | neue, nicht hardgelinkte Datei | nein |
+
+**OPEN QUESTIONS (Schnittmenge, nicht gefixt):**
+
+1. **`extract_noe_vector_layers.py` / `pdf_hig_sources.py` (Zeilen 251-252 bzw. 101-102).**
+   Dies sind die einzigen zwei Treffer in der Schnittmenge **ohne jeden
+   bestehenden Schutz** — sie schreiben bei jedem Lauf bedingungslos. Trotzdem
+   nicht gefixt, weil kein minimaler, eindeutig verhaltensneutraler Patch
+   existiert: `output/noe` ist in dieser Mini-Kette (`align_pdf_shapefile.py`
+   schreibt `alignment_mindestabstand.json` → `extract_noe_vector_layers.py`
+   liest es über die fest verdrahtete Konstante `ALIGN_PATH` und schreibt
+   `pdf_750m_*.geojson` in dasselbe Verzeichnis → `pdf_hig_sources.py` liest
+   genau diese Dateien aus demselben Verzeichnis zurück und schreibt
+   `pdf_hig_source_*.geojson` wieder dorthin) sowohl Lese- als auch
+   Schreibziel für mehrere Stufen, jeweils über fest verdrahtete
+   Pfadkonstanten in drei verschiedenen Dateien (`ALIGN_PATH`, `OUT_DIR`
+   zweimal, `DEFAULT_OUT_JSON`). Eine reine Schreibziel-Verlegung (wie bei
+   `bev_register.py`) würde die Downstream-Lesepfade brechen, wenn sie nicht
+   koordiniert mitgeändert wird — und ein Legacy-Fallback wie bei
+   `bev_register.py` ("existierende Datei am alten Ort weiter lesen") ist
+   hier nicht so einfach zu bauen, weil dieselben Dateien innerhalb *eines*
+   Laufs sowohl frisch geschrieben als auch sofort wieder gelesen werden.
+   Alternative wäre ein reiner Overwrite-Schutz nach dem Vorbild von
+   `align_pdf_shapefile.py`/`export_at_dkm_geoparquet.py` — das ändert aber
+   nicht nur das Schreibziel, sondern fügt neues Abbruch-Verhalten hinzu, was
+   über den erlaubten Minimal-Fix hinausgeht. Empfehlung: menschliche
+   Entscheidung, welche der beiden Strategien (koordinierte Verlegung aller
+   drei Pfadkonstanten inkl. Legacy-Fallback, oder Overwrite-Schutz
+   ergänzen) gewünscht ist.
+2. **`align_pdf_shapefile.py:174` und `export_at_dkm_geoparquet.py:262`.**
+   Beide haben bereits einen eingebauten Schutz (`SystemExit`, falls Ziel
+   existiert und `--overwrite` fehlt) — der Standardlauf ist damit sicher,
+   das Risiko besteht nur bei explizitem `--overwrite`. Das ist strukturell
+   dasselbe Restrisiko, das Job 1 bei `bev_register.py` für ein explizites
+   `--cache-dir data/adressregister` bewusst unangetastet gelassen hat
+   (explizite Nutzer-Übersteuerung, keine Default-Gefahr). Aus Konsistenz
+   dazu ebenfalls nicht gefixt. Zusätzlich hängt `export_at_dkm_geoparquet.py`
+   an einer Verkettung: sein Default-Output wird in
+   `02_build_hig_sources.py:197` (`--dkm-parquet`) als Default-Leseziel exakt
+   wiederverwendet — eine Verlegung des Schreibziels müsste diesen zweiten
+   Ort mit ändern, sonst liest die Widmungs-v2-Kette künftig ins Leere. Auch
+   hier: menschliche Entscheidung statt Rateversuch.
+
+**Hinweis (kein aktiver Schreibpfad, nur zur Vollständigkeit):** Die
+Hardlink-Liste enthält sechs weitere `output/noe/alignment_*.json`-Dateien
+(`industrieviertel`, `landschaftsraum`, `mostviertel`, `naturschutz`,
+`waldviertel`, `weinviertel`). Keines der migrierten Skripte schreibt sie —
+laut Kommentaren in `windkraft/noe/pdf_align.py:29` und `:41` stammen sie von
+Alignment-Skripten (`align_naturschutz.py`, `combine_all_layers.py`), die
+(noch) nicht in dieses Repo migriert wurden. Sollten sie migriert werden,
+gilt für sie exakt dieselbe Gefährdung wie für `alignment_mindestabstand.json`
+oben.
+
+### Rechte/`chflags` schützen `data/` NICHT
+
+Rechte und `chflags` taugen **nicht** als Schutz für `data/`. Beide hängen am
+Inode, nicht am Verzeichniseintrag: ein `chmod -w` oder `uchg` im neuen Repo
+würde dieselben Dateien auch im Alt-Repo schreibgeschützt machen und dessen
+eigene Läufe brechen. Umgekehrt schützt ein schreibgeschütztes Verzeichnis
+nicht vor dem Überschreiben bestehenden Dateiinhalts, weil Verzeichnisrechte
+nur das Anlegen und Entfernen von Einträgen steuern. Der einzige wirksame
+Schutz ist, dass kein Code unter `data/` schreibt.
+
+Ergänzend, aus der Hardlink-Prüfung dieses Audits: dieselbe Überlegung gilt
+für `output/kataster/` und `output/noe/`, weil auch dort einzelne Dateien per
+Hardlink geteilt sind (siehe Tabelle oben) — Rechte/`chflags` auf
+Verzeichnisebene schützen auch dort nicht vor In-place-Überschreiben der
+betroffenen Dateien.
+
+**Grundregel für künftige Migrationen:** Eingaben hardlinken, Ausgaben
+kopieren. Ein Artefakt, das die Kette selbst schreibt, darf nie hardgelinkt
+sein — sonst wird aus einer harmlosen Neuberechnung ein stiller Doppel-Schaden.
+Die in der Tabelle oben als „hardgelinkt: ja" markierten `output/`-Dateien
+(drei `pdf_750m_*`, drei `pdf_hig_source_*`, `alignment_mindestabstand.json`,
+`at_dkm_gst_nfl_epsg31287.geoparquet`) sind laut dieser Regel eigentlich
+fehlerhaft verlinkt: es sind Ausgaben der migrierten Kette, keine Eingaben,
+und hätten beim Übernehmen kopiert statt gehardlinkt werden müssen. Diese
+Verlinkung wurde im Rahmen dieses Audits **nicht korrigiert** (das wäre eine
+Änderung an bestehenden Dateien außerhalb dessen, was in diesem Lauf selbst
+angelegt wurde) — nur gemeldet.
