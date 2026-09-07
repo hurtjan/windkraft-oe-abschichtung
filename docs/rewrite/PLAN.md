@@ -6,12 +6,11 @@ und interaktive Ansichten sind am Ende verlinkt.
 
 ## 1. Stand
 
-**W0.1 läuft.** Der Rohdatenbaum wird nach Themen umsortiert; die Pfade im
-Code werden anschließend nachgezogen. Alle übrigen 29 Pakete sind
-unberührt.
+**W0.1 abgeschlossen und nachgewiesen** (§11.5). Nächstes Paket: W0.2,
+Pfadvertrag. Die übrigen 28 Pakete sind unberührt.
 
-Sicherungspunkte: Commits `e98530a` und `ab2db12` auf Zweig
-`docs/audit-und-plan`. **`data/` ist gitignoriert** — dort ersetzt ein
+Sicherungspunkte auf Zweig `docs/audit-und-plan`: `e98530a`, `ab2db12`
+(Planung), `5aab405` (W0.1). **`data/` ist gitignoriert** — dort ersetzt ein
 Inventar aus Größe, Inode und Prüfsumme das fehlende Netz (§11.3).
 
 ## 2. Ausgangslage
@@ -299,7 +298,9 @@ derselben Welle teilen sich niemals eine Datei.
 
 ## 10. Nächster Schritt
 
-**W0.1** — Rohdaten nach Thema sortieren. Zuschnitt und Zielbaum stehen in §11.
+**W0.2** — Pfadvertrag anlegen. W0.1 ist abgeschlossen (§11.5); der
+Zielbaum aus §11.2 steht und ist die Grundlage, gegen die der Vertrag
+geschrieben wird.
 
 ## 11. Nachträge aus der Aufklärung zu W0.1
 
@@ -400,6 +401,41 @@ Zwei Stufen, weil ein Lauf allein nicht alles erreicht:
 
 Tritt hier schon eine Abweichung auf, stimmt etwas am Verschieben nicht.
 Dann wird angehalten, nicht die Ampel bemüht.
+
+### 11.5 Ergebnis von W0.1
+
+Commit `5aab405`. Vier Nachweise, in dieser Reihenfolge geführt:
+
+| Nachweis | Ergebnis |
+|---|---|
+| **Inodes über das Verschieben** | 56 vorher, 56 nachher, jeder genau einmal wiedergefunden; Linkcounts und Prüfsummen unverändert, Gesamtgröße auf das Byte gleich. `mv` innerhalb eines Dateisystems hat nur umbenannt — nichts wurde kopiert, nichts verlor seinen Hardlink. Dauer: 2,5 Minuten für 13 GB. |
+| **Pfadauflösung** | 35 funktionale Pfade lösen auf eine existierende Datei auf. Die zwei bekannten Leerläufer fehlen erwartungsgemäß. Alle 15 geänderten Python-Dateien kompilieren, `config.json` ist gültig. |
+| **Bitgleichheit** | Finalisierung aus 34 vorhandenen Checkpoint-Layern in 167 s; Ergebnis `sha256`-identisch zu `run1` — 124.685.819 Bytes, 38 Bänder. |
+| **Inode-Abgleich alt gegen neu** | 30 von 30 abbildbaren Codestellen zeigen auf **dieselbe** Inode wie vor dem Umbau. Null Vertauschungen, kein verwaister und kein neu getroffener Inode. |
+
+Der vierte Nachweis war nötig, weil die ersten drei eine Lücke lassen: der
+Bitgleichheitslauf hat **drei der neun Verzeichnisse gar nicht angefasst**
+(`zonen/`, `osm/`, `natur/` — ihre Checkpoints lagen vor), und die
+Pfadprüfung belegt nur, dass *eine* Datei am neuen Ort liegt, nicht dass es
+dieselbe ist. Ein Pfad, der nach dem Umbau auf eine andere vorhandene Datei
+zeigt, wäre durch beide Prüfungen gerutscht und hätte still falsche Inhalte
+geliefert. Der Inode-Abgleich schließt das vollständig und in Sekunden —
+insbesondere für die beiden steirischen Widmungsquellen, die jetzt im selben
+Verzeichnis liegen und deren Vertauschung an keiner Fehlermeldung und an
+keiner Bandzahl aufgefallen wäre.
+
+**Nebenbefund mit Folgen für Welle 2:** `layer_done()` erkennt einen Layer
+als fertig, wenn Form, CRS, Transform und Bandname des vorhandenen
+Checkpoints passen — die Rohquelle sieht die Prüfung nicht an. Man kann also
+eine Rohdatei austauschen, und die Kette rechnet mit dem alten Layer weiter.
+Entscheidung (c) sieht einen Fingerabdruck der Eingänge für die Prep-Stufen
+vor; derselbe Mechanismus wird auch auf der **Layer**-Stufe gebraucht. Das
+gehört in W2.1–W2.3, nicht nur in die Prep-Pakete.
+
+**Nachzügler:** `docs/analysis/streusiedlung_knee.py:71` zeigte noch auf
+`data/adressregister`. Das Skript ist kettenfremd und wird von keinem
+Make-Ziel aufgerufen, es bricht bei Direktaufruf also laut statt still —
+aber W0.1 hat es zerbrochen, also hat W0.1 es repariert.
 
 ## Maschinensichten
 
