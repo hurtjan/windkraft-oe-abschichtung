@@ -59,15 +59,33 @@ check-guards: check-hardlinks check-raw-only
 ## --- Neues Gerüst (docs/rewrite/PLAN.md §3, §7 Paket W0.3) ---------------
 ## Fünf-Stufen-Modell: Roh -> Prep -> Layer -> Finalize -> verify. `make`
 ## (Standard, siehe .DEFAULT_GOAL oben) ist Layer+Finalize, unverändert die
-## heutige Kette. `prep` existiert als Ziel, tut aber noch nichts - die
-## Prep-Pakete (W1.P1-W1.P9) kommen erst in Welle 1. `all` hängt beides
-## zusammen; solange prep leer ist, ist das dasselbe wie `make`.
+## heutige Kette. `prep` existiert als Ziel; solange keine make/prep/*.mk
+## vorliegt, tut es noch nichts. `all` hängt beides zusammen; solange prep
+## leer ist, ist das dasselbe wie `make`.
 
-## Noch kein Prep-Paket ist umgesetzt (Welle 1, W1.P1-W1.P9). Bewusst kein
-## stiller Erfolg und kein Fehler - nur die Auskunft, dass hier noch nichts
-## läuft.
-prep:
+## Vorpaket W1.P0 (docs/rewrite/PLAN.md §13.4): statt dass jedes der neun
+## parallelen Prep-Pakete (W1.P1-W1.P9) ein eigenes Ziel HIER anhängt - ein
+## garantierter neunfacher Konflikt an derselben Stelle -, bekommt jedes
+## Paket seine eigene Datei make/prep/<domäne>.mk mit dem Ziel
+## `prep-<domäne>`. Siehe make/prep/README.md für die Konvention. Das
+## führende "-" lässt make weiterlaufen, solange noch keine einzige Datei
+## existiert (kein Fehler, kein Abbruch).
+-include make/prep/*.mk
+
+# Namen aller so eingelesenen Ziele, aus den Dateinamen abgeleitet -
+# make/prep/admin.mk ergibt prep-admin. Leer, solange kein make/prep/*.mk
+# existiert.
+PREP_TARGETS := $(addprefix prep-,$(basename $(notdir $(wildcard make/prep/*.mk))))
+.PHONY: $(PREP_TARGETS)
+
+## Ruft alle neun (bzw. die bereits vorhandenen) prep-<domäne>-Ziele auf.
+## Bewusst kein stiller Erfolg und kein Fehler, solange noch keines
+## existiert - nur die Auskunft, dass hier noch nichts läuft. Rückgabewert
+## in jedem Fall 0.
+prep: $(PREP_TARGETS)
+ifeq ($(strip $(PREP_TARGETS)),)
 	@echo "prep: noch keine Prep-Pakete vorhanden - die entstehen erst in Welle 1 (docs/rewrite/PLAN.md §7, W1.P1-W1.P9)."
+endif
 
 ## Prep und Kette zusammen - der Beweislauf aus Rohdaten (Welle 5: W5.1).
 all: prep widmung-v2

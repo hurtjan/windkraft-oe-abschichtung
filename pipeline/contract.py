@@ -199,11 +199,25 @@ LEGACY_ENTFAELLT: dict[str, Path] = {
 
 
 # ---------------------------------------------------------------------------
-# PREP - Ausgaben der Prep-Stufe(n) je Domäne (PLAN.md §4, Spalte "Prep").
-# Zielzustand: existiert nach W0.2 noch nicht, die Prep-Pakete legen die
-# Verzeichnisse tatsächlich an und schreiben hinein. "gelaende" hat keine
-# Prep-Stufe (Raster liegen schon im Zielgitter, siehe PLAN.md §4) und taucht
-# hier deshalb nicht auf.
+# PREP - Ausgaben der Prep-Stufe(n) je Domäne (PLAN.md §4, Spalte "Prep";
+# §7, Pakete W1.P1-W1.P9). Zielzustand: existiert nach W0.2 noch nicht, die
+# neun Prep-Pakete legen die Verzeichnisse tatsächlich an und schreiben
+# hinein. Alle neun Domänen sind hier vorab erklärt (Paket W1.P0, PLAN.md
+# §13.4) - so bräuchte kein Prep-Paket beim parallelen Start selbst einen
+# Eintrag hier anlegen, und der neunfache Konflikt an dieser einen Stelle
+# entsteht gar nicht erst. Jedes Prep-Paket importiert seinen eigenen
+# Eintrag, statt den Pfad selbst zu konstruieren (siehe Modul-Docstring).
+#
+# "gelaende" hat laut PLAN.md §4 "kein Prep" im Sinn von Reprojizieren oder
+# Filtern - die beiden Raster liegen schon im Zielgitter. §7 führt trotzdem
+# ein eigenes Paket W1.P6 (`pipeline/prep/terrain.py`), das laut dortiger
+# Abnahme "nur Durchreichen und Gitterprüfung" macht und bei abweichendem
+# Gitter oder CRS abbricht. Ein Durchreichen ist noch ein Schreiben - nach
+# PLAN.md §3 darf die Layer-Stufe ohnehin nur aus der Prep-Stufe lesen, nie
+# zwei Stufen überspringen. Der Eintrag steht deshalb hier, auch ohne
+# inhaltliche Transformation. ANNAHME (von W1.P6 zu prüfen): einstufig wie
+# admin/adressen/widmung/natur/zonen, keine a_/b_-Aufteilung - dafür spricht
+# weder Anmerkung noch Abnahme in §7 eine zweite Stufe an.
 # ---------------------------------------------------------------------------
 
 PREP = {
@@ -222,6 +236,9 @@ PREP = {
         "a_extract": BUILD_PREP / "osm" / "a_extract",
         "b_layers": BUILD_PREP / "osm" / "b_layers",
     },
+    # Gelände & Wind: ein Durchreichen/Gitterprüfung, keine zwei Stufen -
+    # siehe Kommentar oben (ANNAHME, von W1.P6 zu prüfen).
+    "gelaende": BUILD_PREP / "gelaende",
     "natur": BUILD_PREP / "natur",
     "zonen": BUILD_PREP / "zonen",
     # NÖ SekROP: zwei Stufen, Karten-Alignment vor Vektorisierung (PLAN.md §4).
