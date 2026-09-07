@@ -12,9 +12,9 @@ W0.1 in dessen §11. Die Belege liegen unter
 
 | | |
 |---|---|
-| Abgeschlossen | **26 von 32** — Welle 0 und 1 vollständig, W2.P0, W2.3 und W2.4. Zwei Pakete kamen neu dazu (W2.P0, W2.4), eines entfiel (W2.2 → W2.1). |
-| Als Nächstes | W2.1, sobald der Kataster-Lauf durch ist |
-| Deckung der Welle 2 | 9 + 17 + 7 = **33 Layer**, nachrechenbar vollständig |
+| Abgeschlossen | **27 von 32** — Welle 0, 1 und **2 vollständig**. Zwei Pakete kamen neu dazu (W2.P0, W2.4), eines entfiel (W2.2 → W2.1). |
+| Als Nächstes | Welle 2 zusammenführen, dann Welle 3 |
+| Deckung der Welle 2 | 9 + 17 + 7 = **33 Layer**, davon **32 pixelgleich**, 1 erklärte Abweichung |
 | `data/` | **hardlinkfrei**, 48 echte Dateien, per Wächter als Invariante gesichert |
 | Zweig | `docs/audit-und-plan`; offene Zweige `w2.3`, `w2.4` |
 | Abweichungen bisher | **eine, und sie ist eine Korrektur** — `geography_water_bodies`, 0,16 % zusätzliche Zellen, Ursache Bodensee-Relation. Punkt 33, deine Entscheidung. |
@@ -56,7 +56,7 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | — | Datenfenster: alte Adress-Parquets (Punkt 19) | **fertig** | 15 min | 4 min | Inode belegt `mv` · 147+1 Tests · Wächter 129 → 127 |
 | — | Prep-Stufe für die fünfte Zonenquelle (Punkt 22) | **fertig** | 20 min | 8 min | **0,0 m²** · 71/71 Geometrien gleich · 147+1 Tests |
 | W2.P0 | Vorfeld der Layer-Welle | **fertig** | 25 min | 9 min | `make -n` 12/12 gleich · **Kataster-Herkunft aufgedeckt** |
-| W2.1 | Layer: Widmung und Häuser im Grünen | offen | 60 min | | W2.2 hier aufgegangen |
+| W2.1 | Layer: Widmung und Häuser im Grünen | **fertig** | 60 min | 18 min | **7/7 pixelgleich** · löst die Kette vom Mai-Artefakt |
 | W2.3 | Layer: OSM und Infrastruktur | **fertig** | 45 min | 19 min | **9/9 Layer bitgleich** · Skip belegt · 147+1 Tests |
 | W2.4 | Layer: Natur, Gelände, Zonen und Puffer | **fertig** | 50 min | 25 min | **16/17 pixelgleich** · 1 erklärte Abweichung · Punkt 20 beantwortet |
 | W3.1 | Finalisierung und Manifest-Vertrag | offen | 45 min | | |
@@ -1526,6 +1526,60 @@ ergänzt hat, ist mehr wert als ihre Kosten.
 **5,3 GB**; der Lauf hat den freien Platz von 32 auf 25 GiB gedrückt.
 Ein weiterer Volllauf neben dem bestehenden wäre eng.
 
+### W2.1 — Layer: Widmung und Häuser im Grünen · fertig
+
+Commit `9b65057`, Zweig `w2.1`. Geschätzt 60 min, gebraucht 18. Drei
+Dateien: `pipeline/layers/hig.py` (456 Zeilen), `make/layers/hig.mk`,
+`docs/widmung_v2_provenance.md`.
+
+**Alle sieben Layer pixelgleich:** `official_settlement_source`,
+`official_hig_source`, `ferienhaus_tourismus_source`, `hig_hulls_source`,
+`bewohnt_einzellage_source`, `nonresidential_hulls_source`,
+`noe_pdf_750m_zones`. Der Datei-Hash weicht bei allen sieben ab, und die
+Ursache ist zweifach benannt: das neue `PREP_FINGERPRINT`-Tag und ein
+aktualisiertes `HIG_ZONING_DIR`-Tag, das jetzt auf `build/prep/widmung`
+zeigt statt auf `output/.../zoning_vectors`. Per direktem Tag-Vergleich
+verifiziert, nicht vermutet.
+
+**Damit ist die Kette vom Fremdartefakt gelöst.** `hig.py` liest
+`build/prep/kataster/b_export_parquet/…`, nicht mehr die Mai-Datei aus
+dem Vorgängerprojekt. Der Volllauf von 48 Minuten hatte kurz zuvor
+belegt, dass beide inhaltlich dasselbe enthalten — erst diese Reihenfolge
+macht die Umstellung risikolos.
+
+**Die Stufe ist erheblich schneller als befürchtet: 82,3 s** für einen
+vollen Nationallauf, davon 23,7 s Kataster-Lesen, 17,3 s Widmungsmasken,
+14,2 s Hüllenbildung. Der zweite Lauf überspringt in 0,0 s.
+
+**Punkt 24 wird nicht geerbt:** `_ensure_ktn_gpkg()` liegt in
+`widmung_sources.py` und wird nur von `pipeline/prep/widmung.py`
+aufgerufen. `hig.py` importiert das Modul gar nicht, sondern liest die
+fertigen `*_combined.gpkg`. Geprüft per Codepfad, nicht mit einem
+geänderten ZIP — die Einschränkung nennt der Agent selbst.
+
+**Die Provenienz-Doku ist nachgezogen, und zwar richtig:** Die alte
+Kataster-Zeile wurde **nicht gelöscht**, sondern als „seit W2.1 kein
+Codepfad mehr referenziert" markiert, daneben der neue Vorgabewert. Für
+ein Provenienzdokument ist das die richtige Behandlung — es soll
+Herkunft nachvollziehbar machen, und dazu gehört, was einmal galt. Was
+er nicht sicher beurteilen konnte, hat er stehengelassen und aufgezählt.
+
+**Vier fachliche Eigenheiten, unverändert übernommen und gemeldet** —
+zwei davon sind echte Modellentscheidungen, keine Implementierungsdetails:
+DKM-Flächen über 10 000 m² werden durch eine 5-m-Scheibe um den Zentroid
+ersetzt; die Schwelle von fünf Adressen trennt „Streusiedlung" (750 m)
+von „Einzellage" (25 m). Dazu: Industriewidmung schlägt Wohnen, wenn kein
+BEV-Signal widerspricht — mit **einer** Fehlklassifikationsrichtung,
+Bewohntes wird zu 25 m herabgestuft, nie umgekehrt. Punkt 34.
+
+**Nicht abgedeckt, selbst benannt:** kein Kettenlauf; `--bl`, `--bbox`
+über einen 10×10-km-Smoketest hinaus und `--skip-gpkg` ungetestet; vom
+Fingerabdruck nur der Negativfall belegt (unverändert → Skip), nicht der
+Positivfall — dafür hätte er ins geteilte `build/prep/` schreiben müssen,
+was untersagt war.
+
+**Abnahme: 147 Tests plus 1 übersprungen, Wächter grün.**
+
 ## Offene Punkte
 
 | # | Punkt | Fällig |
@@ -1555,6 +1609,7 @@ Ein weiterer Volllauf neben dem bestehenden wäre eng.
 | ~~20~~ | ~~GeoPackage promoviert Polygone zu MultiPolygonen.~~ Der Effekt ist real (383 von 920 bei `natur`, 49 von 71 bei den NÖ-Zonen), aber **von W2.4 mit Fundstellen als folgenlos belegt**: Im ganzen Layer-Block geht jede GPKG-Eingabe ausschließlich durch `rasterize`; die einzige echte `geom_type`-Verzweigung prüft eine zur Laufzeit aus OSM-Punkten vereinigte Geometrie, zwei weitere Typprüfungen sind inklusiv und laufen auf Parquet. Für eine künftige geometrietyp-sensitive Stufe bleibt es zu beachten. | — |
 | 21 | 33 von 920 Schutzgebietsgeometrien sind laut GEOS ungültig. Der heutige Konsument prüft und repariert das ebenfalls nicht — deshalb nach Regel 4 unverändert. | fachlich, Nutzer |
 | ~~19~~ | ~~Stille Falle: zwei Juli-Parquets unter `data/adressen/`.~~ **Erledigt im Datenfenster nach der Prep-Welle.** Nicht gelöscht, sondern in den Sitzungs-Scratchpad verschoben — es waren die zwei Dateien aus W1.3 ohne zweite Kopie im Vorgängerprojekt, und ein Neulauf ergäbe wegen des Oktober-Stichtags andere Dateien. Inode nach dem `mv` unverändert. | — |
+| 34 | **Zwei Modellentscheidungen im HiG-Pfad, die keine Implementierungsdetails sind.** DKM-Flächen über `HIG_MAX_FOOTPRINT_M2` = 10 000 m² werden durch eine 5-m-Scheibe um den Zentroid ersetzt; `HIG_MIN_ADRESSEN` = 5 trennt „Streusiedlung" (750 m Abstand) von „Einzellage" (25 m). Dazu eine bekannte einseitige Fehlklassifikation: Bei Mehrheitswidmung Industrie ohne widersprechendes BEV-Signal wird Bewohntes zu 25 m herabgestuft, nie umgekehrt. Von W2.1 nach Regel 4 unverändert übernommen und gemeldet. | fachlich, Nutzer |
 | 33 | **Die erste echte Abweichung — und sie ist eine Korrektur.** `geography_water_bodies` weicht in 543 106 von 336 038 001 Zellen ab (0,16 %), ausschließlich zusätzlich. Ursache: `osmium extract --bbox` klippt vor dem Tag-Filter und verliert die grenzüberschreitende Bodensee-Relation; die Prep-Stufe filtert gegen die ungeklippte Rohquelle und findet sie. Die neue Kette hat recht. **Zu entscheiden: Wird das als Abweichung in `abweichungen.tsv` geführt und die Bitgleichheit zu `run1` aufgegeben, oder gilt weiter der alte Zustand als Soll?** Offen ist außerdem, ob dieselbe Lücke weitere, kleinere Gewässer betrifft. | **Nutzer** |
 | 32 | **Zwei Fingerabdruck-Konventionen in einer Welle.** W2.3 legt sie als Dateien unter `build/layers/_fingerprints/<domäne>/` ab, W2.4 als Tag `PREP_FINGERPRINT` in der Rasterdatei. Dieselbe richtige Antwort, zwei Umsetzungen — genau die Divergenz aus §13.6, diesmal vorhergesehen und deshalb harmlos. Beim Zusammenführen anzugleichen. | Zusammenführung Welle 2 |
 | 30 | **Geteiltes Werkzeug, ungeteilte Bedeutung.** Alle neun Prep-Module benutzen `pipeline/fingerprint.py`, aber nur `osm.py` und `kataster/b_export_parquet.py` lesen den Fingerabdruck zum Selbst-Überspringen zurück; `adressen.py:71` hat `rebuild=True` hart verdrahtet, die übrigen schreiben ihn nur. **Für die Layer-Stufe von W2.3 entschieden und dokumentiert:** prüfen, und bei Abweichung neu bauen statt abbrechen. Offen bleibt die Uneinheitlichkeit **innerhalb der Prep-Stufe**. | Prep-Teil: Aufräumwelle |
