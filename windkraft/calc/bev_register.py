@@ -30,6 +30,9 @@ import numpy as np
 import pandas as pd
 from pyproj import Transformer
 
+from pipeline import contract
+from pipeline.runtime import ensure_dir
+
 TARGET_EPSG = 31287
 
 ADDRESS_CACHE_NAME = "adressen_31287.parquet"
@@ -110,16 +113,12 @@ def _to_target_crs(df: pd.DataFrame) -> pd.DataFrame:
 
 def load_address_points(data_dir: Path, cache_dir: Path | None = None, rebuild: bool = False) -> np.ndarray:
     """(N, 2)-Array aller BEV-Adresskoordinaten in EPSG:31287."""
-    legacy_cache = data_dir / ADDRESS_CACHE_NAME
-    cache = (cache_dir or data_dir) / ADDRESS_CACHE_NAME
-    if legacy_cache.exists() and not rebuild:
-        cache = legacy_cache
+    cache = ensure_dir(cache_dir or contract.PREP["adressen"]) / ADDRESS_CACHE_NAME
     if cache.exists() and not rebuild:
         frame = pd.read_parquet(cache)
         print(f"[info]  BEV-Adress-Cache: {len(frame):,} Punkte aus {cache}", flush=True)
     else:
         frame = _to_target_crs(_read_csv(data_dir, ADDRESS_CSV, ["RW", "HW", "EPSG"]))
-        cache.parent.mkdir(parents=True, exist_ok=True)
         frame[["x", "y"]].to_parquet(cache)
         print(f"[info]  BEV-Adressen gecacht: {len(frame):,} -> {cache}", flush=True)
     return frame[["x", "y"]].to_numpy()
@@ -127,17 +126,13 @@ def load_address_points(data_dir: Path, cache_dir: Path | None = None, rebuild: 
 
 def load_building_points(data_dir: Path, cache_dir: Path | None = None, rebuild: bool = False) -> pd.DataFrame:
     """DataFrame(x, y, eigenschaft) aller BEV-Gebäude in EPSG:31287."""
-    legacy_cache = data_dir / BUILDING_CACHE_NAME
-    cache = (cache_dir or data_dir) / BUILDING_CACHE_NAME
-    if legacy_cache.exists() and not rebuild:
-        cache = legacy_cache
+    cache = ensure_dir(cache_dir or contract.PREP["adressen"]) / BUILDING_CACHE_NAME
     if cache.exists() and not rebuild:
         frame = pd.read_parquet(cache)
         print(f"[info]  BEV-Gebäude-Cache: {len(frame):,} Punkte aus {cache}", flush=True)
         return frame
     frame = _to_target_crs(_read_csv(data_dir, BUILDING_CSV, ["RW", "HW", "EPSG", "EIGENSCHAFT"]))
     frame = frame[["x", "y", "eigenschaft"]]
-    cache.parent.mkdir(parents=True, exist_ok=True)
     frame.to_parquet(cache)
     print(f"[info]  BEV-Gebäude gecacht: {len(frame):,} -> {cache}", flush=True)
     return frame
