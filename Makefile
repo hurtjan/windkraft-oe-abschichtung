@@ -5,7 +5,7 @@ V2_DIR = output/abschichtung_widmung_v2
 V2_TIF = $(V2_DIR)/osm_wka_distance_zones_widmung_v2.tif
 
 .PHONY: widmung-v2 widmung-v2-zoning widmung-v2-hig widmung-v2-osm widmung-v2-tif \
-        widmung-v2-validate check-hardlinks prep all test worktree
+        widmung-v2-validate check-hardlinks check-raw-only check-guards prep all test worktree
 
 # Ohne dieses .DEFAULT_GOAL würde make(1) das erste im File stehende Ziel
 # nehmen - das ist widmung-v2-zoning (nur Stufe 1 von 5), nicht die volle
@@ -37,11 +37,24 @@ widmung-v2-validate:
 ## Volle v2-Kette inkl. Testpunkt-Prüfung (mehrstündig)
 widmung-v2: widmung-v2-zoning widmung-v2-hig widmung-v2-osm widmung-v2-tif widmung-v2-validate
 
-## Prüft mechanisch, dass kein Schreibziel unter data/ oder output/ noch ein
-## Hardlink ist (siehe tools/check_hardlink_safety.py). Nach jedem Hinzufügen
-## neuer Daten laufen lassen — schnell, ohne Abhängigkeiten.
+## Prüft mechanisch, dass jede Datei unter data/ Link-Count 1 hat und keine
+## Ausgabe unter output/ einer ist (siehe tools/check_hardlink_safety.py,
+## Regel A/B - seit W1.3 ist Regel B eine echte Invariante, keine
+## deklarierte Liste mehr). Nach jedem Hinzufügen neuer Daten laufen lassen
+## — schnell, ohne Abhängigkeiten.
 check-hardlinks:
 	$(PYTHON) tools/check_hardlink_safety.py
+
+## Prüft statisch (per AST, kein Lauf nötig), dass kein Code nach data/
+## schreibt - data/ wird nur gelesen (siehe tools/check_raw_only.py für den
+## Umfang und die dort dokumentierten bekannten Lücken). Ergänzt
+## check-hardlinks: der eine prüft eine Tatsache am Dateisystem, der andere
+## den Code, der sie herbeiführen könnte.
+check-raw-only:
+	$(PYTHON) tools/check_raw_only.py
+
+## Beide Rohdaten-Wächter zusammen.
+check-guards: check-hardlinks check-raw-only
 
 ## --- Neues Gerüst (docs/rewrite/PLAN.md §3, §7 Paket W0.3) ---------------
 ## Fünf-Stufen-Modell: Roh -> Prep -> Layer -> Finalize -> verify. `make`
