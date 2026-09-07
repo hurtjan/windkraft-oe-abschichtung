@@ -261,7 +261,7 @@ derselben Welle teilen sich niemals eine Datei.
 | W2.1 | 2 | Layer | Layer: Widmung und Häuser im Grünen | `pipeline/layers/hig.py` | W2.P0 | Bitgleich; die NÖ-Ausmaskierung bleibt unverändert erhalten. **W2.2 ist hier aufgegangen** — Begründung in §13.8. |
 | W2.3 | 2 | Layer | Layer: OSM und Infrastruktur | `pipeline/layers/osm.py` | W2.P0 | Bitgleich; Wiederaufsetzen überspringt vorhandene Layer nachweislich korrekt. |
 | W2.4 | 2 | Layer | Layer: Natur, Gelände, Zonen und Puffer | `pipeline/layers/geo.py` | W2.P0 | Bitgleich für **alle 17** Checkpoints aus `04_create_distance_zones.py`; die Geometrietyp-Empfindlichkeit gegen den GPKG-Promotionseffekt geprüft und beantwortet. |
-| W3.1 | 3 | Finalisierung | Finalisierung und Manifest-Vertrag | `pipeline/finalize.py`; `windkraft/calc/band_manifest.py` | Welle 2 | 38 Bänder, Manifest mit Nummer, Name, Rolle, Puffer und Quelle je Band; Schema versioniert. |
+| W3.1 | 3 | Finalisierung | Finalisierung und Manifest-Vertrag | `pipeline/finalize.py`; `windkraft/calc/band_manifest.py` | Welle 2 | 38 Bänder, Manifest mit Nummer, Name, Rolle, Puffer und Quelle je Band; Schema versioniert. **Nicht mehr bitgleich zu `run1`:** Abweichungen sind **ausschließlich** in den Bändern zulässig, die aus `geography_water_bodies` gespeist werden (§13.9) — welche das sind, ist Teil des Nachweises. Jede andere ist ein Fehler. |
 | W3.2 | 3 | Finalisierung | Validierung | `pipeline/validate.py` | W3.1 | Prüft das TIF gegen run1 nach der Ampel aus Abschnitt 6 und schreibt `abweichungen.tsv`. |
 | W4.1 | 4 | Prüfung | Dashboard neu | `pipeline/verify/dashboard.py`; `out/dashboard/` | W3.1 | Liest ausschließlich das Manifest; keine Bandnamen im Code. Läuft gegen ein Manifest mit geänderter Bandzahl ohne Anpassung. |
 | W4.2 | 4 | Prüfung | Gemeindegrenzen-Export | `pipeline/verify/gemeinden.py`; `out/gemeinden.geojson` | W1.P1 | Grenzen im Rasterbezug; Deckungsabweichung gegen das TIF ausgewiesen und unter Schwellwert. |
@@ -793,6 +793,41 @@ Geometrietyp-Prüfung ausdrücklich in der Abnahme von W2.4.
 **Nachtrag:** Die Maschinensichten unten nennen 30 Arbeitspakete. Mit
 W2.P0 und W2.4 sind es 32, und `packages.tsv`/`packages.json` sind
 entsprechend veraltet — dieselbe Baustelle wie Punkt 16.
+
+### 13.9 Die erste Abweichung ist eine Korrektur
+
+Bis Welle 2 galt: Jede Abweichung von `run1` ist ein Fehler. Das war
+richtig, solange nur umgebaut und nichts neu berechnet wurde. Mit W2.4
+ist der erste Fall aufgetreten, in dem die **neue** Kette recht hat und
+die alte unrecht.
+
+`geography_water_bodies` weicht in 543 106 von 336 038 001 Zellen ab —
+0,16 %, und **ausschließlich zusätzlich**. Ursache: Der alte Weg klippt
+per `osmium extract --bbox` (Strategie „simple") **vor** dem Tag-Filter.
+Bei einer großen grenzüberschreitenden Relation kappt das Mitglieder
+außerhalb der Box, und die Relation geht beim Export verloren. Die
+Prep-Stufe filtert gegen die volle, ungeklippte Rohquelle und findet den
+Bodensee.
+
+**Der Zustand ist bewusst nicht entschieden, sondern dokumentiert.** Ob
+die Korrektur übernommen wird oder der alte Zustand als Soll gilt, ist
+eine fachliche Frage und gehört dem Nutzer (Punkt 33). Bis dahin gilt:
+
+> **Regel 8.** Eine erklärte Abweichung wird **weitergetragen, nicht
+> weggemacht** — mit ihrer Zahl, ihrer Ursache und ihrer Richtung. Sie
+> muss aber **umkehrbar bleiben**: Die Korrektur besteht allein darin,
+> dass die Prep-Stufe ungeklippt filtert; ein Rückbau wäre eine lokale
+> Änderung an einer Stelle. Solange das gilt, darf die Arbeit weiterlaufen,
+> ohne der Entscheidung vorzugreifen.
+
+Praktische Folge für Welle 3: Der Nachweislauf ergibt **nicht mehr**
+`dc58b011…9e3df1`. Abweichen dürfen **ausschließlich** die Bänder, die
+aus `geography_water_bodies` gespeist werden — wie viele das sind, weiß
+ich nicht und will es als Teil des Nachweises wissen, denn ein
+Kategorie- oder Aggregatband kann denselben Layer mitführen. **Jede
+andere Abweichung ist ein Fehler** — und die
+Vorhersagbarkeit ist hier der eigentliche Test: Eine Zahl, die man vorher
+nennt und danach misst, beweist mehr als eine, die man hinterher erklärt.
 
 ## Maschinensichten
 

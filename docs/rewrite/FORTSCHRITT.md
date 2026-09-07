@@ -13,10 +13,10 @@ W0.1 in dessen §11. Die Belege liegen unter
 | | |
 |---|---|
 | Abgeschlossen | **27 von 32** — Welle 0, 1 und **2 vollständig**. Zwei Pakete kamen neu dazu (W2.P0, W2.4), eines entfiel (W2.2 → W2.1). |
-| Als Nächstes | Welle 2 zusammenführen, dann Welle 3 |
+| Als Nächstes | **W3.1** — dort wird die Kette auf die neuen Module verdrahtet, und dort erreicht die Bodensee-Korrektur zum ersten Mal ein Band |
+| Zweig | `docs/audit-und-plan`, Kopf `c18f82d`, keine offenen Worktrees |
 | Deckung der Welle 2 | 9 + 17 + 7 = **33 Layer**, davon **32 pixelgleich**, 1 erklärte Abweichung |
 | `data/` | **hardlinkfrei**, 48 echte Dateien, per Wächter als Invariante gesichert |
-| Zweig | `docs/audit-und-plan`; offene Zweige `w2.3`, `w2.4` |
 | Abweichungen bisher | **eine, und sie ist eine Korrektur** — `geography_water_bodies`, 0,16 % zusätzliche Zellen, Ursache Bodensee-Relation. Punkt 33, deine Entscheidung. |
 
 ## Paketübersicht
@@ -119,7 +119,7 @@ Paket plus Puffer für meine eigene Abnahme, die seriell bleibt:
 | ~~Vorfeld W2.P0, seriell~~ | 1 | ~~25~~ · **9 min** |
 | ~~Kataster-Volllauf, einmalig~~ | — | ~~45–70~~ · **48 min** |
 | Welle 2: W2.3 und W2.4 fertig, **W2.1 läuft** | 3 | 19 + 25 gemessen, W2.1 offen |
-| Zusammenführung Welle 2 | — | 20 min |
+| ~~Zusammenführung Welle 2~~ | — | ~~20~~ · **23 min** |
 | Welle 3, seriell | 2 | 1 h 15 |
 | Welle 4, parallel | 3 | 40 min |
 | Zusammenführung Welle 4 | — | 15 min |
@@ -1580,6 +1580,60 @@ was untersagt war.
 
 **Abnahme: 147 Tests plus 1 übersprungen, Wächter grün.**
 
+### Zusammenführung der Welle 2 · fertig
+
+Merge-Commits `d16b68b` (w2.3), `0aa8198` (w2.4), `83e5c48` (w2.1), alle
+mit `--no-ff`, **alle konfliktfrei**. Davor `c2525dc` mit meinem
+Protokoll, danach `c18f82d` mit der Angleichung. Geschätzt 20 min,
+gebraucht 23.
+
+**Mein Verdacht zu `contract.py` war unbegründet, und der Grund ist
+erfreulich:** `BUILD_LAYERS` existiert dort seit W0.2, also seit dem
+Pfadvertrag selbst. W2.4 hat kein Feld hinzugefügt, sondern ein
+vorhandenes benutzt. Keiner der drei Zweige hat die Datei angefasst —
+zum zweiten Mal in Folge hat die Vorbereitung den Konflikt gar nicht erst
+entstehen lassen.
+
+**Punkt 32 ist aufgelöst, und die Prüfung hat ihn unabhängig
+bestätigt.** Der Unterschied war schärfer, als ich ihn beschrieben hatte:
+`hig.py` und `geo.py` betten den Fingerabdruck in **jede Ausgabedatei**
+ein und lesen ihn beim nächsten Lauf aus derselben Datei zurück —
+Schreiben und Prüfen laufen über dasselbe Objekt. `osm.py` legte ihn in
+eine Nebendatei und benutzte ihn als **globalen Schalter**, entkoppelt
+vom einzelnen Raster. Nicht nur eine andere Ablage, sondern eine andere
+Granularität.
+
+Angeglichen auf die Tag-Variante als eigener Commit `c18f82d`, und
+danach der Gleichheitsnachweis von W2.3 **neu geführt**: alle neun Layer
+per Pixel-Hash gleich, zweiter Lauf überspringt alle neun, Tag im Raster
+bestätigt.
+
+**Die beiden Nachweise der Wellengrenze, getrennt geführt:**
+
+| | Ergebnis |
+|---|---|
+| **a) Alte Kette unverändert** | `sha256` **`dc58b011…9e3df1`**, exakt der erwartete Wert. Validierung 8/8 PASS. Die `run1`-Checkpoints nachweislich unberührt. |
+| **b) `make layers`, die neue Stufe** | 33 Dateien — 17 + 7 + 9. **32 pixelgleich**, eine Abweichung: `geography_water_bodies` mit **exakt 543 106** zusätzlichen Zellen. Keine weitere. |
+
+Das ist der Zustand, den ich haben wollte: Die alte Kette liefert
+unverändert dasselbe Bit für Bit, die neue Stufe erzeugt dieselben Layer
+— mit **einer** Abweichung, deren Zahl vorher bekannt war und die auf
+die Zelle genau eingetroffen ist. Eine Zahl, die man vorhersagt und dann
+misst, ist ein anderer Beweis als eine, die man nachträglich erklärt.
+
+Der Agent hat den Kettenlauf mit umgeleitetem `V2_TIF` geführt, statt die
+Referenzdatei zu überschreiben — nicht beauftragt, aber richtig.
+
+**Ein Nebenbefund:** Stufe 1 der alten Kette schreibt die
+Vektor-Zwischendateien unter `output/.../zoning_vectors/` bei jedem Lauf
+neu; dort gibt es keine Skip-Logik. Außerhalb von `distance_layers/` und
+damit harmlos — aber erwähnenswert, falls das anderswo als Invariante
+gilt. Punkt 35.
+
+**Abnahme: 147 Tests plus 1 übersprungen, Wächter grün gegen 127 Dateien
+und 45 Python-Dateien. Drei Worktrees und drei Zweige regulär abgebaut,
+ohne `--force`, ohne `-D`.** Frei sind noch rund 23 GiB.
+
 ## Offene Punkte
 
 | # | Punkt | Fällig |
@@ -1611,7 +1665,8 @@ was untersagt war.
 | ~~19~~ | ~~Stille Falle: zwei Juli-Parquets unter `data/adressen/`.~~ **Erledigt im Datenfenster nach der Prep-Welle.** Nicht gelöscht, sondern in den Sitzungs-Scratchpad verschoben — es waren die zwei Dateien aus W1.3 ohne zweite Kopie im Vorgängerprojekt, und ein Neulauf ergäbe wegen des Oktober-Stichtags andere Dateien. Inode nach dem `mv` unverändert. | — |
 | 34 | **Zwei Modellentscheidungen im HiG-Pfad, die keine Implementierungsdetails sind.** DKM-Flächen über `HIG_MAX_FOOTPRINT_M2` = 10 000 m² werden durch eine 5-m-Scheibe um den Zentroid ersetzt; `HIG_MIN_ADRESSEN` = 5 trennt „Streusiedlung" (750 m Abstand) von „Einzellage" (25 m). Dazu eine bekannte einseitige Fehlklassifikation: Bei Mehrheitswidmung Industrie ohne widersprechendes BEV-Signal wird Bewohntes zu 25 m herabgestuft, nie umgekehrt. Von W2.1 nach Regel 4 unverändert übernommen und gemeldet. | fachlich, Nutzer |
 | 33 | **Die erste echte Abweichung — und sie ist eine Korrektur.** `geography_water_bodies` weicht in 543 106 von 336 038 001 Zellen ab (0,16 %), ausschließlich zusätzlich. Ursache: `osmium extract --bbox` klippt vor dem Tag-Filter und verliert die grenzüberschreitende Bodensee-Relation; die Prep-Stufe filtert gegen die ungeklippte Rohquelle und findet sie. Die neue Kette hat recht. **Zu entscheiden: Wird das als Abweichung in `abweichungen.tsv` geführt und die Bitgleichheit zu `run1` aufgegeben, oder gilt weiter der alte Zustand als Soll?** Offen ist außerdem, ob dieselbe Lücke weitere, kleinere Gewässer betrifft. | **Nutzer** |
-| 32 | **Zwei Fingerabdruck-Konventionen in einer Welle.** W2.3 legt sie als Dateien unter `build/layers/_fingerprints/<domäne>/` ab, W2.4 als Tag `PREP_FINGERPRINT` in der Rasterdatei. Dieselbe richtige Antwort, zwei Umsetzungen — genau die Divergenz aus §13.6, diesmal vorhergesehen und deshalb harmlos. Beim Zusammenführen anzugleichen. | Zusammenführung Welle 2 |
+| ~~32~~ | ~~Zwei Fingerabdruck-Konventionen in einer Welle.~~ **Erledigt in `c18f82d`.** Der Unterschied war schärfer als beschrieben: nicht nur eine andere Ablage, sondern eine andere Granularität — Tag je Rasterdatei gegen globalen Schalter je Domäne. Angeglichen auf die Tag-Variante, W2.3s neun Layer danach neu als pixelgleich belegt. | — |
+| 35 | Stufe 1 der alten Kette (`01_build_official_zoning_layers.py`) schreibt `output/.../zoning_vectors/` bei jedem Lauf neu — dort gibt es keine Skip-Logik. Außerhalb von `distance_layers/`, deshalb harmlos; zu beachten, falls diese Dateien anderswo als stabil vorausgesetzt werden. | W3.1 |
 | 30 | **Geteiltes Werkzeug, ungeteilte Bedeutung.** Alle neun Prep-Module benutzen `pipeline/fingerprint.py`, aber nur `osm.py` und `kataster/b_export_parquet.py` lesen den Fingerabdruck zum Selbst-Überspringen zurück; `adressen.py:71` hat `rebuild=True` hart verdrahtet, die übrigen schreiben ihn nur. **Für die Layer-Stufe von W2.3 entschieden und dokumentiert:** prüfen, und bei Abweichung neu bauen statt abbrechen. Offen bleibt die Uneinheitlichkeit **innerhalb der Prep-Stufe**. | Prep-Teil: Aufräumwelle |
 | 31 | `data/widmung/vorarlberg/fwp_flaeche.gpkg` erzeugt beim Lesen `RuntimeWarning: GPKG: unrecognized user_version=0x00000000`. Verarbeitung läuft vollständig durch (15 766 Wohnflächen). Vorbestehend, nach Regel 4 unangetastet. | Sammelposten |
 | ~~29~~ | ~~Die Kette hängt an einem Zwischenstand des Vorgängerprojekts.~~ **Entschärft durch Messung statt Entscheidung.** Der erste Volllauf (48,0 min) reproduziert `at_dkm_gst_nfl_epsg31287.geoparquet` inhaltlich vollständig: Zeilenzahl je Bundesland identisch (24 115 278), Schema identisch, Fläche bis zur letzten Nachkommastelle identisch, 5000/5000 WKB bytegleich. Einziger Unterschied: die Zeilenreihenfolge der Bundesländer, die `sha256` und 2 · 10⁻⁵ m² Float-Rauschen vollständig erklärt. Das Repo **kann** die Datei erzeugen; es hat sie bisher nur nicht gelesen. Rest erledigt sich mit W2.1s Umstellung. | — |
