@@ -43,14 +43,14 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | W1.4 | Wächter für Rohdaten | **fertig** | 25 min | 13 min | bitgleich · 129 → **136** Tests |
 | W1.P0 | Vorfeld der Prep-Welle | **fertig** | 20 min | 13 min | bitgleich · 136 → **147** Tests |
 | W1.P1 | Prep: Verwaltungsgrenzen | **fertig** | 25 min | 12 min | Bundesländer **0,0 m² Differenz** · 147 Tests |
-| W1.P2 | Prep: Kataster | offen | 60 min | | **+ unbekannter Volllauf** |
+| W1.P2 | Prep: Kataster | **fertig** | 60 min | 27 min | **Volllauf gemessen: 45–70 min statt 5 h** |
 | W1.P3 | Prep: Adressregister | **fertig** | 40 min | 6 min | Parquets **bitgleich** · 147 Tests |
-| W1.P4 | Prep: Flächenwidmung | offen | 45 min | | |
-| W1.P5 | Prep: OSM, zwei Stufen | offen | 45 min | | |
+| W1.P4 | Prep: Flächenwidmung | **fertig** | 45 min | 8 min | **9/9 Länder Differenz 0** · 147 Tests |
+| W1.P5 | Prep: OSM, zwei Stufen | **fertig** | 45 min | 26 min | 10/10 Gruppen exakt · Lauf **286 s** |
 | W1.P6 | Prep: Gelände und Wind | **fertig** | 20 min | 19 min | Windraster weicht **vollständig** ab · 147 Tests |
 | W1.P7 | Prep: Naturschutz | **fertig** | 25 min | 8 min | 920 Geometrien **WKB-bytegleich** · 147 Tests |
-| W1.P8 | Prep: Windzonen | offen | 30 min | | braucht W1.7 |
-| W1.P9 | Prep: NÖ-SekROP-PDF, zwei Stufen | offen | 45 min | | |
+| W1.P8 | Prep: Windzonen | **fertig** | 30 min | 7 min | **0,0 m²** bei allen vier Quellen · 147 Tests |
+| W1.P9 | Prep: NÖ-SekROP-PDF, zwei Stufen | **fertig** | 45 min | 20 min | **12/12 GeoJSON bytegleich** · Laufzeit halbiert |
 | W2.1 | Layer: Widmung | offen | 40 min | | |
 | W2.2 | Layer: Häuser im Grünen | offen | 40 min | | |
 | W2.3 | Layer: OSM und Infrastruktur | offen | 45 min | | |
@@ -761,13 +761,216 @@ kein gleichwertiger Beleg.
 
 **Abnahme: 147 Tests unverändert, Wächter grün.**
 
+### W1.P8 — Prep: Windzonen · fertig
+
+Commit `e967f48`, Zweig `w1.p8`. Geschätzt 30 min, gebraucht 7.
+
+Vier Quellen, jede **einzeln** gegen die tatsächlich laufende Funktion
+`load_zones()` geprüft — nicht als Summe:
+
+| Quelle | Anzahl | Fläche | sym. Differenz |
+|---|---:|---:|---:|
+| Stmk | 18 | 46,426 km² | **0,0 m²** |
+| Sbg | 13 | 17,238 km² | **0,0 m²** |
+| Bgld | 40 | 24,685 km² | **0,0 m²** |
+| RED3 | 4 | 7,400 km² | **0,0 m²** |
+
+Verglichen wurde nicht nur Fläche und Anzahl, sondern die symmetrische
+Differenz der Vereinigungsgeometrie — ordnungsunabhängig, und sie fängt
+auch Verschiebungen, die eine Flächensumme unverändert ließe.
+
+**Die Trennprüfung, die ich ausdrücklich verlangt hatte, ist sauber:** Das
+Burgenland-Archiv enthält 71 Objekte in **einem** Layer — 40 Eignungszonen
+und 31 Ausschlusszonen, getrennt allein durch einen String-Präfix auf dem
+Attribut `Status`. Das Prep-Ergebnis enthält genau 40. Keine Ausschlusszone
+rutscht durch. Der Agent nennt die Konstruktion selbst fragil und hat sie
+nach Regel 4 unverändert übernommen — richtig.
+
+**Der wichtigste Fund liegt außerhalb des Auftrags: eine fünfte Quelle.**
+`data/zonen/zonierung_noe.json` mit 71 niederösterreichischen Zonen wird
+**nicht** über `WIND_ZONE_SOURCES` gelesen, sondern über einen eigenen
+Codepfad direkt in `abschichtung_common.py` (`--official-zoning-geojson`).
+Weder meine Domänentabelle noch der Zuschnitt von W1.P8 erfasst sie. Soll
+Band 37 in Welle 2 vollständig aus `build/prep/` gespeist werden, fehlt
+dafür eine Stufe. Punkt 22 — und ein Zuschnittfehler von mir, kein
+Agentenfehler.
+
+**Abnahme: 147 Tests unverändert, Wächter grün.**
+
+### W1.P2 — Prep: Kataster · fertig
+
+Commit `e9f8fe9`, Zweig `w1.p2`. Geschätzt 60 min, gebraucht 27.
+
+**Das wichtigste Ergebnis der ganzen Sitzung: die letzte Unbekannte ist
+vermessen.** Der vollständige Kataster-Vorverarbeitungslauf dauert nach
+Messung **45 bis 70 Minuten**, nicht die fünf Stunden aus dem Zielbild.
+
+Und zwar nicht geschätzt, sondern hochgerechnet aus echten Läufen:
+
+| Stufe | Messung | Hochrechnung |
+|---|---|---|
+| b — SHP-Export, 8 Länder | Vorarlberg **vollständig**: 50,5 s für 1 118 888 Zeilen | 15–16 min für 20 623 871 Zeilen |
+| a — NÖ-Rekonstruktion aus DXF | 20 Dateien: 29,4 s · 300 Dateien: 272,1 s | 30–50 min für 3040 Dateien |
+
+Stufe b ist belastbar — ein ganzes Bundesland gemessen, hochgerechnet über
+die **exakt ausgezählten** Zeilenzahlen der übrigen sieben. Stufe a ist
+unsicherer: Die Stichprobe ist alphabetisch, nicht räumlich repräsentativ,
+und das Verhalten ist deutlich sublinear (15-fache Dateizahl, nur
+9,3-fache Zeit). Zwei unabhängige Hochrechnungen konvergieren trotzdem.
+
+**Der Vertragszuschnitt war falsch, und der Agent hat ihn nicht
+schöngeredet.** `PREP["kataster"]` deklarierte zwei Stufen `a_`/`b_` — der
+vorgefundene Code war **ein** Skript, das beides sequenziell in denselben
+Writer schrieb, ohne Zwischenablage. Statt die Trennung zu behaupten, hat
+er sie tatsächlich eingeführt: `a_noe_polygonize` schreibt ein eigenes
+GeoParquet, `b_export_parquet` übernimmt es per Batch-Durchschreiben ohne
+erneutes Geometrie-Parsen und bricht ab, wenn a noch nicht lief. Die
+Übernahme ist als **bytegleich** verifiziert.
+
+**Das vorhandene Produktions-GeoParquet ist nachweislich unangetastet** —
+Größe, mtime und sha256 vor und nach dem Paket identisch. Das war die
+strengste Auflage des Auftrags, weil es keine zweite Quelle dafür gibt.
+
+Kein Volllauf, nur Teilläufe: `--noe-limit-files 20/300`,
+`--only-bundesland Vorarlberg`, `--skip-shp`. Genau so beauftragt.
+
+Zwei Doku-Fehler nebenbei: Plan §4 nennt 7,8 GB, gemessen sind **9,1 GB**.
+Und `docs/rohdaten.md` beschreibt 338 674 verworfene Polygone bei
+3 491 407 erzeugten — die Produktionsdatei enthält aber exakt 3 491 407
+NÖ-Zeilen, nicht die Differenz. Vermutlich stammt sie aus einer älteren
+Codefassung ohne diesen Filter. Punkt 23.
+
+### W1.P4 — Prep: Flächenwidmung · fertig
+
+Commit `e7ef6bd`, Zweig `w1.p4`. Geschätzt 45 min, gebraucht 8.
+
+Neun Bundesländer, neun Formate, **jedes einzeln geprüft** — Differenz
+exakt 0 bei allen neun. Zusammen 466 200 Flächen und
+3 087 053 470,76 m². Die Einzelprüfung war der Punkt: Eine Gesamtsumme
+hätte verborgen, wenn zwei Länder sich gegenläufig verschieben.
+
+Nicht abgedeckt, und der Agent sagt es: Anzahl und Fläche je Land,
+aggregiert über alle Buckets — **nicht** Geometrie für Geometrie und nicht
+Attribut für Attribut.
+
+**Die Liste der fachlichen Inkonsistenzen ist der eigentliche Ertrag** —
+alle nach Regel 4 unangetastet:
+
+- **Wien liefert seit 29.07.2026 nur noch die generalisierte statt der
+  parzellenscharfen Widmung.** Eine strukturell andere Datenqualität als in
+  den anderen acht Ländern, im Code als für ein 25-m-Raster unerheblich
+  bewertet. Das ist eine Bewertung, keine Messung.
+- Kärntens Kurgebiet bleibt im vollen Siedlungsabstand, während
+  vergleichbare Kategorien anderswo in den 750-m-Bucket wandern — im Code
+  ausdrücklich als offene Entscheidung vermerkt.
+- Sehr ungleiche Kategorienabdeckung: Golf, Camping und Hofstelle gibt es
+  in Tirol und Oberösterreich als eigene Kategorien, in Wien keine davon.
+- Drei verschiedene Matching-Strategien je nach Feldqualität. Vorarlbergs
+  Freitextfeld hat 1424 Suffix-Varianten; ein früherer `startswith`-Versuch
+  traf dort wegen inkonsistenter Leerzeichen **null** Features — 3,4 km²
+  stille Lücke, inzwischen im Code behoben.
+
+**Und ein Cache-Muster, das ich schon kenne:** `_ensure_ktn_gpkg()` prüft
+beim Wiederverwenden nur, **ob** die extrahierte Datei existiert — nicht,
+ob das Quell-ZIP sich geändert hat. Dieselbe Bauart wie `layer_done()` und
+wie die Weiche aus W1.1. Der Fingerabdruck der Prep-Stufe erfasst korrekt
+das ZIP und würde eine Änderung erkennen; der Extraktions-Cache daneben
+nicht. Punkt 24.
+
+**Abnahme beider: 147 Tests unverändert, Wächter grün.**
+
+### W1.P9 — Prep: NÖ-SekROP-PDF · fertig
+
+Commit `70de2df`, Zweig `w1.p9`. Geschätzt 45 min, gebraucht 20.
+
+**Der schärfste Gleichheitsnachweis der Prep-Welle:** Die alten Skripte
+frisch laufen lassen, dann `cmp` gegen den neuen Prep-Lauf — **alle zwölf
+GeoJSON-Dateien bytegleich**, sechs Layer je nativ und in WGS84.
+Nebenbei halbiert sich die Laufzeit von 2:06 auf **1:04**, weil das
+PDF-Rendering entfällt und `get_drawings()` nur noch einmal läuft.
+
+Die Sackgasse aus W1.6 ist bestätigt, nicht geglaubt: repoweite Suche plus
+Prüfung am Diff von `e3d3655`, der den letzten Leser entfernt hat.
+`windkraft/noe/pdf_hig_sources.py` ist als ganzes Modul weg.
+
+Und `noe_pdf_750m_zones` ist unangetastet — der Agent hat die
+Konsumentendateien nicht einmal zum Schreiben geöffnet. Genau die
+Zurückhaltung, um die ich gebeten hatte, denn daran hängt ein echtes Band.
+
+Die Zahlen des PDF-Pfads, alle unverändert übernommen: Farbtoleranz 0,02,
+acht Bézier-Schritte, 8 m Vereinfachung, sechs exakte RGB-Füllfarben,
+Robust-Union mit Gitter 0,05.
+
+**Der Herkunftsverdacht ist widerlegt.** Der Agent hatte berichtet, sein
+Worktree sei von einem Stand vor der Welle-1-Zusammenführung abgezweigt.
+Eine getrennte Prüfung aller neun Zweige zeigt: Jede Merge-Basis liegt
+**auf** der Historie von `docs/audit-und-plan`, keine auf `main`, keine vor
+der Zusammenführung. Die Herkunftsangabe des Agenten war falsch, seine
+Testzahl richtig. `make worktree` verzweigt von `HEAD`, wie vorgesehen.
+
+Die Prüfung war trotzdem richtig. Ein Zweig auf veralteter Basis hätte
+fremde Arbeit **lautlos** zurückgedreht — ohne Konflikt, ohne Warnung, weil
+Git das als legitime Änderung behandelt. Bei acht Zweigen hintereinander
+wäre es erst viel später aufgefallen. Ein Bericht, dem man nicht glaubt,
+kostet zwei Minuten Prüfung; ein Bericht, dem man zu Unrecht glaubt, kostet
+eine Welle.
+
+### Zweigbasen und Überschneidung, vor dem Zusammenführen geprüft
+
+Neun Zweige, keiner dreht Arbeit zurück. Die Vorbereitung aus W1.P0 hat
+gehalten: **Die einzige Datei, die mehr als ein Paket berührt, ist
+`pipeline/contract.py`** — und dort ändern W1.P2 (Zeilen ~58–80) und W1.P9
+(~149–157) weit auseinanderliegende Kommentare. Kein Zeilenüberlapp.
+
+`tests/test_contract.py` fasst entgegen meiner Erwartung **kein** Paket an.
+Ohne die neun `make/prep/<domäne>.mk`-Dateien und die vorab erklärten
+Vertragspfade wären es zwei neunfache Konflikte gewesen.
+
+### W1.P5 — Prep: OSM · fertig
+
+Commit `51eb1f8`, Zweig `w1.p5`. Geschätzt 45 min, gebraucht 26. `osmium`
+1.19.1 vorhanden. **Damit sind alle neun Prep-Pakete fertig.**
+
+Der teuerste Schritt der Kette, jetzt gemessen: **286 Sekunden**. Er lief
+bisher bei **jedem** Kettendurchgang neu.
+
+Der Gleichheitsnachweis ist gegen die **echte Laufzeitfunktion** geführt,
+nicht gegen einen Nachbau: für alle zehn Objektgruppen exakte
+Featurezahl, bit-für-bit identische Gesamtfläche und Gesamtlänge, gleiches
+CRS, und eine WKB-Stichprobe von bis zu 2000 Features je Gruppe — bei fünf
+der zehn Gruppen damit vollständig. Nicht abgedeckt, und der Agent sagt es:
+ein lückenloser WKB-Vergleich bei den sechs größten Gruppen. Bei 8,5
+Millionen Gebäuden ist das eine vertretbare Grenze.
+
+**Drei Befunde, die den Plan korrigieren:**
+
+1. **Plan §4 nennt acht OSM-Layer, der Code liest zehn.** `buildings` und
+   `powerlines` fehlen in meiner Domänentabelle vollständig — und
+   `buildings` ist mit 8,5 Millionen Objekten die mit Abstand größte
+   Gruppe. Punkt 25.
+2. **Drei Objektgruppen sind toter Code:** `landuse`, `places`,
+   `addresses` — Reste des in v2 abgeschafften OSM-Adress-Cluster-Pfads.
+   Sie stehen in den Filtern, niemand liest sie. Punkt 26.
+3. `powerlines` wird bei jedem Lauf extrahiert, obwohl die daraus gebaute
+   Maske `power_380_400kv` in der v2-Kette **nirgends persistiert wird** —
+   dieselbe Gruppe, deren Rohdatei W1.2 als toten Leser gelöscht hat.
+   Reine Rechenverschwendung, nach Regel 4 unangetastet. Punkt 27.
+
+**Abnahme: 147 Tests unverändert, Wächter grün vor und nach dem Lauf.**
+
 ## Offene Punkte
 
 | # | Punkt | Fällig |
 |---|---|---|
 | ~~1~~ | ~~Worktrees haben kein `data/`.~~ **Erledigt in W0.3**: `make worktree` verlinkt `data/` und die geteilten `distance_layers/` hinein. Im Parallelbatch bewährt. | — |
 | ~~1b~~ | ~~Jedes Worktree ist von Geburt an schmutzig.~~ **Erledigt in `81849de`** — aber anders als hier vermutet: `--skip-worktree` allein reichte nicht, weil der Symlink `data` nie getrackt war und als `??` stehenblieb. Nötig war zusätzlich `/data` in `.git/info/exclude`. | — |
-| 2 | Laufzeit der Kataster-Vorverarbeitung ist unbekannt. | W1.P2 |
+| ~~2~~ | ~~Laufzeit der Kataster-Vorverarbeitung ist unbekannt.~~ **Von W1.P2 vermessen: 45–70 min**, nicht 5 h. Stufe b belastbar, Stufe a mit Stichprobenunsicherheit. | — |
+| 22 | **Fünfte Zonenquelle ohne Prep-Stufe.** `data/zonen/zonierung_noe.json` (71 NÖ-Zonen) wird nicht über `WIND_ZONE_SOURCES` gelesen, sondern per `--official-zoning-geojson` direkt in `abschichtung_common.py`. Weder Domänentabelle noch W1.P8-Zuschnitt erfassen sie. Zuschnittfehler von mir. | vor Welle 2 |
+| 23 | Zwei Doku-Fehler zum Kataster: Plan §4 nennt 7,8 GB statt gemessener **9,1 GB**; `docs/rohdaten.md` beschreibt 338 674 verworfene NÖ-Polygone, die Produktionsdatei enthält aber die volle Zahl 3 491 407 — vermutlich aus einer Codefassung vor dem Filter. | mit Punkt 3 |
+| 25 | **Plan §4 nennt acht OSM-Layer, der Code liest zehn.** `buildings` (8,5 Mio Objekte, die größte Gruppe überhaupt) und `powerlines` fehlen in meiner Domänentabelle. Zu korrigieren, bevor Welle 2 sich darauf stützt. | vor Welle 2 |
+| 26 | Drei OSM-Objektgruppen sind toter Code: `landuse`, `places`, `addresses` — Reste des in v2 abgeschafften Adress-Cluster-Pfads. Stehen in den Filtern, niemand liest sie. | Aufräumwelle |
+| 27 | `powerlines` wird bei jedem OSM-Lauf extrahiert, obwohl die Maske `power_380_400kv` nirgends persistiert wird. Dieselbe Gruppe, deren Rohdatei W1.2 als toten Leser gelöscht hat. Reine Rechenverschwendung. | Welle 2 |
+| 24 | **Dritter Fall desselben Cache-Musters:** `widmung_sources._ensure_ktn_gpkg()` prüft beim Wiederverwenden nur die Existenz der extrahierten Datei, nicht ob das Quell-ZIP sich geändert hat. Wie `layer_done()` und wie die W1.1-Weiche. Der Prep-Fingerabdruck erfasst das ZIP korrekt, der Extraktions-Cache daneben nicht. | Welle 2 |
 | 5 | **`sys.path`-Präambeln.** W1.8 hat die Voraussetzung geschaffen (Paket ist jetzt installierbar), aber die Präambeln stehen noch in rund einem Dutzend Dateien unter `scripts/` und `tests/`. Zum Entfernen fehlt: `scripts/` ist kein Paket, Aufrufe müssten auf `python -m` umgestellt werden, und `tools/` bräuchte womöglich ebenfalls Paketstatus. Eigenes Paket wert, gehört nicht in W1.8. | Welle 4 oder später |
 | 3 | `docs/widmung_v2_provenance.md` nennt Quellpfade, die es nicht mehr gibt. Unklar, ob eingefrorene Momentaufnahme wie `RUN1_VERGLEICH.md` oder lebende Doku. | Welle 1, Widmungspakete |
 | 4 | `config.json:osm_dir` und `wind_pd_100` zeigen auf Dateien, die es nie gab. Mitgezogen, aber weiterhin tot. | W1.x |
