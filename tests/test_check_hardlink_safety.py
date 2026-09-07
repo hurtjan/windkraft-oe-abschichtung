@@ -1,6 +1,7 @@
-"""tools/check_hardlink_safety.py: Regel A (output/) und Regel B (data/-
-Schreibziele) müssen einen echten, gepflanzten Hardlink-Verstoß erkennen und
-auf einem sauberen Baum grün laufen.
+"""tools/check_hardlink_safety.py: Regel A (output/) und Regel B (data/,
+seit W1.3 *jede* Datei, nicht mehr nur deklarierte Schreibziele) müssen
+einen echten, gepflanzten Hardlink-Verstoß erkennen und auf einem sauberen
+Baum grün laufen.
 
 Arbeitet ausschließlich auf einem temporären Verzeichnis (tempfile) — hängt
 nicht an den echten data/-/output/-Bäumen dieses Repos, damit der Test nicht
@@ -21,8 +22,6 @@ for p in (str(PROJECT_ROOT), str(TOOLS_DIR)):
 
 from check_hardlink_safety import run_check  # noqa: E402
 
-DECLARED = ("adressregister/adressen_31287.parquet",)
-
 
 def _make_tree(root: Path) -> None:
     (root / "output" / "noe").mkdir(parents=True)
@@ -38,15 +37,11 @@ def test_clean_tree_passes():
         # gewöhnliche Ausgaben, Link-Count 1
         (root / "output" / "noe" / "alignment_x.json").write_text("{}")
         (root / "output" / "kataster" / "big.geoparquet").write_text("data")
-        # deklariertes Schreibziel unter data/, Link-Count 1
+        # gewöhnliche Datei unter data/, Link-Count 1 — seit W1.3 der
+        # Normalfall für jede Datei dort, nicht nur für Schreibziele
         (root / "data" / "adressregister" / "adressen_31287.parquet").write_text("x")
-        # gewöhnliches, per Hardlink übernommenes Quellmaterial unter data/ -
-        # NICHT in DECLARED, darf Link-Count > 1 haben ohne Verstoß zu sein
-        source = root / "data" / "raw_input.zip"
-        source.write_text("raw")
-        os.link(source, root / "data" / "raw_input_linked.zip")
 
-        result = run_check(root, declared_targets=DECLARED)
+        result = run_check(root)
 
         assert result.ok, result.violations
         assert result.checked_a == 2
@@ -64,7 +59,7 @@ def test_detects_planted_hardlink_violation_under_output():
         shared = root / "output" / "kataster" / "at_dkm_shared_with_other_repo.geoparquet"
         os.link(target, shared)
 
-        result = run_check(root, declared_targets=DECLARED)
+        result = run_check(root)
 
         assert not result.ok
         violated_paths = {v.path for v in result.violations}
@@ -74,18 +69,20 @@ def test_detects_planted_hardlink_violation_under_output():
         assert all(v.link_count == 2 for v in result.violations)
 
 
-def test_detects_planted_hardlink_violation_under_data_write_target():
+def test_detects_planted_hardlink_violation_under_data():
+    """Seit W1.3 ist JEDE Datei unter data/ betroffen, nicht mehr nur eine
+    deklarierte Teilmenge bekannter Schreibziele."""
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
         _make_tree(root)
 
         cache = root / "data" / "adressregister" / "adressen_31287.parquet"
         cache.write_text("cached")
-        # simuliert: derselbe Cache noch per Hardlink mit dem Alt-Repo geteilt
+        # simuliert: dieselbe Datei noch per Hardlink mit dem Alt-Repo geteilt
         other_repo_copy = root / "adressen_31287_altes_repo.parquet"
         os.link(cache, other_repo_copy)
 
-        result = run_check(root, declared_targets=DECLARED)
+        result = run_check(root)
 
         assert not result.ok
         assert len(result.violations) == 1
@@ -95,13 +92,13 @@ def test_detects_planted_hardlink_violation_under_data_write_target():
         assert v.link_count == 2
 
 
-def test_missing_declared_target_is_not_a_violation():
+def test_empty_data_dir_is_not_a_violation():
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
         _make_tree(root)
-        # data/adressen/adressen_31287.parquet existiert absichtlich nicht
+        # data/ ist leer bis auf leere Unterverzeichnisse
 
-        result = run_check(root, declared_targets=DECLARED)
+        result = run_check(root)
 
         assert result.ok
         assert result.checked_b == 0
@@ -113,7 +110,7 @@ def test_missing_output_dir_is_not_a_violation():
         (root / "data").mkdir()
         # output/ existiert absichtlich nicht
 
-        result = run_check(root, declared_targets=())
+        result = run_check(root)
 
         assert result.ok
         assert result.checked_a == 0

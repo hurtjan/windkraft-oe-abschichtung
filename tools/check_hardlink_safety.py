@@ -1,22 +1,27 @@
 #!/usr/bin/env python3
 """Prüft mechanisch die Hardlink-Invariante dieses Repos.
 
-Invariante: Jede Datei, die irgendein Codepfad schreiben kann, ist eine
-echte Kopie — nie ein Hardlink. Unabhängig von Größe, Verzeichnis und davon,
-ob im Code ein Overwrite-Schutz existiert.
+Invariante: Keine Datei in diesem Repo teilt sich einen Inode mit einer
+Datei außerhalb davon. Unabhängig von Größe, Verzeichnis und davon, ob im
+Code ein Overwrite-Schutz existiert.
 
-Das ergibt zwei Regeln, keine Klassifikation:
+Das ergibt zwei Regeln:
 
   Regel A: Keine Datei unter output/ darf einen Link-Count > 1 haben.
            Ausgaben werden nie geteilt, ohne Ausnahme — alles unter output/
            kann von der Kette geschrieben werden, und "aktuell schreibt sie
            nichts dorthin" ist keine verlässliche Garantie für die Zukunft.
 
-  Regel B: Eine explizit deklarierte Liste bekannter Schreibziele unter
-           data/ (siehe DECLARED_DATA_WRITE_TARGETS unten) muss Link-Count 1
-           haben. data/ ist überwiegend echtes, per Hardlink übernommenes
-           Quellmaterial (rein lesend, das ist korrekt und bleibt so) — bis
-           auf diese benannten Ausnahmen, die die Kette selbst beschreibt.
+  Regel B: Seit W1.3 (Hardlinks aufgelöst, docs/rewrite/nachweise/w13/) muss
+           JEDE Datei unter data/ Link-Count 1 haben — nicht mehr nur eine
+           deklarierte Teilmenge bekannter Schreibziele. Vor W1.3 war data/
+           überwiegend echtes, per Hardlink aus dem Vorgängerprojekt
+           übernommenes Quellmaterial; das war eine bewusste Warnung nur für
+           die bekannten Schreibziele, weil der Rest absichtlich geteilt
+           blieb. Nach W1.3 gibt es diesen Rest nicht mehr — data/ besteht
+           komplett aus echten Kopien, und aus der Warnung wird eine
+           Invariante: *jede* Datei mit Link-Count > 1 unter data/ ist ein
+           Verstoß, ob deklariertes Schreibziel oder nicht.
 
 Warum zwei Regeln statt einer Klassifikation "Eingaben hardlinken, Ausgaben
 kopieren": genau diese Klassifikation hat vorher versagt. Die Adressregister-
@@ -39,21 +44,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-
-# ---------------------------------------------------------------------------
-# Regel B — bekannte Schreibziele unter data/.
-#
-# Das ist die einzige Stelle, die bei einem neuen Schreibziel unter data/
-# angefasst werden muss: einen Pfad (relativ zu data/) hier ergänzen, fertig.
-# Aktuell die beiden Adressregister-Parquet-Caches, die
-# windkraft/calc/bev_register.py per to_parquet() anlegt (siehe
-# docs/FOLLOWUPS.md, Abschnitt zur Datenmigration per Hardlink).
-# ---------------------------------------------------------------------------
-DECLARED_DATA_WRITE_TARGETS: tuple[str, ...] = (
-    "adressen/adressen_31287.parquet",
-    "adressen/bev_gebaeude_31287.parquet",
-)
-
 
 @dataclass(frozen=True)
 class Violation:
@@ -101,26 +91,27 @@ def check_rule_a(output_dir: Path) -> tuple[list[Violation], int]:
     return violations, checked
 
 
-def check_rule_b(
-    data_dir: Path, declared_targets: tuple[str, ...] = DECLARED_DATA_WRITE_TARGETS
-) -> tuple[list[Violation], int]:
-    """Regel B: die deklarierten Schreibziele unter `data_dir` müssen
-    Link-Count 1 haben.
+def check_rule_b(data_dir: Path) -> tuple[list[Violation], int]:
+    """Regel B: JEDE Datei unter `data_dir` muss Link-Count 1 haben.
 
-    Ein deklariertes Ziel, das (noch) nicht existiert, ist kein Verstoß —
-    es ist schlicht noch nicht angelegt. Gibt (Verstöße, Anzahl tatsächlich
-    vorhandener und geprüfter Ziele) zurück.
+    Seit W1.3 gibt es keine bewusst geteilten Ausnahmen mehr — data/ besteht
+    komplett aus echten Kopien. Ein nicht existierendes `data_dir` ist kein
+    Fehler (0 geprüft, 0 Verstöße). Gibt (Verstöße, Anzahl geprüfter
+    Dateien) zurück.
     """
     violations: list[Violation] = []
     checked = 0
-    for rel in declared_targets:
-        path = data_dir / rel
-        st = _stat_if_real_file(path)
-        if st is None:
-            continue
-        checked += 1
-        if st.st_nlink > 1:
-            violations.append(Violation("B", path, st.st_ino, st.st_nlink))
+    if not data_dir.exists():
+        return violations, checked
+    for dirpath, _dirnames, filenames in os.walk(data_dir):
+        for name in filenames:
+            path = Path(dirpath) / name
+            st = _stat_if_real_file(path)
+            if st is None:
+                continue
+            checked += 1
+            if st.st_nlink > 1:
+                violations.append(Violation("B", path, st.st_ino, st.st_nlink))
     return violations, checked
 
 
@@ -139,18 +130,16 @@ class CheckResult:
         return not self.violations
 
 
-def run_check(
-    repo_root: Path, declared_targets: tuple[str, ...] = DECLARED_DATA_WRITE_TARGETS
-) -> CheckResult:
+def run_check(repo_root: Path) -> CheckResult:
     violations_a, checked_a = check_rule_a(repo_root / "output")
-    violations_b, checked_b = check_rule_b(repo_root / "data", declared_targets)
+    violations_b, checked_b = check_rule_b(repo_root / "data")
     return CheckResult(violations_a + violations_b, checked_a, checked_b)
 
 
 def format_report(result: CheckResult) -> str:
     lines: list[str] = []
     for v in result.violations:
-        regel = "Regel A (output/)" if v.rule == "A" else "Regel B (data/-Schreibziel)"
+        regel = "Regel A (output/)" if v.rule == "A" else "Regel B (data/)"
         lines.append(
             f"VERSTOSS [{regel}]: {v.path}  "
             f"(Inode {v.inode}, Link-Count {v.link_count}, erwartet 1)"
@@ -158,8 +147,8 @@ def format_report(result: CheckResult) -> str:
     if result.ok:
         lines.append(
             f"OK: {result.checked_total} Dateien geprüft "
-            f"({result.checked_a} unter output/, {result.checked_b} deklarierte "
-            f"Schreibziele unter data/) — keine Hardlink-Verstöße gefunden."
+            f"({result.checked_a} unter output/, {result.checked_b} unter data/) "
+            f"— keine Hardlink-Verstöße gefunden."
         )
     else:
         lines.append(
