@@ -55,7 +55,7 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | — | Zusammenführung der Prep-Welle | **fertig** | 25 min | 7 min | **9 Merges konfliktfrei** · `sha256` bitgleich · 147+1 Tests |
 | — | Datenfenster: alte Adress-Parquets (Punkt 19) | **fertig** | 15 min | 4 min | Inode belegt `mv` · 147+1 Tests · Wächter 129 → 127 |
 | — | Prep-Stufe für die fünfte Zonenquelle (Punkt 22) | **fertig** | 20 min | 8 min | **0,0 m²** · 71/71 Geometrien gleich · 147+1 Tests |
-| W2.P0 | Vorfeld der Layer-Welle | offen | 25 min | | `build/prep/` ins Worktree |
+| W2.P0 | Vorfeld der Layer-Welle | **fertig** | 25 min | 9 min | `make -n` 12/12 gleich · **Kataster-Herkunft aufgedeckt** |
 | W2.1 | Layer: Widmung und Häuser im Grünen | offen | 60 min | | W2.2 hier aufgegangen |
 | W2.3 | Layer: OSM und Infrastruktur | offen | 45 min | | |
 | W2.4 | Layer: Natur, Gelände, Zonen und Puffer | offen | 50 min | | **17 herrenlose Checkpoints** |
@@ -1203,6 +1203,69 @@ Punkt 20 schriebe sich ein falscher Wert ins Band und würde beim nächsten
 Lauf als „fertig" akzeptiert. Deshalb steht die Geometrietyp-Prüfung
 ausdrücklich in der Abnahme von W2.4.
 
+### W2.P0 — Vorfeld der Layer-Welle · fertig
+
+Commits `f41e761` (meine Planänderung) und `93ba239` (das Paket).
+Geschätzt 25 min, gebraucht 9. Vier Dateien, 125 Zeilen, **ausschließlich
+Hinzufügungen**.
+
+Die drei Bauteile stehen: `pipeline/layers/__init__.py`,
+`-include make/layers/*.mk` mit Konvention und Vorlage nach dem
+Prep-Muster, und `build/prep/` als Symlink im `worktree`-Ziel. Der
+Mechanismus ist wieder **belegt statt behauptet** — zwei echte
+`.mk`-Dateien angelegt, `make layers` rief beide auf, entfernt, No-op
+erneut geprüft. Das Wegwerf-Worktree lief zweimal, also auch die
+Idempotenz.
+
+**Der Agent hat zweimal nachgearbeitet, und das ist der Grund, warum die
+Abnahme trägt.** Seine erste Fassung hatte zwei Bestandszeilen inhaltlich
+verändert statt nur ergänzt. Das `make -n`-Kriterium hat es gefunden —
+genau wozu es seit W0.3 in jedem Makefile-Paket steht. Ein Kriterium, das
+nie etwas findet, beweist nichts; dieses hat.
+
+**Warum `build/prep/` fast leer ist, ist jetzt geklärt** — und die
+Erklärung ist unangenehmer als gedacht: Jedes Prep-Paket lief in einem
+eigenen Worktree mit **lokalem** `build/`, weil es den Symlink noch nicht
+gab. Mit `git worktree remove` ist die Ausgabe verschwunden. Nur
+`adressen/` überlebte, weil dieser Lauf im Hauptrepo stattfand. Nichts
+davon ist wiederherstellbar. Der Symlink, den dieses Paket eingebaut hat,
+verhindert die Wiederholung — er kommt eine Welle zu spät.
+
+Praktische Folge: **Vor Welle 2 muss ein vollständiger Prep-Lauf stehen**,
+den meine Zeitrechnung bisher nicht enthielt.
+
+### Der Kataster-Befund: ein Zwischenstand des Vorgängers mitten in der Kette
+
+Der eigentliche Ertrag des Pakets, und er berührt das Projektziel selbst.
+
+`output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet`, 5,3 GB,
+**Dateidatum 15. Mai 2026**. Der erste Commit dieses Repos stammt vom
+6. September 2026 — knapp vier Monate später. Die Datei liegt unter
+`output/`, nicht unter `data/`, und `band_manifest.py:230` beschreibt sie
+selbst nur mit „Stand: Dateidatum 15.05.; erzeugtes Artefakt aus
+BEV-DKM". Keine Herkunft im eigenen Code. Die neuen
+`pipeline/prep/kataster/*.py` sind nie vollständig gelaufen, können sie
+also nicht erzeugt haben.
+
+**Das ist ein Zwischenergebnis aus dem Vorgängerprojekt — und
+`scripts/widmung_v2/02_build_hig_sources.py:191` liest es per
+Vorgabewert.** Die heutige Kette hängt damit an genau der Sorte Artefakt,
+die dieser Umbau beseitigen soll: bequem verwendbar, aber von uns nicht
+erzeugbar. Auch `run1` ist so entstanden.
+
+Die Tragweite reicht über Welle 2 hinaus:
+
+- Wird das GeoParquet aus den Rohdaten neu erzeugt (45–70 min) und weicht
+  vom Mai-Artefakt ab, **sind die daraus gebauten Layer nicht mehr
+  bitgleich zu den bestehenden Checkpoints** — und damit auch nicht zu
+  `run1`. Die Vergleichsbasis des ganzen Projekts stünde zur Debatte.
+- Wird es nicht neu erzeugt, bleibt Welle 5 ein Beweislauf, der einen
+  fremden Zwischenstand voraussetzt, statt aus Rohdaten zu laufen.
+
+Das ist die konkrete Gestalt von Punkt 10, den ich bisher abstrakt als
+„darf `run1` das Vorgängerprojekt als Quelle der Wahrheit ablösen"
+geführt habe. Punkt 29.
+
 ## Offene Punkte
 
 | # | Punkt | Fällig |
@@ -1232,6 +1295,7 @@ ausdrücklich in der Abnahme von W2.4.
 | 20 | **GeoPackage promoviert Polygone zu MultiPolygonen.** Beim Schreiben nach GPKG werden gemischte Geometrietypen vereinheitlicht. **Zweimal unabhängig belegt:** 383 von 920 bei `natur` (W1.P7), 49 von 71 bei der NÖ-Zonenquelle (Punkt 22). Damit kein Einzelfall einer Domäne, sondern Eigenschaft **jeder** Prep-Stufe, die GPKG schreibt. Für `rasterize` folgenlos; für eine geometrietyp-sensitive Layer-Stufe nicht. | Welle 2 |
 | 21 | 33 von 920 Schutzgebietsgeometrien sind laut GEOS ungültig. Der heutige Konsument prüft und repariert das ebenfalls nicht — deshalb nach Regel 4 unverändert. | fachlich, Nutzer |
 | ~~19~~ | ~~Stille Falle: zwei Juli-Parquets unter `data/adressen/`.~~ **Erledigt im Datenfenster nach der Prep-Welle.** Nicht gelöscht, sondern in den Sitzungs-Scratchpad verschoben — es waren die zwei Dateien aus W1.3 ohne zweite Kopie im Vorgängerprojekt, und ein Neulauf ergäbe wegen des Oktober-Stichtags andere Dateien. Inode nach dem `mv` unverändert. | — |
+| 29 | **Die Kette hängt an einem Zwischenstand des Vorgängerprojekts.** `output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet` (5,3 GB, 15.05.2026, vier Monate vor dem ersten Commit) wird von `02_build_hig_sources.py:191` per Vorgabewert gelesen und ist von diesem Repo nicht erzeugbar. Neu erzeugen kostet 45–70 min und riskiert, dass die Kataster-Layer **nicht mehr bitgleich** zu `run1` sind. Nicht neu erzeugen heißt, dass Welle 5 kein Beweislauf aus Rohdaten ist. Die konkrete Gestalt von Punkt 10. | **Nutzer, vor Welle 2** |
 | 28 | `docs/dataflow/src/1_merge.py` führt den Pfad `data/adressregister/…`, den es seit dem W0.1-Umbau nicht mehr gibt. Nur ein Alias in einer Doku-Tabelle, kein Datenzugriff — aber ein stiller falscher Pfad in **erzeugter** Doku, den keine Suche der Pfadpakete gefunden hat, weil er keinen Leser hat. | Sammelposten |
 | 14 | **`LEGACY_ENTFAELLT` ist jetzt leer**, und `test_legacy_entfaellt_path_exists` wird dadurch zu einem übersprungenen Platzhalter — ein Test, der nichts mehr prüft. Register bleibt laut §13.1 stehen; zu entscheiden ist, ob der Test bleibt, entfällt oder gegen die Leerheit prüft. | W1.4 |
 | 15 | **`Path("").exists()` ist `True`.** Fällt `abschichtung_common.py:966` je in den PBF-Fallback, liefert `cfg["paths"].get("powerlines_gpkg", "")` jetzt einen leeren String, und `read_layer()` geht auf das Arbeitsverzeichnis statt auf eine GIS-Datei los. Randfall, tritt nur bei fehlendem OSM-PBF ein, aber die Fehlermeldung wäre irreführend. In `docs/rohdaten.md` §5 vermerkt. | W1.P5 |
