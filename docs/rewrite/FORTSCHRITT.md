@@ -12,8 +12,8 @@ W0.1 in dessen §11. Die Belege liegen unter
 
 | | |
 |---|---|
-| Abgeschlossen | 9 von 30 — **Welle 0 und der gesamte Aufräumteil der Welle 1** |
-| Als Nächstes | W1.2, das Datenfenster — nichts anderes darf dabei rechnen |
+| Abgeschlossen | 10 von 30 — Welle 0, der Aufräumteil der Welle 1, erstes Datenfenster |
+| Als Nächstes | W1.3, Hardlinks auflösen — die einzige unumkehrbare Handlung im Projekt |
 | Zweig | `docs/audit-und-plan`, kein Remote |
 | Abweichungen bisher | keine — alle Pakete bitgleich |
 
@@ -37,7 +37,7 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | W1.8 | Paketmetadaten bereinigen | **fertig** | 15 min | 8 min | bitgleich · 130 Tests |
 | W1.9 | Doku-Widersprüche korrigieren | **fertig** | 15 min | 13 min | nur Doku · 130 Tests |
 | — | Zusammenführung der vier Zweige | **fertig** | 15 min | 30 min | bitgleich · 130 Tests · 3 stille Fehler gefunden |
-| W1.2 | Tote Daten löschen, Provenienz retten | offen | 20 min | | Datenfenster |
+| W1.2 | Tote Daten löschen, Provenienz retten | **fertig** | 20 min | 22 min | bitgleich · 50/50 Inodes · 129+1 Tests |
 | W1.3 | Hardlinks auflösen | offen | 20 min | | Datenfenster · 13 GB |
 | W1.4 | Wächter für Rohdaten | offen | 25 min | | braucht W1.1, W1.2 |
 | W1.P1 | Prep: Verwaltungsgrenzen | offen | 25 min | | |
@@ -63,7 +63,7 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 
 | | |
 |---|---|
-| Gebraucht bisher | **2 h 43** für neun Pakete plus die Zusammenführung |
+| Gebraucht bisher | **3 h 05** für zehn Pakete plus die Zusammenführung |
 | davon Welle 0 | 1 h 30, seriell (49 + 28 + 12 min) |
 | davon Welle 1, Aufräumen | 29 min (W1.7 seriell 15 min, dann vier parallel in 14 min) |
 | davon Zusammenführung | 30 min — doppelt so lang wie geschätzt |
@@ -450,6 +450,52 @@ Register-Besitz (§13.1), Schreibzugriff auf den geteilten
 Checkpoint-Ordner (§13.2), und eine Sackgasse eine Ebene höher
 (`pdf_hig_sources.py` erzeugt jetzt GeoJSON, die niemand liest → Punkt 12).
 
+### W1.2 — Tote Daten löschen, Provenienz retten · fertig
+
+Commit `6f815d2`. Geschätzt 20 min, gebraucht 22 — das erste Paket, bei dem
+ich nicht zu hoch lag. Das erste Datenfenster, ohne Worktree (§10 des
+Plans), im Hauptrepo.
+
+Gelöscht: `osm_power_lines.gpkg` (13,5 MB), `WINDKRAFT_AUSSCHLUSSZONE.zip`
+(4,6 MB), `windkraftzonen_shapefile_2024.json` (0,6 MB), zwei `.DS_Store`
+und ein leeres Werkzeugverzeichnis `adressen/.claude/`. Alle bis auf eine
+mit Linkanzahl ≥ 2, also **umkehrbar** — der Inode überlebt im
+Vorgängerprojekt. Die einzige mit Linkanzahl 1 war ein `.DS_Store`.
+
+Der Fall `osm_power_lines.gpkg` ist der lehrreichste: Er **hat** einen
+Codeleser, in `abschichtung_common.py:966`. Aber der Zweig greift nur, wenn
+das OSM-PBF fehlt — bei gepflegtem PBF wird er nie erreicht, und das daraus
+gebaute Band `power_380_400kv` steht im 38-Band-Schema ohnehin nicht. Ein
+Leser, der nie liest.
+
+**Der eigentliche Fund ist eine Falle, die ich übersehen hatte.**
+`windkraft/config.py:42` griff **unbedingt** auf
+`contract.LEGACY_ENTFAELLT["powerlines_gpkg"]` zu — bei jedem
+`load_config()`. Das bloße Austragen des Registereintrags, genau das, was
+§13.1 dem Paket erlaubt, hätte einen `KeyError` bei **jedem Pipelinelauf**
+ausgelöst. Der Agent hat es vor dem Austragen bemerkt und `config.py`
+mitgezogen. Ohne diesen Blick wäre die Kette beim nächsten Lauf gestorben,
+und die Ursache hätte in einer Zeile gelegen, die aussieht wie
+Buchhaltung.
+
+**Das `worktree`-Ziel brach wie vorhergesagt — und schlimmer.** Ich hatte
+mit einer wirkungslosen `skip-worktree`-Zeile gerechnet. Tatsächlich legt
+`git worktree add` das Verzeichnis `data/` gar nicht mehr an, sobald keine
+versionierte Datei mehr darin liegt; der alte Code lief damit in den Zweig
+„weder Verzeichnis noch Symlink" und brach ab. Behoben durch einen dritten
+Zweig, an einem Wegwerf-Worktree zweimal verifiziert (Erst- und Zweitlauf,
+also auch die Idempotenz). Nebenbei hat der Agent einen eigenen Tippfehler
+gefunden: ein `;` in einem mehrzeiligen Shell-Kommentar führte das Wort
+`direkt` als Kommando aus.
+
+`docs/rohdaten.md` (aus `data/README.md`) an sieben Stellen nachgezogen.
+
+**Abnahme: bitgleich, 50 von 50 Inodes unverändert, 129 Tests grün plus 1
+übersprungen.** Die Einschätzung des Agenten zur Beweiskraft ist richtig:
+Der Lauf liest die Checkpoints, nicht `data/`. Er beweist, dass die
+Vertrags- und Konfigänderung die Kette nicht zerstört hat — nicht, dass die
+gelöschten Rohdateien wirkungslos waren. Das leistet die statische Suche.
+
 ## Offene Punkte
 
 | # | Punkt | Fällig |
@@ -468,3 +514,6 @@ Checkpoint-Ordner (§13.2), und eine Sackgasse eine Ebene höher
 | 11 | `docs/FOLLOWUPS.md` führt die veraltete `EXCLUSION_LAYERS`-Liste weiterhin als offenen Punkt, obwohl W1.5 das ganze Skript gelöscht hat. Im README nachgezogen, dort nicht — die Datei galt als eingefroren. Zu klären: eingefrorene Momentaufnahme oder lebende Liste? Dieselbe Frage wie Punkt 3. | mit Punkt 3 |
 | 12 | **Sackgasse eine Ebene höher.** Nachdem W1.6 `noe_pdf_source_mask()` entfernt hat, erzeugt `windkraft/noe/pdf_hig_sources.py:derive_layer_files()` (aufgerufen in `scripts/noe/extract_noe_vector_layers.py:286`) `output/noe/pdf_hig_source_*.geojson`, die niemand mehr liest. Fremder Besitz, deshalb von W1.6 korrekt liegengelassen. | W1.P9 |
 | 13 | Der `Run:`-Hinweis im Docstring von `scripts/widmung_v2/02_build_hig_sources.py:26-27` nennt den alten Pfad `scripts/main/build_hig_sources.py`. Vorbestehend. | Sammelposten |
+| 14 | **`LEGACY_ENTFAELLT` ist jetzt leer**, und `test_legacy_entfaellt_path_exists` wird dadurch zu einem übersprungenen Platzhalter — ein Test, der nichts mehr prüft. Register bleibt laut §13.1 stehen; zu entscheiden ist, ob der Test bleibt, entfällt oder gegen die Leerheit prüft. | W1.4 |
+| 15 | **`Path("").exists()` ist `True`.** Fällt `abschichtung_common.py:966` je in den PBF-Fallback, liefert `cfg["paths"].get("powerlines_gpkg", "")` jetzt einen leeren String, und `read_layer()` geht auf das Arbeitsverzeichnis statt auf eine GIS-Datei los. Randfall, tritt nur bei fehlendem OSM-PBF ein, aber die Fehlermeldung wäre irreführend. In `docs/rohdaten.md` §5 vermerkt. | W1.P5 |
+| 16 | `docs/rewrite/UMSETZUNG.md` und `packages.json` beschreiben W1.2 anders als `PLAN.md` (sechs Pfade weg, inklusive `Aktualitaetsstand.txt`, das bleiben soll). Veraltete Planungsartefakte, die dem Plan widersprechen. Meine Dateien, nicht die der Pakete. | vor Welle 2 |
