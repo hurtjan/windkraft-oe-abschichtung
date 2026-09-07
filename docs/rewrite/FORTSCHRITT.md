@@ -1266,6 +1266,58 @@ Das ist die konkrete Gestalt von Punkt 10, den ich bisher abstrakt als
 „darf `run1` das Vorgängerprojekt als Quelle der Wahrheit ablösen"
 geführt habe. Punkt 29.
 
+### Der erste vollständige Prep-Lauf — acht Domänen gemessen
+
+Commit `4857499` (mein Fortschritt). Kein eigener Commit, `build/` ist
+gitignored.
+
+**Die Prep-Stufe rechnet in 6 Minuten 44, was in der alten Kette bei jedem
+Durchgang mitlief.** Fünf dieser Zahlen gab es vorher überhaupt nicht:
+
+| Domäne | Laufzeit | Ergebnis |
+|---|---:|---|
+| `zonen` | < 1 s | 146 Zonen, ~376 km², fünf Quellen |
+| `gelaende` | 1 s | nur Prüfbericht, keine Umformung |
+| `natur` | 2 s | 920 Flächen |
+| `admin` | 4 s | 2093 Gemeinden, 9 Bundesländer |
+| `adressen` | 10 s | 2 516 345 + 2 524 624 Punkte |
+| `widmung` | 36 s | 466 200 Flächen aus neun Ländern |
+| `noe_sekrop` | 65 s | 6 Layer, je nativ und WGS84 |
+| `osm` | **285 s** | 5,2 GB, zehn Objektgruppen |
+
+**Zwei Vorhersagen sind auf die Sekunde eingetroffen:** OSM 285 s gegen die
+286 s aus W1.P5, NÖ-SekROP 65 s gegen 64 s aus W1.P9. Beide Messungen
+stammten aus Teilläufen und Hochrechnungen — dass sie im Volllauf halten,
+macht auch die Kataster-Hochrechnung glaubwürdiger.
+
+Die OSM-Zahlen bestätigen zudem Punkt 25 an der Sache: `buildings`
+8 504 614 Objekte, mit Abstand die größte Gruppe, und `powerlines`
+378 976 — beide fehlten in meiner Domänentabelle.
+
+### Was die Merge-Prüfung nicht geprüft hat
+
+Bei der Prep-Zusammenführung habe ich gefragt, ob alle neun Module
+`pipeline/fingerprint.py` **gleich** benutzen. Die Antwort war ja: nur
+`write()` und `matches()`, kein Eigenbau. Der Lauf zeigt, dass die Frage
+zu eng war.
+
+`adressen` wurde **nicht übersprungen**, obwohl das Ergebnis vorlag — die
+Stufe hat `rebuild=True` hart verdrahtet (`pipeline/prep/adressen.py:71`),
+mit ausdrücklicher Begründung im Docstring. Sie *schreibt* einen
+Fingerabdruck, *liest* ihn aber nie zurück. `matches()` wird zum
+Selbst-Überspringen nur in `osm.py` und `kataster/b_export_parquet.py`
+benutzt.
+
+Damit benutzen die neun Module denselben **Mechanismus** und meinen
+Verschiedenes damit. Meine Prüffrage lautete „rufen sie dasselbe auf" —
+richtig gewesen wäre „bedeutet es bei ihnen dasselbe". Das ist §13.6 in
+einer Schicht tiefer: Nicht nur die gemeinsame Entscheidung driftet
+still, sondern auch die gemeinsame Bedeutung eines geteilten Werkzeugs.
+Punkt 30.
+
+Ob das falsch ist, entscheidet erst Welle 2: Für einen Erstlauf ist
+`rebuild=True` richtig, für eine wiederholte Layer-Stufe wäre es teuer.
+
 ## Offene Punkte
 
 | # | Punkt | Fällig |
@@ -1295,6 +1347,8 @@ geführt habe. Punkt 29.
 | 20 | **GeoPackage promoviert Polygone zu MultiPolygonen.** Beim Schreiben nach GPKG werden gemischte Geometrietypen vereinheitlicht. **Zweimal unabhängig belegt:** 383 von 920 bei `natur` (W1.P7), 49 von 71 bei der NÖ-Zonenquelle (Punkt 22). Damit kein Einzelfall einer Domäne, sondern Eigenschaft **jeder** Prep-Stufe, die GPKG schreibt. Für `rasterize` folgenlos; für eine geometrietyp-sensitive Layer-Stufe nicht. | Welle 2 |
 | 21 | 33 von 920 Schutzgebietsgeometrien sind laut GEOS ungültig. Der heutige Konsument prüft und repariert das ebenfalls nicht — deshalb nach Regel 4 unverändert. | fachlich, Nutzer |
 | ~~19~~ | ~~Stille Falle: zwei Juli-Parquets unter `data/adressen/`.~~ **Erledigt im Datenfenster nach der Prep-Welle.** Nicht gelöscht, sondern in den Sitzungs-Scratchpad verschoben — es waren die zwei Dateien aus W1.3 ohne zweite Kopie im Vorgängerprojekt, und ein Neulauf ergäbe wegen des Oktober-Stichtags andere Dateien. Inode nach dem `mv` unverändert. | — |
+| 30 | **Geteiltes Werkzeug, ungeteilte Bedeutung.** Alle neun Prep-Module benutzen `pipeline/fingerprint.py`, aber nur `osm.py` und `kataster/b_export_parquet.py` lesen den Fingerabdruck zum Selbst-Überspringen zurück; `adressen.py:71` hat `rebuild=True` hart verdrahtet, die übrigen schreiben ihn nur. Für einen Erstlauf richtig, für eine wiederholte Layer-Stufe teuer. Zu vereinheitlichen oder bewusst zu differenzieren — aber nicht unbemerkt zu lassen. | Welle 2 |
+| 31 | `data/widmung/vorarlberg/fwp_flaeche.gpkg` erzeugt beim Lesen `RuntimeWarning: GPKG: unrecognized user_version=0x00000000`. Verarbeitung läuft vollständig durch (15 766 Wohnflächen). Vorbestehend, nach Regel 4 unangetastet. | Sammelposten |
 | 29 | **Die Kette hängt an einem Zwischenstand des Vorgängerprojekts.** `output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet` (5,3 GB, 15.05.2026, vier Monate vor dem ersten Commit) wird von `02_build_hig_sources.py:191` per Vorgabewert gelesen und ist von diesem Repo nicht erzeugbar. Neu erzeugen kostet 45–70 min und riskiert, dass die Kataster-Layer **nicht mehr bitgleich** zu `run1` sind. Nicht neu erzeugen heißt, dass Welle 5 kein Beweislauf aus Rohdaten ist. Die konkrete Gestalt von Punkt 10. | **Nutzer, vor Welle 2** |
 | 28 | `docs/dataflow/src/1_merge.py` führt den Pfad `data/adressregister/…`, den es seit dem W0.1-Umbau nicht mehr gibt. Nur ein Alias in einer Doku-Tabelle, kein Datenzugriff — aber ein stiller falscher Pfad in **erzeugter** Doku, den keine Suche der Pfadpakete gefunden hat, weil er keinen Leser hat. | Sammelposten |
 | 14 | **`LEGACY_ENTFAELLT` ist jetzt leer**, und `test_legacy_entfaellt_path_exists` wird dadurch zu einem übersprungenen Platzhalter — ein Test, der nichts mehr prüft. Register bleibt laut §13.1 stehen; zu entscheiden ist, ob der Test bleibt, entfällt oder gegen die Leerheit prüft. | W1.4 |
