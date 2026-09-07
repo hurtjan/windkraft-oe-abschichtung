@@ -589,6 +589,33 @@ korrigiert hatte.
 > Kalkuliert wird dafür rund die Hälfte der durch Parallelität gesparten
 > Zeit.
 
+### 13.4 Konflikte werden vorher verhindert, nicht nachher aufgelöst
+
+§13.3 hält fest, was ein Zusammenführen mit überlappenden Dateimengen
+kostet. Die Prep-Welle zeigt, dass man diesen Preis oft **gar nicht zahlen
+muss** — wenn man die Überschneidung vorher wegkonstruiert.
+
+Neun Prep-Pakete laufen parallel. Jedes bräuchte einen Eintrag in
+`pipeline/contract.py:PREP` und ein Ziel im `Makefile`: zwei garantierte
+neunfache Konflikte an je einer Stelle. Bei Prosa kostet das
+Nachprüfungszeit; bei einem `Makefile` kostet es einen kaputten Build.
+
+**Neues Vorgehen, ab der Prep-Welle verbindlich:**
+
+> Bevor ein Batch von mehr als drei Paketen startet, prüfe ich, welche
+> Dateien **alle** anfassen müssten. Für jede solche Datei gilt: entweder
+> sie wird **vorher** in einem Vorpaket fertig deklariert, oder die
+> Struktur wird so geändert, dass jedes Paket eine **eigene** Datei
+> bekommt. Erst dann startet der Batch.
+
+Konkret für die Prep-Welle (Paket **W1.P0**): Alle neun Prep-Pfade werden
+im Vertrag vorab erklärt, und das `Makefile` bekommt einmalig
+`-include make/prep/*.mk`. Jedes Prep-Paket legt danach `make/prep/<domäne>.mk`
+an — neun verschiedene Dateien statt neun Änderungen an einer.
+
+Das kostet zwanzig Minuten vorher und spart eine Zusammenführung, die nach
+der gemessenen Regel aus §13.3 sonst über eine Stunde gekostet hätte.
+
 ## Maschinensichten
 
 - [`domains.tsv`](domains.tsv) / `domains.json` — Domänenmatrix, maschinenlesbar (`src/extract_domains.py`).
