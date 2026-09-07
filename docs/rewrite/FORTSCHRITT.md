@@ -44,7 +44,7 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | W1.P0 | Vorfeld der Prep-Welle | **fertig** | 20 min | 13 min | bitgleich · 136 → **147** Tests |
 | W1.P1 | Prep: Verwaltungsgrenzen | **fertig** | 25 min | 12 min | Bundesländer **0,0 m² Differenz** · 147 Tests |
 | W1.P2 | Prep: Kataster | offen | 60 min | | **+ unbekannter Volllauf** |
-| W1.P3 | Prep: Adressregister | offen | 40 min | | |
+| W1.P3 | Prep: Adressregister | **fertig** | 40 min | 6 min | Parquets **bitgleich** · 147 Tests |
 | W1.P4 | Prep: Flächenwidmung | offen | 45 min | | |
 | W1.P5 | Prep: OSM, zwei Stufen | offen | 45 min | | |
 | W1.P6 | Prep: Gelände und Wind | **fertig** | 20 min | 19 min | Windraster weicht **vollständig** ab · 147 Tests |
@@ -698,6 +698,36 @@ Kein Abbruch, keine Umformung, keine Datenänderung.
 
 **Abnahme: bitgleich, 147 Tests unverändert, Wächter grün.**
 
+### W1.P3 — Prep: Adressregister · fertig
+
+Commit `61346b3`, Zweig `w1.p3`. Geschätzt 40 min, gebraucht **6** — die
+größte Fehleinschätzung nach unten bisher. Grund: W1.1 hatte die Weiche
+bereits beseitigt, das Paket musste den Schritt nur noch explizit machen,
+statt ihn beiläufig beim ersten Kettenlauf entstehen zu lassen.
+
+Der Gleichheitsnachweis ist vorbildlich geführt: Ausgabe umbenannt, dann
+`load_address_points()` und `load_building_points()` **direkt** aufgerufen —
+mit demselben `cache_dir`, den der echte Konsument per Vorgabewert benutzt
+— und beide Parquet-Dateien per sha256 verglichen. **Bitgleich.**
+2.516.345 und 2.524.624 Punkte, exakt die W1.1-Zahlen.
+
+Die Handprüfung auf Schreibzugriffe nach `data/` lief über eine
+Markierungsdatei und `find data -newer` — vor und nach dem Lauf, im
+Worktree **und** über den Symlink im Hauptrepo. Bei genau dieser Domäne war
+der historische Fehler; die Sorgfalt ist angemessen.
+
+**Der Fund ist eine stille Falle im Rohdatenbaum.** In `data/adressen/`
+liegen noch zwei Parquet-Dateien vom 23./24. Juli — die Artefakte genau
+jenes Cache-Weichen-Fehlers, den W1.1 im Code behoben hat, ohne die bereits
+entstandenen Dateien zu entfernen. Sie werden von niemandem mehr gelesen.
+Aber die Rohquelle daneben hat Stichtag **1. Oktober 2025**: Wer je
+versehentlich wieder von ihnen läse, bekäme **stillschweigend veraltete
+Daten**, ohne Fehlermeldung. Der Wächter verhindert neue Schreibzugriffe,
+nicht alte Überbleibsel. Punkt 19.
+
+**Abnahme: 147 Tests unverändert, Wächter grün.** Erstes Paket ohne eigenen
+Nachweislauf nach §13.7.
+
 ## Offene Punkte
 
 | # | Punkt | Fällig |
@@ -716,6 +746,9 @@ Kein Abbruch, keine Umformung, keine Datenänderung.
 | 11 | `docs/FOLLOWUPS.md` führt die veraltete `EXCLUSION_LAYERS`-Liste weiterhin als offenen Punkt, obwohl W1.5 das ganze Skript gelöscht hat. Im README nachgezogen, dort nicht — die Datei galt als eingefroren. Zu klären: eingefrorene Momentaufnahme oder lebende Liste? Dieselbe Frage wie Punkt 3. | mit Punkt 3 |
 | 12 | **Sackgasse eine Ebene höher.** Nachdem W1.6 `noe_pdf_source_mask()` entfernt hat, erzeugt `windkraft/noe/pdf_hig_sources.py:derive_layer_files()` (aufgerufen in `scripts/noe/extract_noe_vector_layers.py:286`) `output/noe/pdf_hig_source_*.geojson`, die niemand mehr liest. Fremder Besitz, deshalb von W1.6 korrekt liegengelassen. | W1.P9 |
 | 13 | Der `Run:`-Hinweis im Docstring von `scripts/widmung_v2/02_build_hig_sources.py:26-27` nennt den alten Pfad `scripts/main/build_hig_sources.py`. Vorbestehend. | Sammelposten |
+| 17 | `windkraft/util/admin.py` (`load_vgd`, `load_laender`, `load_bezirke`, `load_austria`) ist tot — nirgends importiert außer in einem Kommentar, der es ausdrücklich als „bewusst nicht mitgenommen" bezeichnet. | Aufräumwelle |
+| 18 | Drei Skripte lesen die VGD-Rohdatei direkt und unabhängig von `admin_boundaries()`: `create_noe_dkm_polygon_fill_map.py`, `extract_noe_vector_layers.py`, `align_pdf_shapefile.py` — teils **ohne `to_crs`**. Die Annahme, die Rohdatei sei bereits EPSG:31287, stimmt hier zufällig. Bei der Umstellung auf `build/prep/admin/` zu prüfen. | Welle 2 |
+| 19 | **Stille Falle:** `data/adressen/{adressen_31287,bev_gebaeude_31287}.parquet` vom 23./24. Juli sind Artefakte des von W1.1 behobenen Cache-Weichen-Fehlers. Niemand liest sie — aber die Rohquelle daneben hat Stichtag 1.10.2025. Wer je wieder von ihnen läse, bekäme **ohne Fehlermeldung veraltete Daten**. Der Wächter verhindert neue Schreibzugriffe, nicht alte Überbleibsel. | eigenes Datenfenster nach der Prep-Welle |
 | 14 | **`LEGACY_ENTFAELLT` ist jetzt leer**, und `test_legacy_entfaellt_path_exists` wird dadurch zu einem übersprungenen Platzhalter — ein Test, der nichts mehr prüft. Register bleibt laut §13.1 stehen; zu entscheiden ist, ob der Test bleibt, entfällt oder gegen die Leerheit prüft. | W1.4 |
 | 15 | **`Path("").exists()` ist `True`.** Fällt `abschichtung_common.py:966` je in den PBF-Fallback, liefert `cfg["paths"].get("powerlines_gpkg", "")` jetzt einen leeren String, und `read_layer()` geht auf das Arbeitsverzeichnis statt auf eine GIS-Datei los. Randfall, tritt nur bei fehlendem OSM-PBF ein, aber die Fehlermeldung wäre irreführend. In `docs/rohdaten.md` §5 vermerkt. | W1.P5 |
 | 16 | `docs/rewrite/UMSETZUNG.md` und `packages.json` beschreiben W1.2 anders als `PLAN.md` (sechs Pfade weg, inklusive `Aktualitaetsstand.txt`, das bleiben soll). Veraltete Planungsartefakte, die dem Plan widersprechen. Meine Dateien, nicht die der Pakete. | vor Welle 2 |
