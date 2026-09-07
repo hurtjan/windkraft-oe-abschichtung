@@ -12,8 +12,9 @@ W0.1 in dessen §11. Die Belege liegen unter
 
 | | |
 |---|---|
-| Abgeschlossen | 10 von 30 — Welle 0, der Aufräumteil der Welle 1, erstes Datenfenster |
-| Als Nächstes | W1.3, Hardlinks auflösen — die einzige unumkehrbare Handlung im Projekt |
+| Abgeschlossen | 11 von 30 — Welle 0, Aufräumteil und **beide Datenfenster** der Welle 1 |
+| Als Nächstes | W1.4, die Wächter — danach beginnt die Prep-Welle |
+| `data/` | **hardlinkfrei**, 50 echte Dateien, per Wächter als Invariante gesichert |
 | Zweig | `docs/audit-und-plan`, kein Remote |
 | Abweichungen bisher | keine — alle Pakete bitgleich |
 
@@ -38,7 +39,7 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | W1.9 | Doku-Widersprüche korrigieren | **fertig** | 15 min | 13 min | nur Doku · 130 Tests |
 | — | Zusammenführung der vier Zweige | **fertig** | 15 min | 30 min | bitgleich · 130 Tests · 3 stille Fehler gefunden |
 | W1.2 | Tote Daten löschen, Provenienz retten | **fertig** | 20 min | 22 min | bitgleich · 50/50 Inodes · 129+1 Tests |
-| W1.3 | Hardlinks auflösen | offen | 20 min | | Datenfenster · 13 GB |
+| W1.3 | Hardlinks auflösen | **fertig** | 20 min | 14 min | 48/48 aufgelöst · Vorgänger 48/48 unversehrt |
 | W1.4 | Wächter für Rohdaten | offen | 25 min | | braucht W1.1, W1.2 |
 | W1.P1 | Prep: Verwaltungsgrenzen | offen | 25 min | | |
 | W1.P2 | Prep: Kataster | offen | 60 min | | **+ unbekannter Volllauf** |
@@ -63,7 +64,7 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 
 | | |
 |---|---|
-| Gebraucht bisher | **3 h 05** für zehn Pakete plus die Zusammenführung |
+| Gebraucht bisher | **3 h 19** für elf Pakete plus die Zusammenführung |
 | davon Welle 0 | 1 h 30, seriell (49 + 28 + 12 min) |
 | davon Welle 1, Aufräumen | 29 min (W1.7 seriell 15 min, dann vier parallel in 14 min) |
 | davon Zusammenführung | 30 min — doppelt so lang wie geschätzt |
@@ -495,6 +496,55 @@ gefunden: ein `;` in einem mehrzeiligen Shell-Kommentar führte das Wort
 Der Lauf liest die Checkpoints, nicht `data/`. Er beweist, dass die
 Vertrags- und Konfigänderung die Kette nicht zerstört hat — nicht, dass die
 gelöschten Rohdateien wirkungslos waren. Das leistet die statische Suche.
+
+### W1.3 — Hardlinks auflösen · fertig
+
+Commit `1aaa1a3`. Geschätzt 20 min, gebraucht 14. Zweites Datenfenster, im
+Hauptrepo.
+
+Die einzige unumkehrbare Handlung des Projekts, und sie ist sauber
+verlaufen. 48 von 50 Dateien hatten Linkanzahl ≥ 2; die zwei übrigen waren
+die per `to_parquet()` erzeugten Adress-Caches und damit schon echte
+Kopien.
+
+**Drei Prüfungen, alle bestanden:**
+
+| Prüfung | Ergebnis |
+|---|---|
+| Bei uns: Linkanzahl 1, neuer Inode, gleiche Größe, gleiche sha256 | 48/48 |
+| **Beim Vorgängerprojekt: gleiche sha256 wie vorher** | **48/48** |
+| Keine `.tmp`-Reste | keine |
+
+Die mittlere Zeile ist der eigentliche Beweis. Sie zeigt, dass das
+Verfahren — Kopie daneben, Prüfsumme *vor* dem Ersetzen, dann `mv` — den
+alten Inode wirklich unangetastet gelassen hat. Kein einziger
+Prüfsummenvergleich schlug fehl.
+
+Der Platzbedarf war unkritischer als befürchtet: Datei für Datei
+aufgelöst, der Spitzenbedarf lag bei der größten Einzeldatei (~2 GB), nicht
+bei 13 GB. 55 GiB waren frei.
+
+**Nebenbefund:** Das Vorgängerprojekt liegt unter
+`/Users/jhurt/Documents/windkraft_ö_karten` — eine Ebene höher als in
+meinem Auftrag geraten. Der Agent hat es über den Inode gefunden, statt sich
+auf meinen Pfad zu verlassen. Genau richtig.
+
+**Aus der Warnung wurde eine Invariante.** `tools/check_hardlink_safety.py`
+prüfte Regel B bisher nur gegen eine fest deklarierte Liste bekannter
+Schreibziele, mit der Begründung, `data/` sei überwiegend hardlink-basiert.
+Das stimmt seit heute nicht mehr: Es gibt dort **keine Hardlinks mehr**.
+Der Wächter prüft jetzt jede Datei unter `data/` — wie Regel A das für
+`output/` längst tat. Live grün gegen 129 Dateien. Das war formal W1.4s
+Gebiet, gehört aber hierher, weil W1.3 die Grundannahme geändert hat.
+
+**Zur Ehrlichkeit des Berichts:** Der Agent hat von sich aus offengelegt,
+dass er die Test-Ausgangszahl nicht unmittelbar vor dem Eingriff gemessen,
+sondern aus W1.2 übernommen hat — mit der Begründung, kein Test lese
+Dateiinhalte unter `data/`, was er per Suche belegt hat. Die Begründung
+trägt, die Lücke bleibt eine Lücke. Dass er sie nennt, statt sie zu
+glätten, ist mehr wert als die Lücke kostet.
+
+**Abnahme: bitgleich, 129 Tests grün plus 1 übersprungen.**
 
 ## Offene Punkte
 
