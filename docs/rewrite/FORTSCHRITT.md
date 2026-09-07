@@ -48,7 +48,7 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | W1.P4 | Prep: Flächenwidmung | offen | 45 min | | |
 | W1.P5 | Prep: OSM, zwei Stufen | offen | 45 min | | |
 | W1.P6 | Prep: Gelände und Wind | **fertig** | 20 min | 19 min | Windraster weicht **vollständig** ab · 147 Tests |
-| W1.P7 | Prep: Naturschutz | offen | 25 min | | |
+| W1.P7 | Prep: Naturschutz | **fertig** | 25 min | 8 min | 920 Geometrien **WKB-bytegleich** · 147 Tests |
 | W1.P8 | Prep: Windzonen | offen | 30 min | | braucht W1.7 |
 | W1.P9 | Prep: NÖ-SekROP-PDF, zwei Stufen | offen | 45 min | | |
 | W2.1 | Layer: Widmung | offen | 40 min | | |
@@ -728,6 +728,39 @@ nicht alte Überbleibsel. Punkt 19.
 **Abnahme: 147 Tests unverändert, Wächter grün.** Erstes Paket ohne eigenen
 Nachweislauf nach §13.7.
 
+### W1.P7 — Prep: Naturschutz · fertig
+
+Commit `7d81827`, Zweig `w1.p7`. Geschätzt 25 min, gebraucht 8.
+
+Die Kette entpackt heute **bei jedem Lauf** das GeoPackage aus dem
+ZIP-Archiv in ein Temp-Verzeichnis und liest daraus vier von zwanzig
+Layern: Nationalparke (29), Naturschutzgebiete (499), Europaschutzgebiete
+(368), Ramsar (24) — zusammen 920 Geometrien. Sämtliche Sachattribute
+werden sofort verworfen, dann von EPSG:3035 nach 31287 reprojiziert.
+
+**Der Gleichheitsnachweis geht bis auf die einzelne Geometrie:** Fläche
+bit-für-bit identisch (22 928 877 990,127 45 m²), und alle 920 Geometrien
+WKB-bytegleich. Die dafür nötige Normalisierung Polygon → MultiPolygon ist
+ein reines Speicherformat-Artefakt — GeoPackage erlaubt je Layer nur einen
+Geometrietyp und promoviert beim Schreiben 383 Polygone. Für den einzigen
+Konsumenten, `rasterize`, nachweislich ohne Bedeutung. **Für Welle 2 aber
+nicht unbedingt**, falls dort je geometrietyp-sensitiv gearbeitet wird —
+Punkt 20.
+
+Dass die Rohquelle Schutzkategorien, Gesetzesjahr und Flächenangaben
+enthält, die vollständig verworfen werden, bevor sie je ein Band erreichen,
+hat der Agent notiert und nach Regel 4 nicht angefasst. Richtig so — das
+ist eine fachliche Entscheidung, keine Umbaufrage.
+
+**Ein Unterschied zu W1.P1, der Erwähnung verdient:** Hier wurde gegen
+einen **Nachbau derselben Schritte im selben Lauf** verglichen, nicht gegen
+die laufende Funktion selbst — die ist privat und rasterisiert zugleich.
+Das ist schwächer als W1.P1s Vergleich gegen `admin_boundaries()`, und der
+Agent sagt es selbst. Tragfähig, weil Fläche und WKB übereinstimmen, aber
+kein gleichwertiger Beleg.
+
+**Abnahme: 147 Tests unverändert, Wächter grün.**
+
 ## Offene Punkte
 
 | # | Punkt | Fällig |
@@ -748,6 +781,8 @@ Nachweislauf nach §13.7.
 | 13 | Der `Run:`-Hinweis im Docstring von `scripts/widmung_v2/02_build_hig_sources.py:26-27` nennt den alten Pfad `scripts/main/build_hig_sources.py`. Vorbestehend. | Sammelposten |
 | 17 | `windkraft/util/admin.py` (`load_vgd`, `load_laender`, `load_bezirke`, `load_austria`) ist tot — nirgends importiert außer in einem Kommentar, der es ausdrücklich als „bewusst nicht mitgenommen" bezeichnet. | Aufräumwelle |
 | 18 | Drei Skripte lesen die VGD-Rohdatei direkt und unabhängig von `admin_boundaries()`: `create_noe_dkm_polygon_fill_map.py`, `extract_noe_vector_layers.py`, `align_pdf_shapefile.py` — teils **ohne `to_crs`**. Die Annahme, die Rohdatei sei bereits EPSG:31287, stimmt hier zufällig. Bei der Umstellung auf `build/prep/admin/` zu prüfen. | Welle 2 |
+| 20 | **GeoPackage promoviert Polygone zu MultiPolygonen.** Beim Schreiben nach GPKG werden gemischte Geometrietypen vereinheitlicht — bei `natur` betraf das 383 von 920. Für `rasterize` folgenlos; für eine geometrietyp-sensitive Layer-Stufe nicht. Betrifft potenziell **alle** Prep-Stufen, die GPKG schreiben. | Welle 2 |
+| 21 | 33 von 920 Schutzgebietsgeometrien sind laut GEOS ungültig. Der heutige Konsument prüft und repariert das ebenfalls nicht — deshalb nach Regel 4 unverändert. | fachlich, Nutzer |
 | 19 | **Stille Falle:** `data/adressen/{adressen_31287,bev_gebaeude_31287}.parquet` vom 23./24. Juli sind Artefakte des von W1.1 behobenen Cache-Weichen-Fehlers. Niemand liest sie — aber die Rohquelle daneben hat Stichtag 1.10.2025. Wer je wieder von ihnen läse, bekäme **ohne Fehlermeldung veraltete Daten**. Der Wächter verhindert neue Schreibzugriffe, nicht alte Überbleibsel. | eigenes Datenfenster nach der Prep-Welle |
 | 14 | **`LEGACY_ENTFAELLT` ist jetzt leer**, und `test_legacy_entfaellt_path_exists` wird dadurch zu einem übersprungenen Platzhalter — ein Test, der nichts mehr prüft. Register bleibt laut §13.1 stehen; zu entscheiden ist, ob der Test bleibt, entfällt oder gegen die Leerheit prüft. | W1.4 |
 | 15 | **`Path("").exists()` ist `True`.** Fällt `abschichtung_common.py:966` je in den PBF-Fallback, liefert `cfg["paths"].get("powerlines_gpkg", "")` jetzt einen leeren String, und `read_layer()` geht auf das Arbeitsverzeichnis statt auf eine GIS-Datei los. Randfall, tritt nur bei fehlendem OSM-PBF ein, aber die Fehlermeldung wäre irreführend. In `docs/rohdaten.md` §5 vermerkt. | W1.P5 |
