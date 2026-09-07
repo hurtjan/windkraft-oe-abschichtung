@@ -19,7 +19,7 @@ unten), und es steht in derselben Zeile wie die Koordinate, sodass der im Plan
 vorgesehene Join über GEBAEUDE.csv entfällt.
 
 Der Datensatz hat datierte Dateinamen (Stichtage 1.4. / 1.10.); das jeweils
-jüngste ZIP in ``data/adressregister/`` wird automatisch genommen.
+jüngste ZIP in ``data/adressen/`` wird automatisch genommen.
 """
 from __future__ import annotations
 

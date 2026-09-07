@@ -15,7 +15,7 @@ VP_BBOX_DEFAULT = [62.39916, 2355.6873, 2928.2005, 28.28232]
 
 # Vier Eckpunkte (lat, lon im MGI-Datum EPSG:4312) aus dem /GPTS-Eintrag im
 # /Measure-Dictionary (referenziert vom /VP-Viewport-Dictionary der Seite 0)
-# des GeoPDFs data/nö_zonierung/TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf.
+# des GeoPDFs data/noe_sekrop/TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf.
 # Verifizierbar per PyMuPDF:
 #   doc = fitz.open(pdf_path); doc.xref_object(doc[0].xref)   # -> /VP [ << ... /Measure N 0 R >> ]
 #   doc.xref_object(N)                                         # -> /Measure-Dict mit /GPTS
@@ -42,7 +42,7 @@ GPTS_LATLON_MINDESTABSTAND = [
 LPTS_DEFAULT = [(0, 1), (0, 0), (1, 0), (1, 1)]
 
 _PDF_PATH_MINDESTABSTAND_DEFAULT = Path(
-    "data/nö_zonierung/TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf"
+    "data/noe_sekrop/TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf"
 )
 
 
@@ -58,7 +58,7 @@ def get_gpts_latlon_mindestabstand(pdf_path=None):
 
     Args:
         pdf_path: Pfad zum GeoPDF. Default: die Mindestabstandszonen-Karte
-            unter data/nö_zonierung/.
+            unter data/noe_sekrop/.
 
     Returns:
         Liste von 4 (lat, lon)-Tupeln in der Reihenfolge BL, TL, TR, BR.

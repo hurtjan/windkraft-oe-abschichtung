@@ -29,8 +29,8 @@ Die NÖ-Zonierung wird nicht hier, sondern über ``--official-zoning-geojson``
 geladen und ins Positivband vereinigt.
 
 TODO: Für Band 37 werden fünf kleine amtliche Windzonen-Quellen gebraucht -
-data/zonierung_noe.json, data/luca_zonen/*, data/WK_Eignungszonen.zip,
-data/RED_III_Windkraftbeschleunigungszone.zip (zusammen < 2 MB) - die alle
+data/zonen/zonierung_noe.json, data/zonen/luca_zonen/*, data/zonen/WK_Eignungszonen.zip,
+data/zonen/RED_III_Windkraftbeschleunigungszone.zip (zusammen < 2 MB) - die alle
 unter dem gitignorten data/-Baum liegen und daher lokal fehlen können (siehe
 _resolve_path()). Zu klären: sollen diese fünf Dateien per .gitignore-
 Ausnahme fürs öffentliche Repo eingecheckt werden, damit Band 37 reproduzierbar
@@ -102,7 +102,7 @@ WIND_ZONE_SOURCES = (
         # _resolve_path() (~Zeile 157-170) diese Quelle still (nur [warn]-Log,
         # kein Abbruch) - Band 37 (official_wind_zoning) wird dadurch unbemerkt
         # unvollständig, ohne dass der Lauf das meldet.
-        source_path="data/WK_Eignungszonen.zip",
+        source_path="data/zonen/WK_Eignungszonen.zip",
         # Die Datei enthält Eignungs- UND Ausschlusszonen im selben Layer.
         # Ohne Filter landeten die Ausschlusszonen im Windzonen-Band.
         filter_field="Status",
@@ -117,7 +117,7 @@ WIND_ZONE_SOURCES = (
         # gitignorten data/-Baum; fehlt die Datei, überspringt _resolve_path()
         # (~Zeile 157-170) sie still - gleiches Risiko für Band 37 wie beim
         # Bgld-Eintrag oben.
-        source_path="data/RED_III_Windkraftbeschleunigungszone.zip",
+        source_path="data/zonen/RED_III_Windkraftbeschleunigungszone.zip",
     ),
 )
 
@@ -143,7 +143,7 @@ WIND_EXCLUSION_ZONE_SOURCES = (
         bundesland="Burgenland",
         regime=REGIME_FORBIDDEN,
         label="Ausschlusszonen gem. Verordnung",
-        source_path="data/WK_Eignungszonen.zip",
+        source_path="data/zonen/WK_Eignungszonen.zip",
         filter_field="Status",
         keep_prefixes=("Ausschlusszone",),
     ),

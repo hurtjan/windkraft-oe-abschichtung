@@ -26,8 +26,8 @@ if str(PROJECT_ROOT) not in sys.path:
 from windkraft.noe.pdf_align import GPTS_LATLON_MINDESTABSTAND  # noqa: E402
 
 DATA = Path("data")
-VGD = DATA / "admin_boundaries/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp"
-PDF_PATH = DATA / "nö_zonierung" / "TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf"
+VGD = DATA / "admin/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp"
+PDF_PATH = DATA / "noe_sekrop" / "TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf"
 OUT = Path("output/noe")
 OUT.mkdir(exist_ok=True)
 

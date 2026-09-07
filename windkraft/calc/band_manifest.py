@@ -201,28 +201,28 @@ DESCRIPTIONS_DE_TRAILING = {
 # --------------------------------------------------------------------------
 SOURCES = {
     "dgm_25m": {
-        "pfad": "data/DGM_R25.tif",
+        "pfad": "data/gelaende/DGM_R25.tif",
         "stand": "30.03.2026",
         "rolle": "Grid-Template (CRS/Transform), Hangneigung und Seehöhe",
     },
     "wind_leistungsdichte_150m": {
-        "pfad": "data/AUT_power-density_150m.tif",
+        "pfad": "data/gelaende/AUT_power-density_150m.tif",
         "stand": "29.03.2026",
         "rolle": "Global Wind Atlas, Windhöffigkeitsschwelle",
     },
     "osm_pbf": {
-        "pfad": "data/austria-260330.osm.pbf",
+        "pfad": "data/osm/austria-260330.osm.pbf",
         "stand": "30.03.2026",
         "rolle": "Geofabrik-Extrakt Österreich: Straßen, Bahn, Seilbahnen, Militär, "
                  "Flughäfen, Gebäude, Gewässer, Schutzgebiete, Bestands-WKA",
     },
     "verwaltungsgrenzen_vgd": {
-        "pfad": "data/admin_boundaries/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp",
+        "pfad": "data/admin/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp",
         "stand": "02.10.2022",
         "rolle": "Staatsgebiet (valid_area) und Bundeslandzuordnung",
     },
     "bev_adressregister": {
-        "pfad": "data/adressregister/",
+        "pfad": "data/adressen/",
         "stand": "Stichtag 01.10.2025",
         "rolle": "Bewohnt-Signal (Adressen und Gebäudeeigenschaften) für die Hüllen-Klassifikation",
     },
@@ -232,77 +232,77 @@ SOURCES = {
         "rolle": "DKM-Bauflächen/Gärten für Streusiedlungs-Hüllen, Nicht-Wohn-Hüllen und Einzellagen",
     },
     "naturschutzgebiete": {
-        "pfad": "data/naturschutzgebiete/SG_AT_2024_v_April_Stand_3_April_2024.zip",
+        "pfad": "data/natur/SG_AT_2024_v_April_Stand_3_April_2024.zip",
         "stand": "03.04.2024",
         "rolle": "Nationalparks, NSG, Europaschutzgebiete/Natura 2000, Ramsar",
     },
     "noe_sekrop_mindestabstandszonen": {
-        "pfad": "data/nö_zonierung/TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf",
+        "pfad": "data/noe_sekrop/TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf",
         "stand": "Karten-Stand 02.04.2024 (Dateidatum 29.03.2026)",
         "rolle": "Quelle der NÖ-750-m-Zonen (georeferenziert nach output/noe/pdf_750m_*.geojson)",
     },
     "amtliche_windzonen_noe": {
-        "pfad": "data/zonierung_noe.json",
+        "pfad": "data/zonen/zonierung_noe.json",
         "stand": "LGBl. 47/2024, 71 Zonen (Dateidatum 30.04.2026)",
         "rolle": "Referenzband official_wind_zoning",
     },
     "amtliche_windzonen_bgld": {
-        "pfad": "data/WK_Eignungszonen.zip",
+        "pfad": "data/zonen/WK_Eignungszonen.zip",
         "stand": "EXPORT_DAT 20260721",
         "rolle": "Referenzband official_wind_zoning",
     },
     "amtliche_windzonen_ktn": {
-        "pfad": "data/RED_III_Windkraftbeschleunigungszone.zip",
+        "pfad": "data/zonen/RED_III_Windkraftbeschleunigungszone.zip",
         "stand": "unbekannt — zu klären",
         "rolle": "Referenzband official_wind_zoning",
     },
     "amtliche_windzonen_stmk_sbg": {
-        "pfad": "data/luca_zonen/Stmk.shp, data/luca_zonen/Sbg.shp",
+        "pfad": "data/zonen/luca_zonen/Stmk.shp, data/zonen/luca_zonen/Sbg.shp",
         "stand": "unbekannt — zu klären (handdigitalisiert, nicht amtlich bezogen)",
         "rolle": "Referenzband official_wind_zoning",
     },
     "flaechenwidmung_bgld": {
-        "pfad": "data/flächenwidmungen/WIDMUNGSFLAECHEN.zip",
+        "pfad": "data/widmung/burgenland/WIDMUNGSFLAECHEN.zip",
         "stand": "Dateidatum 22.06.",
         "rolle": "Amtliche Flächenwidmung Burgenland",
     },
     "flaechenwidmung_ktn": {
-        "pfad": "data/new_widmungs_data/kaernten/flawi_ktn_gpkg.zip",
+        "pfad": "data/widmung/kaernten/flawi_ktn_gpkg.zip",
         "stand": "Dateidatum 12.07.",
         "rolle": "Amtliche Flächenwidmung Kärnten",
     },
     "flaechenwidmung_noe": {
-        "pfad": "data/new_widmungs_data/niederoesterreich/RRU_WI_HUELLE.gpkg",
+        "pfad": "data/widmung/niederoesterreich/RRU_WI_HUELLE.gpkg",
         "stand": "Dateidatum 10.07.",
         "rolle": "Amtliche Flächenwidmung Niederösterreich",
     },
     "flaechenwidmung_ooe": {
-        "pfad": "data/new_widmungs_data/oberoesterreich/FLWI_WIDMUNGEN_F.zip",
+        "pfad": "data/widmung/oberoesterreich/FLWI_WIDMUNGEN_F.zip",
         "stand": "Dateidatum 10.07.",
         "rolle": "Amtliche Flächenwidmung Oberösterreich",
     },
     "flaechenwidmung_sbg": {
-        "pfad": "data/new_widmungs_data/salzburg/Flaechenwidmung_Shapefile.zip",
+        "pfad": "data/widmung/salzburg/Flaechenwidmung_Shapefile.zip",
         "stand": "Dateidatum 12.07.",
         "rolle": "Amtliche Flächenwidmung Salzburg",
     },
     "flaechenwidmung_stmk": {
-        "pfad": "data/new_widmungs_data/steiermark/Bauland.zip + data/flächenwidmungen/Flaewi.shp.zip",
+        "pfad": "data/widmung/steiermark/Bauland.zip + data/widmung/steiermark/Flaewi.shp.zip",
         "stand": "Dateidatum 10.07. / 22.06.",
         "rolle": "Amtliche Flächenwidmung Steiermark (beide Dateien nötig)",
     },
     "flaechenwidmung_tirol": {
-        "pfad": "data/new_widmungs_data/tirol/FLW_Flaechenwidmung_*.gpkg",
+        "pfad": "data/widmung/tirol/FLW_Flaechenwidmung_*.gpkg",
         "stand": "Dateidatum 12.07.",
         "rolle": "Amtliche Flächenwidmung Tirol",
     },
     "flaechenwidmung_vbg": {
-        "pfad": "data/new_widmungs_data/vorarlberg/fwp_flaeche.gpkg",
+        "pfad": "data/widmung/vorarlberg/fwp_flaeche.gpkg",
         "stand": "Dateidatum 12.07.",
         "rolle": "Amtliche Flächenwidmung Vorarlberg",
     },
     "flaechenwidmung_wien": {
-        "pfad": "data/new_widmungs_data/wien/genflwidmung_wien.geojson",
+        "pfad": "data/widmung/wien/genflwidmung_wien.geojson",
         "stand": "Dateidatum 29.07.",
         "rolle": "Amtliche Flächenwidmung Wien (WFS GENFLWIDMUNGOGD)",
     },

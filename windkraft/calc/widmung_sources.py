@@ -36,8 +36,7 @@ import geopandas as gpd
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
-NEW = ROOT / "data" / "new_widmungs_data"
-OLD = ROOT / "data" / "flächenwidmungen"
+WIDMUNG = ROOT / "data" / "widmung"
 
 WORK_CRS = "EPSG:31287"
 
@@ -58,57 +57,57 @@ KTN_GPKG_CACHE_NAME = "flawi_ktn_gpkg.gpkg"
 DATASETS = {
     "bgld": {
         "bundesland": "Burgenland",
-        "source": "data/flächenwidmungen/WIDMUNGSFLAECHEN.zip, Layer BGLD_FLAECHENWIDMUNG",
+        "source": "data/widmung/burgenland/WIDMUNGSFLAECHEN.zip, Layer BGLD_FLAECHENWIDMUNG",
         "code_col": "WIDCODE",
         "label_col": "BEZEICH",
     },
     "ktn": {
         "bundesland": "Kärnten",
-        "source": "data/new_widmungs_data/kaernten/flawi_ktn_gpkg.zip, Layer WIDG",
+        "source": "data/widmung/kaernten/flawi_ktn_gpkg.zip, Layer WIDG",
         "code_col": "WIDMUNG",
         "label_col": "KATEGORIE",
         "extra_cols": ["WIDCODE"],
     },
     "noe": {
         "bundesland": "Niederösterreich",
-        "source": "data/new_widmungs_data/niederoesterreich/RRU_WI_HUELLE.gpkg",
+        "source": "data/widmung/niederoesterreich/RRU_WI_HUELLE.gpkg",
         "code_col": "WI_ART",
         "label_col": "WI_ART_WERTE",
     },
     "ooe": {
         "bundesland": "Oberösterreich",
-        "source": "data/new_widmungs_data/oberoesterreich/FLWI_WIDMUNGEN_F.zip",
+        "source": "data/widmung/oberoesterreich/FLWI_WIDMUNGEN_F.zip",
         "code_col": "KENNZAHL",
         "label_col": None,
     },
     "sbg": {
         "bundesland": "Salzburg",
-        "source": "data/new_widmungs_data/salzburg/Flaechenwidmung_Shapefile.zip",
+        "source": "data/widmung/salzburg/Flaechenwidmung_Shapefile.zip",
         "code_col": "Typname",
         "label_col": None,
     },
     "stmk_bauland": {
         "bundesland": "Steiermark",
-        "source": "data/new_widmungs_data/steiermark/Bauland.zip",
+        "source": "data/widmung/steiermark/Bauland.zip",
         "code_col": "KATEGO",
         "label_col": "GRUPPE_4",
     },
     "stmk_flaewi": {
         "bundesland": "Steiermark",
-        "source": "data/flächenwidmungen/Flaewi.shp.zip, Layer FWP_NUTZ",
+        "source": "data/widmung/steiermark/Flaewi.shp.zip, Layer FWP_NUTZ",
         "code_col": "WIDMUNG",
         "label_col": None,
     },
     "tir": {
         "bundesland": "Tirol",
-        "source": "data/new_widmungs_data/tirol/FLW_Flaechenwidmung_*.gpkg",
+        "source": "data/widmung/tirol/FLW_Flaechenwidmung_*.gpkg",
         "code_col": "WIDMUNG",
         "label_col": None,
         "extra_cols": ["FESTLEGUNG"],
     },
     "vbg": {
         "bundesland": "Vorarlberg",
-        "source": "data/new_widmungs_data/vorarlberg/fwp_flaeche.gpkg",
+        "source": "data/widmung/vorarlberg/fwp_flaeche.gpkg",
         "code_col": "wi_em_txt",
         "label_col": None,
     },
@@ -119,7 +118,7 @@ DATASETS = {
     # 414,8 km² (der Rest ist Straßenraum ohne Widmung).
     "wien": {
         "bundesland": "Wien",
-        "source": "data/new_widmungs_data/wien/genflwidmung_wien.geojson (Stadt Wien OGD, WFS ogdwien:GENFLWIDMUNGOGD)",
+        "source": "data/widmung/wien/genflwidmung_wien.geojson (Stadt Wien OGD, WFS ogdwien:GENFLWIDMUNGOGD)",
         "code_col": "WIDMUNGSKLASSE_TXT",
         "label_col": "WIDMUNG_TXT",
     },
@@ -388,7 +387,7 @@ def _ensure_ktn_gpkg(cache_dir: Path) -> Path:
     if cached.exists():
         return cached
     cache_dir.mkdir(parents=True, exist_ok=True)
-    zip_path = NEW / "kaernten" / "flawi_ktn_gpkg.zip"
+    zip_path = WIDMUNG / "kaernten" / "flawi_ktn_gpkg.zip"
     with zipfile.ZipFile(zip_path) as zf:
         inner = next(n for n in zf.namelist() if n.endswith(".gpkg"))
         with zf.open(inner) as src, open(cached, "wb") as dst:
@@ -397,33 +396,33 @@ def _ensure_ktn_gpkg(cache_dir: Path) -> Path:
 
 
 def _tirol_gpkg() -> Path:
-    matches = sorted((NEW / "tirol").glob("FLW_Flaechenwidmung_*.gpkg"))
+    matches = sorted((WIDMUNG / "tirol").glob("FLW_Flaechenwidmung_*.gpkg"))
     if not matches:
-        raise FileNotFoundError(f"no FLW_Flaechenwidmung_*.gpkg in {NEW / 'tirol'}")
+        raise FileNotFoundError(f"no FLW_Flaechenwidmung_*.gpkg in {WIDMUNG / 'tirol'}")
     return matches[0]
 
 
 def _read_raw(dataset_key: str, columns: list[str], cache_dir: Path) -> gpd.GeoDataFrame:
     if dataset_key == "bgld":
-        return gpd.read_file(OLD / "WIDMUNGSFLAECHEN.zip", layer="BGLD_FLAECHENWIDMUNG", columns=columns)
+        return gpd.read_file(WIDMUNG / "burgenland" / "WIDMUNGSFLAECHEN.zip", layer="BGLD_FLAECHENWIDMUNG", columns=columns)
     if dataset_key == "ktn":
         return gpd.read_file(_ensure_ktn_gpkg(cache_dir), layer="WIDG", columns=columns)
     if dataset_key == "noe":
-        return gpd.read_file(NEW / "niederoesterreich" / "RRU_WI_HUELLE.gpkg", columns=columns)
+        return gpd.read_file(WIDMUNG / "niederoesterreich" / "RRU_WI_HUELLE.gpkg", columns=columns)
     if dataset_key == "ooe":
-        return gpd.read_file(f"zip://{NEW / 'oberoesterreich' / 'FLWI_WIDMUNGEN_F.zip'}!FLWI_WIDMUNGEN_F.shp", columns=columns)
+        return gpd.read_file(f"zip://{WIDMUNG / 'oberoesterreich' / 'FLWI_WIDMUNGEN_F.zip'}!FLWI_WIDMUNGEN_F.shp", columns=columns)
     if dataset_key == "sbg":
-        return gpd.read_file(f"zip://{NEW / 'salzburg' / 'Flaechenwidmung_Shapefile.zip'}!Flaechenwidmung/Flaechenwidmung.shp", columns=columns)
+        return gpd.read_file(f"zip://{WIDMUNG / 'salzburg' / 'Flaechenwidmung_Shapefile.zip'}!Flaechenwidmung/Flaechenwidmung.shp", columns=columns)
     if dataset_key == "stmk_bauland":
-        return gpd.read_file(f"zip://{NEW / 'steiermark' / 'Bauland.zip'}!Bauland.shp", columns=columns)
+        return gpd.read_file(f"zip://{WIDMUNG / 'steiermark' / 'Bauland.zip'}!Bauland.shp", columns=columns)
     if dataset_key == "stmk_flaewi":
-        return gpd.read_file(OLD / "Flaewi.shp.zip", layer="FWP_NUTZ", columns=columns)
+        return gpd.read_file(WIDMUNG / "steiermark" / "Flaewi.shp.zip", layer="FWP_NUTZ", columns=columns)
     if dataset_key == "tir":
         return gpd.read_file(_tirol_gpkg(), layer="FLW_Flaechenwidmung", columns=columns)
     if dataset_key == "vbg":
-        return gpd.read_file(NEW / "vorarlberg" / "fwp_flaeche.gpkg", layer="fwp_flaeche", columns=columns)
+        return gpd.read_file(WIDMUNG / "vorarlberg" / "fwp_flaeche.gpkg", layer="fwp_flaeche", columns=columns)
     if dataset_key == "wien":
-        return gpd.read_file(NEW / "wien" / "genflwidmung_wien.geojson", columns=columns)
+        return gpd.read_file(WIDMUNG / "wien" / "genflwidmung_wien.geojson", columns=columns)
     raise ValueError(f"unknown dataset key: {dataset_key}")
 
 

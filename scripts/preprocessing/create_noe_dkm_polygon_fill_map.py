@@ -49,7 +49,7 @@ except Exception:  # pragma: no cover - optional fast render path
 ROOT = Path(__file__).resolve().parents[2]
 ZIP_PATH = ROOT / "data/kataster/KAT_DKM_Niederoesterreich_DXF_20230401.zip"
 SYMBOL_CSV = ROOT / "data/kataster/BEV_DKM_DXF_Symbole_V2.6.csv"
-ADMIN_BOUNDARY_PATH = ROOT / "data/admin_boundaries/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp"
+ADMIN_BOUNDARY_PATH = ROOT / "data/admin/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp"
 OUT_DIR = ROOT / "output/kataster/diagnostics"
 
 # NÖ DKM DXFs straddle Austrian GK strips. Raw coordinates with large

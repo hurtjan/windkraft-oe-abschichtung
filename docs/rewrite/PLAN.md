@@ -6,10 +6,13 @@ und interaktive Ansichten sind am Ende verlinkt.
 
 ## 1. Stand
 
-**Geplant, nicht begonnen.** Kein Paket ist angefangen, kein Code
-geändert, keine Datei außerhalb von `docs/` angefasst.
+**W0.1 läuft.** Der Rohdatenbaum wird nach Themen umsortiert; die Pfade im
+Code werden anschließend nachgezogen. Alle übrigen 29 Pakete sind
+unberührt.
 
-Sicherungspunkt: Commit `e98530a` auf Zweig `docs/audit-und-plan`.
+Sicherungspunkte: Commits `e98530a` und `ab2db12` auf Zweig
+`docs/audit-und-plan`. **`data/` ist gitignoriert** — dort ersetzt ein
+Inventar aus Größe, Inode und Prüfsumme das fehlende Netz (§11.3).
 
 ## 2. Ausgangslage
 
@@ -222,13 +225,13 @@ derselben Welle teilen sich niemals eine Datei.
 
 | Paket | Welle | Gruppe | Titel | Besitzt | Braucht | Abnahme |
 |---|---|---|---|---|---|---|
-| W0.1 | 0 | Daten | Rohdaten nach Thema sortieren | `data/**` (nur Verschiebungen); `windkraft/calc/wind_zones.py` (hartkodierte Pfade) | — | Alte Kette läuft unverändert; Finalisierung aus vorhandenen Layern liefert bitgleiches TIF. |
+| W0.1 | 0 | Daten | Rohdaten nach Thema sortieren | `data/**` (Verschiebungen); die zwölf Dateien mit funktionalem `data/`-Pfad und die drei mit nur dokumentarischem (§11); `config.json` (nur die Werte im `paths`-Block) | — | Zweistufig: (1) jeder funktionale Pfad löst auf eine existierende Datei auf; (2) Finalisierung aus vorhandenen Layern liefert bitgleiches TIF. |
 | W0.2 | 0 | Daten | Pfadvertrag anlegen | `pipeline/contract.py` (neu); `config.json` | W0.1 | Jeder Rohpfad, jede Prep-Ausgabe, jeder Layername und jeder Produktpfad ist genau einmal deklariert und importierbar. |
 | W0.3 | 0 | Daten | Verzeichnisgerüst und Make-Ziele | `build/` `out/` `pipeline/` (neu); `.gitignore`; `Makefile` | W0.2 | `make` · `make prep` · `make all` · `make test` existieren; `make` läuft die heutige Kette unverändert. |
 | W1.1 | 1 | Aufräumen | Adress-Cache-Weiche entfernen | `windkraft/calc/bev_register.py` | W0.3 | `cache_dir` wirkt tatsächlich; Cache landet unter `build/`, nicht in `data/`. |
-| W1.2 | 1 | Aufräumen | Tote Daten löschen | `data/osm_power_lines.gpkg`; `data/windkraftzonen_shapefile_2024.json`; `data/…/Aktualitaetsstand.txt`; `data/…/.claude/`; `data/WINDKRAFT_AUSSCHLUSSZONE.zip`; `data/README.md` | W0.3 | Sechs Pfade weg; TIF unverändert (keiner erreichte ein Band). |
+| W1.2 | 1 | Aufräumen | Tote Daten löschen, Provenienz retten | löschen: `data/osm_power_lines.gpkg`; `data/windkraftzonen_shapefile_2024.json`; `data/**/.DS_Store`; `data/**/.claude/`; `data/WINDKRAFT_AUSSCHLUSSZONE.zip` · verschieben: `data/README.md` → `docs/rohdaten.md`; `.gitignore` | W0.3 | Fünf Pfade weg, Provenienz erhalten; TIF unverändert (keiner erreichte ein Band). |
 | W1.3 | 1 | Daten | Hardlinks auflösen | `data/**` (nur Inodes, kein Inhalt) | W0.3 | `find data -type f -links +1` liefert nichts; Prüfsummen vorher/nachher identisch; ~13 GB mehr belegt. |
-| W1.4 | 1 | Aufräumen | Wächter für Rohdaten | `tools/check_raw_only.py` (neu); `tools/check_hardlink_safety.py` | W0.3 | Bricht ab, wenn in `data/` etwas Abgeleitetes liegt oder eine Datei Link-Count > 1 hat. |
+| W1.4 | 1 | Aufräumen | Wächter für Rohdaten | `tools/check_raw_only.py` (neu); `tools/check_hardlink_safety.py` | W0.3, **W1.1**, **W1.2** | Bricht ab, wenn in `data/` etwas Abgeleitetes liegt oder eine Datei Link-Count > 1 hat. |
 | W1.5 | 1 | Aufräumen | Tote Skripte löschen | `scripts/webmap/build_layer_viewer.py`; `scripts/analysis/build_v2_dashboard_data.py`; `scripts/noe/derive_pdf_hig_sources.py` | W0.3 | Kein Verweis mehr im Repo; Kette läuft unverändert. |
 | W1.6 | 1 | Aufräumen | NÖ-PDF-HiG-Sackgasse entfernen | `scripts/widmung_v2/02_build_hig_sources.py`; `windkraft/calc/hig_source_masks.py` | W0.3 | Checkpoint und harte Vorbedingung sind weg; TIF bitgleich — der Layer erreichte nachweislich kein Band. |
 | W1.7 | 1 | Aufräumen | Ausschlusszonen entfernen | `windkraft/calc/wind_zones.py` | W0.1 | `Stmk2026Aus` und die AUSSCHLUSSZONE-Registrierung sind weg. Einzige zulässige Bandänderung: Band 37 in der Steiermark. |
@@ -296,7 +299,107 @@ derselben Welle teilen sich niemals eine Datei.
 
 ## 10. Nächster Schritt
 
-**W0.1** — Rohdaten nach Thema sortieren.
+**W0.1** — Rohdaten nach Thema sortieren. Zuschnitt und Zielbaum stehen in §11.
+
+## 11. Nachträge aus der Aufklärung zu W0.1
+
+Vor Beginn wurden drei Fragen geklärt, die den Zuschnitt von W0.1 ändern:
+welche Rohdatei zu welcher Domäne gehört, welche Codestellen einen
+`data/`-Pfad wirklich *öffnen*, und was davon nur Text ist. Die Befunde
+korrigieren den Plan an vier Stellen.
+
+### 11.1 Nur 26 der 86 Fundstellen sind funktional
+
+Eine Textsuche findet 86 Vorkommen von `data/` in 17 Dateien. Verfolgt man
+jeden Wert bis zu seiner Verwendung, bleiben:
+
+| Klasse | Zahl | Bedeutung |
+|---|---|---|
+| **F — funktional** | 26 | Der Wert wird geöffnet, geprüft oder entpackt. Bricht beim Verschieben. |
+| **D — dokumentarisch** | 32 | Fließt nur als Text in eine Ausgabe. Wird falsch, nicht kaputt. |
+| **K — Kommentar/Docstring** | 27 | Geht nirgendwo hin. |
+| **U — unklar** | 1 | `config.json:wind_pd_100` — deklariert, kein Konsument, Datei existiert nicht. |
+
+Die zwölf Dateien mit mindestens einem funktionalen Pfad — nur diese können
+die Kette brechen:
+
+`config.json` (6) · `windkraft/calc/wind_zones.py` (4) ·
+`scripts/preprocessing/create_noe_dkm_polygon_fill_map.py` (3) ·
+`scripts/widmung_v2/04_create_distance_zones.py` (3) ·
+`scripts/preprocessing/export_at_dkm_geoparquet.py` (3) ·
+`scripts/noe/extract_noe_vector_layers.py` (2) · `windkraft/noe/pdf_align.py` (1) ·
+`scripts/widmung_v2/03_build_osm_layers.py` (1) ·
+`scripts/widmung_v2/02_build_hig_sources.py` (1) ·
+`windkraft/calc/widmung_sources.py`, `tools/check_hardlink_safety.py`,
+`scripts/noe/align_pdf_shapefile.py` (zusammengesetzte Pfade, s. u.).
+
+Drei Wege setzen den Pfad zusammen, statt ihn zu schreiben, und werden von
+einer Suche nach `data/` deshalb nicht gefunden:
+`widmung_sources.py:39-40` (`ROOT / "data" / …`), `check_hardlink_safety.py:146`
+(`repo_root / "data"`), `align_pdf_shapefile.py:28-30` (`DATA = Path("data")`).
+Wer die Trefferliste für vollständig hält, übersieht genau diese drei.
+
+Rein dokumentarisch, aber trotzdem nachzuziehen, damit das Manifest nicht
+lügt: `band_manifest.py` (20 Herkunftsangaben, landen im Feld `sources` der
+`*.bands.json` und werden nachweislich von niemandem zurückgelesen),
+`widmung_sources.py` (10 tote `"source"`-Felder), `check_hardlink_safety.py` (2
+Meldungstexte).
+
+### 11.2 Zielbaum
+
+Neun Verzeichnisse, eines je Domäne, ohne Umlaute:
+
+```
+data/
+  admin/        Verwaltungsgrenzen (VGD 50)          ←  admin_boundaries/
+  kataster/     8 DKM-Archive + Symbol-CSV           ←  unverändert
+  adressen/     BEV-Adressregister                   ←  adressregister/
+  widmung/      9 Bundesländer, je ein Verzeichnis   ←  flächenwidmungen/ + new_widmungs_data/
+  osm/          austria-260330.osm.pbf               ←  Wurzel
+  gelaende/     DGM_R25.tif, AUT_power-density_150m  ←  Wurzel
+  natur/        Schutzgebiete 2024                   ←  naturschutzgebiete/
+  zonen/        luca_zonen/, zonierung_noe.json,     ←  Wurzel + luca_zonen/
+                WK_Eignungszonen.zip, RED_III_*.zip
+  noe_sekrop/   SekROP-Karte (PDF)                   ←  nö_zonierung/
+```
+
+Die **Zwei-Ordner-Falle der Widmung** wird dabei aufgelöst.
+`flächenwidmungen/` und `new_widmungs_data/` sind kein Alt- und Neustand: die
+Steiermark bezieht Bauland aus dem einen und Grünland/Freizeit aus dem
+anderen, Burgenland liegt allein im ersten. Künftig steht beides unter
+`data/widmung/steiermark/`. Das ist die einzige Änderung in W0.1, die über
+reines Verschieben hinausgeht — `widmung_sources.py` verliert seine zwei
+Wurzeln `NEW`/`OLD` und bekommt eine.
+
+**Vier Dateien bleiben liegen, wo sie sind**, weil W1.2 sie ohnehin entfernt:
+`osm_power_lines.gpkg`, `windkraftzonen_shapefile_2024.json`,
+`WINDKRAFT_AUSSCHLUSSZONE.zip`, `README.md`. Sie jetzt zu verschieben hieße,
+Literale für Dateien nachzuziehen, die in derselben Welle verschwinden.
+
+### 11.3 Vier Korrekturen am Plan
+
+| # | Befund | Änderung |
+|---|---|---|
+| 1 | `data/README.md` ist die einzige Provenienzdokumentation im Repo — 48 K, neun Abschnitte, Herkunft und Lizenz je Quelle, einzige Ausnahme vom `.gitignore`. Sie beantwortet die Zwei-Ordner-Falle, den ungeklärten Status der Ausschlusszonen und die Build-Caches autoritativer als der Code. | W1.2 **verschiebt** sie nach `docs/rohdaten.md`, statt sie zu löschen. `adressregister/Aktualitaetsstand.txt` (186 B) bleibt: kein Leser, aber es hält den Stichtag der BEV-Lieferung fest. |
+| 2 | In `data/` liegen zwei **abgeleitete** Dateien: `adressen_31287.parquet` (40 M) und `bev_gebaeude_31287.parquet` (41 M), Build-Caches von `bev_register.py`. Bei einem Cache-Fehlschlag schreibt das Modul still dorthin. | Reihenfolge korrigiert: **W1.4 setzt W1.1 und W1.2 voraus.** Sonst schlägt der neue Wächter am ersten Tag auf zwei Dateien an, die dort noch legitim liegen. |
+| 3 | Der Zuschnitt „`data/**` und `wind_zones.py`" hätte die Kette an elf weiteren Stellen zerbrochen. | W0.1 besitzt zusätzlich die elf übrigen Dateien mit funktionalem Pfad und die drei mit rein dokumentarischem. Zulässig, weil Welle 0 sequenziell läuft — es gibt keinen Nebenläufer, dem eine Datei entzogen wird. `config.json` geht danach an W0.2 über. |
+| 4 | **`data/` ist gitignoriert.** Ein Fehlgriff im 13-GB-Baum ist nicht per `git checkout` rückholbar. 52 der 56 Dateien sind zusätzlich ins Vorgängerprojekt verlinkt und darüber wiederherstellbar — vier nicht. | Vor der ersten Verschiebung wird ein Inventar mit Größe, Inode und Prüfsumme geschrieben und danach verglichen. Die vier nicht verlinkten Dateien werden vorab benannt und einzeln geprüft. |
+
+### 11.4 Abnahme von W0.1
+
+Zwei Stufen, weil ein Lauf allein nicht alles erreicht:
+
+1. **Statisch — vollständig.** Jeder der 26 funktionalen Pfade plus die drei
+   zusammengesetzten Wurzeln lösen auf eine existierende Datei auf. Das deckt
+   auch Kataster, Widmung und Adressen ab, die ein Finalisierungslauf nicht
+   anfasst.
+2. **Dynamisch — stichprobenartig, aber scharf.** Die Finalisierung aus den
+   vorhandenen Checkpoint-Layern liefert ein bitgleiches TIF. Sie liest
+   `zonen/`, `osm/` und `gelaende/` und prüft damit die tatsächlich bewegten
+   Pfade.
+
+Tritt hier schon eine Abweichung auf, stimmt etwas am Verschieben nicht.
+Dann wird angehalten, nicht die Ampel bemüht.
 
 ## Maschinensichten
 

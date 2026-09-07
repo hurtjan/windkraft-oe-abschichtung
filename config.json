@@ -3,12 +3,12 @@
 
   "paths": {
     "data_dir": "data",
-    "vgd": "data/admin_boundaries/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp",
-    "osm_dir": "data/austria-260328-free.shp",
-    "wind_pd_150": "data/AUT_power-density_150m.tif",
-    "wind_pd_100": "data/AUT_power-density_100m.tif",
-    "dgm": "data/DGM_R25.tif",
-    "nsg_zip": "data/naturschutzgebiete/SG_AT_2024_v_April_Stand_3_April_2024.zip",
+    "vgd": "data/admin/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp",
+    "osm_dir": "data/osm/austria-260328-free.shp",
+    "wind_pd_150": "data/gelaende/AUT_power-density_150m.tif",
+    "wind_pd_100": "data/gelaende/AUT_power-density_100m.tif",
+    "dgm": "data/gelaende/DGM_R25.tif",
+    "nsg_zip": "data/natur/SG_AT_2024_v_April_Stand_3_April_2024.zip",
     "nsg_gpkg": "SG_AT_2024_v_April.gpkg",
     "nsg_layers": ["NP_AT_2024", "NSG_AT_2024", "ESG_AT_2024", "RAMSAR_AT_2024"],
     "powerlines_gpkg": "data/osm_power_lines.gpkg",

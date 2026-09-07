@@ -362,12 +362,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--layer-dir", default="output/abschichtung_widmung_v2/distance_layers")
     p.add_argument("--bbox", default=None, help="EPSG:31287 bbox minx,miny,maxx,maxy für Smoke-Tests")
     p.add_argument("--min-fragment-area-ha", type=float, default=10.0)
-    p.add_argument("--official-zoning-geojson", default="data/zonierung_noe.json",
+    p.add_argument("--official-zoning-geojson", default="data/zonen/zonierung_noe.json",
                    help="Amtliche NÖ-Windkraft-Zonierung (data.gv.at, 71 Zonen), Rohquelle. "
                         "output/webmap_export/windkraft_export_v1/vector/official_zoning.geojson "
                         "ist eine reine Attribut-Ableitung derselben 71 Features (Legacy-Webmap-"
                         "Export) und kann weiterhin per Flag übergeben werden.")
-    p.add_argument("--vorrangzonen-dir", default="data/luca_zonen")
+    p.add_argument("--vorrangzonen-dir", default="data/zonen/luca_zonen")
     p.add_argument("--vorrangzonen", action=argparse.BooleanOptionalAction, default=True)
     p.add_argument("--settlement-variants", action=argparse.BooleanOptionalAction, default=False,
                    help="Zusätzlich 6 Siedlungsabstands-Varianten x 4 Bänder anhängen (Clean-Schema: standardmäßig aus)")
@@ -375,7 +375,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                    help="Mensch-Band aus den Aggregaten nehmen (wiederholbar; das Band "
                         "selbst bleibt als Bedingungsband im GeoTIFF). Für Sensitivitäts-"
                         "läufe, z. B. --drop-human-band airport_runway_corridor_5km")
-    p.add_argument("--osm-pbf", default="data/austria-260330.osm.pbf", help="Für den OSM-Naturschutz-Layer")
+    p.add_argument("--osm-pbf", default="data/osm/austria-260330.osm.pbf", help="Für den OSM-Naturschutz-Layer")
     p.add_argument("--osm-pbf-cache-dir", default="output/abschichtung/osm_pbf_layers")
     p.add_argument("--force-layers", action="store_true")
     p.add_argument("--skip-final", action="store_true", help="Nur Checkpoints, kein finales GeoTIFF")
@@ -448,7 +448,7 @@ def main(argv: list[str] | None = None) -> None:
         # abschichtung_common.py). Ein vorhandener official_wind_zoning.tif-
         # Checkpoint aus einem Lauf VOR dieser Umstellung (alter Default
         # output/webmap_export/.../official_zoning.geojson) wird also still
-        # weiterverwendet, auch wenn jetzt data/zonierung_noe.json als Default
+        # weiterverwendet, auch wenn jetzt data/zonen/zonierung_noe.json als Default
         # gilt - der neue Pfad wirkt erst nach --force-layers. In diesem Fall
         # unkritisch, da beide Dateien geometrisch identisch sind (71 Features,
         # Sep 2026 geprueft), aber bei kuenftigen Aenderungen an der Rohquelle

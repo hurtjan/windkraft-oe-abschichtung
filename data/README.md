@@ -52,7 +52,7 @@ gelagert: strukturell unklar, siehe Block 1.
 
 | Eigenschaft | Wert |
 |---|---|
-| Dateien | `data/luca_zonen/Stmk.shp` (72 KB, 18 Features), `data/luca_zonen/Sbg.shp` (148 KB, 13 Features) |
+| Dateien | `data/zonen/luca_zonen/Stmk.shp` (72 KB, 18 Features), `data/zonen/luca_zonen/Sbg.shp` (148 KB, 13 Features) |
 | CRS | EPSG:25833 |
 | Herkunft | Handdigitalisierte Nachzeichnung amtlicher Windkraft-Vorrangzonen; Auskunft des Projektinhabers über eine parallele Claude-Session — **nicht aus den Daten selbst belegbar** |
 | Genauigkeit | Unbekannt — eine Nachzeichnung weicht in unbekanntem Ausmaß vom amtlichen Original ab (Digitalisierungsfehler, Generalisierung, veraltete Basis) |
@@ -185,28 +185,35 @@ liefert wortlos die alten Bänder weiter — Faustregel siehe §0.2, Ende.
 
 ```
 data/
-├── DGM_R25.tif                     750 MB  Höhenmodell 25 m — definiert Grid/CRS/Transform
-├── austria-260330.osm.pbf          760 MB  Geofabrik-PBF, speist viele Bänder
-├── adressregister/                 484 MB  BEV-Adressregister (+ 2 Parquet-Caches)
-├── admin_boundaries/
+├── gelaende/
+│   ├── DGM_R25.tif                 750 MB  Höhenmodell 25 m — definiert Grid/CRS/Transform
+│   └── AUT_power-density_150m.tif  6,6 MB  Global Wind Atlas
+├── osm/
+│   └── austria-260330.osm.pbf      760 MB  Geofabrik-PBF, speist viele Bänder
+├── adressen/                       484 MB  BEV-Adressregister (+ 2 Parquet-Caches)
+├── admin/
 │   └── VGD_Oesterreich_gen_50_20221002/    20 MB  Verwaltungsgrenzen
-├── AUT_power-density_150m.tif      6,6 MB  Global Wind Atlas
 ├── osm_power_lines.gpkg            13 MB   (gelesen, Band seit Clean-38 nicht mehr gespeichert)
-├── naturschutzgebiete/
+├── natur/
 │   └── SG_AT_2024_v_April_Stand_3_April_2024.zip   73 MB
 ├── kataster/                       9,1 GB  DKM/BEV-Rohdaten, 9 Archive → Geoparquet (erzeugt, §4)
-├── flächenwidmungen/                964 MB  Flächenwidmung Bgld + Stmk-Grünland/Freizeit (siehe §3.3)
-├── new_widmungs_data/                754 MB  Flächenwidmung Ktn/NÖ/OÖ/Sbg/Stmk-Bauland/Tirol/Vbg/Wien (siehe §3.3)
-├── zonierung_noe.json              588 KB  amtliche NÖ-Zonierung, 71 Zonen
-├── luca_zonen/
-│   ├── Stmk.shp                    72 KB   NICHT reproduzierbar, siehe §0.1
-│   └── Sbg.shp                     148 KB  NICHT reproduzierbar, siehe §0.1
-├── WK_Eignungszonen.zip            268 KB  Burgenland
-├── RED_III_Windkraftbeschleunigungszone.zip   28 KB  Kärnten
+├── widmung/                        ≈ 1,7 GB  Flächenwidmung, 9 Bundesländer, ein Verzeichnis je BL (siehe §3.3)
+├── zonen/
+│   ├── zonierung_noe.json          588 KB  amtliche NÖ-Zonierung, 71 Zonen
+│   ├── luca_zonen/
+│   │   ├── Stmk.shp                72 KB   NICHT reproduzierbar, siehe §0.1
+│   │   └── Sbg.shp                 148 KB  NICHT reproduzierbar, siehe §0.1
+│   ├── WK_Eignungszonen.zip        268 KB  Burgenland
+│   └── RED_III_Windkraftbeschleunigungszone.zip   28 KB  Kärnten
 ├── WINDKRAFT_AUSSCHLUSSZONE.zip    4,4 MB
-└── nö_zonierung/
+└── noe_sekrop/
     └── TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf   16 MB  (nur Precondition für pdf_750m-Layer)
 ```
+
+Stand nach der Umsortierung des `data/`-Baums (Paket W0.1a) und dem
+Nachziehen der Codepfade (W0.1b); alte Verzeichnisnamen (`admin_boundaries/`,
+`adressregister/`, `naturschutzgebiete/`, `nö_zonierung/`,
+`flächenwidmungen/`, `new_widmungs_data/`) existieren nicht mehr, siehe §2/§3.
 
 `output/` (komplett `.gitignore`d, keine Ausnahme) enthält die **erzeugten**
 Artefakte, insbesondere `output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet`
@@ -218,12 +225,12 @@ Artefakte, insbesondere `output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet`
 
 | Datensatz | Zielpfad | Herkunft | Bezugsweg/URL | Stand | Größe | Lizenz | Neu beschaffbar |
 |---|---|---|---|---|---|---|---|
-| Höhenmodell 25 m | `data/DGM_R25.tif` | BEV / Land Austria | unbekannt — zu klären (manueller Download beim Arbeitsrechner-Stand) | 30.03.2026 | **750 MB** | unbekannt — zu klären | ja, eingeschränkt (Portal/Lizenz zu klären) |
-| OSM Österreich (PBF) | `data/austria-260330.osm.pbf` | Geofabrik | https://download.geofabrik.de/europe/austria.html | 30.03.2026 | **760 MB** | ODbL 1.0 | ja |
-| Adressregister | `data/adressregister/` | BEV | unbekannt — zu klären (manueller Download BEV-Portal) | Stichtag 01.10.2025 | **484 MB** (ZIP 93 MB + `ADRESSE.csv` 311 MB + 2 Parquet-Caches ~81 MB) | unbekannt — zu klären | ja, eingeschränkt |
-| Leistungsdichte 150 m | `data/AUT_power-density_150m.tif` | Global Wind Atlas | https://globalwindatlas.info | 29.03.2026 | **6,6 MB** | unbekannt — zu klären | ja |
-| Verwaltungsgrenzen | `data/admin_boundaries/VGD_Oesterreich_gen_50_20221002/` | BEV, generalisiert 1:50.000 | unbekannt — zu klären | 02.10.2022 | **20 MB** | unbekannt — zu klären | ja, eingeschränkt |
-| Naturschutzgebiete | `data/naturschutzgebiete/SG_AT_2024_v_April_Stand_3_April_2024.zip` | Umweltbundesamt / DORIS (OGD) | unbekannt — zu klären | 03.04.2024 | **73 MB** | unbekannt — zu klären | ja, eingeschränkt |
+| Höhenmodell 25 m | `data/gelaende/DGM_R25.tif` | BEV / Land Austria | unbekannt — zu klären (manueller Download beim Arbeitsrechner-Stand) | 30.03.2026 | **750 MB** | unbekannt — zu klären | ja, eingeschränkt (Portal/Lizenz zu klären) |
+| OSM Österreich (PBF) | `data/osm/austria-260330.osm.pbf` | Geofabrik | https://download.geofabrik.de/europe/austria.html | 30.03.2026 | **760 MB** | ODbL 1.0 | ja |
+| Adressregister | `data/adressen/` | BEV | unbekannt — zu klären (manueller Download BEV-Portal) | Stichtag 01.10.2025 | **484 MB** (ZIP 93 MB + `ADRESSE.csv` 311 MB + 2 Parquet-Caches ~81 MB) | unbekannt — zu klären | ja, eingeschränkt |
+| Leistungsdichte 150 m | `data/gelaende/AUT_power-density_150m.tif` | Global Wind Atlas | https://globalwindatlas.info | 29.03.2026 | **6,6 MB** | unbekannt — zu klären | ja |
+| Verwaltungsgrenzen | `data/admin/VGD_Oesterreich_gen_50_20221002/` | BEV, generalisiert 1:50.000 | unbekannt — zu klären | 02.10.2022 | **20 MB** | unbekannt — zu klären | ja, eingeschränkt |
+| Naturschutzgebiete | `data/natur/SG_AT_2024_v_April_Stand_3_April_2024.zip` | Umweltbundesamt / DORIS (OGD) | unbekannt — zu klären | 03.04.2024 | **73 MB** | unbekannt — zu klären | ja, eingeschränkt |
 | OSM-Stromleitungen | `data/osm_power_lines.gpkg` | abgeleitet aus Geofabrik-OSM | — (Export aus OSM-PBF) | 31.03.2026 | **13 MB** | ODbL 1.0 | ja |
 
 **Wichtiger Hinweis zu `osm_power_lines.gpkg`:** Die Datei wird weiterhin
@@ -253,10 +260,10 @@ sondern dient nur dem Soll/Ist-Vergleich. Zusammen unter 1 MB (ohne
 
 | BL | Zielpfad | Herkunft | Bezugsweg/URL | Stand | Größe | Lizenz | Neu beschaffbar |
 |---|---|---|---|---|---|---|---|
-| NÖ | `data/zonierung_noe.json` | data.gv.at, LGBl. 47/2024, 71 Zonen | https://www.data.gv.at | unbekannt — zu klären (Dateidatum 30.04.2026) | **588 KB** | im Code als „meist CC-BY“ vermerkt, **nicht verifiziert** → unbekannt — zu klären | ja |
-| Stmk, Sbg | `data/luca_zonen/{Stmk,Sbg}.shp` | handdigitalisiert | **keine** — siehe §0.1 | unbekannt — zu klären | 72 KB / 148 KB | strukturell unklar, siehe §0.1 | **nein** |
-| Bgld | `data/WK_Eignungszonen.zip` | Land Burgenland | unbekannt — zu klären | `EXPORT_DAT 20260721` | **268 KB** | unbekannt — zu klären | ja, eingeschränkt |
-| Ktn | `data/RED_III_Windkraftbeschleunigungszone.zip` | Land Kärnten | unbekannt — zu klären | unbekannt — zu klären | **28 KB** | unbekannt — zu klären | ja, eingeschränkt |
+| NÖ | `data/zonen/zonierung_noe.json` | data.gv.at, LGBl. 47/2024, 71 Zonen | https://www.data.gv.at | unbekannt — zu klären (Dateidatum 30.04.2026) | **588 KB** | im Code als „meist CC-BY“ vermerkt, **nicht verifiziert** → unbekannt — zu klären | ja |
+| Stmk, Sbg | `data/zonen/luca_zonen/{Stmk,Sbg}.shp` | handdigitalisiert | **keine** — siehe §0.1 | unbekannt — zu klären | 72 KB / 148 KB | strukturell unklar, siehe §0.1 | **nein** |
+| Bgld | `data/zonen/WK_Eignungszonen.zip` | Land Burgenland | unbekannt — zu klären | `EXPORT_DAT 20260721` | **268 KB** | unbekannt — zu klären | ja, eingeschränkt |
+| Ktn | `data/zonen/RED_III_Windkraftbeschleunigungszone.zip` | Land Kärnten | unbekannt — zu klären | unbekannt — zu klären | **28 KB** | unbekannt — zu klären | ja, eingeschränkt |
 | — | `data/WINDKRAFT_AUSSCHLUSSZONE.zip` | unbekannt — zu klären | unbekannt — zu klären | unbekannt — zu klären | **4,4 MB** | unbekannt — zu klären | unbekannt — zu klären |
 
 **Datenqualitäts-Hinweis (verifiziert bei dieser Prüfung, weicht von der
@@ -300,7 +307,7 @@ Referenzkette gelesen (per Grep über alle `.py`-Dateien, siehe auch §6).
 
 | Datensatz | Zielpfad | Herkunft | Bezugsweg/URL | Stand | Größe | Lizenz | Neu beschaffbar |
 |---|---|---|---|---|---|---|---|
-| Mindestabstandszonen-Karte | `data/nö_zonierung/TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf` | Amt der NÖ Landesregierung | unbekannt — zu klären | 29.03.2026 (Dateidatum; Karten-Stand 02.04.2024) | **16 MB** | unbekannt — zu klären | ja, eingeschränkt |
+| Mindestabstandszonen-Karte | `data/noe_sekrop/TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf` | Amt der NÖ Landesregierung | unbekannt — zu klären | 29.03.2026 (Dateidatum; Karten-Stand 02.04.2024) | **16 MB** | unbekannt — zu klären | ja, eingeschränkt |
 
 Nur Precondition — erzeugt die `pdf_750m`-Layer und ist Grundlage für
 `output/noe/alignment_mindestabstand.json` (§4.2). Kein direkter Rohdaten-
@@ -370,6 +377,31 @@ Zielstruktur.
 > künftig gewünscht sein, ist sie ein eigener, bewusster Schritt (Dateien
 > verschieben/neu hardlinken UND `widmung_sources.py` entsprechend
 > anpassen) — nicht etwas, das die bestehende Migration schon erledigt hat.
+
+**Nachtrag (Pakete W0.1a/W0.1b): Die Zwei-Ordner-Falle ist inzwischen
+aufgelöst.** Der obige Befund („Tatsächliche Ablage“, die Zwei-Ordner-Falle
+und der als „nicht umgesetzt“ beschriebene Vorschlag) beschreibt den Stand
+**vor** dieser Restrukturierung und ist hier unverändert zur Nachvollziehbarkeit
+stehen gelassen. Mit W0.1a wurde genau die oben skizzierte Zielstruktur
+tatsächlich umgesetzt: alle 9 Bundesländer liegen jetzt unter einer
+gemeinsamen Wurzel `data/widmung/<bundesland>/<datei>` (Burgenland:
+`data/widmung/burgenland/WIDMUNGSFLAECHEN.zip`; Kärnten:
+`data/widmung/kaernten/flawi_ktn_gpkg.zip`; Niederösterreich:
+`data/widmung/niederoesterreich/RRU_WI_HUELLE.gpkg`; Oberösterreich:
+`data/widmung/oberoesterreich/FLWI_WIDMUNGEN_F.zip`; Salzburg:
+`data/widmung/salzburg/Flaechenwidmung_Shapefile.zip`; Steiermark:
+`data/widmung/steiermark/Bauland.zip` **und**
+`data/widmung/steiermark/Flaewi.shp.zip`, weiterhin beide nötig; Tirol:
+`data/widmung/tirol/FLW_Flaechenwidmung_*.gpkg`; Vorarlberg:
+`data/widmung/vorarlberg/fwp_flaeche.gpkg`; Wien:
+`data/widmung/wien/genflwidmung_wien.geojson`). Mit W0.1b wurde
+`windkraft/calc/widmung_sources.py` entsprechend nachgezogen: die beiden
+Konstanten `NEW`/`OLD` aus dem obigen Zitat sind einer einzigen Wurzel
+`WIDMUNG = ROOT / "data" / "widmung"` gewichen, `_read_raw()` bildet daraus
+für jede der zehn Quellen den Pfad unter `data/widmung/<bundesland>/<datei>`.
+Wer heute Burgenland oder die Steiermark-Grünland-/Freizeit-Flächen sucht,
+findet sie nicht mehr unter `data/flächenwidmungen/`, sondern unter
+`data/widmung/burgenland/` bzw. `data/widmung/steiermark/`.
 
 **Steiermark braucht zwei Dateien gleichzeitig:** `Bauland.zip` liefert
 Wohn-/Misch-/Industrieflächen, `Flaewi.shp.zip` (EPSG:4258, das einzige
@@ -695,7 +727,7 @@ und `pdf_hig_source_{geb,gwr,gruenland_widmung}.geojson`, sowie 6 weitere
 geschrieben werden, aber unter demselben Verzeichnis liegen und derselben
 Invariante unterliegen), das Geoparquet unter `output/kataster/`
 (`at_dkm_gst_nfl_epsg31287.geoparquet`, ≈ 5,0 GB) sowie die beiden
-Adressregister-Caches unter `data/adressregister/`
+Adressregister-Caches unter `data/adressen/`
 (`adressen_31287.parquet`, `bev_gebaeude_31287.parquet`). Alle 16 Dateien
 sind inzwischen echte Kopien: per `cp`/`mv` neu angelegt, Link-Count 1,
 eigener Inode, Inhalt byteidentisch zum Alt-Repo geprüft (`cmp`). Das

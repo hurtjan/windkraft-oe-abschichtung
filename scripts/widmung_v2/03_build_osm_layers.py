@@ -228,7 +228,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                         "Höhen-Platzhalter \"h\"/\"max(h,100)\", alle Distanzen sind feste "
                         "Meterwerte. Wirkung nur, falls INFRA_RULES künftig eine höhenabhängige "
                         "Regel bekommt.")
-    p.add_argument("--osm-pbf", default="data/austria-260330.osm.pbf")
+    p.add_argument("--osm-pbf", default="data/osm/austria-260330.osm.pbf")
     p.add_argument("--osm-pbf-cache-dir", default="output/abschichtung/osm_pbf_layers", help="Geteilt mit create_osm_wka_distance_zones.py (reiner Read-Through-Cache)")
     p.add_argument("--force-layers", action="store_true")
     p.add_argument("--skip-infra", action="store_true", help="Infrastruktur-/Flughafenmasken überspringen")

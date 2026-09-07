@@ -45,9 +45,9 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from windkraft.noe.pdf_hig_sources import derive_layer_files  # noqa: E402
 
-PDF_PATH = Path("data/nö_zonierung/TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf")
+PDF_PATH = Path("data/noe_sekrop/TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf")
 ALIGN_PATH = Path("output/noe/alignment_mindestabstand.json")
-VGD_PATH = Path("data/admin_boundaries/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp")
+VGD_PATH = Path("data/admin/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp")
 OUT_DIR = Path("output/noe")
 
 NOE_BL_KZ = "3"

@@ -24,10 +24,10 @@ scripts/analysis/audit_bauland_kategorien.py mitgelesen - eine Kategorie kann
 daher nicht hier zugeordnet und dort unbekannt sein.
 
 Steiermarks Grünland-/Freizeit-Codes (afg/klg/Ca) stecken nicht in
-data/new_widmungs_data/steiermark/Bauland.zip (nur Bauland) - dafür wird
-zusätzlich data/flächenwidmungen/Flaewi.shp.zip gelesen (Layer FWP_NUTZ,
+data/widmung/steiermark/Bauland.zip (nur Bauland) - dafür wird
+zusätzlich data/widmung/steiermark/Flaewi.shp.zip gelesen (Layer FWP_NUTZ,
 EPSG:4258, 645k Features, ~410MB - die einzige Ausnahme von der sonstigen
-new_widmungs_data-only-Regel für diese Pipeline). Wohn/Misch für die Steiermark
+data/widmung-only-Regel für diese Pipeline). Wohn/Misch für die Steiermark
 kommt weiterhin aus Bauland.zip.
 
 Jede Quelle wird NICHT dissolved: rasterize() (Script 3) behandelt überlappende/

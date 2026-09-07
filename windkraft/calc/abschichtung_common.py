@@ -100,7 +100,7 @@ SETTLEMENT_BUFFER_VARIANTS = {
     "2000m": 2000.0,
 }
 
-# Wien and Burgenland have no official zoning source in data/new_widmungs_data/;
+# Wien and Burgenland have no official zoning source in data/widmung/;
 # they keep the OSM address-seed settlement/greenland detection as a fallback.
 WIEN_BGLD_FALLBACK_BL = {"Wien", "Burgenland"}
 
@@ -1332,7 +1332,7 @@ def build_official_zoning_masks(cfg: dict, grid: dict, args) -> dict[str, np.nda
     """
     mask = np.zeros(grid["shape"], dtype=bool)
     # --official-zoning-geojson defaults (see create_widmung_v2_distance_zones.py)
-    # to data/zonierung_noe.json: die amtliche data.gv.at-Rohquelle der NÖ-Windkraft-
+    # to data/zonen/zonierung_noe.json: die amtliche data.gv.at-Rohquelle der NÖ-Windkraft-
     # zonierung (71 Zonen, EPSG:4326). Das ist seit Sep 2026 der reguläre Weg für
     # Band 37 - keine Abhängigkeit mehr zur Legacy-Webmap-Pipeline. Der frühere
     # Default output/webmap_export/windkraft_export_v1/vector/official_zoning.geojson

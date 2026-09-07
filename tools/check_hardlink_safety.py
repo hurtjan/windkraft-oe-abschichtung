@@ -50,8 +50,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 # docs/FOLLOWUPS.md, Abschnitt zur Datenmigration per Hardlink).
 # ---------------------------------------------------------------------------
 DECLARED_DATA_WRITE_TARGETS: tuple[str, ...] = (
-    "adressregister/adressen_31287.parquet",
-    "adressregister/bev_gebaeude_31287.parquet",
+    "adressen/adressen_31287.parquet",
+    "adressen/bev_gebaeude_31287.parquet",
 )
 
 

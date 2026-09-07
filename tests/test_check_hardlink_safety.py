@@ -99,7 +99,7 @@ def test_missing_declared_target_is_not_a_violation():
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
         _make_tree(root)
-        # data/adressregister/adressen_31287.parquet existiert absichtlich nicht
+        # data/adressen/adressen_31287.parquet existiert absichtlich nicht
 
         result = run_check(root, declared_targets=DECLARED)
 
