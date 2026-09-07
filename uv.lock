@@ -1563,7 +1563,7 @@ wheels = [
 [[package]]
 name = "windkraft"
 version = "2.0.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "geopandas" },
     { name = "matplotlib" },
@@ -1573,6 +1573,7 @@ dependencies = [
     { name = "pandas", version = "3.0.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pillow" },
     { name = "pyarrow" },
+    { name = "pymupdf" },
     { name = "pyogrio" },
     { name = "pyproj", version = "3.7.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "pyproj", version = "3.7.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
@@ -1580,11 +1581,6 @@ dependencies = [
     { name = "rasterio", version = "1.5.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-]
-
-[package.optional-dependencies]
-pdf = [
-    { name = "pymupdf" },
 ]
 
 [package.metadata]
@@ -1595,10 +1591,9 @@ requires-dist = [
     { name = "pandas" },
     { name = "pillow" },
     { name = "pyarrow" },
-    { name = "pymupdf", marker = "extra == 'pdf'" },
+    { name = "pymupdf" },
     { name = "pyogrio" },
     { name = "pyproj" },
     { name = "rasterio" },
     { name = "scipy" },
 ]
-provides-extras = ["pdf"]
