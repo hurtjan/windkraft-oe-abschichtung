@@ -75,6 +75,16 @@ section{margin-top:44px}
 .gate b{color:var(--ink)}
 .gate .cmd{font-family:var(--mono); font-size:12px; background:var(--paper-2); border:1px solid var(--rule);
   border-radius:2px; padding:8px 11px; display:block; margin:10px 0; overflow-x:auto; white-space:pre}
+.gate table{border-collapse:collapse; width:100%; margin:13px 0; font-size:12.5px}
+.gate th{font-family:var(--disp); font-weight:700; text-transform:uppercase; letter-spacing:.08em;
+  font-size:10px; color:var(--ink-3); text-align:left; padding:7px 10px; border-bottom:1px solid var(--forest)}
+.gate td{padding:8px 10px; border-bottom:1px solid var(--rule-2); vertical-align:top; color:var(--ink-2)}
+.gate tr:last-child td{border-bottom:0}
+.gate .amp{font-family:var(--disp); font-weight:700; white-space:nowrap; font-size:13px}
+.gate .a-b{color:var(--ink)} .gate .a-g{color:var(--forest)} .gate .a-y{color:var(--signal)}
+.gate .a-r{color:var(--alarm)}
+.gate .amp small{display:block; font-family:var(--sans); font-weight:400; font-size:11px; color:var(--ink-3);
+  letter-spacing:0; text-transform:none}
 
 /* waves */
 .waves{display:grid; grid-template-columns:repeat(6,1fr); gap:0; border:1px solid var(--rule);
@@ -147,6 +157,7 @@ footer{margin-top:48px; border-top:1px solid var(--rule); padding-top:16px; colo
 </style>
 </head>
 <body>
+
 <header class="masthead">
   <div class="wrap">
     <span class="draftmark">Plan · noch nicht begonnen</span>
@@ -168,17 +179,46 @@ footer{margin-top:48px; border-top:1px solid var(--rule); padding-top:16px; colo
     <p>Sie gilt für jedes Paket in jeder Welle und macht paralleles Arbeiten überhaupt erst verantwortbar.</p>
   </div>
   <div class="gate">
-    <h3>Das Raster darf sich an genau einer Stelle ändern — und nirgends sonst</h3>
-    <p>Der Umbau ist eine Umstrukturierung, keine fachliche Änderung. Die einzige beabsichtigte inhaltliche
-      Abweichung ist der Wegfall der steirischen SAPRO-2026-Ausschlusszonen in Band 37. <b>Jede andere
-      Abweichung ist ein Fehler</b>, egal wie plausibel sie aussieht.</p>
-    <span class="cmd">für jedes Band b in 1..38:
-    if b == 37:  Differenz nur innerhalb der Steiermark zulässig
-    sonst:       bitgleich zum Referenz-TIF</span>
-    <p>Das ist mechanisch prüfbar und braucht kein Fachwissen — deshalb kann es nach jedem Paket laufen, nicht
-      erst am Ende. <b>Der schnelle Weg:</b> Wellen 1 bis 3 lassen sich gegen die vorhandenen Checkpoint-Layer
-      prüfen, indem nur die Finalisierung neu läuft. Das dauert Minuten statt Stunden. Der vollständige Lauf
-      aus Rohdaten steht einmal am Schluss in Welle 5.</p>
+    <h3>Bitgleich ist das Ziel, nicht das Abbruchkriterium</h3>
+    <p>Der Umbau ist eine Umstrukturierung, keine fachliche Änderung — also soll das Raster gleich bleiben.
+      Wo eine Abweichung klein bleibt, wird sie aber <b>dokumentiert statt bekämpft</b> und im Nachhinein
+      bewertet. Damit „klein" nicht bei jedem Paket neu ausgehandelt wird, gilt eine feste Ampel.</p>
+    <p><b>Verglichen wird gegen <code>…_run1.tif</code></b>, das letzte Ergebnis dieses Repos — nicht gegen das
+      aus dem Vorgängerprojekt kopierte Referenz-TIF. Zwischen beiden bestehen bereits dokumentierte
+      Abweichungen; gegen die Referenz zu messen würde die alten mit den neuen vermischen.</p>
+    <table>
+      <thead><tr><th>Stufe</th><th>Bänder 1–26 · Quellen und Puffer</th>
+        <th>Bänder 27–36 · Aggregate und Verfügbarkeit</th></tr></thead>
+      <tbody>
+        <tr><td class="amp a-b">bitgleich<small>nichts zu tun</small></td>
+          <td>keine Abweichung</td><td>keine Abweichung</td></tr>
+        <tr><td class="amp a-g">grün<small>weiter, Protokollzeile</small></td>
+          <td>≤ 0,01 % der gesetzten Pixel <b>und</b> größte zusammenhängende Fläche ≤ 1 ha</td>
+          <td>≤ 1 km² von 83.921 km²</td></tr>
+        <tr><td class="amp a-y">gelb<small>weiter, mit Ursachenvermerk</small></td>
+          <td>≤ 0,1 % <b>und</b> größte Fläche ≤ 25 ha</td>
+          <td>≤ 10 km²</td></tr>
+        <tr><td class="amp a-r">rot<small>anhalten, nachfragen</small></td>
+          <td>darüber</td><td>darüber</td></tr>
+      </tbody>
+    </table>
+    <p>Gemessen wird je Band dreifach: abweichende Pixel absolut, Anteil an den gesetzten Pixeln, und die
+      <b>größte zusammenhängende Abweichungsfläche</b>. Die dritte Zahl trägt die Aussage — 500 verstreute
+      Einzelpixel sind Rasterisierungsrauschen, 500 Pixel an einer Stelle sind ein verlorener Layer.
+      Die Bänder 27–36 rechnen in km², weil das die Einheit des Endergebnisses ist.</p>
+    <p><b>Ablauf je Paket:</b> zuerst bitgleich anstreben; bleibt nach <i>einem</i> gezielten Korrekturversuch
+      eine grüne oder gelbe Abweichung, wird protokolliert und weitergearbeitet. Rot hält an. Der Wegfall der
+      steirischen Ausschlusszonen in Band 37 ist eine beschlossene Änderung — er wird einmal vermessen und
+      vermerkt, löst aber keine Ampel aus.</p>
+    <p><b>Nach jedem Paket, nicht am Ende.</b> Nur so gehört jede Abweichung zu genau einem Paket. Wer erst
+      zum Schluss vergleicht, hat für jede Differenz dreißig Kandidaten und kann nichts mehr entscheiden.
+      Praktisch geht das schnell: Wellen 1 bis 3 werden gegen die vorhandenen Checkpoint-Layer geprüft, indem
+      nur die Finalisierung neu läuft — Minuten statt Stunden. Der volle Lauf aus Rohdaten steht einmal in
+      Welle 5.</p>
+    <p style="margin-bottom:0"><code>pipeline/validate.py</code> schreibt das Register selbst nach
+      <code>docs/rewrite/abweichungen.tsv</code>: Paket, Bandnummer, Bandname, Pixel, Anteil, größte Fläche,
+      Schwerpunkt nach Bundesland, Ampel, Ursache. Alles außer der Ursache maschinell. Daraus entscheidest du
+      im Nachhinein, welche Abweichungen bleiben dürfen.</p>
   </div>
 </section>
 
@@ -419,5 +459,6 @@ footer{margin-top:48px; border-top:1px solid var(--rule); padding-top:16px; colo
   });
 })();
 </script>
+
 </body>
 </html>

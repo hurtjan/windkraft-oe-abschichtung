@@ -9,27 +9,85 @@ an genau einer Stelle. Danach laufen 18 Pakete gleichzeitig, ohne sich zu
 berühren, weil vorher feststeht, wem welche Datei gehört. Jedes Paket nennt
 die Dateien, die es besitzt, seine Abnahmebedingung und den Weg zurück.
 
-## Die eine Abnahmebedingung
+## Die Abnahmebedingung
 
 Sie gilt für jedes Paket in jeder Welle und macht paralleles Arbeiten
 überhaupt erst verantwortbar. Der Umbau ist eine Umstrukturierung, keine
-fachliche Änderung.
+fachliche Änderung — aber bitgleich bleibt das Ziel, ist kein
+Abbruchkriterium: kleine Abweichungen werden dokumentiert statt bekämpft,
+der Nutzer entscheidet im Nachhinein. Ersetzt die frühere Fassung „Band
+1–38 bitgleich, einzige Ausnahme Band 37 in der Steiermark".
 
-```
-für jedes Band b in 1..38:
-    if b == 37:  Differenz nur innerhalb der Steiermark zulässig
-    sonst:       bitgleich zum Referenz-TIF
-```
+### Vergleichsbasis
 
-Die einzige beabsichtigte inhaltliche Abweichung ist der Wegfall der
-steirischen SAPRO-2026-Ausschlusszonen in Band 37. Jede andere Abweichung
-ist ein Fehler, egal wie plausibel sie aussieht.
+Verglichen wird gegen **`osm_wka_distance_zones_widmung_v2_run1.tif`** —
+das letzte Ergebnis *dieses* Repos — und **nicht** gegen das aus dem
+Vorgängerprojekt kopierte Referenz-TIF.
 
-Das ist mechanisch prüfbar und braucht kein Fachwissen — deshalb kann es
-nach jedem Paket laufen, nicht erst am Ende. Der schnelle Weg: Wellen 1 bis
-3 lassen sich gegen die vorhandenen Checkpoint-Layer prüfen, indem nur die
-Finalisierung neu läuft. Das dauert Minuten statt Stunden. Der vollständige
-Lauf aus Rohdaten steht einmal am Schluss in Welle 5.
+Begründung: zwischen run1 und der Referenz bestehen bereits dokumentierte
+Abweichungen (u. a. −66 px auf `general_buildings_buffer`, +5 px auf
+Band 32). Gegen die Referenz zu prüfen würde diese Alt-Abweichungen mit den
+neuen vermischen. Gegen run1 misst man ausschließlich das, was der Umbau
+verursacht hat.
+
+### Drei Kennzahlen je Band
+
+1. **Abweichende Pixel**, absolut.
+2. **Anteil** an den gesetzten Pixeln des Bandes.
+3. **Größte zusammenhängende Abweichungsfläche** in Hektar.
+
+Die dritte Kennzahl ist die aussagekräftigste: 500 verstreute Einzelpixel
+sind Rasterisierungsrauschen, 500 Pixel an einer Stelle sind ein verlorener
+oder verschobener Layer.
+
+### Ampel
+
+| Stufe | Bänder 1–26 (Quellen und Puffer) | Bänder 27–36 (Aggregate und Verfügbarkeit) |
+|---|---|---|
+| **Bitgleich** | keine Abweichung | keine Abweichung |
+| **Grün** — weiter, nur Protokollzeile | ≤ 0,01 % der gesetzten Pixel **und** größte Fläche ≤ 1 ha | ≤ 1 km² von 83.921 km² |
+| **Gelb** — weiter, Eintrag mit Ursachenvermerk | ≤ 0,1 % **und** größte Fläche ≤ 25 ha | ≤ 10 km² |
+| **Rot** — anhalten und nachfragen | darüber | darüber |
+
+Die Bänder 27–36 bekommen ihr Budget in km², weil das die Einheit des
+Endergebnisses ist. Dort summiert sich alles Vorgelagerte; die Fläche
+zählt, nicht die Pixelzahl.
+
+Die Bänder 37 und 38 sind Referenzbänder und gehen nicht in die
+Abschichtung ein. Für Band 37 gilt zusätzlich: der Wegfall der steirischen
+SAPRO-2026-Ausschlusszonen ist eine **beschlossene inhaltliche Änderung**
+und keine Abweichung — er wird einmal vermessen und im Register vermerkt,
+löst aber keine Ampel aus.
+
+### Ablauf je Paket
+
+1. Zuerst **bitgleich anstreben**.
+2. Bleibt nach *einem* gezielten Korrekturversuch eine Abweichung im
+   grünen oder gelben Bereich: protokollieren und weiterarbeiten.
+3. **Rot hält an.** Dann Rückfrage, keine eigenmächtige Fortsetzung.
+
+Das ist mechanisch prüfbar und läuft nach jedem Paket, nicht erst am Ende:
+nur so ist jede Abweichung genau **einem** Paket zuzuordnen. Wird erst am
+Ende verglichen, gibt es für jede Differenz dreißig Kandidaten und die
+Ursache ist nicht mehr feststellbar — auch nicht nachträglich durch den
+Nutzer. Der schnelle Weg: Wellen 1 bis 3 lassen sich gegen die vorhandenen
+Checkpoint-Layer prüfen, indem nur die Finalisierung neu läuft. Das dauert
+Minuten statt Stunden. Der vollständige Lauf aus Rohdaten steht einmal am
+Schluss in Welle 5.
+
+### Abweichungsregister
+
+`pipeline/validate.py` schreibt selbst, maschinell, nach
+`docs/rewrite/abweichungen.tsv`. Eine Zeile je (Paket, Band) mit
+Abweichung, tabgetrennt, grep-tauglich:
+
+    paket · band_nr · band_name · pixel_abs · anteil_prozent · groesste_flaeche_ha ·
+    schwerpunkt_bundesland · ampel · ursache
+
+`ursache` wird von der Person eingetragen, die das Paket abschließt — eine
+Zeile, kein Fließtext. Alle übrigen Spalten erzeugt das Werkzeug. Aus
+dieser Datei entscheidet der Nutzer im Nachhinein, welche Abweichungen
+akzeptiert werden.
 
 ## Wellen
 
