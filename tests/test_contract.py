@@ -258,7 +258,10 @@ EXPECTED_PATHS_BEFORE_W02 = {
     "nsg_zip": "data/natur/SG_AT_2024_v_April_Stand_3_April_2024.zip",
     "nsg_gpkg": "SG_AT_2024_v_April.gpkg",
     "nsg_layers": ["NP_AT_2024", "NSG_AT_2024", "ESG_AT_2024", "RAMSAR_AT_2024"],
-    "powerlines_gpkg": "data/osm_power_lines.gpkg",
+    # powerlines_gpkg stand hier bis Paket W1.2 ("data/osm_power_lines.gpkg").
+    # Mit der Datei ist auch pipeline.contract.LEGACY_ENTFAELLT["powerlines_gpkg"]
+    # entfernt worden (siehe Bericht zu W1.2) - cfg["paths"] trägt den
+    # Schlüssel seither nicht mehr, ein Vergleich hier wäre ein KeyError.
     "output_dir": "output",
 }
 

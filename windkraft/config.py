@@ -24,14 +24,16 @@ def load_config(path=None):
     config_dir = path.parent
     paths = cfg["paths"]
 
-    # Die sechs tatsächlich gelesenen Pfade (siehe docs/rewrite/PLAN.md §11.1,
-    # Klasse F) plus den einen toten (Klasse U, wind_pd_100) kommen jetzt
-    # ausschließlich aus dem Pfadvertrag - config.json führt sie nicht mehr
-    # als eigenes Literal. Zwei Quellen für denselben Pfad waren genau die
-    # Doppelung, die diesen Umbau nötig gemacht hat (PLAN.md §8, Regel 2).
-    # Gleiche Darstellung wie zuvor (relativ zum Config-Verzeichnis), damit
-    # sich am Konsumentenverhalten - überall ``Path(cfg["paths"][...])`` -
-    # nichts ändert, nur die Quelle ist neu.
+    # Die fünf tatsächlich gelesenen Pfade (siehe docs/rewrite/PLAN.md §11.1,
+    # Klasse F; bis Paket W1.2 waren es sechs - powerlines_gpkg ist mit dem
+    # Codeeintrag entfallen, siehe pipeline/contract.py:LEGACY_ENTFAELLT und
+    # den Bericht zu W1.2) plus den einen toten (Klasse U, wind_pd_100)
+    # kommen jetzt ausschließlich aus dem Pfadvertrag - config.json führt sie
+    # nicht mehr als eigenes Literal. Zwei Quellen für denselben Pfad waren
+    # genau die Doppelung, die diesen Umbau nötig gemacht hat (PLAN.md §8,
+    # Regel 2). Gleiche Darstellung wie zuvor (relativ zum
+    # Config-Verzeichnis), damit sich am Konsumentenverhalten - überall
+    # ``Path(cfg["paths"][...])`` - nichts ändert, nur die Quelle ist neu.
     contract_paths = {
         "vgd": contract.RAW["admin"]["vgd"],
         "osm_dir": contract.LEGACY_TOT["osm_dir"],
@@ -39,7 +41,6 @@ def load_config(path=None):
         "wind_pd_100": contract.LEGACY_TOT["wind_pd_100"],
         "dgm": contract.RAW["gelaende"]["dgm"],
         "nsg_zip": contract.RAW["natur"]["nsg_zip"],
-        "powerlines_gpkg": contract.LEGACY_ENTFAELLT["powerlines_gpkg"],
     }
     for key, abs_path in contract_paths.items():
         paths[key] = os.path.relpath(abs_path, start=config_dir)

@@ -2,11 +2,11 @@
   "_comment": "Konfiguration: Windkraft-Potentialberechnung Österreich – Energiewerkstatt/IG Windkraft 2023",
 
   "paths": {
-    "_comment_paths": "vgd/osm_dir/wind_pd_150/wind_pd_100/dgm/nsg_zip/powerlines_gpkg kommen seit W0.2 aus pipeline/contract.py (RAW, LEGACY_TOT oder LEGACY_ENTFAELLT) - windkraft/config.py:load_config() befuellt sie beim Laden, hier stehen sie bewusst nicht mehr als Literal (docs/rewrite/PLAN.md §8, Regel 2: der Vertrag wird gelesen, nicht kopiert).",
+    "_comment_paths": "vgd/osm_dir/wind_pd_150/wind_pd_100/dgm/nsg_zip kommen seit W0.2 aus pipeline/contract.py (RAW, LEGACY_TOT oder LEGACY_ENTFAELLT) - windkraft/config.py:load_config() befuellt sie beim Laden, hier stehen sie bewusst nicht mehr als Literal (docs/rewrite/PLAN.md §8, Regel 2: der Vertrag wird gelesen, nicht kopiert).",
     "data_dir": "data",
     "nsg_gpkg": "SG_AT_2024_v_April.gpkg",
     "nsg_layers": ["NP_AT_2024", "NSG_AT_2024", "ESG_AT_2024", "RAMSAR_AT_2024"],
-    "_comment_powerlines_gpkg": "Wird auch in der Widmung-v2-Kette gelesen (abschichtung_common.py ~934), das daraus gebaute Band power_380_400kv aber seit dem Clean-Schema nicht mehr gespeichert (build_widmung_v2_layers.py ~92-94 - Stromleitungen sind kein Ausschlusskriterium mehr). Für v2 wirkungslos; weiterhin aktiv für die OSM-Kette und Widmung v1.",
+    "_comment_powerlines_gpkg_entfernt": "powerlines_gpkg gab es hier nie als Literal (siehe _comment_paths), nur ueber den Vertrag befuellt. Paket W1.2 hat data/osm_power_lines.gpkg geloescht und den Registereintrag pipeline.contract.LEGACY_ENTFAELLT['powerlines_gpkg'] ausgetragen - der einzige Codeleser (abschichtung_common.py:966) war ohnehin nur ein Fallback, der nie griff, solange das OSM-PBF vorhanden ist; das daraus gebaute Band power_380_400kv wird seit dem Clean-Schema ohnehin nicht mehr gespeichert. cfg['paths'] traegt den Schluessel powerlines_gpkg seither nicht mehr.",
     "output_dir": "output"
   },
 

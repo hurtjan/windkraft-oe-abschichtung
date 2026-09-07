@@ -111,9 +111,11 @@ RAW = {
         # scripts/widmung_v2/03_build_osm_layers.py:231,
         # scripts/widmung_v2/04_create_distance_zones.py:378 (--osm-pbf)
         "pbf": DATA / "osm" / "austria-260330.osm.pbf",
-        # powerlines_gpkg steht NICHT hier - siehe LEGACY_ENTFAELLT unten:
-        # die Datei entfällt in Welle 1 (Paket W1.2), RAW beschreibt den
-        # Zielzustand.
+        # powerlines_gpkg steht NICHT hier: Paket W1.2 hat data/osm_power_lines.gpkg
+        # gelöscht und den zugehörigen LEGACY_ENTFAELLT-Eintrag ausgetragen
+        # (siehe dort) - der einzige Codeleser, abschichtung_common.py:966,
+        # war ohnehin nur ein Fallback, der nie griff, solange das PBF
+        # vorhanden ist.
     },
     "gelaende": {
         # windkraft/calc/abschichtung_common.py:1256, :307 (Fallback)
@@ -141,10 +143,10 @@ RAW = {
         "red3_zip": DATA / "zonen" / "RED_III_Windkraftbeschleunigungszone.zip",
         # ausschlusszone_zip steht NICHT (mehr) hier: Paket W1.7 hat die
         # Registrierung in windkraft/calc/wind_zones.py entfernt (Entscheidung
-        # (a) des Plans), es gibt also keinen Codeleser mehr. Die Datei selbst
-        # liegt bis W1.2 noch unter data/WINDKRAFT_AUSSCHLUSSZONE.zip und stand
-        # bis hierher unter LEGACY_ENTFAELLT - der Eintrag ist mit dem Codeleser
-        # entfallen, nicht erst mit der Datei.
+        # (a) des Plans), es gibt also keinen Codeleser mehr - der Eintrag ist
+        # mit dem Codeleser aus LEGACY_ENTFAELLT entfallen, nicht erst mit der
+        # Datei. Paket W1.2 hat die Datei selbst (data/WINDKRAFT_AUSSCHLUSSZONE.zip)
+        # inzwischen ebenfalls gelöscht.
     },
     "noe_sekrop": {
         # scripts/noe/extract_noe_vector_layers.py:48,
@@ -188,14 +190,11 @@ LEGACY_TOT = {
     "wind_pd_100": DATA / "gelaende" / "AUT_power-density_100m.tif",
 }
 
-LEGACY_ENTFAELLT = {
-    # windkraft/calc/abschichtung_common.py:966 (cfg["paths"]["powerlines_gpkg"]).
-    # Liegt noch an der alten Stelle direkt unter data/ (PLAN.md §11.2:
-    # "vier Dateien bleiben liegen"). Band seit dem Clean-Schema nicht mehr
-    # gespeichert (siehe config.json:_comment_powerlines_gpkg), die v1-/
-    # OSM-Kette liest die Datei aber weiter. Entfernt Datei und Codeeintrag:
-    # Paket W1.2.
-    "powerlines_gpkg": DATA / "osm_power_lines.gpkg",
+LEGACY_ENTFAELLT: dict[str, Path] = {
+    # War: "powerlines_gpkg" -> DATA / "osm_power_lines.gpkg". Paket W1.2 hat
+    # die Datei gelöscht (kein Codeleser, siehe RAW["osm"]-Kommentar oben)
+    # und diesen Eintrag ausgetragen - siehe Bericht zu W1.2. Aktuell leer;
+    # bleibt als Register für künftige Welle-1-Funde stehen (§13.1).
 }
 
 

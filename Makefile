@@ -101,6 +101,11 @@ worktree:
 	fi; \
 	if [ -L "$$WT_DIR/data" ]; then \
 		: schon ein Symlink - unveraendert uebernehmen; \
+	elif [ ! -e "$$WT_DIR/data" ]; then \
+		: kein data/ im frischen Checkout - seit W1.2 ist data/README.md \
+			nach docs/rohdaten.md verschoben, git versioniert also keine \
+			Datei mehr unter data/ und legt das Verzeichnis bei einem \
+			Checkout gar nicht erst an, weiter direkt zum Symlink unten; \
 	elif [ -d "$$WT_DIR/data" ]; then \
 		TRACKED=$$(git -C "$$WT_DIR" ls-files -- data | sort); \
 		ACTUAL=$$(cd "$$WT_DIR" && find data -mindepth 1 -type f | sort); \
@@ -127,7 +132,6 @@ worktree:
 	if [ ! -L "$$WT_DIR/data" ]; then \
 		ln -s $(CURDIR)/data "$$WT_DIR/data"; \
 	fi; \
-	git -C "$$WT_DIR" update-index --skip-worktree data/README.md; \
 	COMMON_DIR=$$(git -C "$$WT_DIR" rev-parse --git-common-dir); \
 	if ! grep -qxF '/data' "$$COMMON_DIR/info/exclude" 2>/dev/null; then \
 		echo '/data' >> "$$COMMON_DIR/info/exclude"; \
@@ -139,5 +143,5 @@ worktree:
 	fi; \
 	echo "Angelegt: $$WT_DIR auf Zweig $(PAKET). data/ und distance_layers/ sind Symlinks auf dieses Repo (read-only, kein Kopieraufwand)."; \
 	echo "WARNUNG: ein Lauf mit --force-layers dort schreibt in das GETEILTE distance_layers/ und zerstört die Arbeit aller anderen Worktrees - nicht verwenden."; \
-	echo "git status ist absichtlich sauber: data/README.md ist per --skip-worktree ausgenommen, der Symlink 'data' selbst steht in .git/info/exclude (geteilt ueber alle Worktrees, nicht versioniert)."; \
+	echo "git status ist absichtlich sauber: data/ ist seit W1.2 ohne jede versionierte Datei (kein --skip-worktree mehr noetig), der Symlink 'data' selbst steht in .git/info/exclude (geteilt ueber alle Worktrees, nicht versioniert)."; \
 	echo "Entfernen mit: git worktree remove $$WT_DIR && git branch -d $(PAKET)"
