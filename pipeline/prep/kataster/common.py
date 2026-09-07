@@ -1,29 +1,29 @@
-#!/usr/bin/env python3
-"""Export Austrian DKM GST/NFL data to one EPSG:31287 GeoParquet file.
+"""Geteilte Verarbeitungslogik der Kataster-Prep-Stufen.
 
-The SHP source states are delivered as state ZIPs containing one ZIP per KG.
-This script extracts only GST_V2 and NFL_V2 shapefile members from each inner
-ZIP, normalizes geometries to Austria Lambert (EPSG:31287), and writes batches
-as WKB GeoParquet.
+Verschoben, unverändert in der Verarbeitungslogik, aus
+``scripts/preprocessing/export_at_dkm_geoparquet.py`` (Paket W1.P2,
+docs/rewrite/PLAN.md §7 Spalte "Besitzt" nennt "scripts/preprocessing/*"
+als Umzug dieses Pakets). Beide Prep-Stufen (``a_noe_polygonize``,
+``b_export_parquet``) importieren von hier - keine Datei dupliziert
+Geometriebereinigung oder Schema.
 
-Niederoesterreich is available here only as DXF linework. For that state the
-script reuses the tile+halo polygonization helpers from
-create_noe_dkm_polygon_fill_map.py and emits classified NFL-like polygons from
-NS symbols. It does not create GST_V2 parcels for Niederoesterreich.
+Einzige inhaltliche Änderung gegenüber dem Original: ``ArchiveSpec`` trägt
+zusätzlich ``raw_key``, den Schlüssel in ``pipeline.contract.RAW["kataster"]``,
+über den ``export_shp_archives`` den tatsächlichen Archivpfad auflöst -
+vorher wurde er aus einem ``--data-dir``-Argument und dem Dateinamen
+zusammengesetzt (PLAN.md §8 Regel 2: "Der Vertrag wird gelesen, nicht
+kopiert"). ``archive.filename`` bleibt als Feldwert ``source_archive`` in
+den geschriebenen Zeilen erhalten - identisch zum bisherigen Inhalt.
 """
 from __future__ import annotations
 
-import argparse
 import csv
 import io
 import json
-import math
-import os
-import sys
 import tempfile
 import time
 import zipfile
-from collections import Counter, defaultdict
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
@@ -33,40 +33,14 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 from pyproj import CRS
-from shapely import make_valid, set_precision, to_wkb
-from shapely.geometry import GeometryCollection, MultiPolygon, Point, Polygon, box
-from shapely.ops import polygonize, unary_union
-from shapely.strtree import STRtree
+from shapely import make_valid, to_wkb
+from shapely.geometry import GeometryCollection, MultiPolygon, Polygon
 
-ROOT = Path(__file__).resolve().parents[2]
-SCRIPT_DIR = Path(__file__).resolve().parent
-for path in (ROOT, SCRIPT_DIR):
-    if str(path) not in sys.path:
-        sys.path.insert(0, str(path))
-
-_MPL_CACHE = Path(tempfile.gettempdir()) / "windkraft_matplotlib"
-_MPL_CACHE.mkdir(parents=True, exist_ok=True)
-os.environ.setdefault("MPLCONFIGDIR", str(_MPL_CACHE))
-
-from create_noe_dkm_polygon_fill_map import (  # noqa: E402
-    bounds_intersect,
-    category_base,
-    choose_raw_crs,
-    make_tile_jobs,
-    parse_dxf,
-    parse_dxf_bounds_fast,
-    polygons_from_geometry,
-    transform_bounds,
-    transform_line,
-)
+from pipeline import contract
+from pipeline.prep.kataster.diagnostics import category_base
 
 TARGET_CRS = CRS.from_epsg(31287)
 TARGET_CRS_LABEL = "EPSG:31287"
-DEFAULT_OUTPUT = ROOT / "output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet"
-DEFAULT_SUMMARY_CSV = ROOT / "output/kataster/at_dkm_gst_nfl_epsg31287_summary.csv"
-DEFAULT_OVERVIEW_MD = ROOT / "output/kataster/at_dkm_gst_nfl_epsg31287_overview.md"
-DEFAULT_SYMBOL_CSV = ROOT / "data/kataster/BEV_DKM_DXF_Symbole_V2.6.csv"
-DEFAULT_NOE_DXF_ZIP = ROOT / "data/kataster/KAT_DKM_Niederoesterreich_DXF_20230401.zip"
 
 SHP_LAYER_NAMES = ("GST_V2", "NFL_V2")
 REQUIRED_SHAPEFILE_EXTS = {".shp", ".shx", ".dbf", ".prj", ".cpg"}
@@ -99,17 +73,22 @@ class ArchiveSpec:
     bundesland: str
     filename: str
     fallback_crs: str
+    raw_key: str
 
 
+# Reihenfolge und Werte unverändert aus export_at_dkm_geoparquet.py
+# (DEFAULT_SHP_ARCHIVES). raw_key ist neu: Schlüssel in
+# contract.RAW["kataster"], über den der tatsächliche Archivpfad aufgelöst
+# wird - siehe Moduldocstring.
 DEFAULT_SHP_ARCHIVES = (
-    ArchiveSpec("Burgenland", "KAT_DKM_Burgenland_SHP_20210401.zip", "EPSG:31256"),
-    ArchiveSpec("Tirol", "KAT_DKM_Tirol_SHP_20221001.zip", "EPSG:31254"),
-    ArchiveSpec("Vorarlberg", "KAT_DKM_Vorarlberg_SHP_20221001.zip", "EPSG:31254"),
-    ArchiveSpec("Oberoesterreich", "KAT_DKM_Oberoesterreich_SHP_20221001.zip", "EPSG:31255"),
-    ArchiveSpec("Kaernten", "KAT_DKM_Kaernten_SHP_20221001.zip", "EPSG:31255"),
-    ArchiveSpec("Salzburg", "KAT_DKM_Salzburg_SHP_20221001.zip", "EPSG:31255"),
-    ArchiveSpec("Steiermark", "KAT_DKM_Steiermark_SHP_20221001.zip", "EPSG:31256"),
-    ArchiveSpec("Wien", "KAT_DKM_Wien_SHP_20221001.zip", "EPSG:31256"),
+    ArchiveSpec("Burgenland", "KAT_DKM_Burgenland_SHP_20210401.zip", "EPSG:31256", "burgenland_zip"),
+    ArchiveSpec("Tirol", "KAT_DKM_Tirol_SHP_20221001.zip", "EPSG:31254", "tirol_zip"),
+    ArchiveSpec("Vorarlberg", "KAT_DKM_Vorarlberg_SHP_20221001.zip", "EPSG:31254", "vorarlberg_zip"),
+    ArchiveSpec("Oberoesterreich", "KAT_DKM_Oberoesterreich_SHP_20221001.zip", "EPSG:31255", "oberoesterreich_zip"),
+    ArchiveSpec("Kaernten", "KAT_DKM_Kaernten_SHP_20221001.zip", "EPSG:31255", "kaernten_zip"),
+    ArchiveSpec("Salzburg", "KAT_DKM_Salzburg_SHP_20221001.zip", "EPSG:31255", "salzburg_zip"),
+    ArchiveSpec("Steiermark", "KAT_DKM_Steiermark_SHP_20221001.zip", "EPSG:31256", "steiermark_zip"),
+    ArchiveSpec("Wien", "KAT_DKM_Wien_SHP_20221001.zip", "EPSG:31256", "wien_zip"),
 )
 
 
@@ -255,10 +234,11 @@ class GeoParquetBatchWriter:
                     "geometry_types": ["Polygon"],
                 }
             },
-            "creator": {"library": Path(__file__).name},
+            "creator": {"library": "pipeline.prep.kataster"},
         }
         fields = [(name, pa.binary() if name == "geometry" else pa.string()) for name in FIELD_NAMES]
         self.schema = pa.schema(fields).with_metadata({b"geo": json.dumps(geo_metadata).encode("utf-8")})
+        self.path = path
         self.writer = pq.ParquetWriter(path, self.schema, compression=compression)
         self.batch_size = batch_size
         self.columns: dict[str, list[Any]] = {name: [] for name in FIELD_NAMES}
@@ -273,6 +253,15 @@ class GeoParquetBatchWriter:
         self.row_count += 1
         if len(self.columns["geometry"]) >= self.batch_size:
             self.flush()
+
+    def write_table(self, table: pa.Table) -> None:
+        """Schreibt eine bereits im Zielschema vorliegende Tabelle direkt
+        durch - für den Übernahme-Pfad aus a_noe_polygonize (siehe
+        b_export_parquet.copy_noe_rows), ohne Geometrien erneut zu
+        parsen/serialisieren."""
+        self.flush()
+        self.writer.write_table(table)
+        self.row_count += table.num_rows
 
     def flush(self) -> None:
         if not self.columns["geometry"]:
@@ -483,27 +472,35 @@ def process_shp_gdf(
     return emitted
 
 
-def selected_archives(args: argparse.Namespace) -> list[ArchiveSpec]:
-    if not args.only_bundesland:
+def selected_archives(only_bundesland: str) -> list[ArchiveSpec]:
+    if not only_bundesland:
         return list(DEFAULT_SHP_ARCHIVES)
-    wanted = {item.strip().lower() for item in args.only_bundesland.split(",") if item.strip()}
+    wanted = {item.strip().lower() for item in only_bundesland.split(",") if item.strip()}
     return [spec for spec in DEFAULT_SHP_ARCHIVES if spec.bundesland.lower() in wanted]
 
 
 def export_shp_archives(
-    args: argparse.Namespace,
+    *,
+    only_bundesland: str,
+    layers: str,
+    max_inner_zips_per_archive: int,
+    temp_dir: str | None,
     lookup: NsLookup,
     writer: GeoParquetBatchWriter,
     summary: Summary,
 ) -> None:
-    data_dir = Path(args.data_dir)
-    layers = tuple(layer.strip() for layer in args.layers.split(",") if layer.strip())
-    layers = tuple(layer for layer in layers if layer in SHP_LAYER_NAMES)
-    if not layers:
+    """Verarbeitet die SHP-Archive der acht Bundesländer (alle außer NÖ).
+
+    Archivpfade kommen aus ``contract.RAW["kataster"][archive.raw_key]`` -
+    vorher aus ``<data_dir>/<archive.filename>``. Sonst unverändert aus
+    ``export_at_dkm_geoparquet.py:export_shp_archives``."""
+    selected_layers = tuple(layer.strip() for layer in layers.split(",") if layer.strip())
+    selected_layers = tuple(layer for layer in selected_layers if layer in SHP_LAYER_NAMES)
+    if not selected_layers:
         raise SystemExit("--layers must include GST_V2 and/or NFL_V2")
 
-    for archive in selected_archives(args):
-        archive_path = data_dir / archive.filename
+    for archive in selected_archives(only_bundesland):
+        archive_path = contract.RAW["kataster"][archive.raw_key]
         if not archive_path.exists():
             summary.note(f"Missing SHP archive for {archive.bundesland}: {archive_path}")
             continue
@@ -511,7 +508,7 @@ def export_shp_archives(
         print(f"SHP {archive.bundesland}: {archive.filename}", flush=True)
         archive_t0 = time.time()
         with zipfile.ZipFile(archive_path) as outer, tempfile.TemporaryDirectory(
-            dir=args.temp_dir
+            dir=temp_dir
         ) as temp_dir_name:
             temp_root = Path(temp_dir_name)
             inner_names = sorted(n for n in outer.namelist() if n.lower().endswith(".zip"))
@@ -533,21 +530,21 @@ def export_shp_archives(
                     )
                     for kg_dir in kg_dirs
                 ]
-            if args.max_inner_zips_per_archive:
-                work_units = work_units[: args.max_inner_zips_per_archive]
+            if max_inner_zips_per_archive:
+                work_units = work_units[:max_inner_zips_per_archive]
 
             for inner_index, (unit_kind, inner_name, members) in enumerate(work_units, 1):
                 with tempfile.TemporaryDirectory(prefix="dkm_kg_", dir=temp_root) as inner_temp_name:
                     if unit_kind == "zip":
-                        layer_paths = extract_layer_shapefiles(outer.read(inner_name), layers, Path(inner_temp_name))
+                        layer_paths = extract_layer_shapefiles(outer.read(inner_name), selected_layers, Path(inner_temp_name))
                     else:
                         layer_paths = extract_layer_shapefiles_from_members(
                             outer,
                             members or [],
-                            layers,
+                            selected_layers,
                             Path(inner_temp_name),
                         )
-                    for source_layer in layers:
+                    for source_layer in selected_layers:
                         shp_path = layer_paths.get(source_layer)
                         if shp_path is None:
                             summary.inc_quality(archive.bundesland, source_layer, "missing_inner_layers", 1)
@@ -580,218 +577,6 @@ def export_shp_archives(
         print(f"SHP {archive.bundesland} done in {time.time() - archive_t0:.1f}s", flush=True)
 
 
-def build_noe_tile_jobs(
-    zf: zipfile.ZipFile,
-    names: list[str],
-    line_layers: set[str],
-    tile_size_m: float,
-    tile_halo_m: float,
-) -> list[tuple[int, tuple[float, float, float, float], tuple[float, float, float, float], list[str]]]:
-    file_infos: list[tuple[str, tuple[float, float, float, float]]] = []
-    overall = [math.inf, math.inf, -math.inf, -math.inf]
-    for index, name in enumerate(names, 1):
-        raw_bounds = parse_dxf_bounds_fast(zf.read(name), line_layers)
-        target_bounds = transform_bounds(raw_bounds)
-        if target_bounds:
-            file_infos.append((name, target_bounds))
-            overall[0] = min(overall[0], target_bounds[0])
-            overall[1] = min(overall[1], target_bounds[1])
-            overall[2] = max(overall[2], target_bounds[2])
-            overall[3] = max(overall[3], target_bounds[3])
-        if index % 250 == 0 or index == len(names):
-            print(f"  NOE bounds {index}/{len(names)}", flush=True)
-    if overall[0] == math.inf:
-        return []
-    return make_tile_jobs(file_infos, overall[0], overall[1], overall[2], overall[3], tile_size_m, tile_halo_m)
-
-
-def export_noe_dxf(
-    args: argparse.Namespace,
-    lookup: NsLookup,
-    writer: GeoParquetBatchWriter,
-    summary: Summary,
-) -> None:
-    zip_path = Path(args.noe_dxf_zip)
-    if not zip_path.exists():
-        summary.note(f"Niederoesterreich DXF archive is missing: {zip_path}")
-        return
-
-    line_layers = {item.strip() for item in args.noe_line_layers.split(",") if item.strip()}
-    bundesland = "Niederoesterreich"
-    source_layer = "NFL_DXF_POLYGONIZED"
-    print(f"NOE DXF: {zip_path.name}", flush=True)
-    t0 = time.time()
-
-    with zipfile.ZipFile(zip_path) as zf:
-        names = sorted(n for n in zf.namelist() if n.lower().endswith(".dxf"))
-        if args.noe_limit_files:
-            names = names[: args.noe_limit_files]
-        summary.inc_quality(bundesland, source_layer, "source_dxf_files", len(names))
-
-        tile_jobs = build_noe_tile_jobs(zf, names, line_layers, args.noe_tile_size_m, args.noe_tile_halo_m)
-        summary.inc_quality(bundesland, source_layer, "tiles_total", len(tile_jobs))
-        if not tile_jobs:
-            summary.note("No Niederoesterreich DXF tile jobs were generated.")
-            return
-
-        for tile_index, job in enumerate(tile_jobs, 1):
-            emitted = export_noe_tile(
-                zf,
-                job,
-                line_layers,
-                args.noe_precision_m,
-                args.noe_min_area_m2,
-                lookup,
-                writer,
-                summary,
-                zip_path.name,
-            )
-            if emitted == 0:
-                summary.inc_quality(bundesland, source_layer, "tiles_no_output", 1)
-            if tile_index % 10 == 0 or tile_index == len(tile_jobs):
-                print(
-                    f"  NOE tiles {tile_index}/{len(tile_jobs)} rows={writer.row_count}",
-                    flush=True,
-                )
-
-    summary.note("Niederoesterreich has no GST_V2 parcel layer in this export; NFL rows are DXF tile+halo polygonizations.")
-    print(f"NOE DXF done in {time.time() - t0:.1f}s", flush=True)
-
-
-def export_noe_tile(
-    zf: zipfile.ZipFile,
-    job: tuple[int, tuple[float, float, float, float], tuple[float, float, float, float], list[str]],
-    line_layers: set[str],
-    precision_m: float,
-    min_area_m2: float,
-    lookup: NsLookup,
-    writer: GeoParquetBatchWriter,
-    summary: Summary,
-    source_archive: str,
-) -> int:
-    tile_id, inner_bounds, halo_bounds, file_names = job
-    bundesland = "Niederoesterreich"
-    source_layer = "NFL_DXF_POLYGONIZED"
-    inner_box = box(*inner_bounds)
-    lines = []
-    ns_points: list[tuple[str, float, float, str, str, str]] = []
-
-    for name in file_names:
-        raw_lines, raw_points, raw_bounds = parse_dxf(zf.read(name), line_layers)
-        if not raw_bounds:
-            continue
-        strip, transformer = choose_raw_crs(raw_bounds)
-        source_crs = RAW_STRIP_TO_CRS.get(strip, strip)
-        kg_code = Path(name).stem
-
-        for raw_line in raw_lines:
-            line = transform_line(raw_line, transformer)
-            if line is not None and bounds_intersect(line.bounds, halo_bounds):
-                lines.append(line)
-
-        if raw_points:
-            symbols = [point[0] for point in raw_points]
-            xs = [point[1] for point in raw_points]
-            ys = [point[2] for point in raw_points]
-            tx, ty = transformer.transform(xs, ys)
-            for symbol, x, y in zip(symbols, tx, ty):
-                if halo_bounds[0] <= x <= halo_bounds[2] and halo_bounds[1] <= y <= halo_bounds[3]:
-                    ns_points.append((symbol, x, y, kg_code, name, source_crs))
-
-    summary.inc_quality(bundesland, source_layer, "tile_file_refs", len(file_names))
-    summary.inc_quality(bundesland, source_layer, "tile_input_lines", len(lines))
-    summary.inc_quality(bundesland, source_layer, "tile_input_ns_points", len(ns_points))
-    if not lines:
-        summary.inc_quality(bundesland, source_layer, "tiles_no_lines", 1)
-        return 0
-    if not ns_points:
-        summary.inc_quality(bundesland, source_layer, "tiles_no_ns", 1)
-
-    try:
-        merged = unary_union([set_precision(line, precision_m) for line in lines])
-        polys = [poly for poly in polygonize(merged) if poly.area >= min_area_m2 and poly.intersects(inner_box)]
-    except Exception as exc:
-        summary.inc_quality(bundesland, source_layer, "polygonize_errors", 1)
-        print(f"WARN NOE tile {tile_id} polygonize failed: {exc}", flush=True)
-        return 0
-
-    summary.inc_quality(bundesland, source_layer, "polygonized_polygons", len(polys))
-    if not polys:
-        return 0
-
-    tree = STRtree(polys)
-    poly_votes: dict[int, Counter[tuple[str | None, str | None, str | None, str, str, str]]] = defaultdict(Counter)
-    for symbol, x, y, kg_code, source_dxf, source_crs in ns_points:
-        ns_info = lookup.decode_symbol(symbol)
-        if ns_info.category == "Unbekannt":
-            summary.observe_unmapped(bundesland, source_layer, symbol)
-        point = Point(x, y)
-        candidates = tree.query(point)
-        best_i = None
-        best_area = math.inf
-        for candidate in candidates:
-            poly_index = int(candidate)
-            poly = polys[poly_index]
-            if poly.covers(point) and poly.area < best_area:
-                best_i = poly_index
-                best_area = poly.area
-        if best_i is not None:
-            poly_votes[best_i][(ns_info.ns, ns_info.category, ns_info.label, kg_code, source_dxf, source_crs)] += 1
-            if inner_bounds[0] <= x < inner_bounds[2] and inner_bounds[1] <= y < inner_bounds[3]:
-                summary.inc_quality(bundesland, source_layer, "assigned_ns_points", 1)
-        elif inner_bounds[0] <= x < inner_bounds[2] and inner_bounds[1] <= y < inner_bounds[3]:
-            summary.inc_quality(bundesland, source_layer, "unassigned_ns_points", 1)
-
-    emitted = 0
-    for poly_index, poly in enumerate(polys):
-        try:
-            clipped = poly.intersection(inner_box)
-        except Exception:
-            summary.inc_quality(bundesland, source_layer, "clip_errors", 1)
-            continue
-        pieces = [piece for piece in polygons_from_geometry(clipped) if piece.area >= min_area_m2]
-        if not pieces:
-            continue
-
-        votes = poly_votes.get(poly_index)
-        if not votes:
-            summary.inc_quality(bundesland, source_layer, "unassigned_polygons", len(pieces))
-            summary.inc_quality(bundesland, source_layer, "unassigned_polygon_area_m2", sum(piece.area for piece in pieces))
-            continue
-
-        if len(votes) > 1:
-            summary.inc_quality(bundesland, source_layer, "ambiguous_polygons", len(pieces))
-        ns, category, label, kg_code, source_dxf, source_crs = votes.most_common(1)[0][0]
-        row_base = {
-            "bundesland": bundesland,
-            "source_format": "DXF_POLYGONIZED",
-            "source_archive": source_archive,
-            "source_inner_zip": source_dxf,
-            "source_layer": source_layer,
-            "source_crs": source_crs,
-            "target_crs": TARGET_CRS_LABEL,
-            "kg": kg_code,
-            "gnr": None,
-            "rstatus": None,
-            "mst": None,
-            "ns": ns,
-            "ns_recht": None,
-            "ns_category": category,
-            "ns_label": label,
-        }
-        for piece_index, piece in enumerate(pieces, 1):
-            feature_id = f"{bundesland}:{source_layer}:tile{tile_id}:poly{poly_index + 1}:piece{piece_index}"
-            emitted += emit_cleaned_feature(
-                writer,
-                summary,
-                row_base,
-                piece,
-                feature_id,
-                min_area_m2=min_area_m2,
-            )
-    return emitted
-
-
 def write_summary_csv(summary: Summary, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as f:
@@ -822,7 +607,14 @@ def rows_for_markdown(headers: list[str], rows: Iterable[list[Any]]) -> str:
     return "\n".join(output)
 
 
-def write_overview_md(summary: Summary, path: Path, output_path: Path, args: argparse.Namespace, runtime_s: float) -> None:
+def write_overview_md(
+    summary: Summary,
+    path: Path,
+    output_path: Path,
+    runtime_s: float,
+    *,
+    limit_notes: list[str] | None = None,
+) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     count_rows = [
         [bundesland, layer, source_crs, count]
@@ -853,11 +645,6 @@ def write_overview_md(summary: Summary, path: Path, output_path: Path, args: arg
         [bundesland, round(b[0], 2), round(b[1], 2), round(b[2], 2), round(b[3], 2)]
         for bundesland, b in sorted(summary.bounds.items())
     ]
-    limit_notes = []
-    if args.max_inner_zips_per_archive:
-        limit_notes.append(f"SHP limited to {args.max_inner_zips_per_archive} inner ZIPs per archive.")
-    if args.noe_limit_files:
-        limit_notes.append(f"NOE DXF limited to {args.noe_limit_files} DXF files.")
 
     expected_lines = []
     for layer, expected in PRE_BURGENLAND_SHP_INPUT_REFERENCE.items():
@@ -877,7 +664,7 @@ def write_overview_md(summary: Summary, path: Path, output_path: Path, args: arg
         "## Notes",
         "",
     ]
-    for note in [*summary.notes, *limit_notes]:
+    for note in [*summary.notes, *(limit_notes or [])]:
         parts.append(f"- {note}")
     if not summary.notes and not limit_notes:
         parts.append("- No special notes.")
@@ -887,62 +674,3 @@ def write_overview_md(summary: Summary, path: Path, output_path: Path, args: arg
     parts.extend(["", "## Geometry Cleaning", "", rows_for_markdown(["Bundesland", "Layer", "Metric", "Value"], quality_rows or [["", "", "", 0]])])
     parts.extend(["", "## Bounds EPSG:31287", "", rows_for_markdown(["Bundesland", "minx", "miny", "maxx", "maxy"], bounds_rows or [["", 0, 0, 0, 0]])])
     path.write_text("\n".join(parts) + "\n", encoding="utf-8")
-
-
-def parse_args() -> argparse.Namespace:
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--data-dir", default=str(ROOT / "data/kataster"), help="Directory containing DKM source archives")
-    ap.add_argument("--output", default=str(DEFAULT_OUTPUT), help="GeoParquet output path")
-    ap.add_argument("--summary-csv", default=str(DEFAULT_SUMMARY_CSV), help="CSV summary output path")
-    ap.add_argument("--overview-md", default=str(DEFAULT_OVERVIEW_MD), help="Markdown overview output path")
-    ap.add_argument("--symbol-csv", default=str(DEFAULT_SYMBOL_CSV), help="BEV DKM symbol CSV path")
-    ap.add_argument("--layers", default="GST_V2,NFL_V2", help="Comma-separated SHP layers to export")
-    ap.add_argument("--only-bundesland", default="", help="Comma-separated subset of SHP Bundesland names")
-    ap.add_argument("--max-inner-zips-per-archive", type=int, default=0, help="Smoke-test limit per SHP archive")
-    ap.add_argument("--skip-shp", action="store_true", help="Skip SHP archives")
-    ap.add_argument("--skip-noe-dxf", action="store_true", help="Skip Niederoesterreich DXF polygonization")
-    ap.add_argument("--noe-dxf-zip", default=str(DEFAULT_NOE_DXF_ZIP), help="Niederoesterreich DXF ZIP path")
-    ap.add_argument("--noe-limit-files", type=int, default=0, help="Smoke-test limit for NOE DXF files")
-    ap.add_argument("--noe-line-layers", default="GG,NG,KG", help="Comma-separated DXF line layers for NOE polygonization")
-    ap.add_argument("--noe-tile-size-m", type=float, default=20_000.0, help="NOE tile interior size in EPSG:31287 metres")
-    ap.add_argument("--noe-tile-halo-m", type=float, default=2_000.0, help="NOE tile halo in EPSG:31287 metres")
-    ap.add_argument("--noe-precision-m", type=float, default=0.01, help="NOE line precision before polygonize")
-    ap.add_argument("--noe-min-area-m2", type=float, default=4.0, help="Minimum NOE polygon area")
-    ap.add_argument("--batch-size", type=int, default=50_000, help="Rows per Parquet write batch")
-    ap.add_argument("--compression", default="zstd", help="Parquet compression codec")
-    ap.add_argument("--temp-dir", default=None, help="Optional temp directory for extracting inner SHP ZIPs")
-    ap.add_argument("--overwrite", action="store_true", help="Overwrite output files if they exist")
-    return ap.parse_args()
-
-
-def main() -> None:
-    args = parse_args()
-    output_path = Path(args.output)
-    summary_csv = Path(args.summary_csv)
-    overview_md = Path(args.overview_md)
-    for path in (output_path, summary_csv, overview_md):
-        if path.exists() and not args.overwrite:
-            raise SystemExit(f"{path} already exists; pass --overwrite")
-
-    t0 = time.time()
-    summary = Summary()
-    lookup = NsLookup(Path(args.symbol_csv))
-    writer = GeoParquetBatchWriter(output_path, args.batch_size, args.compression)
-    try:
-        if not args.skip_shp:
-            export_shp_archives(args, lookup, writer, summary)
-        if not args.skip_noe_dxf:
-            export_noe_dxf(args, lookup, writer, summary)
-    finally:
-        writer.close()
-
-    runtime_s = time.time() - t0
-    write_summary_csv(summary, summary_csv)
-    write_overview_md(summary, overview_md, output_path, args, runtime_s)
-    print(f"wrote {output_path} rows={writer.row_count}", flush=True)
-    print(f"wrote {summary_csv}", flush=True)
-    print(f"wrote {overview_md}", flush=True)
-
-
-if __name__ == "__main__":
-    main()

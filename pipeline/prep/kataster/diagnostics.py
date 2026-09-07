@@ -1,9 +1,20 @@
 #!/usr/bin/env python3
 """Create a filled DKM Benützungsarten overview from NÖ DXF linework + NS symbols.
 
+Verschoben aus ``scripts/preprocessing/create_noe_dkm_polygon_fill_map.py``
+(Paket W1.P2, docs/rewrite/PLAN.md §7 Spalte "Besitzt": "scripts/preprocessing/*"
+- Umzug). Reiner Diagnose-/Visualisierungspfad, kein Teil der eigentlichen
+GeoParquet-Erzeugung: ``pipeline.prep.kataster.a_noe_polygonize`` importiert
+von hier nur die reinen DXF-/Geometrie-Hilfsfunktionen (unverändert). Dieses
+Skript selbst erzeugt PNG-Übersichten unter ``OUT_DIR`` - kein Prep-,
+Layer- oder Produktpfad im Sinne von ``pipeline.contract`` (deshalb bleibt
+``OUT_DIR`` unterhalb von ``output/``, nicht ``build/prep/``). Inputs kommen
+seit dem Umzug aus ``pipeline.contract.RAW`` statt aus lokal
+zusammengesetzten ``data/``-Pfaden (PLAN.md §8 Regel 2).
+
 Inputs used:
-- data/kataster/KAT_DKM_Niederoesterreich_DXF_20230401.zip
-- data/kataster/BEV_DKM_DXF_Symbole_V2.6.csv
+- contract.RAW["kataster"]["noe_dxf_zip"]
+- contract.RAW["kataster"]["symbol_csv"]
 
 This renders a flexible-resolution overview raster. It is a visualization derived
 from DKM polygons, not a legally exact cadastral vector export.
@@ -46,11 +57,15 @@ except Exception:  # pragma: no cover - optional fast render path
     rasterio_rasterize = None
     rasterio_from_origin = None
 
-ROOT = Path(__file__).resolve().parents[2]
-ZIP_PATH = ROOT / "data/kataster/KAT_DKM_Niederoesterreich_DXF_20230401.zip"
-SYMBOL_CSV = ROOT / "data/kataster/BEV_DKM_DXF_Symbole_V2.6.csv"
-ADMIN_BOUNDARY_PATH = ROOT / "data/admin/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp"
-OUT_DIR = ROOT / "output/kataster/diagnostics"
+from pipeline import contract
+
+ROOT = contract.ROOT
+ZIP_PATH = contract.RAW["kataster"]["noe_dxf_zip"]
+SYMBOL_CSV = contract.RAW["kataster"]["symbol_csv"]
+ADMIN_BOUNDARY_PATH = contract.RAW["admin"]["vgd"]
+# Bewusst kein contract.PREP/PRODUCTS-Pfad: reine Diagnoseausgabe (PNG/CSV),
+# von keinem anderen Skript gelesen (siehe Moduldocstring).
+OUT_DIR = ROOT / "output" / "kataster" / "diagnostics"
 
 # NÖ DKM DXFs straddle Austrian GK strips. Raw coordinates with large
 # positive X are M31/GK Central (EPSG:31255); the rest of the NÖ ZIP is
