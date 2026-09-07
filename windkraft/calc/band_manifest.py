@@ -16,8 +16,8 @@ Tatsachen, die bisher nur implizit existierten, werden hier explizit:
                           (``abschichtung_common.py``, ``update_tags`` im
                           Blur-Zweig von ``compose_exclusion_geotiff``); alle
                           übrigen Bänder sind 0/1.
-  ``clipped_to_austria``  bisher Stammeswissen in einem Docstring von
-                          ``scripts/analysis/build_v2_dashboard_data.py``.
+  ``clipped_to_austria``  bisher nur Stammeswissen in einem Skript-Docstring
+                          (inzwischen als toter Code gelöscht, W1.5).
                           Maßgeblich ist der Code: in
                           ``compose_exclusion_geotiff()`` werden die
                           Aggregat-/Ergebnisbänder mit ``& valid_area``
@@ -96,9 +96,9 @@ CLIPPED_PREFIXES = (
 # --------------------------------------------------------------------------
 # Kurzlabels für die Legende. Für die Bedingungsbänder 1-26 stammen die langen
 # Beschreibungen aus Band.description im Skript; hier steht bewusst nur der
-# knappe Legendentext. Zwölf Labels sind aus EXCLUSION_LAYERS in
-# scripts/analysis/build_v2_dashboard_data.py übernommen, die dortigen
-# Pufferangaben wurden gegen den Code korrigiert.
+# knappe Legendentext. Zwölf Labels sind aus EXCLUSION_LAYERS eines
+# inzwischen als toter Code gelöschten Dashboard-Skripts (W1.5) übernommen,
+# die dortigen Pufferangaben wurden gegen den Code korrigiert.
 # --------------------------------------------------------------------------
 LABELS_DE = {
     "official_settlement_source": "Amtliches Wohnbauland (Quelle)",
