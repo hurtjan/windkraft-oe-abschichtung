@@ -12,11 +12,10 @@ W0.1 in dessen §11. Die Belege liegen unter
 
 | | |
 |---|---|
-| Abgeschlossen | 1 von 30 (W0.1) |
-| In Arbeit | W0.2 — Pfadvertrag |
+| Abgeschlossen | 2 von 30 (W0.1, W0.2) |
+| In Arbeit | W0.3 — Verzeichnisgerüst und Make-Ziele |
 | Zweig | `docs/audit-und-plan`, kein Remote |
-| Letzter Commit | `3fd54a8` |
-| Abweichungen bisher | keine — W0.1 bitgleich |
+| Abweichungen bisher | keine — beide Pakete bitgleich |
 
 ## Paketübersicht
 
@@ -25,7 +24,7 @@ Status: `offen` · `läuft` · `fertig` · `blockiert`
 | Paket | Welle | Titel | Status | Commit | Abnahme |
 |---|---|---|---|---|---|
 | W0.1 | 0 | Rohdaten nach Thema sortieren | **fertig** | `5aab405`, `3fd54a8` | bitgleich + Inode-Abgleich |
-| W0.2 | 0 | Pfadvertrag anlegen | **läuft** | — | — |
+| W0.2 | 0 | Pfadvertrag anlegen | **fertig** | `84585cb` | 131/131 Tests, bitgleich |
 | W0.3 | 0 | Verzeichnisgerüst und Make-Ziele | offen | — | — |
 | W1.1 | 1 | Adress-Cache-Weiche entfernen | offen | — | — |
 | W1.2 | 1 | Tote Daten löschen, Provenienz retten | offen | — | — |
@@ -122,6 +121,45 @@ aufgefallen.
   gefunden, die Vorwärtssuche keine.
 - Ein Nachweis über Inodes ist stärker und billiger als ein Testlauf:
   Sekunden statt Stunden, und er belegt Identität statt nur Erfolg.
+
+### W0.2 — Pfadvertrag · fertig
+
+`pipeline/contract.py` ist die einzige Quelle für Pfade und Layernamen:
+31 Rohpfade in neun Domänen, 34 Layernamen, 11 Prep-Ausgaben, vier
+Endprodukte. Layernamen sind Bezeichner, aus denen der Dateipfad abgeleitet
+wird — nicht beides nebeneinander. Kein Import aus `windkraft` oder
+`scripts`, kein Dateizugriff beim Import; der Vertrag beschreibt, er prüft
+nicht.
+
+`config.json` hat seine sieben Pfadliterale abgegeben. `load_config()`
+befüllt den `paths`-Block jetzt aus dem Vertrag, mit byte-identischen
+Werten — kein heutiger Konsument von `cfg["paths"][…]` merkt etwas davon.
+Die Nicht-Pfad-Parameter (`nsg_gpkg`, `nsg_layers`) bleiben in der JSON.
+
+**Abnahme: bestanden, ohne Abweichung.** 48 Vertragstests, 131 Tests in der
+gesamten Suite, keine Regression. Nachweislauf aus den 34 Checkpoints in
+163 s → `sha256` identisch zu `run1`.
+
+Der schärfste Test ist der auf Werttreue: er hält die alten Werte als
+**Konstanten im Test** fest, statt sie aus dem Vertrag zu ziehen. Ein Test,
+der beide Seiten aus derselben Quelle bezieht, prüft nichts.
+
+**Zwei Entscheidungen beim Zuschnitt:**
+
+- `osm_power_lines.gpkg` und `WINDKRAFT_AUSSCHLUSSZONE.zip` stehen **nicht**
+  unter `RAW`, sondern in `LEGACY["entfaellt"]`. Beide werden heute gelesen,
+  aber in Welle 1 entfernt. Wer `contract.RAW["osm"]` liest, darf dort keine
+  Datei finden, die nächste Woche weg ist — `RAW` beschreibt den
+  Zielzustand des unveränderlichen Baums, nicht den Übergang.
+- Wo der Code ein **Verzeichnis** bekommt und den Dateinamen selbst bildet
+  (Adressen per ZIP-Suche, Tirol per Stichtags-Glob, Luca-Zonen als
+  `<dir>/<key>.shp`), deklariert der Vertrag das Verzeichnis — nicht einen
+  erfundenen Einzeldateinamen.
+
+**Schuld, bewusst eingegangen:** `load_config()` rechnet die absoluten
+Vertragspfade per `os.path.relpath()` in relative Strings zurück, um die
+Altwerte buchstäblich zu treffen. Das ist richtig, solange es Konsumenten
+von `cfg["paths"]` gibt, und verschwindet mit dem letzten.
 
 ## Offene Punkte
 
