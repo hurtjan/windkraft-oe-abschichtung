@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{color-scheme:light dark}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>Umbau in sechs Wellen</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#EDEEE9; --paper-2:#F7F8F4; --paper-3:#E3E5DD;
+  --ink:#1F2420; --ink-2:#5A6157; --ink-3:#858C80;
+  --rule:#CBCFC4; --rule-2:#DDE0D6;
+  --forest:#3F6B4A; --water:#2E6E8E; --contour:#8A6A45; --stone:#6B7268;
+  --signal:#C2761C; --alarm:#B0402F; --violet:#6A5A8C;
+  --forest-bg:#E2EAE2; --water-bg:#DFEAF0; --contour-bg:#EDE5D9; --stone-bg:#E5E7E2;
+  --signal-bg:#F5E6CF; --alarm-bg:#F3DED9; --violet-bg:#E7E3EE;
+  --mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --disp:"Archivo Narrow", "Arial Narrow", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#151814; --paper-2:#1D211C; --paper-3:#252A23;
+  --ink:#E7EAE2; --ink-2:#9AA394; --ink-3:#79826F;
+  --rule:#333A31; --rule-2:#2A302A;
+  --forest:#84BC91; --water:#74B6D6; --contour:#CCA070; --stone:#9BA599;
+  --signal:#E3A550; --alarm:#E87663; --violet:#A797C8;
+  --forest-bg:#1E2C22; --water-bg:#172A33; --contour-bg:#2E2519; --stone-bg:#242923;
+  --signal-bg:#32270F; --alarm-bg:#331E19; --violet-bg:#241F30;
+}}
+:root[data-theme="dark"]{
+  --paper:#151814; --paper-2:#1D211C; --paper-3:#252A23;
+  --ink:#E7EAE2; --ink-2:#9AA394; --ink-3:#79826F;
+  --rule:#333A31; --rule-2:#2A302A;
+  --forest:#84BC91; --water:#74B6D6; --contour:#CCA070; --stone:#9BA599;
+  --signal:#E3A550; --alarm:#E87663; --violet:#A797C8;
+  --forest-bg:#1E2C22; --water-bg:#172A33; --contour-bg:#2E2519; --stone-bg:#242923;
+  --signal-bg:#32270F; --alarm-bg:#331E19; --violet-bg:#241F30;
+}
+*{box-sizing:border-box}
+body{background:var(--paper); color:var(--ink); font-family:var(--sans); font-size:14px; line-height:1.55;
+  -webkit-font-smoothing:antialiased; margin:0; padding:0 0 72px}
+.wrap{max-width:1280px; margin:0 auto; padding:0 24px}
+h1,h2,h3{font-family:var(--disp); font-weight:700; text-wrap:balance; margin:0}
+.eyebrow{font-family:var(--disp); font-weight:600; text-transform:uppercase; letter-spacing:.13em;
+  font-size:11.5px; color:var(--ink-3)}
+code,.mono{font-family:var(--mono); font-size:.9em}
+p{margin:0 0 10px}
+
+.masthead{border-bottom:1px solid var(--rule); background:var(--paper-2)}
+.masthead .wrap{padding:34px 24px 28px; display:flex; flex-direction:column; gap:13px}
+.masthead h1{font-size:clamp(27px,4vw,40px); line-height:1.08; max-width:18ch}
+.lede{color:var(--ink-2); max-width:68ch; font-size:15px}
+.lede b{color:var(--ink); font-weight:600}
+.draftmark{display:inline-flex; align-self:flex-start; font-family:var(--disp); font-weight:600;
+  text-transform:uppercase; letter-spacing:.1em; font-size:11px; color:var(--signal);
+  border:1px solid var(--signal); background:var(--signal-bg); padding:4px 10px; border-radius:2px}
+
+section{margin-top:44px}
+.shead{margin-bottom:14px}
+.shead h2{font-size:20px; margin-bottom:5px}
+.shead p{color:var(--ink-2); font-size:13.5px; max-width:72ch; margin:0}
+.num{font-family:var(--mono); font-size:12px; color:var(--ink-3); margin-right:8px}
+
+.gate{border:1px solid var(--forest); border-left-width:4px; background:var(--forest-bg); border-radius:2px;
+  padding:16px 20px}
+.gate h3{font-size:15px; margin-bottom:7px}
+.gate p{font-size:13.5px; color:var(--ink-2); margin-bottom:8px; max-width:76ch}
+.gate p:last-child{margin-bottom:0}
+.gate b{color:var(--ink)}
+.gate .cmd{font-family:var(--mono); font-size:12px; background:var(--paper-2); border:1px solid var(--rule);
+  border-radius:2px; padding:8px 11px; display:block; margin:10px 0; overflow-x:auto; white-space:pre}
+
+/* waves */
+.waves{display:grid; grid-template-columns:repeat(6,1fr); gap:0; border:1px solid var(--rule);
+  border-radius:2px; overflow:hidden; background:var(--paper-2)}
+.wv{border-right:1px solid var(--rule); display:flex; flex-direction:column}
+.wv:last-child{border-right:0}
+.wv .h{padding:10px 12px 9px; border-bottom:1px solid var(--rule); background:var(--paper-3)}
+.wv .h .t{font-family:var(--disp); font-weight:700; text-transform:uppercase; letter-spacing:.09em;
+  font-size:11px; display:block}
+.wv .h .s{font-family:var(--mono); font-size:10.5px; color:var(--ink-3)}
+.wv .b{padding:9px 10px 13px; display:flex; flex-direction:column; gap:3px; flex:1}
+.pk{font-family:var(--mono); font-size:10.5px; padding:3px 6px; border-radius:2px; border-left:2px solid;
+  background:var(--paper-3); cursor:pointer; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.pk:hover{background:var(--paper)}
+.pk.g-data{border-left-color:var(--forest)} .pk.g-clean{border-left-color:var(--alarm)}
+.pk.g-prep{border-left-color:var(--water)} .pk.g-layer{border-left-color:var(--violet)}
+.pk.g-final{border-left-color:var(--contour)} .pk.g-verify{border-left-color:var(--stone)}
+.pk.on{outline:2px solid var(--ink); outline-offset:1px}
+.wv .par{font-size:10.5px; font-family:var(--disp); font-weight:600; text-transform:uppercase;
+  letter-spacing:.07em; color:var(--forest); padding:0 12px 10px}
+.wv.seq .par{color:var(--alarm)}
+
+/* table */
+.twrap{border:1px solid var(--rule); border-radius:2px; overflow-x:auto; background:var(--paper-2); margin-top:14px}
+table.pk-t{border-collapse:collapse; width:100%; min-width:980px; font-size:12.5px}
+table.pk-t th{font-family:var(--disp); font-weight:700; text-transform:uppercase; letter-spacing:.09em;
+  font-size:10.5px; color:var(--ink-3); text-align:left; padding:10px 12px; border-bottom:1px solid var(--rule);
+  white-space:nowrap; position:sticky; top:0; background:var(--paper-2); z-index:2}
+table.pk-t td{padding:9px 12px; border-bottom:1px solid var(--rule-2); vertical-align:top}
+table.pk-t tr:last-child td{border-bottom:0}
+table.pk-t tr.hide{display:none}
+table.pk-t tr:hover td{background:var(--paper-3)}
+.pid{font-family:var(--mono); font-size:11.5px; font-weight:500; white-space:nowrap}
+.ptitle{font-weight:600}
+.owns{font-family:var(--mono); font-size:10.5px; color:var(--ink-2); line-height:1.5}
+.owns span{display:block}
+.acc{font-size:12px; color:var(--ink-2)}
+.dep{font-family:var(--mono); font-size:10.5px; color:var(--ink-3); white-space:nowrap}
+.gtag{display:inline-block; font-family:var(--disp); font-weight:600; text-transform:uppercase;
+  letter-spacing:.07em; font-size:9.5px; padding:2px 6px; border-radius:2px; margin-top:4px}
+.gtag.g-data{background:var(--forest-bg); color:var(--forest)}
+.gtag.g-clean{background:var(--alarm-bg); color:var(--alarm)}
+.gtag.g-prep{background:var(--water-bg); color:var(--water)}
+.gtag.g-layer{background:var(--violet-bg); color:var(--violet)}
+.gtag.g-final{background:var(--contour-bg); color:var(--contour)}
+.gtag.g-verify{background:var(--stone-bg); color:var(--stone)}
+
+.filters{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px}
+.fb{font:inherit; font-size:12.5px; padding:6px 12px; border:1px solid var(--rule); border-radius:999px;
+  background:var(--paper-2); color:var(--ink-2); cursor:pointer}
+.fb[aria-pressed="true"]{background:var(--ink); color:var(--paper); border-color:var(--ink)}
+.fb:focus-visible,.pk:focus-visible{outline:2px solid var(--water); outline-offset:2px}
+
+.rule-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:12px}
+.rl{border:1px solid var(--rule); border-top:3px solid var(--water); border-radius:2px; background:var(--paper-2);
+  padding:14px 16px}
+.rl h3{font-size:13.5px; margin-bottom:6px}
+.rl p{font-size:12.5px; color:var(--ink-2); margin:0}
+.rl.warnc{border-top-color:var(--alarm)}
+
+.corr{border-left:3px solid var(--alarm); background:var(--alarm-bg); padding:14px 17px; border-radius:0 2px 2px 0}
+.corr h3{font-size:14px; margin-bottom:5px}
+.corr p{font-size:13px; color:var(--ink-2); margin:0}
+.corr b{color:var(--ink)}
+
+footer{margin-top:48px; border-top:1px solid var(--rule); padding-top:16px; color:var(--ink-3); font-size:12.5px}
+@media (max-width:1000px){ .waves{grid-template-columns:repeat(2,1fr)} .wv{border-bottom:1px solid var(--rule)} }
+@media (max-width:560px){ .waves{grid-template-columns:1fr} }
+@media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap">
+    <span class="draftmark">Plan · noch nicht begonnen</span>
+    <div class="eyebrow">Abschichtung · Umsetzung</div>
+    <h1>Dreißig Pakete, sechs Wellen</h1>
+    <p class="lede">Parallel arbeiten lässt sich nicht dadurch, dass mehr gleichzeitig angefasst wird, sondern
+      dadurch, dass <b>vorher feststeht, wem welche Datei gehört</b>. Deshalb friert Welle 0 die Schnittstellen
+      ein — Rohdatenpfade, Prep-Ausgaben, Layernamen, Produktpfade an genau einer Stelle. Danach laufen
+      <b>18 Pakete gleichzeitig</b>, ohne sich zu berühren. Jedes Paket nennt die Dateien, die es besitzt, seine
+      Abnahmebedingung und den Weg zurück.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section>
+  <div class="shead">
+    <h2><span class="num">01</span>Die eine Abnahmebedingung</h2>
+    <p>Sie gilt für jedes Paket in jeder Welle und macht paralleles Arbeiten überhaupt erst verantwortbar.</p>
+  </div>
+  <div class="gate">
+    <h3>Das Raster darf sich an genau einer Stelle ändern — und nirgends sonst</h3>
+    <p>Der Umbau ist eine Umstrukturierung, keine fachliche Änderung. Die einzige beabsichtigte inhaltliche
+      Abweichung ist der Wegfall der steirischen SAPRO-2026-Ausschlusszonen in Band 37. <b>Jede andere
+      Abweichung ist ein Fehler</b>, egal wie plausibel sie aussieht.</p>
+    <span class="cmd">für jedes Band b in 1..38:
+    if b == 37:  Differenz nur innerhalb der Steiermark zulässig
+    sonst:       bitgleich zum Referenz-TIF</span>
+    <p>Das ist mechanisch prüfbar und braucht kein Fachwissen — deshalb kann es nach jedem Paket laufen, nicht
+      erst am Ende. <b>Der schnelle Weg:</b> Wellen 1 bis 3 lassen sich gegen die vorhandenen Checkpoint-Layer
+      prüfen, indem nur die Finalisierung neu läuft. Das dauert Minuten statt Stunden. Der vollständige Lauf
+      aus Rohdaten steht einmal am Schluss in Welle 5.</p>
+  </div>
+</section>
+
+<section>
+  <div class="shead">
+    <h2><span class="num">02</span>Wellen</h2>
+    <p>Zwischen den Wellen wird synchronisiert, innerhalb einer Welle nicht. Grün heißt: alle Pakete dieser
+      Welle dürfen gleichzeitig laufen. Ein Klick auf ein Paket öffnet es in der Tabelle darunter.</p>
+  </div>
+  <div class="waves" id="waves"></div>
+</section>
+
+<section>
+  <div class="shead">
+    <h2><span class="num">03</span>Arbeitspakete</h2>
+    <p>„Besitzt" heißt: nur dieses Paket darf diese Pfade anfassen. Zwei Pakete derselben Welle teilen sich
+      niemals eine Datei — das ist die Bedingung, unter der die Parallelität hält.</p>
+  </div>
+  <div class="filters" id="filters"></div>
+  <div class="twrap">
+    <table class="pk-t">
+      <thead><tr><th>Paket</th><th>Besitzt</th><th>Braucht</th><th>Abnahme</th></tr></thead>
+      <tbody id="pkb"></tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="shead">
+    <h2><span class="num">04</span>Regeln, die die Parallelität tragen</h2>
+  </div>
+  <div class="rule-grid">
+    <div class="rl">
+      <h3>Ein Pfad, ein Besitzer</h3>
+      <p>Jeder Pfad im Repo steht in genau einem Paket. Wer eine Datei anfassen will, die ihm nicht gehört,
+        meldet das, statt sie zu ändern — sonst entstehen genau die stillen Überschreibungen, die dieses Repo
+        ohnehin plagen.</p>
+    </div>
+    <div class="rl">
+      <h3>Der Vertrag wird gelesen, nicht kopiert</h3>
+      <p>Nach Welle 0 kommt kein Pfad und kein Layername mehr als Literal in ein Skript. Wer einen braucht,
+        importiert ihn. Damit ändert eine Umbenennung genau eine Datei statt fünfzehn.</p>
+    </div>
+    <div class="rl">
+      <h3>Ein Zweig je Paket</h3>
+      <p>Achtzehn gleichzeitige Pakete in einem Arbeitsverzeichnis kollidieren auch bei sauberer
+        Pfadaufteilung — an <code>uv.lock</code>, an <code>Makefile</code>, an der Zeilenzählung.
+        Je Paket ein eigener Zweig oder ein eigenes Worktree, Zusammenführung an der Wellengrenze.</p>
+    </div>
+    <div class="rl warnc">
+      <h3>Kein Paket ändert Zahlen</h3>
+      <p>Puffer, Schwellwerte, Klassifikationen bleiben, wie sie sind — auch wo sie fragwürdig aussehen.
+        Wer beim Umbau eine fachliche Auffälligkeit findet, schreibt sie auf und ändert sie nicht.
+        Sonst ist am Ende nicht mehr unterscheidbar, ob eine Abweichung Umbau oder Absicht war.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shead"><h2><span class="num">05</span>Eine Annahme, die nicht stimmte</h2></div>
+  <div class="corr">
+    <h3>Hardlinks blockieren das Löschen nicht</h3>
+    <p>Ich hatte angenommen, in <code>data/</code> dürfe erst gelöscht werden, wenn die Hardlinks aufgelöst
+      sind. Das ist falsch: <code>rm</code> entfernt nur einen Verzeichniseintrag, der Inode überlebt, solange
+      der zweite Name im Vorgängerprojekt existiert. <b>Gefährlich ist allein das Überschreiben an Ort und
+      Stelle.</b> Damit sind Löschen (W1.2) und Auflösen (W1.3) voneinander unabhängig und laufen in derselben
+      Welle — die Abhängigkeit, die ich zuerst gesehen hatte, gibt es nicht.</p>
+  </div>
+</section>
+
+<footer>
+  <div>Plan vom 7. September 2026, abgeleitet aus dem belegten Datenflussgraphen unter
+    <code>docs/dataflow/</code> und dem Zielbild unter <code>docs/rewrite/</code>.
+    Noch nicht begonnen: kein Paket angefangen, keine Datei außerhalb von <code>docs/</code> geändert.</div>
+</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var P = [
+    // Welle 0
+    {id:"W0.1", w:0, g:"data", t:"Rohdaten nach Thema sortieren",
+     owns:["data/** (nur Verschiebungen)","windkraft/calc/wind_zones.py (hartkodierte Pfade)"],
+     dep:"—",
+     acc:"Alte Kette läuft unverändert; Finalisierung aus vorhandenen Layern liefert bitgleiches TIF."},
+    {id:"W0.2", w:0, g:"data", t:"Pfadvertrag anlegen",
+     owns:["pipeline/contract.py (neu)","config.json"],
+     dep:"W0.1",
+     acc:"Jeder Rohpfad, jede Prep-Ausgabe, jeder Layername und jeder Produktpfad ist genau einmal deklariert und importierbar."},
+    {id:"W0.3", w:0, g:"data", t:"Verzeichnisgerüst und Make-Ziele",
+     owns:["build/ out/ pipeline/ (neu)",".gitignore","Makefile"],
+     dep:"W0.2",
+     acc:"make · make prep · make all · make test existieren; make läuft die heutige Kette unverändert."},
+    // Welle 1 — Datenseite
+    {id:"W1.1", w:1, g:"clean", t:"Adress-Cache-Weiche entfernen",
+     owns:["windkraft/calc/bev_register.py"], dep:"W0.3",
+     acc:"cache_dir wirkt tatsächlich; Cache landet unter build/, nicht in data/."},
+    {id:"W1.2", w:1, g:"clean", t:"Tote Daten löschen",
+     owns:["data/osm_power_lines.gpkg","data/windkraftzonen_shapefile_2024.json","data/…/Aktualitaetsstand.txt","data/…/.claude/","data/WINDKRAFT_AUSSCHLUSSZONE.zip","data/README.md"],
+     dep:"W0.3", acc:"Sechs Pfade weg; TIF unverändert (keiner erreichte ein Band)."},
+    {id:"W1.3", w:1, g:"data", t:"Hardlinks auflösen",
+     owns:["data/** (nur Inodes, kein Inhalt)"], dep:"W0.3",
+     acc:"find data -type f -links +1 liefert nichts; Prüfsummen vorher/nachher identisch; ~13 GB mehr belegt."},
+    {id:"W1.4", w:1, g:"clean", t:"Wächter für Rohdaten",
+     owns:["tools/check_raw_only.py (neu)","tools/check_hardlink_safety.py"], dep:"W0.3",
+     acc:"Bricht ab, wenn in data/ etwas Abgeleitetes liegt oder eine Datei Link-Count > 1 hat."},
+    {id:"W1.5", w:1, g:"clean", t:"Tote Skripte löschen",
+     owns:["scripts/webmap/build_layer_viewer.py","scripts/analysis/build_v2_dashboard_data.py","scripts/noe/derive_pdf_hig_sources.py"],
+     dep:"W0.3", acc:"Kein Verweis mehr im Repo; Kette läuft unverändert."},
+    {id:"W1.6", w:1, g:"clean", t:"NÖ-PDF-HiG-Sackgasse entfernen",
+     owns:["scripts/widmung_v2/02_build_hig_sources.py","windkraft/calc/hig_source_masks.py"],
+     dep:"W0.3",
+     acc:"Checkpoint und harte Vorbedingung sind weg; TIF bitgleich — der Layer erreichte nachweislich kein Band."},
+    {id:"W1.7", w:1, g:"clean", t:"Ausschlusszonen entfernen",
+     owns:["windkraft/calc/wind_zones.py"], dep:"W0.1",
+     acc:"Stmk2026Aus und die AUSSCHLUSSZONE-Registrierung sind weg. Einzige zulässige Bandänderung: Band 37 in der Steiermark."},
+    {id:"W1.8", w:1, g:"clean", t:"Paketmetadaten bereinigen",
+     owns:["pyproject.toml"], dep:"W0.3",
+     acc:"Toter Entry-Point weg; PyMuPDF harte Abhängigkeit; Paket installierbar, sodass sys.path-Präambeln entfallen können."},
+    {id:"W1.9", w:1, g:"clean", t:"Doku-Widersprüche korrigieren",
+     owns:["README.md"], dep:"W0.3",
+     acc:"Status stimmt; die Behauptung, die Kataster-Kette laufe nur im Altrepo, ist entfernt."},
+    // Welle 1 — Prep-Domänen
+    {id:"W1.P1", w:1, g:"prep", t:"Prep: Verwaltungsgrenzen",
+     owns:["pipeline/prep/admin.py"], dep:"W0.2",
+     acc:"build/prep/admin/ enthält Gemeinden und Bundesländer in EPSG:31287; Fingerabdruck der Eingänge geschrieben."},
+    {id:"W1.P2", w:1, g:"prep", t:"Prep: Kataster",
+     owns:["pipeline/prep/kataster/","scripts/preprocessing/* (Umzug)"], dep:"W0.2",
+     acc:"Geoparquet aus Rohdaten; Vorabprüfung mit einem Bundesland, dann voller Lauf. Feldschema identisch zum bestehenden."},
+    {id:"W1.P3", w:1, g:"prep", t:"Prep: Adressregister",
+     owns:["pipeline/prep/adressen.py"], dep:"W0.2, W1.1",
+     acc:"Parquets unter build/prep/adressen/; Zeilenzahl identisch zum bisherigen Cache."},
+    {id:"W1.P4", w:1, g:"prep", t:"Prep: Flächenwidmung",
+     owns:["pipeline/prep/widmung.py"], dep:"W0.2",
+     acc:"Drei Bündel als GeoPackage; Featurezahl je Bundesland identisch zum heutigen Zwischenstand."},
+    {id:"W1.P5", w:1, g:"prep", t:"Prep: OSM, zwei Stufen",
+     owns:["pipeline/prep/osm/"], dep:"W0.2",
+     acc:"Extraktion und Layerableitung getrennt; osmium als harte Vorbedingung statt stillem Fallback."},
+    {id:"W1.P6", w:1, g:"prep", t:"Prep: Gelände und Wind",
+     owns:["pipeline/prep/terrain.py"], dep:"W0.2",
+     acc:"Nur Durchreichen und Gitterprüfung — kein Resampling. Bricht ab, wenn Gitter oder CRS abweichen."},
+    {id:"W1.P7", w:1, g:"prep", t:"Prep: Naturschutz",
+     owns:["pipeline/prep/natur.py"], dep:"W0.2",
+     acc:"Schutzgebiete aus dem ZIP entpackt und reprojiziert; Featurezahl identisch."},
+    {id:"W1.P8", w:1, g:"prep", t:"Prep: Windzonen",
+     owns:["pipeline/prep/zonen.py"], dep:"W0.2, W1.7",
+     acc:"Alle verbleibenden Zonenquellen als harte Vorbedingung — kein stiller Ausfall mehr bei fehlender Datei."},
+    {id:"W1.P9", w:1, g:"prep", t:"Prep: NÖ-SekROP-PDF, zwei Stufen",
+     owns:["pipeline/prep/noe/","scripts/noe/* (Umzug)"], dep:"W0.2",
+     acc:"Alignment und Vektorisierung getrennt; erzeugte GeoJSON deckungsgleich mit den bestehenden."},
+    // Welle 2
+    {id:"W2.1", w:2, g:"layer", t:"Layer: Widmung",
+     owns:["pipeline/layers/widmung.py"], dep:"Welle 1",
+     acc:"Erzeugte Layer bitgleich zu den bestehenden Checkpoints."},
+    {id:"W2.2", w:2, g:"layer", t:"Layer: Häuser im Grünen",
+     owns:["pipeline/layers/hig.py"], dep:"Welle 1",
+     acc:"Bitgleich; die NÖ-Ausmaskierung bleibt unverändert erhalten."},
+    {id:"W2.3", w:2, g:"layer", t:"Layer: OSM und Infrastruktur",
+     owns:["pipeline/layers/osm.py"], dep:"Welle 1",
+     acc:"Bitgleich; Wiederaufsetzen überspringt vorhandene Layer nachweislich korrekt."},
+    // Welle 3
+    {id:"W3.1", w:3, g:"final", t:"Finalisierung und Manifest-Vertrag",
+     owns:["pipeline/finalize.py","windkraft/calc/band_manifest.py"], dep:"Welle 2",
+     acc:"38 Bänder, Manifest mit Nummer, Name, Rolle, Puffer und Quelle je Band; Schema versioniert."},
+    {id:"W3.2", w:3, g:"final", t:"Validierung",
+     owns:["pipeline/validate.py"], dep:"W3.1",
+     acc:"Prüft das TIF gegen sein eigenes Manifest und gegen die Referenz — die Abnahmebedingung aus Abschnitt 1 als Kommando."},
+    // Welle 4
+    {id:"W4.1", w:4, g:"verify", t:"Dashboard neu",
+     owns:["pipeline/verify/dashboard.py","out/dashboard/"], dep:"W3.1",
+     acc:"Liest ausschließlich das Manifest; keine Bandnamen im Code. Läuft gegen ein Manifest mit geänderter Bandzahl ohne Anpassung."},
+    {id:"W4.2", w:4, g:"verify", t:"Gemeindegrenzen-Export",
+     owns:["pipeline/verify/gemeinden.py","out/gemeinden.geojson"], dep:"W1.P1",
+     acc:"Grenzen im Rasterbezug; Deckungsabweichung gegen das TIF ausgewiesen und unter Schwellwert."},
+    {id:"W4.3", w:4, g:"verify", t:"Tests verdrahten",
+     owns:["tests/**","Makefile (nur das test-Ziel)"], dep:"Welle 3",
+     acc:"make test läuft die acht vorhandenen Tests plus die neuen Vertragstests; grün."},
+    // Welle 5
+    {id:"W5.1", w:5, g:"verify", t:"Beweislauf aus Rohdaten",
+     owns:["— (nur Ausführung)"], dep:"Wellen 0–4",
+     acc:"rm -rf build && make all erzeugt das TIF vollständig neu; Abnahmebedingung erfüllt; Laufzeiten je Stufe protokolliert."}
+  ];
+  var WV = [
+    {n:0, t:"Schnittstellen", s:"3 Pakete", par:false},
+    {n:1, t:"Breite Arbeit", s:"18 Pakete", par:true},
+    {n:2, t:"Layer", s:"3 Pakete", par:true},
+    {n:3, t:"Finalisierung", s:"2 Pakete", par:false},
+    {n:4, t:"Prüfung", s:"3 Pakete", par:true},
+    {n:5, t:"Beweis", s:"1 Paket", par:false}
+  ];
+  var GN = {data:"Daten", clean:"Aufräumen", prep:"Prep", layer:"Layer", final:"Finalisierung", verify:"Prüfung"};
+
+  document.getElementById("waves").innerHTML = WV.map(function(w){
+    var items = P.filter(function(p){ return p.w === w.n; });
+    return '<div class="wv' + (w.par ? "" : " seq") + '"><div class="h"><span class="t">Welle ' + w.n +
+      ' · ' + w.t + '</span><span class="s">' + w.s + '</span></div><div class="b">' +
+      items.map(function(p){
+        return '<button class="pk g-' + p.g + '" data-id="' + p.id + '" title="' + p.t + '">' +
+          p.id + '  ' + p.t + '</button>';
+      }).join("") + '</div><div class="par">' + (w.par ? "gleichzeitig" : "nacheinander") + '</div></div>';
+  }).join("");
+
+  var tb = document.getElementById("pkb");
+  tb.innerHTML = P.map(function(p){
+    return '<tr data-id="' + p.id + '" data-w="' + p.w + '">' +
+      '<td><span class="pid">' + p.id + '</span><br><span class="ptitle">' + p.t + '</span><br>' +
+        '<span class="gtag g-' + p.g + '">' + GN[p.g] + '</span></td>' +
+      '<td class="owns">' + p.owns.map(function(o){ return '<span>' + o + '</span>'; }).join("") + '</td>' +
+      '<td class="dep">' + p.dep + '</td>' +
+      '<td class="acc">' + p.acc + '</td></tr>';
+  }).join("");
+
+  var fl = document.getElementById("filters");
+  fl.innerHTML = '<button class="fb" data-w="all" aria-pressed="true">alle 30</button>' +
+    WV.map(function(w){ return '<button class="fb" data-w="' + w.n + '" aria-pressed="false">Welle ' + w.n +
+      '</button>'; }).join("");
+  fl.addEventListener("click", function(e){
+    var b = e.target.closest(".fb"); if (!b) return;
+    Array.prototype.forEach.call(fl.querySelectorAll(".fb"), function(x){ x.setAttribute("aria-pressed","false"); });
+    b.setAttribute("aria-pressed","true");
+    var w = b.dataset.w;
+    Array.prototype.forEach.call(tb.querySelectorAll("tr"), function(tr){
+      tr.classList.toggle("hide", w !== "all" && tr.dataset.w !== w);
+    });
+  });
+
+  document.getElementById("waves").addEventListener("click", function(e){
+    var b = e.target.closest(".pk"); if (!b) return;
+    Array.prototype.forEach.call(document.querySelectorAll(".pk"), function(x){ x.classList.remove("on"); });
+    b.classList.add("on");
+    Array.prototype.forEach.call(fl.querySelectorAll(".fb"), function(x){ x.setAttribute("aria-pressed","false"); });
+    fl.querySelector('.fb[data-w="all"]').setAttribute("aria-pressed","true");
+    Array.prototype.forEach.call(tb.querySelectorAll("tr"), function(tr){ tr.classList.remove("hide"); });
+    var row = tb.querySelector('tr[data-id="' + b.dataset.id + '"]');
+    if (row) row.scrollIntoView({block:"center",
+      behavior: matchMedia("(prefers-reduced-motion:reduce)").matches ? "auto" : "smooth"});
+  });
+})();
+</script>
+</body>
+</html>

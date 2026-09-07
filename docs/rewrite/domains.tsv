@@ -1,0 +1,10 @@
+domain	raw_sources	raw_size	prep_steps	layers	bands	note
+Verwaltungsgrenzen	VGD 50 generalisiert (BEV)		1:admin	bundesland_masken;gemeinden	alle indirekt · out/gemeinden.geojson	Basis für die bundeslandweisen Puffer und für die neue Deckungsprüfung.
+Kataster	8 × DKM-SHP-ZIP + NÖ-DXF + Symbol-CSV	7,8 GB	1:kataster/a_noe_polygonize;2:kataster/b_export_parquet	nonresidential_hulls_source;general_buildings_source;hig_hulls_source;bewohnt_einzellage_source	8–13	NÖ liefert nur Linienwerk; die Polygone werden per Kachelung und Mehrheitsvotum rekonstruiert. Teuerste Stufe der Kette.
+Adressregister	BEV Adresse, Stichtagsdaten	484 MB	1:adressen	hig_hulls_source	12–13	Speist die Streusiedlungserkennung: ≥5 adressierte Objekte in 200-m-Verkettung ergeben eine Hülle.
+Flächenwidmung	9 Bundesland-Quellen, GPKG und SHP	1,6 GB	1:widmung	official_settlement_source;official_hig_source;ferienhaus_tourismus_source	1–5	Niederösterreich ist das einzige Land mit 1200 m Siedlungspuffer statt 1000 m.
+OSM	austria.osm.pbf	760 MB	1:osm/a_extract;2:osm/b_layers	roads;rail;cableway;water_bodies;nature_osm;military;airport;wka_bestand	14–22, 26, 38	Zwei Stufen, weil die osmium-Extraktion teuer ist und die Layer-Ableitung oft wiederholt wird.
+Gelände & Wind	DGM_R25, Leistungsdichte 150 m	757 MB		geography_slope;geography_elevation;geography_wind	23–25	Bereits Raster im Zielgitter — kein Prep nötig, direkt in die Layer-Stufe.
+Naturschutz	Schutzgebiete Österreich 2024	73 MB	1:natur	nature_protection_areas	21	Amtliche Quelle; Band 22 stammt aus OSM und dient dem Abgleich.
+Windzonen	luca_zonen, Eignungszonen, RED III, zonierung_noe	4,9 MB	1:zonen	—	37	Referenzband, geht nicht in die Abschichtung ein. Die steirischen Positivzonen bleiben erhalten (luca_zonen/Stmk.shp); die SAPRO-2026-Ausschlusszonen entfallen laut Entscheidung. Die beiden Quellen, die heute bei Fehlen still ausfallen, werden zur harten Vorbedingung.
+NÖ SekROP-PDF	Sektorales Raumordnungsprogramm, PDF-Karte	16,6 MB	1:noe/a_align;2:noe/b_vectorize	noe_pdf_750m_zones	6–7	Trägt in Niederösterreich allein den 750-m-Abstand; die Kataster-Hüllen sind dort ausmaskiert.

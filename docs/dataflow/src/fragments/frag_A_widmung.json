@@ -1,0 +1,2314 @@
+{
+  "nodes": [
+    {
+      "id": "scripts/widmung_v2/01_build_official_zoning_layers.py",
+      "kind": "script",
+      "layer": "code",
+      "path": "scripts/widmung_v2/01_build_official_zoning_layers.py",
+      "label": "01 build_official_zoning_layers",
+      "raw_class": "code",
+      "notes": "Stufe 1: fasst 9 amtliche Widmungsquellen zu 3 Buckets zusammen (wohn_misch, haeuser_im_gruenen, industrie_negativ)."
+    },
+    {
+      "id": "scripts/widmung_v2/02_build_hig_sources.py",
+      "kind": "script",
+      "layer": "code",
+      "path": "scripts/widmung_v2/02_build_hig_sources.py",
+      "label": "02 build_hig_sources",
+      "raw_class": "code",
+      "notes": "Stufe 2: HiG-Quellen (Widmung+NÖ-PDF+DKM-Huellen+BEV) -> 8 Checkpoint-Raster + hig_huellen.gpkg."
+    },
+    {
+      "id": "scripts/widmung_v2/03_build_osm_layers.py",
+      "kind": "script",
+      "layer": "code",
+      "path": "scripts/widmung_v2/03_build_osm_layers.py",
+      "label": "03 build_osm_layers",
+      "raw_class": "code",
+      "notes": "Stufe 3: OSM-Restgebaeude (cableway/general) + Infrastruktur- + Flughafenmasken."
+    },
+    {
+      "id": "scripts/widmung_v2/04_create_distance_zones.py",
+      "kind": "script",
+      "layer": "code",
+      "path": "scripts/widmung_v2/04_create_distance_zones.py",
+      "label": "04 create_distance_zones",
+      "raw_class": "code",
+      "notes": "Stufe 4: Puffer/Aggregate + Nature/Geography/Water/Zoning-Masken -> finales Multiband-GeoTIFF + .bands.json."
+    },
+    {
+      "id": "scripts/widmung_v2/05_validate.py",
+      "kind": "script",
+      "layer": "code",
+      "path": "scripts/widmung_v2/05_validate.py",
+      "label": "05 validate",
+      "raw_class": "code",
+      "notes": "Stufe 5: Testpunkt-Validierung gegen Checkpoints ODER fertiges GeoTIFF. Importiert NICHTS aus windkraft (nur rasterio)."
+    },
+    {
+      "id": "windkraft/calc/abschichtung_common.py",
+      "kind": "module",
+      "layer": "code",
+      "path": "windkraft/calc/abschichtung_common.py",
+      "label": "abschichtung_common",
+      "raw_class": "code",
+      "notes": "Zentrales Hub-Modul: Konstanten, Checkpoint-System (layer_path/layer_done/ensure_group_layers), Masken-Builder, compose_exclusion_geotiff."
+    },
+    {
+      "id": "windkraft/calc/widmung_sources.py",
+      "kind": "module",
+      "layer": "code",
+      "path": "windkraft/calc/widmung_sources.py",
+      "label": "widmung_sources",
+      "raw_class": "code",
+      "notes": "Registry der 9 Bundesland-Widmungsquellen (DATASETS/SOURCES), Reader + Matching."
+    },
+    {
+      "id": "windkraft/calc/hig_source_masks.py",
+      "kind": "module",
+      "layer": "code",
+      "path": "windkraft/calc/hig_source_masks.py",
+      "label": "hig_source_masks",
+      "raw_class": "code",
+      "notes": "Rastermasken der amtlichen HiG-Quellen (Stufe A): zoning_masks, noe_pdf_mask, noe_pdf_source_mask."
+    },
+    {
+      "id": "windkraft/calc/hig_detection.py",
+      "kind": "module",
+      "layer": "code",
+      "path": "windkraft/calc/hig_detection.py",
+      "label": "hig_detection",
+      "raw_class": "code",
+      "notes": "DKM-Scan + Huellenbildung + Klassifikation (Stufen B/C der HiG-Erkennung)."
+    },
+    {
+      "id": "windkraft/calc/bev_register.py",
+      "kind": "module",
+      "layer": "code",
+      "path": "windkraft/calc/bev_register.py",
+      "label": "bev_register",
+      "raw_class": "code",
+      "notes": "BEV-Adressregister-Loader (ADRESSE.csv/GEBAEUDE.csv) mit Parquet-Cache."
+    },
+    {
+      "id": "windkraft/calc/streusiedlung.py",
+      "kind": "module",
+      "layer": "code",
+      "path": "windkraft/calc/streusiedlung.py",
+      "label": "streusiedlung",
+      "raw_class": "code",
+      "notes": "Parametrisierte Huellen-Varianten fuer Sweeps; liefert chain_hull_params() an 02."
+    },
+    {
+      "id": "windkraft/calc/distance_engine.py",
+      "kind": "module",
+      "layer": "code",
+      "path": "windkraft/calc/distance_engine.py",
+      "label": "distance_engine",
+      "raw_class": "code",
+      "notes": "FFT-basierte Kreis-Dilation (fft_circle_dilation), Distanzkern der ganzen Kette."
+    },
+    {
+      "id": "windkraft/calc/band_manifest.py",
+      "kind": "module",
+      "layer": "code",
+      "path": "windkraft/calc/band_manifest.py",
+      "label": "band_manifest",
+      "raw_class": "code",
+      "notes": "Baut/schreibt das .bands.json-Sidecar aus band_names+tags von 04."
+    },
+    {
+      "id": "windkraft/calc/wind_zones.py",
+      "kind": "module",
+      "layer": "code",
+      "path": "windkraft/calc/wind_zones.py",
+      "label": "wind_zones",
+      "raw_class": "code",
+      "notes": "Registry amtlicher Windzonen je Bundesland (load_wind_zones), inkl. hartkodierter Pfade."
+    },
+    {
+      "id": "windkraft/config.py",
+      "kind": "module",
+      "layer": "code",
+      "path": "windkraft/config.py",
+      "label": "config",
+      "raw_class": "code",
+      "notes": "load_config(): liest config.json, loest paths.* relativ zur Config-Datei auf."
+    },
+    {
+      "id": "windkraft/viz/band_metadata.py",
+      "kind": "module",
+      "layer": "code",
+      "path": "windkraft/viz/band_metadata.py",
+      "label": "band_metadata",
+      "raw_class": "code",
+      "notes": "Farben/Kategorien/Default-Sichtbarkeit je Bandname; reine Konstanten, kein Datei-I/O."
+    },
+    {
+      "id": "config.json",
+      "kind": "file",
+      "layer": "config",
+      "path": "config.json",
+      "label": "config.json",
+      "raw_class": "manual",
+      "notes": "Zentrale Konfiguration; paths.* werden von windkraft.config.load_config() relativ zur Datei aufgeloest."
+    },
+    {
+      "id": "config_key:paths.vgd",
+      "kind": "config_key",
+      "layer": "config",
+      "path": null,
+      "label": "paths.vgd",
+      "raw_class": "manual",
+      "notes": "Loest auf zu data/admin_boundaries/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp."
+    },
+    {
+      "id": "config_key:paths.osm_dir",
+      "kind": "config_key",
+      "layer": "config",
+      "path": null,
+      "label": "paths.osm_dir",
+      "raw_class": "manual",
+      "notes": "Loest auf zu data/austria-260328-free.shp (Verzeichnis mit Legacy-Shapefiles); nur Fallback, s.u."
+    },
+    {
+      "id": "config_key:paths.dgm",
+      "kind": "config_key",
+      "layer": "config",
+      "path": null,
+      "label": "paths.dgm",
+      "raw_class": "manual",
+      "notes": "Loest auf zu data/DGM_R25.tif; Grid-Template (CRS/Transform/Shape) fuer load_grid()."
+    },
+    {
+      "id": "config_key:paths.wind_pd_150",
+      "kind": "config_key",
+      "layer": "config",
+      "path": null,
+      "label": "paths.wind_pd_150",
+      "raw_class": "manual",
+      "notes": "Loest auf zu data/AUT_power-density_150m.tif; Windhoeffigkeitsschwelle."
+    },
+    {
+      "id": "config_key:paths.nsg_zip",
+      "kind": "config_key",
+      "layer": "config",
+      "path": null,
+      "label": "paths.nsg_zip",
+      "raw_class": "manual",
+      "notes": "Loest auf zu data/naturschutzgebiete/SG_AT_2024_v_April_Stand_3_April_2024.zip; zusammen mit paths.nsg_gpkg (innerer Dateiname) + paths.nsg_layers (4 Layer NP/NSG/ESG/RAMSAR_AT_2024)."
+    },
+    {
+      "id": "config_key:paths.powerlines_gpkg",
+      "kind": "config_key",
+      "layer": "config",
+      "path": null,
+      "label": "paths.powerlines_gpkg",
+      "raw_class": "manual",
+      "notes": "Loest auf zu data/osm_power_lines.gpkg; NUR Fallback wenn --osm-pbf fehlt (mit Default-PBF unwirksam) UND power_380_400kv wird seit Clean-Schema ohnehin nicht mehr in v2 gespeichert."
+    },
+    {
+      "id": "config_key:buffers.major_airport_osm_ids",
+      "kind": "config_key",
+      "layer": "config",
+      "path": null,
+      "label": "buffers.major_airport_osm_ids",
+      "raw_class": "manual",
+      "notes": "6 OSM-IDs der Hauptflughaefen; steuert Auswahl in build_airport_corridor_masks()."
+    },
+    {
+      "id": "data/admin_boundaries/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp",
+      "kind": "file",
+      "layer": "raw",
+      "path": "data/admin_boundaries/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp",
+      "label": "VGD Verwaltungsgrenzen",
+      "raw_class": "manual",
+      "notes": "Bundesland-/Staatsgrenzen (admin_boundaries(), valid_area, BL-Zuordnung)."
+    },
+    {
+      "id": "data/austria-260328-free.shp",
+      "kind": "dir",
+      "layer": "raw",
+      "path": "data/austria-260328-free.shp",
+      "label": "OSM Legacy-Shapefiles (osm_dir)",
+      "raw_class": "manual",
+      "notes": "Fallback-Pfad in osm_layer_path(); wird NUR genutzt wenn --osm-pbf fehlt/nicht existiert. Mit dem vorhandenen data/austria-260330.osm.pbf aktuell unwirksam."
+    },
+    {
+      "id": "data/DGM_R25.tif",
+      "kind": "file",
+      "layer": "raw",
+      "path": "data/DGM_R25.tif",
+      "label": "Digitales Geländemodell 25m",
+      "raw_class": "manual",
+      "notes": "Grid-Template + Hangneigung/Seehoehe (build_geography_masks)."
+    },
+    {
+      "id": "data/AUT_power-density_150m.tif",
+      "kind": "file",
+      "layer": "raw",
+      "path": "data/AUT_power-density_150m.tif",
+      "label": "Windleistungsdichte 150m",
+      "raw_class": "manual",
+      "notes": "geography_wind_too_low Schwelle."
+    },
+    {
+      "id": "data/naturschutzgebiete/SG_AT_2024_v_April_Stand_3_April_2024.zip",
+      "kind": "file",
+      "layer": "raw",
+      "path": "data/naturschutzgebiete/SG_AT_2024_v_April_Stand_3_April_2024.zip",
+      "label": "Schutzgebiete AT 2024",
+      "raw_class": "manual",
+      "notes": "ZIP mit SG_AT_2024_v_April.gpkg, Layer NP/NSG/ESG/RAMSAR_AT_2024 -> nature_protection_areas."
+    },
+    {
+      "id": "data/osm_power_lines.gpkg",
+      "kind": "file",
+      "layer": "raw",
+      "path": "data/osm_power_lines.gpkg",
+      "label": "OSM Stromleitungen (GPKG)",
+      "raw_class": "manual",
+      "notes": "Fallback fuer power_380_400kv wenn kein OSM-PBF vorhanden; Band seit Clean-Schema ohnehin nicht mehr in v2-Output."
+    },
+    {
+      "id": "data/austria-260330.osm.pbf",
+      "kind": "file",
+      "layer": "raw",
+      "path": "data/austria-260330.osm.pbf",
+      "label": "OSM Geofabrik Extrakt Oesterreich",
+      "raw_class": "manual",
+      "notes": "Zentrale Rohquelle fuer buildings/windpower/aerialways/roads/railways/military/transport/nature/water/powerlines via osmium-Extraktion in output/abschichtung/osm_pbf_layers."
+    },
+    {
+      "id": "data/zonierung_noe.json",
+      "kind": "file",
+      "layer": "raw",
+      "path": "data/zonierung_noe.json",
+      "label": "Amtliche NÖ-Windkraftzonierung (71 Zonen)",
+      "raw_class": "manual",
+      "notes": "Default fuer --official-zoning-geojson; official_wind_zoning Referenzband."
+    },
+    {
+      "id": "data/luca_zonen/Stmk.shp",
+      "kind": "file",
+      "layer": "raw",
+      "path": "data/luca_zonen/Stmk.shp",
+      "label": "Stmk Vorrang-/Eignungszonen (handdigitalisiert)",
+      "raw_class": "manual",
+      "notes": "ueber --vorrangzonen-dir (Default data/luca_zonen) + wind_zones.WIND_ZONE_SOURCES key=Stmk."
+    },
+    {
+      "id": "data/luca_zonen/Sbg.shp",
+      "kind": "file",
+      "layer": "raw",
+      "path": "data/luca_zonen/Sbg.shp",
+      "label": "Sbg Vorrangzonen (handdigitalisiert)",
+      "raw_class": "manual",
+      "notes": "wie Stmk.shp, key=Sbg."
+    },
+    {
+      "id": "data/WK_Eignungszonen.zip",
+      "kind": "file",
+      "layer": "raw",
+      "path": "data/WK_Eignungszonen.zip",
+      "label": "Bgld Eignungs-/Ausschlusszonen",
+      "raw_class": "manual",
+      "notes": "Hartkodierter Pfad in wind_zones.py (WindZoneSource key=Bgld), NICHT per CLI ueberschreibbar; fehlt die Datei, wird die Quelle still uebersprungen (nur Warnung)."
+    },
+    {
+      "id": "data/RED_III_Windkraftbeschleunigungszone.zip",
+      "kind": "file",
+      "layer": "raw",
+      "path": "data/RED_III_Windkraftbeschleunigungszone.zip",
+      "label": "Ktn RED-III-Beschleunigungszonen",
+      "raw_class": "manual",
+      "notes": "Hartkodierter Pfad in wind_zones.py (key=RED3), NICHT per CLI ueberschreibbar; gleiches Silent-Skip-Risiko wie Bgld."
+    },
+    {
+      "id": "data/new_widmungs_data/niederoesterreich/RRU_WI_HUELLE.gpkg",
+      "kind": "file",
+      "layer": "raw",
+      "path": "data/new_widmungs_data/niederoesterreich/RRU_WI_HUELLE.gpkg",
+      "label": "NÖ Flächenwidmung RRU_WI_HUELLE",
+      "raw_class": "manual",
+      "notes": "WI_ART-Spalte -> noe_wohn/noe_hofstelle/noe_camping/noe_kleingarten."
+    },
+    {
+      "id": "data/new_widmungs_data/oberoesterreich/FLWI_WIDMUNGEN_F.zip",
+      "kind": "file",
+      "layer": "raw",
+      "path": "data/new_widmungs_data/oberoesterreich/FLWI_WIDMUNGEN_F.zip",
+      "label": "OÖ Flächenwidmung",
+      "raw_class": "manual",
+      "notes": "KENNZAHL-Spalte."
+    },
+    {
+      "id": "data/new_widmungs_data/salzburg/Flaechenwidmung_Shapefile.zip",
+      "kind": "file",
+      "layer": "raw",
+      "path": "data/new_widmungs_data/salzburg/Flaechenwidmung_Shapefile.zip",
+      "label": "Sbg Flächenwidmung",
+      "raw_class": "manual",
+      "notes": "Typname-Spalte."
+    },
+    {
+      "id": "data/new_widmungs_data/steiermark/Bauland.zip",
+      "kind": "file",
+      "layer": "raw",
+      "path": "data/new_widmungs_data/steiermark/Bauland.zip",
+      "label": "Stmk Bauland (wohn/misch/industrie)",
+      "raw_class": "manual",
+      "notes": "KATEGO/GRUPPE_4-Spalten."
+    },
+    {
+      "id": "data/flächenwidmungen/Flaewi.shp.zip",
+      "kind": "file",
+      "layer": "raw",
+      "path": "data/flächenwidmungen/Flaewi.shp.zip",
+      "label": "Stmk FWP_NUTZ (Grünland/Freizeit)",
+      "raw_class": "manual",
+      "notes": "Layer FWP_NUTZ, EPSG:4258, 645k Features, ~410MB - einzige Ausnahme von der new_widmungs_data-only-Regel (Auffuellungsgebiet/Kleingarten/Camping-Codes fehlen in Bauland.zip)."
+    },
+    {
+      "id": "data/new_widmungs_data/kaernten/flawi_ktn_gpkg.zip",
+      "kind": "file",
+      "layer": "raw",
+      "path": "data/new_widmungs_data/kaernten/flawi_ktn_gpkg.zip",
+      "label": "Ktn Flächenwidmung (WIDG)",
+      "raw_class": "manual",
+      "notes": "Wird lokal in _cache/flawi_ktn_gpkg.gpkg extrahiert (Performance)."
+    },
+    {
+      "id": "data/new_widmungs_data/tirol/FLW_Flaechenwidmung_*.gpkg",
+      "kind": "file",
+      "layer": "raw",
+      "path": "data/new_widmungs_data/tirol/FLW_Flaechenwidmung_*.gpkg",
+      "label": "Tirol Flächenwidmung (Glob-Pattern)",
+      "raw_class": "manual",
+      "notes": "_tirol_gpkg() nimmt das erste sortierte Match des Glob-Patterns."
+    },
+    {
+      "id": "data/new_widmungs_data/vorarlberg/fwp_flaeche.gpkg",
+      "kind": "file",
+      "layer": "raw",
+      "path": "data/new_widmungs_data/vorarlberg/fwp_flaeche.gpkg",
+      "label": "Vbg Flächenwidmung",
+      "raw_class": "manual",
+      "notes": "wi_em_txt-Spalte (Freitext, Regex-Matching)."
+    },
+    {
+      "id": "data/new_widmungs_data/wien/genflwidmung_wien.geojson",
+      "kind": "file",
+      "layer": "raw",
+      "path": "data/new_widmungs_data/wien/genflwidmung_wien.geojson",
+      "label": "Wien generalisierte Flächenwidmung (WFS GENFLWIDMUNGOGD)",
+      "raw_class": "manual",
+      "notes": "Seit 2026-07-29; ersetzt frueheren Wien-Vollausschluss."
+    },
+    {
+      "id": "data/flächenwidmungen/WIDMUNGSFLAECHEN.zip",
+      "kind": "file",
+      "layer": "raw",
+      "path": "data/flächenwidmungen/WIDMUNGSFLAECHEN.zip",
+      "label": "Bgld Flächenwidmung",
+      "raw_class": "manual",
+      "notes": "Layer BGLD_FLAECHENWIDMUNG, WIDCODE-Spalte."
+    },
+    {
+      "id": "output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet",
+      "kind": "file",
+      "layer": "intermediate",
+      "path": "output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet",
+      "label": "DKM Bauflächen/Gärten (GeoParquet)",
+      "raw_class": "derived_elsewhere",
+      "notes": "Ausserhalb von scripts/widmung_v2/ erzeugtes Artefakt (BEV-DKM-Preprocessing, nicht in diesem Scope verifiziert); harte Abhaengigkeit von scan_dkm_candidates() in 02."
+    },
+    {
+      "id": "data/adressregister",
+      "kind": "dir",
+      "layer": "raw",
+      "path": "data/adressregister",
+      "label": "BEV-Adressregister (ADRESSE.csv/GEBAEUDE.csv)",
+      "raw_class": "manual",
+      "notes": "Stichtagsdaten, ggf. als Adresse_Relationale_Tabellen_Stichtagsdaten_*.zip; neuestes ZIP wird automatisch gewaehlt."
+    },
+    {
+      "id": "output/noe/pdf_750m_geb.geojson",
+      "kind": "file",
+      "layer": "intermediate",
+      "path": "output/noe/pdf_750m_geb.geojson",
+      "label": "NÖ SekROP 750m-Zone (Gebaeude)",
+      "raw_class": "derived_elsewhere",
+      "notes": "Erzeugt von scripts/noe/ (ausserhalb des Scopes); harter Fehler in noe_pdf_mask(), falls Datei fehlt -> nur Warnung + Nullmaske."
+    },
+    {
+      "id": "output/noe/pdf_750m_gwr.geojson",
+      "kind": "file",
+      "layer": "intermediate",
+      "path": "output/noe/pdf_750m_gwr.geojson",
+      "label": "NÖ SekROP 750m-Zone (GWR)",
+      "raw_class": "derived_elsewhere",
+      "notes": "wie pdf_750m_geb.geojson."
+    },
+    {
+      "id": "output/noe/pdf_750m_gruenland_widmung.geojson",
+      "kind": "file",
+      "layer": "intermediate",
+      "path": "output/noe/pdf_750m_gruenland_widmung.geojson",
+      "label": "NÖ SekROP 750m-Zone (Grünland-Widmung)",
+      "raw_class": "derived_elsewhere",
+      "notes": "wie pdf_750m_geb.geojson."
+    },
+    {
+      "id": "output/noe/pdf_hig_source_geb.geojson",
+      "kind": "file",
+      "layer": "intermediate",
+      "path": "output/noe/pdf_hig_source_geb.geojson",
+      "label": "NÖ rekonstruierte SekROP-Quellobjekte (Gebaeude)",
+      "raw_class": "derived_elsewhere",
+      "notes": "Erosion um 750-50m; harter FileNotFoundError in noe_pdf_source_mask() falls fehlend (verweist auf scripts/noe/derive_pdf_hig_sources.py)."
+    },
+    {
+      "id": "output/noe/pdf_hig_source_gwr.geojson",
+      "kind": "file",
+      "layer": "intermediate",
+      "path": "output/noe/pdf_hig_source_gwr.geojson",
+      "label": "NÖ rekonstruierte SekROP-Quellobjekte (GWR)",
+      "raw_class": "derived_elsewhere",
+      "notes": "wie pdf_hig_source_geb.geojson."
+    },
+    {
+      "id": "output/noe/pdf_hig_source_gruenland_widmung.geojson",
+      "kind": "file",
+      "layer": "intermediate",
+      "path": "output/noe/pdf_hig_source_gruenland_widmung.geojson",
+      "label": "NÖ rekonstruierte SekROP-Quellobjekte (Grünland-Widmung)",
+      "raw_class": "derived_elsewhere",
+      "notes": "wie pdf_hig_source_geb.geojson."
+    },
+    {
+      "id": "scripts/noe/derive_pdf_hig_sources.py",
+      "kind": "external",
+      "layer": "code",
+      "path": "scripts/noe/derive_pdf_hig_sources.py",
+      "label": "derive_pdf_hig_sources.py (extern)",
+      "raw_class": "code",
+      "notes": "Ausserhalb scripts/widmung_v2/; produziert vermutlich pdf_hig_source_*.geojson (namentlich in hig_source_masks.py:92 referenziert), nicht in diesem Scope verifiziert."
+    },
+    {
+      "id": "scripts/noe/extract_noe_vector_layers.py",
+      "kind": "external",
+      "layer": "code",
+      "path": "scripts/noe/extract_noe_vector_layers.py",
+      "label": "extract_noe_vector_layers.py (extern)",
+      "raw_class": "code",
+      "notes": "Ausserhalb scripts/widmung_v2/; vermutlicher Erzeuger von pdf_750m_*.geojson, nicht in diesem Scope verifiziert."
+    },
+    {
+      "id": "output/adressregister_cache",
+      "kind": "dir",
+      "layer": "intermediate",
+      "path": "output/adressregister_cache",
+      "label": "BEV Parquet-Cache",
+      "raw_class": "derived_in_repo",
+      "notes": "adressen_31287.parquet + bev_gebaeude_31287.parquet; --cache-dir von 02. Legacy-Fallback: data/adressregister/*.parquet hat Vorrang falls vorhanden."
+    },
+    {
+      "id": "output/abschichtung_widmung_v2/zoning_vectors/_cache",
+      "kind": "dir",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/zoning_vectors/_cache",
+      "label": "Kärnten-GPKG-Extraktcache",
+      "raw_class": "derived_in_repo",
+      "notes": "flawi_ktn_gpkg.gpkg, einmalig aus flawi_ktn_gpkg.zip extrahiert (Performance, vsizip ist auf GPKG sehr langsam)."
+    },
+    {
+      "id": "output/abschichtung/osm_pbf_layers",
+      "kind": "dir",
+      "layer": "intermediate",
+      "path": "output/abschichtung/osm_pbf_layers",
+      "label": "OSM-PBF Read-Through-Cache",
+      "raw_class": "derived_in_repo",
+      "notes": "Geteilt zwischen 03 und 04 (und create_osm_wka_distance_zones.py); geclippte .osm.pbf + tag-gefilterte .geojsonseq je Layer."
+    },
+    {
+      "id": "output/abschichtung_widmung_v2/zoning_vectors/wohn_misch_combined.gpkg",
+      "kind": "file",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/zoning_vectors/wohn_misch_combined.gpkg",
+      "label": "wohn_misch_combined.gpkg",
+      "raw_class": "derived_in_repo",
+      "notes": "Bucket wohn_misch, 9 BL, NICHT dissolved (Pro-Feature-Provenienz bleibt erhalten)."
+    },
+    {
+      "id": "output/abschichtung_widmung_v2/zoning_vectors/haeuser_im_gruenen_combined.gpkg",
+      "kind": "file",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/zoning_vectors/haeuser_im_gruenen_combined.gpkg",
+      "label": "haeuser_im_gruenen_combined.gpkg",
+      "raw_class": "derived_in_repo",
+      "notes": "Bucket haeuser_im_gruenen inkl. category=ferienhaus_tourismus (wird in 02 herausgefiltert)."
+    },
+    {
+      "id": "output/abschichtung_widmung_v2/zoning_vectors/industrie_negativ_combined.gpkg",
+      "kind": "file",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/zoning_vectors/industrie_negativ_combined.gpkg",
+      "label": "industrie_negativ_combined.gpkg",
+      "raw_class": "derived_in_repo",
+      "notes": "Negativmaske, kein eigener Ausschluss; verhindert Industrie->bewohnt-Fehlklassifikation in 02."
+    },
+    {
+      "id": "output/abschichtung_widmung_v2/hig_huellen.gpkg",
+      "kind": "file",
+      "layer": "output",
+      "path": "output/abschichtung_widmung_v2/hig_huellen.gpkg",
+      "label": "hig_huellen.gpkg",
+      "raw_class": "derived_in_repo",
+      "notes": "GESCHRIEBEN von 02 (ausser bei --skip-gpkg), aber NIRGENDS in scripts/widmung_v2/ oder windkraft/ wieder gelesen (grep bestaetigt 0 Treffer ausserhalb der Schreibstelle). Reines Reporting-Artefakt (eine Zeile je Huelle mit klasse/ist_streusiedlung/n_adressen/...)."
+    },
+    {
+      "id": "layer:official_settlement_source",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/official_settlement_source.tif",
+      "label": "official_settlement_source",
+      "raw_class": "derived_in_repo",
+      "notes": "Amtliches Wohn-/Mischbauland, alle 9 BL (aus wohn_misch_combined.gpkg)."
+    },
+    {
+      "id": "layer:ferienhaus_tourismus_source",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/ferienhaus_tourismus_source.tif",
+      "label": "ferienhaus_tourismus_source",
+      "raw_class": "derived_in_repo",
+      "notes": "Ferienhaus-/Tourismuswidmung (category=ferienhaus_tourismus)."
+    },
+    {
+      "id": "layer:official_hig_source",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/official_hig_source.tif",
+      "label": "official_hig_source",
+      "raw_class": "derived_in_repo",
+      "notes": "Amtliche HiG-Widmung ohne Ferienhaus (Hofstelle/Camping/Golf/Kleingarten/...)."
+    },
+    {
+      "id": "layer:noe_pdf_750m_zones",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/noe_pdf_750m_zones.tif",
+      "label": "noe_pdf_750m_zones",
+      "raw_class": "derived_in_repo",
+      "notes": "Union der 3 SekROP-750m-Klassen; BEREITS Objekt+750m, wird nicht nachgepuffert."
+    },
+    {
+      "id": "layer:noe_pdf_hig_source",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/noe_pdf_hig_source.tif",
+      "label": "noe_pdf_hig_source",
+      "raw_class": "derived_in_repo",
+      "notes": "GESCHRIEBEN von 02 (SOURCE_LAYER_NAMES + Rueckgabedict), aber NIE wieder gelesen: fehlt in 04s REQUIRED_SOURCE_LAYERS und in 03s OFFICIAL_COVER_LAYERS; repo-weiter grep ausserhalb der Schreibstelle liefert 0 Treffer. Der 750m-Beitrag von NÖ laeuft stattdessen ausschliesslich ueber noe_pdf_750m_zones (Kanal 1) bzw. hig_hulls_source (Kanal 2, nur 25m via general_buildings_source)."
+    },
+    {
+      "id": "layer:hig_hulls_source",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/hig_hulls_source.tif",
+      "label": "hig_hulls_source",
+      "raw_class": "derived_in_repo",
+      "notes": "Streusiedlungs-Huellen: bewohnt UND >= HIG_MIN_ADRESSEN adressierte Objekte (200m-Verkettung)."
+    },
+    {
+      "id": "layer:bewohnt_einzellage_source",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/bewohnt_einzellage_source.tif",
+      "label": "bewohnt_einzellage_source",
+      "raw_class": "derived_in_repo",
+      "notes": "Bewohnte Huellen UNTER der Adress-Schwelle (Politikentscheidung Juli 2026: Gebiets- statt Einzelobjektschutz)."
+    },
+    {
+      "id": "layer:nonresidential_hulls_source",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/nonresidential_hulls_source.tif",
+      "label": "nonresidential_hulls_source",
+      "raw_class": "derived_in_repo",
+      "notes": "Industriegebietartige + unbewohnte Huellen."
+    },
+    {
+      "id": "layer:cableway_buildings_source",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/cableway_buildings_source.tif",
+      "label": "cableway_buildings_source",
+      "raw_class": "derived_in_repo",
+      "notes": "OSM-Gebaeude nahe einer Aerialway-Linie (Liftstationen)."
+    },
+    {
+      "id": "layer:general_buildings_source",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/general_buildings_source.tif",
+      "label": "general_buildings_source",
+      "raw_class": "derived_in_repo",
+      "notes": "Uebrige OSM-Gebaeude PLUS bewohnte Einzellagen PLUS NÖ-Streusiedlungs-Bauflaechen (dkm_footprints)."
+    },
+    {
+      "id": "layer:road_motorway_trunk",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/road_motorway_trunk.tif",
+      "label": "road_motorway_trunk",
+      "raw_class": "derived_in_repo",
+      "notes": "150m um Autobahn/Schnellstrasse, tunnelfrei."
+    },
+    {
+      "id": "layer:road_federal_state",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/road_federal_state.tif",
+      "label": "road_federal_state",
+      "raw_class": "derived_in_repo",
+      "notes": "150m um Bundes-/Landesstrasse, tunnelfrei."
+    },
+    {
+      "id": "layer:rail_main",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/rail_main.tif",
+      "label": "rail_main",
+      "raw_class": "derived_in_repo",
+      "notes": "150m um Hauptbahn, tunnelfrei."
+    },
+    {
+      "id": "layer:cableway_people_150m",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/cableway_people_150m.tif",
+      "label": "cableway_people_150m",
+      "raw_class": "derived_in_repo",
+      "notes": "150m um Personenseilbahnen."
+    },
+    {
+      "id": "layer:military_restricted_area",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/military_restricted_area.tif",
+      "label": "military_restricted_area",
+      "raw_class": "derived_in_repo",
+      "notes": "Militaerische Sperrgebiete, ohne Zusatzpuffer."
+    },
+    {
+      "id": "layer:airport_area_major",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/airport_area_major.tif",
+      "label": "airport_area_major",
+      "raw_class": "derived_in_repo",
+      "notes": "Areal der Hauptflughaefen (config buffers.major_airport_osm_ids), ohne Zusatzpuffer."
+    },
+    {
+      "id": "layer:airport_runway_corridor_5km",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/airport_runway_corridor_5km.tif",
+      "label": "airport_runway_corridor_5km",
+      "raw_class": "derived_in_repo",
+      "notes": "5km An-/Abflugkorridore der Hauptflughaefen, ±15° um verlaengerte Bahnachse."
+    },
+    {
+      "id": "layer:haeuser_im_gruenen_ferienhaus",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/haeuser_im_gruenen_ferienhaus.tif",
+      "label": "haeuser_im_gruenen_ferienhaus",
+      "raw_class": "derived_in_repo",
+      "notes": "Umbenennung von ferienhaus_tourismus_source (kein NÖ-Ausschluss)."
+    },
+    {
+      "id": "layer:haeuser_im_gruenen_widmung",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/haeuser_im_gruenen_widmung.tif",
+      "label": "haeuser_im_gruenen_widmung",
+      "raw_class": "derived_in_repo",
+      "notes": "official_hig_source OHNE NÖ (dort traegt die PDF-Gruenland-Klasse den Abstand)."
+    },
+    {
+      "id": "layer:haeuser_im_gruenen_streusiedlung",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/haeuser_im_gruenen_streusiedlung.tif",
+      "label": "haeuser_im_gruenen_streusiedlung",
+      "raw_class": "derived_in_repo",
+      "notes": "hig_hulls_source OHNE NÖ."
+    },
+    {
+      "id": "layer:haeuser_im_gruenen_noe_pdf",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/haeuser_im_gruenen_noe_pdf.tif",
+      "label": "haeuser_im_gruenen_noe_pdf",
+      "raw_class": "derived_in_repo",
+      "notes": "Umbenennung von noe_pdf_750m_zones (schon 750m, ungepuffert)."
+    },
+    {
+      "id": "layer:settlement_buffer",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/settlement_buffer.tif",
+      "label": "settlement_buffer",
+      "raw_class": "derived_in_repo",
+      "notes": "province_buffer_cell_mask(official_settlement_source, NÖ 1200m sonst 1000m)."
+    },
+    {
+      "id": "layer:haeuser_im_gruenen",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/haeuser_im_gruenen.tif",
+      "label": "haeuser_im_gruenen",
+      "raw_class": "derived_in_repo",
+      "notes": "Aggregat: 750m um (ferienhaus|widmung|streusiedlung), vereinigt mit haeuser_im_gruenen_noe_pdf (ungepuffert)."
+    },
+    {
+      "id": "layer:nonresidential_hulls_buffer",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/nonresidential_hulls_buffer.tif",
+      "label": "nonresidential_hulls_buffer",
+      "raw_class": "derived_in_repo",
+      "notes": "25m um nonresidential_hulls_source."
+    },
+    {
+      "id": "layer:cableway_buildings_buffer",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/cableway_buildings_buffer.tif",
+      "label": "cableway_buildings_buffer",
+      "raw_class": "derived_in_repo",
+      "notes": "50m um cableway_buildings_source."
+    },
+    {
+      "id": "layer:general_buildings_buffer",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/general_buildings_buffer.tif",
+      "label": "general_buildings_buffer",
+      "raw_class": "derived_in_repo",
+      "notes": "25m um general_buildings_source."
+    },
+    {
+      "id": "layer:settlement_buffer_<variant>",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/settlement_buffer_<variant>.tif",
+      "label": "settlement_buffer_<variant>",
+      "raw_class": "derived_in_repo",
+      "notes": "5 Varianten (default/800m/1000m/1200m/1500m/2000m) x 4 Baender je Variante (buffer/human/raw/cleaned); NUR bei --settlement-variants (Default: AUS, Clean-Schema)."
+    },
+    {
+      "id": "layer:nature_protection_areas",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/nature_protection_areas.tif",
+      "label": "nature_protection_areas",
+      "raw_class": "derived_in_repo",
+      "notes": "Amtliche Schutzgebiete (NP/NSG/ESG/RAMSAR)."
+    },
+    {
+      "id": "layer:osm_nature_protection_areas",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/osm_nature_protection_areas.tif",
+      "label": "osm_nature_protection_areas",
+      "raw_class": "derived_in_repo",
+      "notes": "OSM-Schutzgebiete (Text-/Tag-Heuristik)."
+    },
+    {
+      "id": "layer:geography_slope_too_steep",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/geography_slope_too_steep.tif",
+      "label": "geography_slope_too_steep",
+      "raw_class": "derived_in_repo",
+      "notes": "Hangneigung > Schwelle."
+    },
+    {
+      "id": "layer:geography_elevation_too_high",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/geography_elevation_too_high.tif",
+      "label": "geography_elevation_too_high",
+      "raw_class": "derived_in_repo",
+      "notes": "Seehoehe > Schwelle."
+    },
+    {
+      "id": "layer:geography_wind_too_low",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/geography_wind_too_low.tif",
+      "label": "geography_wind_too_low",
+      "raw_class": "derived_in_repo",
+      "notes": "Windleistungsdichte < Schwelle."
+    },
+    {
+      "id": "layer:geography_water_bodies",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/geography_water_bodies.tif",
+      "label": "geography_water_bodies",
+      "raw_class": "derived_in_repo",
+      "notes": "Groessere zusammenhaengende Wasserkoerper >= WATER_MIN_AREA_HA."
+    },
+    {
+      "id": "layer:official_wind_zoning",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/official_wind_zoning.tif",
+      "label": "official_wind_zoning",
+      "raw_class": "derived_in_repo",
+      "notes": "Referenzband: NÖ-Zonierung + Stmk/Sbg/Bgld/Ktn amtliche Windzonen (Positivzonen), kein Ausschluss."
+    },
+    {
+      "id": "layer:wka_bestand_ausserhalb_zonen",
+      "kind": "layer",
+      "layer": "intermediate",
+      "path": "output/abschichtung_widmung_v2/distance_layers/wka_bestand_ausserhalb_zonen.tif",
+      "label": "wka_bestand_ausserhalb_zonen",
+      "raw_class": "derived_in_repo",
+      "notes": "Referenzband: Bestands-WKA (OSM) ausserhalb amtlicher Zonen, zu Park-Huellen verkettet."
+    },
+    {
+      "id": "output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2.tif",
+      "kind": "file",
+      "layer": "output",
+      "path": "output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2.tif",
+      "label": "osm_wka_distance_zones_widmung_v2.tif (final)",
+      "raw_class": "derived_in_repo",
+      "notes": "Finales Multiband-GeoTIFF: 26 Bedingungsbaender + 3 Aggregate + all/raw/cleaned + 4 Unschaerfe-Blur-Baender + official_wind_zoning + wka_bestand + optional 5x4 Varianten-Baender."
+    },
+    {
+      "id": "output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2.bands.json",
+      "kind": "file",
+      "layer": "output",
+      "path": "output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2.bands.json",
+      "label": "osm_wka_distance_zones_widmung_v2.bands.json",
+      "raw_class": "derived_in_repo",
+      "notes": "GESCHRIEBEN von 04 (write_band_manifest), aber innerhalb von scripts/widmung_v2/ NIE wieder gelesen (05_validate.py liest nur die .tif-Baender selbst, nicht das Manifest). Konsumenten sind aussenstehende Dashboard-/Viewer-Skripte (ausserhalb dieses Scopes)."
+    }
+  ],
+  "edges": [
+    {
+      "from": "scripts/widmung_v2/01_build_official_zoning_layers.py",
+      "to": "windkraft/calc/widmung_sources.py",
+      "kind": "imports",
+      "evidence": "01_build_official_zoning_layers.py:61-69",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "windkraft/config.py",
+      "kind": "imports",
+      "evidence": "02_build_hig_sources.py:41",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "windkraft/calc/abschichtung_common.py",
+      "kind": "imports",
+      "evidence": "02_build_hig_sources.py:42-54",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "windkraft/calc/bev_register.py",
+      "kind": "imports",
+      "evidence": "02_build_hig_sources.py:55",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "windkraft/calc/hig_detection.py",
+      "kind": "imports",
+      "evidence": "02_build_hig_sources.py:56-69",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "windkraft/calc/streusiedlung.py",
+      "kind": "imports",
+      "evidence": "02_build_hig_sources.py:70",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "windkraft/calc/hig_source_masks.py",
+      "kind": "imports",
+      "evidence": "02_build_hig_sources.py:71-77",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "windkraft/config.py",
+      "kind": "imports",
+      "evidence": "03_build_osm_layers.py:52",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "windkraft/calc/abschichtung_common.py",
+      "kind": "imports",
+      "evidence": "03_build_osm_layers.py:53-73",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "windkraft/config.py",
+      "kind": "imports",
+      "evidence": "04_create_distance_zones.py:82",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "windkraft/calc/abschichtung_common.py",
+      "kind": "imports",
+      "evidence": "04_create_distance_zones.py:83-122",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "windkraft/calc/band_manifest.py",
+      "kind": "imports",
+      "evidence": "04_create_distance_zones.py:124",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "windkraft/calc/abschichtung_common.py",
+      "to": "windkraft/calc/distance_engine.py",
+      "kind": "imports",
+      "evidence": "abschichtung_common.py:36",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "windkraft/calc/abschichtung_common.py",
+      "to": "windkraft/calc/wind_zones.py",
+      "kind": "imports",
+      "evidence": "abschichtung_common.py:37",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "windkraft/calc/hig_source_masks.py",
+      "to": "windkraft/calc/abschichtung_common.py",
+      "kind": "imports",
+      "evidence": "hig_source_masks.py:16-21",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "windkraft/calc/hig_detection.py",
+      "to": "windkraft/calc/bev_register.py",
+      "kind": "imports",
+      "evidence": "hig_detection.py:50",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "windkraft/calc/hig_detection.py",
+      "to": "windkraft/calc/distance_engine.py",
+      "kind": "imports",
+      "evidence": "hig_detection.py:51",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "windkraft/calc/streusiedlung.py",
+      "to": "windkraft/calc/abschichtung_common.py",
+      "kind": "imports",
+      "evidence": "streusiedlung.py:29-36",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "windkraft/calc/streusiedlung.py",
+      "to": "windkraft/calc/bev_register.py",
+      "kind": "imports",
+      "evidence": "streusiedlung.py:37",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "windkraft/calc/streusiedlung.py",
+      "to": "windkraft/calc/hig_detection.py",
+      "kind": "imports",
+      "evidence": "streusiedlung.py:38-48",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "windkraft/calc/streusiedlung.py",
+      "to": "windkraft/calc/hig_source_masks.py",
+      "kind": "imports",
+      "evidence": "streusiedlung.py:49-53",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "windkraft/calc/band_manifest.py",
+      "to": "windkraft/viz/band_metadata.py",
+      "kind": "imports",
+      "evidence": "band_manifest.py:41-46",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/01_build_official_zoning_layers.py",
+      "to": "data/flächenwidmungen/WIDMUNGSFLAECHEN.zip",
+      "kind": "reads",
+      "evidence": "01_build_official_zoning_layers.py:90 (read_dataset) -> widmung_sources.py:408",
+      "optional": false,
+      "note": "Indirekt ueber windkraft/calc/widmung_sources.py:_read_raw(), pro Dataset genau einmal gelesen (functools.lru_cache)."
+    },
+    {
+      "from": "scripts/widmung_v2/01_build_official_zoning_layers.py",
+      "to": "data/new_widmungs_data/kaernten/flawi_ktn_gpkg.zip",
+      "kind": "reads",
+      "evidence": "01_build_official_zoning_layers.py:90 (read_dataset) -> widmung_sources.py:377-396,410",
+      "optional": false,
+      "note": "Indirekt ueber windkraft/calc/widmung_sources.py:_read_raw(), pro Dataset genau einmal gelesen (functools.lru_cache)."
+    },
+    {
+      "from": "scripts/widmung_v2/01_build_official_zoning_layers.py",
+      "to": "data/new_widmungs_data/niederoesterreich/RRU_WI_HUELLE.gpkg",
+      "kind": "reads",
+      "evidence": "01_build_official_zoning_layers.py:90 (read_dataset) -> widmung_sources.py:412",
+      "optional": false,
+      "note": "Indirekt ueber windkraft/calc/widmung_sources.py:_read_raw(), pro Dataset genau einmal gelesen (functools.lru_cache)."
+    },
+    {
+      "from": "scripts/widmung_v2/01_build_official_zoning_layers.py",
+      "to": "data/new_widmungs_data/oberoesterreich/FLWI_WIDMUNGEN_F.zip",
+      "kind": "reads",
+      "evidence": "01_build_official_zoning_layers.py:90 (read_dataset) -> widmung_sources.py:414",
+      "optional": false,
+      "note": "Indirekt ueber windkraft/calc/widmung_sources.py:_read_raw(), pro Dataset genau einmal gelesen (functools.lru_cache)."
+    },
+    {
+      "from": "scripts/widmung_v2/01_build_official_zoning_layers.py",
+      "to": "data/new_widmungs_data/salzburg/Flaechenwidmung_Shapefile.zip",
+      "kind": "reads",
+      "evidence": "01_build_official_zoning_layers.py:90 (read_dataset) -> widmung_sources.py:416",
+      "optional": false,
+      "note": "Indirekt ueber windkraft/calc/widmung_sources.py:_read_raw(), pro Dataset genau einmal gelesen (functools.lru_cache)."
+    },
+    {
+      "from": "scripts/widmung_v2/01_build_official_zoning_layers.py",
+      "to": "data/new_widmungs_data/steiermark/Bauland.zip",
+      "kind": "reads",
+      "evidence": "01_build_official_zoning_layers.py:90 (read_dataset) -> widmung_sources.py:418",
+      "optional": false,
+      "note": "Indirekt ueber windkraft/calc/widmung_sources.py:_read_raw(), pro Dataset genau einmal gelesen (functools.lru_cache)."
+    },
+    {
+      "from": "scripts/widmung_v2/01_build_official_zoning_layers.py",
+      "to": "data/flächenwidmungen/Flaewi.shp.zip",
+      "kind": "reads",
+      "evidence": "01_build_official_zoning_layers.py:90 (read_dataset) -> widmung_sources.py:420",
+      "optional": false,
+      "note": "Indirekt ueber windkraft/calc/widmung_sources.py:_read_raw(), pro Dataset genau einmal gelesen (functools.lru_cache)."
+    },
+    {
+      "from": "scripts/widmung_v2/01_build_official_zoning_layers.py",
+      "to": "data/new_widmungs_data/tirol/FLW_Flaechenwidmung_*.gpkg",
+      "kind": "reads",
+      "evidence": "01_build_official_zoning_layers.py:90 (read_dataset) -> widmung_sources.py:399-403,422",
+      "optional": false,
+      "note": "Indirekt ueber windkraft/calc/widmung_sources.py:_read_raw(), pro Dataset genau einmal gelesen (functools.lru_cache)."
+    },
+    {
+      "from": "scripts/widmung_v2/01_build_official_zoning_layers.py",
+      "to": "data/new_widmungs_data/vorarlberg/fwp_flaeche.gpkg",
+      "kind": "reads",
+      "evidence": "01_build_official_zoning_layers.py:90 (read_dataset) -> widmung_sources.py:424",
+      "optional": false,
+      "note": "Indirekt ueber windkraft/calc/widmung_sources.py:_read_raw(), pro Dataset genau einmal gelesen (functools.lru_cache)."
+    },
+    {
+      "from": "scripts/widmung_v2/01_build_official_zoning_layers.py",
+      "to": "data/new_widmungs_data/wien/genflwidmung_wien.geojson",
+      "kind": "reads",
+      "evidence": "01_build_official_zoning_layers.py:90 (read_dataset) -> widmung_sources.py:426",
+      "optional": false,
+      "note": "Indirekt ueber windkraft/calc/widmung_sources.py:_read_raw(), pro Dataset genau einmal gelesen (functools.lru_cache)."
+    },
+    {
+      "from": "scripts/widmung_v2/01_build_official_zoning_layers.py",
+      "to": "output/abschichtung_widmung_v2/zoning_vectors/_cache",
+      "kind": "writes",
+      "evidence": "widmung_sources.py:387-396",
+      "optional": true,
+      "note": "Kaernten-GPKG-Extrakt-Cache, kein Pipeline-Checkpoint."
+    },
+    {
+      "from": "scripts/widmung_v2/01_build_official_zoning_layers.py",
+      "to": "output/abschichtung_widmung_v2/zoning_vectors/wohn_misch_combined.gpkg",
+      "kind": "writes",
+      "evidence": "01_build_official_zoning_layers.py:112-116,136",
+      "optional": false,
+      "note": "write_bucket(): NICHT dissolved, mit bundesland/source_layer/category-Provenienz."
+    },
+    {
+      "from": "scripts/widmung_v2/01_build_official_zoning_layers.py",
+      "to": "output/abschichtung_widmung_v2/zoning_vectors/haeuser_im_gruenen_combined.gpkg",
+      "kind": "writes",
+      "evidence": "01_build_official_zoning_layers.py:112-116,136",
+      "optional": false,
+      "note": "write_bucket(): NICHT dissolved, mit bundesland/source_layer/category-Provenienz."
+    },
+    {
+      "from": "scripts/widmung_v2/01_build_official_zoning_layers.py",
+      "to": "output/abschichtung_widmung_v2/zoning_vectors/industrie_negativ_combined.gpkg",
+      "kind": "writes",
+      "evidence": "01_build_official_zoning_layers.py:112-116,136",
+      "optional": false,
+      "note": "write_bucket(): NICHT dissolved, mit bundesland/source_layer/category-Provenienz."
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "config.json",
+      "kind": "reads",
+      "evidence": "02_build_hig_sources.py:238 (load_config)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "config_key:paths.dgm",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:307 (load_grid Template)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "output/abschichtung_widmung_v2/zoning_vectors/wohn_misch_combined.gpkg",
+      "kind": "reads",
+      "evidence": "hig_source_masks.py:40",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "output/abschichtung_widmung_v2/zoning_vectors/haeuser_im_gruenen_combined.gpkg",
+      "kind": "reads",
+      "evidence": "hig_source_masks.py:41",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "output/abschichtung_widmung_v2/zoning_vectors/industrie_negativ_combined.gpkg",
+      "kind": "reads",
+      "evidence": "hig_source_masks.py:42",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "output/noe/pdf_750m_geb.geojson",
+      "kind": "reads",
+      "evidence": "hig_source_masks.py:61-68 (noe_pdf_layer_masks/noe_pdf_mask)",
+      "optional": true,
+      "note": "Fehlende Datei -> nur Warnung + Nullmaske (kein harter Abbruch)."
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "output/noe/pdf_750m_gwr.geojson",
+      "kind": "reads",
+      "evidence": "hig_source_masks.py:61-68 (noe_pdf_layer_masks/noe_pdf_mask)",
+      "optional": true,
+      "note": "Fehlende Datei -> nur Warnung + Nullmaske (kein harter Abbruch)."
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "output/noe/pdf_750m_gruenland_widmung.geojson",
+      "kind": "reads",
+      "evidence": "hig_source_masks.py:61-68 (noe_pdf_layer_masks/noe_pdf_mask)",
+      "optional": true,
+      "note": "Fehlende Datei -> nur Warnung + Nullmaske (kein harter Abbruch)."
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "output/noe/pdf_hig_source_geb.geojson",
+      "kind": "reads",
+      "evidence": "hig_source_masks.py:86-96 (noe_pdf_source_mask)",
+      "optional": false,
+      "note": "HARTER Fehler (FileNotFoundError) falls Datei fehlt: 'ein leeres NÖ-Quellband wuerde lautlos einen Grossteil des NÖ-Ausschlusses entfernen'."
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "output/noe/pdf_hig_source_gwr.geojson",
+      "kind": "reads",
+      "evidence": "hig_source_masks.py:86-96 (noe_pdf_source_mask)",
+      "optional": false,
+      "note": "HARTER Fehler (FileNotFoundError) falls Datei fehlt: 'ein leeres NÖ-Quellband wuerde lautlos einen Grossteil des NÖ-Ausschlusses entfernen'."
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "output/noe/pdf_hig_source_gruenland_widmung.geojson",
+      "kind": "reads",
+      "evidence": "hig_source_masks.py:86-96 (noe_pdf_source_mask)",
+      "optional": false,
+      "note": "HARTER Fehler (FileNotFoundError) falls Datei fehlt: 'ein leeres NÖ-Quellband wuerde lautlos einen Grossteil des NÖ-Ausschlusses entfernen'."
+    },
+    {
+      "from": "output/noe/pdf_hig_source_geb.geojson",
+      "to": "scripts/noe/derive_pdf_hig_sources.py",
+      "kind": "invokes",
+      "evidence": "hig_source_masks.py:92 (Fehlermeldung verweist auf dieses Skript)",
+      "optional": true,
+      "note": "Fehlermeldung, kein tatsaechlicher Programmaufruf; dokumentiert die Erzeuger-Abhaengigkeit ausserhalb des Scopes."
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet",
+      "kind": "reads",
+      "evidence": "hig_detection.py:162 (pads.dataset in scan_dkm_candidates)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "data/adressregister",
+      "kind": "reads",
+      "evidence": "bev_register.py:111-143 (load_address_points/load_building_points)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "output/adressregister_cache",
+      "kind": "reads",
+      "evidence": "bev_register.py:113-124,130-142",
+      "optional": true,
+      "note": "Nur wenn Parquet-Cache bereits existiert; sonst wird er hier befuellt (writes)."
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "output/adressregister_cache",
+      "kind": "writes",
+      "evidence": "bev_register.py:121-124,138-142",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "layer:official_settlement_source",
+      "kind": "writes",
+      "evidence": "02_build_hig_sources.py:177-186,246-256 (ensure_group_layers -> write_layer)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "layer:ferienhaus_tourismus_source",
+      "kind": "writes",
+      "evidence": "02_build_hig_sources.py:177-186,246-256 (ensure_group_layers -> write_layer)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "layer:official_hig_source",
+      "kind": "writes",
+      "evidence": "02_build_hig_sources.py:177-186,246-256 (ensure_group_layers -> write_layer)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "layer:noe_pdf_750m_zones",
+      "kind": "writes",
+      "evidence": "02_build_hig_sources.py:177-186,246-256 (ensure_group_layers -> write_layer)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "layer:noe_pdf_hig_source",
+      "kind": "writes",
+      "evidence": "02_build_hig_sources.py:177-186,246-256 (ensure_group_layers -> write_layer)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "layer:hig_hulls_source",
+      "kind": "writes",
+      "evidence": "02_build_hig_sources.py:177-186,246-256 (ensure_group_layers -> write_layer)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "layer:bewohnt_einzellage_source",
+      "kind": "writes",
+      "evidence": "02_build_hig_sources.py:177-186,246-256 (ensure_group_layers -> write_layer)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "layer:nonresidential_hulls_source",
+      "kind": "writes",
+      "evidence": "02_build_hig_sources.py:177-186,246-256 (ensure_group_layers -> write_layer)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/02_build_hig_sources.py",
+      "to": "output/abschichtung_widmung_v2/hig_huellen.gpkg",
+      "kind": "writes",
+      "evidence": "02_build_hig_sources.py:167-175",
+      "optional": true,
+      "note": "Uebersprungen bei --skip-gpkg."
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "config.json",
+      "kind": "reads",
+      "evidence": "03_build_osm_layers.py:241 (load_config)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "config_key:paths.vgd",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:624 (admin_boundaries), aufgerufen 03_build_osm_layers.py:161",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "layer:official_settlement_source",
+      "kind": "reads",
+      "evidence": "03_build_osm_layers.py:78-85,104-117,160,165 (OFFICIAL_COVER_LAYERS / _require_hig_layers)",
+      "optional": false,
+      "note": "Teil der 6 hart geprueften OFFICIAL_COVER_LAYERS (_require_hig_layers wirft FileNotFoundError bei fehlendem Checkpoint)."
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "layer:ferienhaus_tourismus_source",
+      "kind": "reads",
+      "evidence": "03_build_osm_layers.py:78-85,104-117,160,165 (OFFICIAL_COVER_LAYERS / _require_hig_layers)",
+      "optional": false,
+      "note": "Teil der 6 hart geprueften OFFICIAL_COVER_LAYERS (_require_hig_layers wirft FileNotFoundError bei fehlendem Checkpoint)."
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "layer:official_hig_source",
+      "kind": "reads",
+      "evidence": "03_build_osm_layers.py:78-85,104-117,160,165 (OFFICIAL_COVER_LAYERS / _require_hig_layers)",
+      "optional": false,
+      "note": "Teil der 6 hart geprueften OFFICIAL_COVER_LAYERS (_require_hig_layers wirft FileNotFoundError bei fehlendem Checkpoint)."
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "layer:noe_pdf_750m_zones",
+      "kind": "reads",
+      "evidence": "03_build_osm_layers.py:78-85,104-117,160,165 (OFFICIAL_COVER_LAYERS / _require_hig_layers)",
+      "optional": false,
+      "note": "Teil der 6 hart geprueften OFFICIAL_COVER_LAYERS (_require_hig_layers wirft FileNotFoundError bei fehlendem Checkpoint)."
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "layer:hig_hulls_source",
+      "kind": "reads",
+      "evidence": "03_build_osm_layers.py:78-85,104-117,160,165 (OFFICIAL_COVER_LAYERS / _require_hig_layers)",
+      "optional": false,
+      "note": "Teil der 6 hart geprueften OFFICIAL_COVER_LAYERS (_require_hig_layers wirft FileNotFoundError bei fehlendem Checkpoint)."
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "layer:bewohnt_einzellage_source",
+      "kind": "reads",
+      "evidence": "03_build_osm_layers.py:78-85,104-117,160,165 (OFFICIAL_COVER_LAYERS / _require_hig_layers)",
+      "optional": false,
+      "note": "Teil der 6 hart geprueften OFFICIAL_COVER_LAYERS (_require_hig_layers wirft FileNotFoundError bei fehlendem Checkpoint)."
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "data/austria-260330.osm.pbf",
+      "kind": "reads",
+      "evidence": "03_build_osm_layers.py:133-136 (buildings), 145-148 (windpower), 151-154 (aerialways)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "data/austria-260330.osm.pbf",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:966-1010 (build_infrastructure_masks: powerlines/roads/railways/aerialways/military)",
+      "optional": true,
+      "note": "Uebersprungen bei --skip-infra."
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "config_key:paths.powerlines_gpkg",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:966-979",
+      "optional": true,
+      "note": "Nur Fallback wenn --osm-pbf nicht existiert; mit dem Default-PBF vorhanden aktuell unwirksam."
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "data/austria-260330.osm.pbf",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1105-1108 (build_airport_corridor_masks: transport layer)",
+      "optional": true,
+      "note": "Uebersprungen bei --skip-infra."
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "config_key:buffers.major_airport_osm_ids",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1115 (build_airport_corridor_masks)",
+      "optional": true,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "data/austria-260328-free.shp",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:473-485 (osm_layer_path Legacy-Fallback)",
+      "optional": true,
+      "note": "Nur falls das PBF fehlt; aktuell nicht aktiv, da data/austria-260330.osm.pbf vorhanden ist."
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "output/abschichtung/osm_pbf_layers",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:486-514 (Cache-Hit)",
+      "optional": true,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "output/abschichtung/osm_pbf_layers",
+      "kind": "writes",
+      "evidence": "abschichtung_common.py:457-465,489-513",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "layer:cableway_buildings_source",
+      "kind": "writes",
+      "evidence": "03_build_osm_layers.py:197-200,257-262 (ensure_group_layers)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "layer:general_buildings_source",
+      "kind": "writes",
+      "evidence": "03_build_osm_layers.py:197-200,257-262 (ensure_group_layers)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "layer:road_motorway_trunk",
+      "kind": "writes",
+      "evidence": "03_build_osm_layers.py:264 (build_infrastructure_masks)",
+      "optional": true,
+      "note": "Uebersprungen bei --skip-infra."
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "layer:road_federal_state",
+      "kind": "writes",
+      "evidence": "03_build_osm_layers.py:264 (build_infrastructure_masks)",
+      "optional": true,
+      "note": "Uebersprungen bei --skip-infra."
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "layer:rail_main",
+      "kind": "writes",
+      "evidence": "03_build_osm_layers.py:264 (build_infrastructure_masks)",
+      "optional": true,
+      "note": "Uebersprungen bei --skip-infra."
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "layer:cableway_people_150m",
+      "kind": "writes",
+      "evidence": "03_build_osm_layers.py:264 (build_infrastructure_masks)",
+      "optional": true,
+      "note": "Uebersprungen bei --skip-infra."
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "layer:military_restricted_area",
+      "kind": "writes",
+      "evidence": "03_build_osm_layers.py:264 (build_infrastructure_masks)",
+      "optional": true,
+      "note": "Uebersprungen bei --skip-infra."
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "layer:airport_area_major",
+      "kind": "writes",
+      "evidence": "03_build_osm_layers.py:265 (build_airport_corridor_masks)",
+      "optional": true,
+      "note": "Uebersprungen bei --skip-infra."
+    },
+    {
+      "from": "scripts/widmung_v2/03_build_osm_layers.py",
+      "to": "layer:airport_runway_corridor_5km",
+      "kind": "writes",
+      "evidence": "03_build_osm_layers.py:265 (build_airport_corridor_masks)",
+      "optional": true,
+      "note": "Uebersprungen bei --skip-infra."
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:official_settlement_source",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:210-226,233-239 (REQUIRED_SOURCE_LAYERS / _check_required_sources)",
+      "optional": false,
+      "note": "Hart geprueft: FileNotFoundError falls einer dieser 15 Checkpoints fehlt."
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:ferienhaus_tourismus_source",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:210-226,233-239 (REQUIRED_SOURCE_LAYERS / _check_required_sources)",
+      "optional": false,
+      "note": "Hart geprueft: FileNotFoundError falls einer dieser 15 Checkpoints fehlt."
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:official_hig_source",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:210-226,233-239 (REQUIRED_SOURCE_LAYERS / _check_required_sources)",
+      "optional": false,
+      "note": "Hart geprueft: FileNotFoundError falls einer dieser 15 Checkpoints fehlt."
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:hig_hulls_source",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:210-226,233-239 (REQUIRED_SOURCE_LAYERS / _check_required_sources)",
+      "optional": false,
+      "note": "Hart geprueft: FileNotFoundError falls einer dieser 15 Checkpoints fehlt."
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:noe_pdf_750m_zones",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:210-226,233-239 (REQUIRED_SOURCE_LAYERS / _check_required_sources)",
+      "optional": false,
+      "note": "Hart geprueft: FileNotFoundError falls einer dieser 15 Checkpoints fehlt."
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:nonresidential_hulls_source",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:210-226,233-239 (REQUIRED_SOURCE_LAYERS / _check_required_sources)",
+      "optional": false,
+      "note": "Hart geprueft: FileNotFoundError falls einer dieser 15 Checkpoints fehlt."
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:cableway_buildings_source",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:210-226,233-239 (REQUIRED_SOURCE_LAYERS / _check_required_sources)",
+      "optional": false,
+      "note": "Hart geprueft: FileNotFoundError falls einer dieser 15 Checkpoints fehlt."
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:general_buildings_source",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:210-226,233-239 (REQUIRED_SOURCE_LAYERS / _check_required_sources)",
+      "optional": false,
+      "note": "Hart geprueft: FileNotFoundError falls einer dieser 15 Checkpoints fehlt."
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:road_motorway_trunk",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:210-226,233-239 (REQUIRED_SOURCE_LAYERS / _check_required_sources)",
+      "optional": false,
+      "note": "Hart geprueft: FileNotFoundError falls einer dieser 15 Checkpoints fehlt."
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:road_federal_state",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:210-226,233-239 (REQUIRED_SOURCE_LAYERS / _check_required_sources)",
+      "optional": false,
+      "note": "Hart geprueft: FileNotFoundError falls einer dieser 15 Checkpoints fehlt."
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:rail_main",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:210-226,233-239 (REQUIRED_SOURCE_LAYERS / _check_required_sources)",
+      "optional": false,
+      "note": "Hart geprueft: FileNotFoundError falls einer dieser 15 Checkpoints fehlt."
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:cableway_people_150m",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:210-226,233-239 (REQUIRED_SOURCE_LAYERS / _check_required_sources)",
+      "optional": false,
+      "note": "Hart geprueft: FileNotFoundError falls einer dieser 15 Checkpoints fehlt."
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:military_restricted_area",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:210-226,233-239 (REQUIRED_SOURCE_LAYERS / _check_required_sources)",
+      "optional": false,
+      "note": "Hart geprueft: FileNotFoundError falls einer dieser 15 Checkpoints fehlt."
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:airport_area_major",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:210-226,233-239 (REQUIRED_SOURCE_LAYERS / _check_required_sources)",
+      "optional": false,
+      "note": "Hart geprueft: FileNotFoundError falls einer dieser 15 Checkpoints fehlt."
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:airport_runway_corridor_5km",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:210-226,233-239 (REQUIRED_SOURCE_LAYERS / _check_required_sources)",
+      "optional": false,
+      "note": "Hart geprueft: FileNotFoundError falls einer dieser 15 Checkpoints fehlt."
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "config.json",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:389 (load_config)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:ferienhaus_tourismus_source",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:266 (build_hig_family_sources)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:official_hig_source",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:267 (build_hig_family_sources, NÖ ausmaskiert)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:hig_hulls_source",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:268 (build_hig_family_sources, NÖ ausmaskiert)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:noe_pdf_750m_zones",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:269 (build_hig_family_sources)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "config_key:paths.vgd",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:624 (admin_boundaries), aufgerufen 04_create_distance_zones.py:261,286,349,392",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:official_settlement_source",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:278 (build_v2_buffers)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:haeuser_im_gruenen_ferienhaus",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:275-284 (build_v2_buffers)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:haeuser_im_gruenen_widmung",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:275-284 (build_v2_buffers)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:haeuser_im_gruenen_streusiedlung",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:275-284 (build_v2_buffers)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:haeuser_im_gruenen_noe_pdf",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:275-284 (build_v2_buffers)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:nonresidential_hulls_source",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:295-297 (build_v2_buffers, uniform_buffer_cell_mask)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:cableway_buildings_source",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:295-297 (build_v2_buffers, uniform_buffer_cell_mask)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:general_buildings_source",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:295-297 (build_v2_buffers, uniform_buffer_cell_mask)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "config_key:paths.dgm",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1256 (build_geography_masks)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "config_key:paths.wind_pd_150",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1282 (build_geography_masks)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "config_key:paths.nsg_zip",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1164-1194 (_build_official_nature_mask)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "data/austria-260330.osm.pbf",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1199 (_build_osm_nature_mask) / 1315 (build_water_masks) / 1105-1108,310-313 (transport/windpower)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "data/zonierung_noe.json",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:365-369,1344-1349 (build_official_zoning_masks, --official-zoning-geojson Default)",
+      "optional": true,
+      "note": "Fehlt die Datei: nur Warnung, kein Abbruch."
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "data/luca_zonen/Stmk.shp",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:370-371,1352 (load_wind_zones -> wind_zones.py:183, --vorrangzonen-dir Default)",
+      "optional": true,
+      "note": "--no-vorrangzonen deaktiviert; fehlende Datei -> Warnung + Skip."
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "data/luca_zonen/Sbg.shp",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:370-371,1352 (load_wind_zones -> wind_zones.py:183)",
+      "optional": true,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "data/WK_Eignungszonen.zip",
+      "kind": "reads",
+      "evidence": "wind_zones.py:105,177-190 (hartkodiert, nicht per CLI ueberschreibbar)",
+      "optional": true,
+      "note": "Fehlt lokal (gitignorter data/-Baum) -> stiller Skip (nur Warnung), Band 37 dadurch unbemerkt unvollstaendig."
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "data/RED_III_Windkraftbeschleunigungszone.zip",
+      "kind": "reads",
+      "evidence": "wind_zones.py:120,177-190 (hartkodiert)",
+      "optional": true,
+      "note": "Gleiches Silent-Skip-Risiko wie WK_Eignungszonen.zip."
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:official_wind_zoning",
+      "kind": "reads",
+      "evidence": "04_create_distance_zones.py:319,457-466 (build_wka_bestand_hulls testet WKA-Punkte gegen das gerade geschriebene Band)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "config_key:buffers.major_airport_osm_ids",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1115",
+      "optional": true,
+      "note": "Nur falls Airport-Korridore (Stufe 03) neu gebaut werden muessten; in 04 selbst nicht direkt aufgerufen (Airport-Baender sind reine REQUIRED_SOURCE_LAYERS-Konsumenten aus 03)."
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:haeuser_im_gruenen_ferienhaus",
+      "kind": "writes",
+      "evidence": "04_create_distance_zones.py:249-270,427-431 (build_hig_family_sources)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:haeuser_im_gruenen_widmung",
+      "kind": "writes",
+      "evidence": "04_create_distance_zones.py:249-270,427-431 (build_hig_family_sources)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:haeuser_im_gruenen_streusiedlung",
+      "kind": "writes",
+      "evidence": "04_create_distance_zones.py:249-270,427-431 (build_hig_family_sources)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:haeuser_im_gruenen_noe_pdf",
+      "kind": "writes",
+      "evidence": "04_create_distance_zones.py:249-270,427-431 (build_hig_family_sources)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:settlement_buffer",
+      "kind": "writes",
+      "evidence": "04_create_distance_zones.py:273-298,432-436 (build_v2_buffers)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:haeuser_im_gruenen",
+      "kind": "writes",
+      "evidence": "04_create_distance_zones.py:273-298,432-436 (build_v2_buffers)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:nonresidential_hulls_buffer",
+      "kind": "writes",
+      "evidence": "04_create_distance_zones.py:273-298,432-436 (build_v2_buffers)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:cableway_buildings_buffer",
+      "kind": "writes",
+      "evidence": "04_create_distance_zones.py:273-298,432-436 (build_v2_buffers)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:general_buildings_buffer",
+      "kind": "writes",
+      "evidence": "04_create_distance_zones.py:273-298,432-436 (build_v2_buffers)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:settlement_buffer_<variant>",
+      "kind": "writes",
+      "evidence": "04_create_distance_zones.py:342-355,437-442 (build_settlement_variant_buffers)",
+      "optional": true,
+      "note": "Nur bei --settlement-variants (Default: False, im Clean-Schema standardmaessig aus)."
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:nature_protection_areas",
+      "kind": "writes",
+      "evidence": "04_create_distance_zones.py:443 (build_nature_masks)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:osm_nature_protection_areas",
+      "kind": "writes",
+      "evidence": "04_create_distance_zones.py:443 (build_nature_masks)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:geography_slope_too_steep",
+      "kind": "writes",
+      "evidence": "04_create_distance_zones.py:444 (build_geography_masks)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:geography_elevation_too_high",
+      "kind": "writes",
+      "evidence": "04_create_distance_zones.py:444 (build_geography_masks)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:geography_wind_too_low",
+      "kind": "writes",
+      "evidence": "04_create_distance_zones.py:444 (build_geography_masks)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:geography_water_bodies",
+      "kind": "writes",
+      "evidence": "04_create_distance_zones.py:445 (build_water_masks)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:official_wind_zoning",
+      "kind": "writes",
+      "evidence": "04_create_distance_zones.py:456 (build_official_zoning_masks)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:wka_bestand_ausserhalb_zonen",
+      "kind": "writes",
+      "evidence": "04_create_distance_zones.py:301-339,462-466 (build_wka_bestand_hulls)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2.tif",
+      "kind": "writes",
+      "evidence": "04_create_distance_zones.py:501-519 (compose_exclusion_geotiff)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2.bands.json",
+      "kind": "writes",
+      "evidence": "04_create_distance_zones.py:524 (write_band_manifest)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/05_validate.py",
+      "to": "layer:general_buildings_buffer",
+      "kind": "reads",
+      "evidence": "05_validate.py:44-111,117-149 (TEST_POINTS/BandReader, --layer-dir Modus)",
+      "optional": true,
+      "note": "Liest je nach Modus entweder den Einzel-Checkpoint (layer-dir) ODER dasselbe Band aus dem finalen TIF (--tif); kein windkraft-Import, direkter rasterio-Zugriff."
+    },
+    {
+      "from": "scripts/widmung_v2/05_validate.py",
+      "to": "layer:general_buildings_source",
+      "kind": "reads",
+      "evidence": "05_validate.py:44-111,117-149 (TEST_POINTS/BandReader, --layer-dir Modus)",
+      "optional": true,
+      "note": "Liest je nach Modus entweder den Einzel-Checkpoint (layer-dir) ODER dasselbe Band aus dem finalen TIF (--tif); kein windkraft-Import, direkter rasterio-Zugriff."
+    },
+    {
+      "from": "scripts/widmung_v2/05_validate.py",
+      "to": "layer:haeuser_im_gruenen",
+      "kind": "reads",
+      "evidence": "05_validate.py:44-111,117-149 (TEST_POINTS/BandReader, --layer-dir Modus)",
+      "optional": true,
+      "note": "Liest je nach Modus entweder den Einzel-Checkpoint (layer-dir) ODER dasselbe Band aus dem finalen TIF (--tif); kein windkraft-Import, direkter rasterio-Zugriff."
+    },
+    {
+      "from": "scripts/widmung_v2/05_validate.py",
+      "to": "layer:haeuser_im_gruenen_ferienhaus",
+      "kind": "reads",
+      "evidence": "05_validate.py:44-111,117-149 (TEST_POINTS/BandReader, --layer-dir Modus)",
+      "optional": true,
+      "note": "Liest je nach Modus entweder den Einzel-Checkpoint (layer-dir) ODER dasselbe Band aus dem finalen TIF (--tif); kein windkraft-Import, direkter rasterio-Zugriff."
+    },
+    {
+      "from": "scripts/widmung_v2/05_validate.py",
+      "to": "layer:haeuser_im_gruenen_noe_pdf",
+      "kind": "reads",
+      "evidence": "05_validate.py:44-111,117-149 (TEST_POINTS/BandReader, --layer-dir Modus)",
+      "optional": true,
+      "note": "Liest je nach Modus entweder den Einzel-Checkpoint (layer-dir) ODER dasselbe Band aus dem finalen TIF (--tif); kein windkraft-Import, direkter rasterio-Zugriff."
+    },
+    {
+      "from": "scripts/widmung_v2/05_validate.py",
+      "to": "layer:haeuser_im_gruenen_streusiedlung",
+      "kind": "reads",
+      "evidence": "05_validate.py:44-111,117-149 (TEST_POINTS/BandReader, --layer-dir Modus)",
+      "optional": true,
+      "note": "Liest je nach Modus entweder den Einzel-Checkpoint (layer-dir) ODER dasselbe Band aus dem finalen TIF (--tif); kein windkraft-Import, direkter rasterio-Zugriff."
+    },
+    {
+      "from": "scripts/widmung_v2/05_validate.py",
+      "to": "layer:nonresidential_hulls_source",
+      "kind": "reads",
+      "evidence": "05_validate.py:44-111,117-149 (TEST_POINTS/BandReader, --layer-dir Modus)",
+      "optional": true,
+      "note": "Liest je nach Modus entweder den Einzel-Checkpoint (layer-dir) ODER dasselbe Band aus dem finalen TIF (--tif); kein windkraft-Import, direkter rasterio-Zugriff."
+    },
+    {
+      "from": "scripts/widmung_v2/05_validate.py",
+      "to": "layer:official_settlement_source",
+      "kind": "reads",
+      "evidence": "05_validate.py:44-111,117-149 (TEST_POINTS/BandReader, --layer-dir Modus)",
+      "optional": true,
+      "note": "Liest je nach Modus entweder den Einzel-Checkpoint (layer-dir) ODER dasselbe Band aus dem finalen TIF (--tif); kein windkraft-Import, direkter rasterio-Zugriff."
+    },
+    {
+      "from": "scripts/widmung_v2/05_validate.py",
+      "to": "output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2.tif",
+      "kind": "reads",
+      "evidence": "05_validate.py:117-119,181 (--tif Modus)",
+      "optional": true,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:settlement_buffer",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1580-1583 (compose_exclusion_geotiff liest jedes Bedingungsband aus BANDS erneut aus layer_dir, unabhaengig davon wer es geschrieben hat)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:haeuser_im_gruenen",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1580-1583 (compose_exclusion_geotiff liest jedes Bedingungsband aus BANDS erneut aus layer_dir, unabhaengig davon wer es geschrieben hat)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:nonresidential_hulls_buffer",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1580-1583 (compose_exclusion_geotiff liest jedes Bedingungsband aus BANDS erneut aus layer_dir, unabhaengig davon wer es geschrieben hat)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:cableway_buildings_buffer",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1580-1583 (compose_exclusion_geotiff liest jedes Bedingungsband aus BANDS erneut aus layer_dir, unabhaengig davon wer es geschrieben hat)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:general_buildings_buffer",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1580-1583 (compose_exclusion_geotiff liest jedes Bedingungsband aus BANDS erneut aus layer_dir, unabhaengig davon wer es geschrieben hat)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:road_motorway_trunk",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1580-1583 (compose_exclusion_geotiff liest jedes Bedingungsband aus BANDS erneut aus layer_dir, unabhaengig davon wer es geschrieben hat)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:road_federal_state",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1580-1583 (compose_exclusion_geotiff liest jedes Bedingungsband aus BANDS erneut aus layer_dir, unabhaengig davon wer es geschrieben hat)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:rail_main",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1580-1583 (compose_exclusion_geotiff liest jedes Bedingungsband aus BANDS erneut aus layer_dir, unabhaengig davon wer es geschrieben hat)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:cableway_people_150m",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1580-1583 (compose_exclusion_geotiff liest jedes Bedingungsband aus BANDS erneut aus layer_dir, unabhaengig davon wer es geschrieben hat)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:military_restricted_area",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1580-1583 (compose_exclusion_geotiff liest jedes Bedingungsband aus BANDS erneut aus layer_dir, unabhaengig davon wer es geschrieben hat)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:airport_area_major",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1580-1583 (compose_exclusion_geotiff liest jedes Bedingungsband aus BANDS erneut aus layer_dir, unabhaengig davon wer es geschrieben hat)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:airport_runway_corridor_5km",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1580-1583 (compose_exclusion_geotiff liest jedes Bedingungsband aus BANDS erneut aus layer_dir, unabhaengig davon wer es geschrieben hat)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:nature_protection_areas",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1580-1583 (compose_exclusion_geotiff liest jedes Bedingungsband aus BANDS erneut aus layer_dir, unabhaengig davon wer es geschrieben hat)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:osm_nature_protection_areas",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1580-1583 (compose_exclusion_geotiff liest jedes Bedingungsband aus BANDS erneut aus layer_dir, unabhaengig davon wer es geschrieben hat)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:geography_slope_too_steep",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1580-1583 (compose_exclusion_geotiff liest jedes Bedingungsband aus BANDS erneut aus layer_dir, unabhaengig davon wer es geschrieben hat)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:geography_elevation_too_high",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1580-1583 (compose_exclusion_geotiff liest jedes Bedingungsband aus BANDS erneut aus layer_dir, unabhaengig davon wer es geschrieben hat)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:geography_wind_too_low",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1580-1583 (compose_exclusion_geotiff liest jedes Bedingungsband aus BANDS erneut aus layer_dir, unabhaengig davon wer es geschrieben hat)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:geography_water_bodies",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1580-1583 (compose_exclusion_geotiff liest jedes Bedingungsband aus BANDS erneut aus layer_dir, unabhaengig davon wer es geschrieben hat)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:wka_bestand_ausserhalb_zonen",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1633-1638 (compose_exclusion_geotiff, trailing_bands)",
+      "optional": false,
+      "note": ""
+    },
+    {
+      "from": "scripts/widmung_v2/04_create_distance_zones.py",
+      "to": "layer:settlement_buffer_<variant>",
+      "kind": "reads",
+      "evidence": "abschichtung_common.py:1641-1656 (compose_exclusion_geotiff, variant_source_band-Schleife)",
+      "optional": true,
+      "note": "Nur bei --settlement-variants (Default: False)."
+    },
+    {
+      "from": "scripts/widmung_v2/01_build_official_zoning_layers.py",
+      "to": "output/abschichtung_widmung_v2/zoning_vectors/_cache",
+      "kind": "reads",
+      "evidence": "widmung_sources.py:388-389 (_ensure_ktn_gpkg Cache-Hit-Pfad)",
+      "optional": true,
+      "note": ""
+    }
+  ]
+}

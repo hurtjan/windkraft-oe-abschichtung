@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{color-scheme:light dark}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>Zielbild Abschichtungskette</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#EDEEE9; --paper-2:#F7F8F4; --paper-3:#E3E5DD;
+  --ink:#1F2420; --ink-2:#5A6157; --ink-3:#858C80;
+  --rule:#CBCFC4; --rule-2:#DDE0D6;
+  --forest:#3F6B4A; --water:#2E6E8E; --contour:#8A6A45; --stone:#6B7268;
+  --signal:#C2761C; --alarm:#B0402F; --violet:#6A5A8C;
+  --forest-bg:#E2EAE2; --water-bg:#DFEAF0; --contour-bg:#EDE5D9; --stone-bg:#E5E7E2;
+  --signal-bg:#F5E6CF; --alarm-bg:#F3DED9; --violet-bg:#E7E3EE;
+  --mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --disp:"Archivo Narrow", "Arial Narrow", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#151814; --paper-2:#1D211C; --paper-3:#252A23;
+  --ink:#E7EAE2; --ink-2:#9AA394; --ink-3:#79826F;
+  --rule:#333A31; --rule-2:#2A302A;
+  --forest:#84BC91; --water:#74B6D6; --contour:#CCA070; --stone:#9BA599;
+  --signal:#E3A550; --alarm:#E87663; --violet:#A797C8;
+  --forest-bg:#1E2C22; --water-bg:#172A33; --contour-bg:#2E2519; --stone-bg:#242923;
+  --signal-bg:#32270F; --alarm-bg:#331E19; --violet-bg:#241F30;
+}}
+:root[data-theme="dark"]{
+  --paper:#151814; --paper-2:#1D211C; --paper-3:#252A23;
+  --ink:#E7EAE2; --ink-2:#9AA394; --ink-3:#79826F;
+  --rule:#333A31; --rule-2:#2A302A;
+  --forest:#84BC91; --water:#74B6D6; --contour:#CCA070; --stone:#9BA599;
+  --signal:#E3A550; --alarm:#E87663; --violet:#A797C8;
+  --forest-bg:#1E2C22; --water-bg:#172A33; --contour-bg:#2E2519; --stone-bg:#242923;
+  --signal-bg:#32270F; --alarm-bg:#331E19; --violet-bg:#241F30;
+}
+*{box-sizing:border-box}
+body{background:var(--paper); color:var(--ink); font-family:var(--sans); font-size:14px; line-height:1.55;
+  -webkit-font-smoothing:antialiased; margin:0; padding:0 0 72px}
+.wrap{max-width:1240px; margin:0 auto; padding:0 24px}
+h1,h2,h3{font-family:var(--disp); font-weight:700; text-wrap:balance; margin:0}
+.eyebrow{font-family:var(--disp); font-weight:600; text-transform:uppercase; letter-spacing:.13em;
+  font-size:11.5px; color:var(--ink-3)}
+code,.mono{font-family:var(--mono); font-size:.9em}
+p{margin:0 0 10px}
+
+.masthead{border-bottom:1px solid var(--rule); background:var(--paper-2)}
+.masthead .wrap{padding:34px 24px 28px; display:flex; flex-direction:column; gap:13px}
+.masthead h1{font-size:clamp(27px,4vw,40px); line-height:1.08; max-width:19ch}
+.lede{color:var(--ink-2); max-width:68ch; font-size:15px}
+.lede b{color:var(--ink); font-weight:600}
+.draftmark{display:inline-flex; align-items:center; gap:8px; align-self:flex-start; font-family:var(--disp);
+  font-weight:600; text-transform:uppercase; letter-spacing:.1em; font-size:11px; color:var(--signal);
+  border:1px solid var(--signal); background:var(--signal-bg); padding:4px 10px; border-radius:2px}
+
+section{margin-top:44px}
+.shead{margin-bottom:14px}
+.shead h2{font-size:20px; margin-bottom:5px}
+.shead p{color:var(--ink-2); font-size:13.5px; max-width:70ch; margin:0}
+.num{font-family:var(--mono); font-size:12px; color:var(--ink-3); margin-right:8px}
+
+/* outputs */
+.outs{display:grid; grid-template-columns:repeat(auto-fit,minmax(228px,1fr)); gap:12px}
+.out{border:1px solid var(--rule); border-top:3px solid var(--contour); border-radius:2px;
+  background:var(--paper-2); padding:14px 16px; display:flex; flex-direction:column; gap:6px}
+.out .f{font-family:var(--mono); font-size:12.5px; font-weight:500; word-break:break-all}
+.out .r{font-size:12.5px; color:var(--ink-2); line-height:1.45}
+.out .w{font-family:var(--disp); font-weight:600; text-transform:uppercase; letter-spacing:.08em;
+  font-size:10.5px; color:var(--ink-3)}
+.out.nw{border-top-color:var(--signal)}
+
+/* matrix */
+.mwrap{border:1px solid var(--rule); border-radius:2px; overflow-x:auto; background:var(--paper-2)}
+table.mx{border-collapse:collapse; width:100%; min-width:940px; font-size:12.5px}
+table.mx th{font-family:var(--disp); font-weight:700; text-transform:uppercase; letter-spacing:.09em;
+  font-size:10.5px; color:var(--ink-3); text-align:left; padding:10px 12px; border-bottom:1px solid var(--rule);
+  background:var(--paper-2); position:sticky; top:0; z-index:2; white-space:nowrap}
+table.mx td{padding:9px 12px; border-bottom:1px solid var(--rule-2); vertical-align:top}
+table.mx tr:last-child td{border-bottom:0}
+table.mx tr.dom{cursor:pointer}
+table.mx tr.dom:hover td{background:var(--paper-3)}
+table.mx tr.dom.on td{background:var(--paper-3); box-shadow:inset 3px 0 0 var(--water)}
+.dname{font-weight:600; white-space:nowrap}
+.dsize{font-family:var(--mono); font-size:11px; color:var(--ink-3); display:block; font-variant-numeric:tabular-nums}
+.step{display:inline-block; font-family:var(--mono); font-size:11px; padding:2px 6px; border-radius:2px;
+  background:var(--water-bg); border-left:2px solid var(--water); margin:0 3px 3px 0}
+.step.p2{background:var(--violet-bg); border-left-color:var(--violet)}
+.step.none{background:transparent; border-left-color:var(--rule); color:var(--ink-3)}
+.lyr{display:inline-block; font-family:var(--mono); font-size:10.5px; padding:1px 5px; margin:0 3px 3px 0;
+  background:var(--paper-3); border:1px solid var(--rule); border-radius:2px; color:var(--ink-2)}
+.bd{display:inline-block; font-family:var(--mono); font-size:10.5px; padding:1px 6px; margin:0 3px 3px 0;
+  background:var(--contour-bg); border-left:2px solid var(--contour); border-radius:2px;
+  font-variant-numeric:tabular-nums}
+.warn{color:var(--alarm); font-weight:600}
+
+/* escalation */
+.esc{display:grid; grid-template-columns:repeat(5,1fr); gap:0; border:1px solid var(--rule); border-radius:2px;
+  overflow:hidden; background:var(--paper-2)}
+.esc .col{border-right:1px solid var(--rule); padding:0 0 14px}
+.esc .col:last-child{border-right:0}
+.esc .ch{padding:11px 13px 9px; border-bottom:1px solid var(--rule); background:var(--paper-3)}
+.esc .ch .t{font-family:var(--disp); font-weight:700; text-transform:uppercase; letter-spacing:.1em;
+  font-size:11px; display:block}
+.esc .ch .s{font-size:11px; color:var(--ink-3); font-family:var(--mono)}
+.esc .cb{padding:11px 13px; display:flex; flex-direction:column; gap:7px; font-size:12px; color:var(--ink-2)}
+.esc .cb b{color:var(--ink); font-weight:600; font-family:var(--mono); font-size:11.5px}
+.esc .col.c1 .ch{box-shadow:inset 0 3px 0 var(--forest)}
+.esc .col.c2 .ch{box-shadow:inset 0 3px 0 var(--water)}
+.esc .col.c3 .ch{box-shadow:inset 0 3px 0 var(--violet)}
+.esc .col.c4 .ch{box-shadow:inset 0 3px 0 var(--contour)}
+.esc .col.c5 .ch{box-shadow:inset 0 3px 0 var(--stone)}
+
+/* trees */
+.trees{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+.tree{border:1px solid var(--rule); border-radius:2px; background:var(--paper-2); padding:14px 16px; overflow-x:auto}
+.tree h3{font-size:13px; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-3); margin-bottom:10px}
+.tree pre{font-family:var(--mono); font-size:11.5px; line-height:1.65; margin:0; white-space:pre}
+.tree .del{color:var(--alarm)}
+.tree .new{color:var(--forest); font-weight:500}
+.tree .cmt{color:var(--ink-3)}
+
+/* ledger */
+.ledger{border:1px solid var(--rule); border-radius:2px; overflow:hidden}
+.lrow{display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,2fr) auto; gap:14px; padding:11px 15px;
+  border-bottom:1px solid var(--rule-2); background:var(--paper-2); align-items:baseline}
+.lrow:last-child{border-bottom:0}
+.lrow .w{font-weight:600; font-size:13px}
+.lrow .d{font-size:12.5px; color:var(--ink-2)}
+.lrow .n{font-family:var(--disp); font-weight:700; font-size:15px; font-variant-numeric:tabular-nums;
+  white-space:nowrap; color:var(--alarm)}
+.lrow.keep .n{color:var(--forest)}
+.lrow.add .n{color:var(--water)}
+
+/* decisions */
+.dec{border-left:3px solid var(--signal); background:var(--signal-bg); padding:13px 16px; border-radius:0 2px 2px 0;
+  margin-bottom:11px}
+.dec.done{border-left-color:var(--forest); background:var(--forest-bg)}
+.dec h3{font-size:14px; margin-bottom:4px; display:flex; align-items:baseline; gap:9px; flex-wrap:wrap}
+.dec .verdict{font-family:var(--disp); font-weight:600; text-transform:uppercase; letter-spacing:.08em;
+  font-size:10.5px; color:var(--forest); border:1px solid var(--forest); padding:2px 7px; border-radius:2px}
+.dec .cons{display:block; margin-top:7px; font-size:12.5px; color:var(--ink-2)}
+.dec .cons b{color:var(--ink)}
+.dec p{font-size:12.5px; color:var(--ink-2); margin:0}
+.dec p b{color:var(--ink)}
+
+.note{border-left:3px solid var(--stone); background:var(--paper-2); padding:12px 16px; font-size:12.5px;
+  color:var(--ink-2); border-radius:0 2px 2px 0}
+.note b{color:var(--ink)}
+footer{margin-top:48px; border-top:1px solid var(--rule); padding-top:16px; color:var(--ink-3); font-size:12.5px}
+@media (max-width:900px){ .trees{grid-template-columns:1fr} .esc{grid-template-columns:1fr}
+  .esc .col{border-right:0; border-bottom:1px solid var(--rule)} .lrow{grid-template-columns:1fr} }
+@media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="wrap">
+    <span class="draftmark">Entwurf · Entscheidungen getroffen · noch kein Code</span>
+    <div class="eyebrow">Abschichtung · Zielarchitektur</div>
+    <h1>Eine Kette, die bei den Rohdaten anfängt</h1>
+    <p class="lede">Heute mischen sich in <code>data/</code> und <code>output/</code> Rohquellen, Build-Caches und
+      Artefakte aus dem Vorgängerprojekt; sieben Skripte hängen an keinem Make-Target, 29 Dateien werden erzeugt
+      und nie gelesen. Der Entwurf trennt das in drei Bereiche mit je einer klaren Regel:
+      <b><code>data/</code> ist unveränderlich und extern bezogen</b>, <b><code>build/</code> ist jederzeit
+      löschbar</b>, <b><code>out/</code> enthält genau vier Produkte</b>. Damit wird
+      <code>rm -rf build &amp;&amp; make</code> zum Beweis, dass die Kette wirklich aus Rohdaten läuft.</p>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section>
+  <div class="shead">
+    <h2><span class="num">01</span>Was am Ende herauskommt</h2>
+    <p>Vier Produkte, kein fünftes. Alles andere ist Zwischenstand und lebt unter <code>build/</code>.</p>
+  </div>
+  <div class="outs">
+    <div class="out">
+      <span class="w">Kartenprodukt</span>
+      <span class="f">out/abschichtung.tif</span>
+      <span class="r">38 Bänder, uint8, EPSG:31287, 25 m, 24001 × 14001. Das eigentliche Ergebnis der
+        Abschichtung.</span>
+    </div>
+    <div class="out">
+      <span class="w">Vertrag</span>
+      <span class="f">out/abschichtung.bands.json</span>
+      <span class="r">Bandnummer, Name, Rolle, Pufferdistanz, Quelle je Band — vom Schreiber selbst erzeugt.
+        Die Datei, die das Dashboard-Repo konsumiert.</span>
+    </div>
+    <div class="out nw">
+      <span class="w">Prüfung · Neubau</span>
+      <span class="f">out/dashboard/</span>
+      <span class="r">Liest ausschließlich das Manifest, nie eine fest verdrahtete Bandliste. Genau daran ist
+        der heutige Dashboard-Builder gescheitert.</span>
+    </div>
+    <div class="out nw">
+      <span class="w">Prüfung · neu</span>
+      <span class="f">out/gemeinden.geojson</span>
+      <span class="r">Gemeindegrenzen im Rasterbezug, um die Deckung visuell zu prüfen — der heute fehlende
+        Test gegen Georeferenzierungsfehler.</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shead">
+    <h2><span class="num">02</span>Die Eskalation</h2>
+    <p>Fünf Stufen. Jede Stufe darf nur aus der vorigen lesen — nie zwei überspringen, nie zurück.
+      Domänen mit aufwendiger Aufbereitung bekommen zwei Prep-Stufen statt einer.</p>
+  </div>
+  <div class="esc">
+    <div class="col c1">
+      <div class="ch"><span class="t">1 · Roh</span><span class="s">data/</span></div>
+      <div class="cb">
+        <span><b>read-only</b> — extern bezogen oder händisch, nie von einem Skript geschrieben.</span>
+        <span>10 Themengruppen, ~11 GB.</span>
+        <span><code>tools/check_raw_only.py</code> bricht den Build ab, wenn hier etwas Abgeleitetes liegt.</span>
+      </div>
+    </div>
+    <div class="col c2">
+      <div class="ch"><span class="t">2 · Prep</span><span class="s">build/prep/&lt;domäne&gt;/</span></div>
+      <div class="cb">
+        <span><b>ein Skript je Domäne</b> — entpacken, reprojizieren, filtern, in ein einheitliches Format.</span>
+        <span>Ergebnis immer GeoParquet oder GeoJSON in EPSG:31287.</span>
+        <span>Teuer und selten: läuft nicht bei jedem Kettenlauf mit.</span>
+      </div>
+    </div>
+    <div class="col c3">
+      <div class="ch"><span class="t">3 · Prep II</span><span class="s">build/prep/&lt;domäne&gt;/b_…</span></div>
+      <div class="cb">
+        <span><b>nur wo nötig</b> — OSM, Kataster, NÖ-PDF, Steiermark-PDF.</span>
+        <span>Trennt teure Extraktion von billiger Ableitung, damit ein Parameterwechsel nicht 5 GB neu rechnet.</span>
+      </div>
+    </div>
+    <div class="col c4">
+      <div class="ch"><span class="t">4 · Layer</span><span class="s">build/layers/*.tif</span></div>
+      <div class="cb">
+        <span><b>Rasterisierung</b> auf das 25-m-Gitter, ein Checkpoint je Quellklasse.</span>
+        <span>Wiederaufsetzbar: vorhandene Layer werden übersprungen.</span>
+        <span>Harte Vorbedingungen statt stiller Fallbacks.</span>
+      </div>
+    </div>
+    <div class="col c5">
+      <div class="ch"><span class="t">5 · Finalize</span><span class="s">out/</span></div>
+      <div class="cb">
+        <span><b>Komposition</b> — Puffer, Aggregate, Varianten, Unschärfe, Referenzbänder.</span>
+        <span>Schreibt TIF und Manifest in einem Zug.</span>
+        <span>Danach <code>verify</code>: Dashboard und Gemeindegrenzen.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shead">
+    <h2><span class="num">03</span>Domänen, Rollen, Bänder</h2>
+    <p>Jede Zeile ist ein Zuständigkeitsbereich mit genau einem Prep-Skript. Ein Klick hebt die Zeile hervor.
+      Die Bandnummern sind die tatsächlichen Deskriptoren des heutigen 38-Band-Rasters.</p>
+  </div>
+  <div class="mwrap">
+    <table class="mx">
+      <thead><tr>
+        <th>Domäne</th><th>Rohquelle</th><th>Prep</th><th>Erzeugte Layer</th><th>Bänder</th>
+      </tr></thead>
+      <tbody id="mxb"></tbody>
+    </table>
+  </div>
+  <p style="margin-top:10px; font-size:12.5px; color:var(--ink-2)">Bandfamilien: <span class="bd">1–2</span>
+    Widmung Wohn/Misch · <span class="bd">3–7</span> Häuser im Grünen · <span class="bd">8–13</span> Gebäude aus
+    dem Kataster · <span class="bd">14–17</span> Verkehr, je 150 m · <span class="bd">18–20</span> Militär und
+    Luftfahrt · <span class="bd">21–22</span> Naturschutz · <span class="bd">23–26</span> Gelände, Wind, Wasser ·
+    <span class="bd">27–30</span> Aggregate · <span class="bd">31–36</span> Verfügbarkeit und Unschärfe ·
+    <span class="bd">37–38</span> Referenz.</p>
+</section>
+
+<section>
+  <div class="shead">
+    <h2><span class="num">04</span>Verzeichnisse</h2>
+    <p>Links der heutige Stand, rechts das Ziel. <span class="del" style="color:var(--alarm)">Rot</span> entfällt,
+      <span style="color:var(--forest); font-weight:500">grün</span> kommt hinzu.</p>
+  </div>
+  <div class="trees">
+    <div class="tree">
+      <h3>Heute</h3>
+      <pre>data/                     <span class="cmt">13 GB, 56 Dateien</span>
+├── kataster/  widmung/  osm  …
+├── <span class="del">adressen_31287.parquet</span>    <span class="cmt">Build-Cache</span>
+├── <span class="del">bev_gebaeude_31287.parquet</span>
+├── <span class="del">osm_power_lines.gpkg</span>      <span class="cmt">tot</span>
+├── <span class="del">windkraftzonen_…2024.json</span> <span class="cmt">verwaist</span>
+└── <span class="del">.claude/  .DS_Store  Aktualitaetsstand.txt</span>
+
+output/                   <span class="cmt">gemischt: Zwischen + Produkt</span>
+├── kataster/  noe/  distance_layers/
+├── abschichtung_widmung_v2/*.tif
+├── <span class="del">abschichtung/</span>            <span class="cmt">v1-Altlast</span>
+└── <span class="del">…/viewer/</span>                <span class="cmt">nie erzeugt</span>
+
+scripts/
+├── widmung_v2/01…05      <span class="cmt">5 Make-Targets</span>
+├── preprocessing/  noe/  <span class="cmt">ohne Target</span>
+├── <span class="del">webmap/build_layer_viewer.py</span> <span class="cmt">NameError</span>
+└── <span class="del">analysis/build_v2_dashboard…</span> <span class="cmt">veraltet</span></pre>
+    </div>
+    <div class="tree">
+      <h3>Ziel</h3>
+      <pre>data/                     <span class="cmt">nur roh, read-only</span>
+├── admin/  kataster/  adressen/
+├── widmung/  osm/  terrain/  natur/
+├── zonen/                <span class="cmt">luca, Eignungs-, RED-III-Zonen</span>
+└── pdf/                  <span class="new">noe_sekrop.pdf, stmk_sapro2026.pdf</span>
+
+<span class="new">build/</span>                    <span class="cmt">gitignored, jederzeit löschbar</span>
+├── prep/&lt;domäne&gt;/        <span class="cmt">normalisiert, EPSG:31287</span>
+└── layers/*.tif          <span class="cmt">25-m-Checkpoints</span>
+
+<span class="new">out/</span>                      <span class="cmt">genau vier Produkte</span>
+├── abschichtung.tif
+├── abschichtung.bands.json
+├── <span class="new">gemeinden.geojson</span>
+└── <span class="new">dashboard/</span>
+
+<span class="new">pipeline/</span>
+├── prep/&lt;domäne&gt;.py      <span class="cmt">10 Skripte</span>
+├── layers/               <span class="cmt">Rasterisierung</span>
+├── finalize.py
+└── verify/               <span class="cmt">Dashboard, Grenzen</span>
+
+windkraft/                <span class="cmt">Bibliothek, installiert</span></pre>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shead">
+    <h2><span class="num">05</span>Was entfällt, was bleibt, was dazukommt</h2>
+    <p>Alle Zahlen stammen aus dem Datenflussgraphen unter <code>docs/dataflow/</code> und sind dort
+      mit Fundstelle belegt.</p>
+  </div>
+  <div class="ledger">
+    <div class="lrow"><span class="w">Tote Konfiguration</span>
+      <span class="d"><code>paths.osm_dir</code> zeigt auf einen nicht existierenden Pfad, dessen Zweig nie
+        erreicht wird; <code>paths.wind_pd_100</code> wird nur aufgelöst, nie gelesen.</span><span class="n">2</span></div>
+    <div class="lrow"><span class="w">Tote Daten in <code>data/</code></span>
+      <span class="d"><code>osm_power_lines.gpkg</code> (Zweig tritt nie ein, Band existiert nicht mehr),
+        <code>windkraftzonen_…json</code>, <code>Aktualitaetsstand.txt</code>, <code>.claude/</code>,
+        zwei <code>.DS_Store</code>.</span><span class="n">6</span></div>
+    <div class="lrow"><span class="w">Build-Caches, die nach <code>build/</code> wandern</span>
+      <span class="d">Die beiden Adressregister-Parquets, 81 MB. Erst die Weiche in
+        <code>bev_register.py</code> entfernen, dann verschieben — sonst greift der Legacy-Zweig wieder.</span>
+      <span class="n">2</span></div>
+    <div class="lrow"><span class="w">Erzeugt und nie gelesen</span>
+      <span class="d">13 NÖ-Nebenprodukte, 9 Kataster-Diagnostikdateien, 4 Viewer-Pfade,
+        <code>dashboard_data.json</code>, der Checkpoint <code>noe_pdf_hig_source</code>. Diagnostik wandert
+        nach <code>build/</code>, der Rest entfällt.</span><span class="n">29</span></div>
+    <div class="lrow"><span class="w">Skripte ohne Zukunft</span>
+      <span class="d"><code>build_layer_viewer.py</code> (bricht mit <code>NameError</code> ab, v1-Eingänge),
+        <code>build_v2_dashboard_data.py</code> (8 veraltete Bandnamen),
+        <code>derive_pdf_hig_sources.py</code> (vollständig redundant).</span><span class="n">3</span></div>
+    <div class="lrow keep"><span class="w">Code, der bleibt</span>
+      <span class="d">Alle fünf Stufe-0-Erzeuger sind byte-identisch zum Vorgängerprojekt und funktionieren —
+        sie werden nur umgehängt, nicht neu geschrieben. Die Bibliothek <code>windkraft/</code> behält ihre
+        Rolle.</span><span class="n">unverändert</span></div>
+    <div class="lrow"><span class="w">Ausschlusszonen, entschieden</span>
+      <span class="d"><code>WINDKRAFT_AUSSCHLUSSZONE.zip</code> entfällt, die Steiermark-SAPRO-Domäne wird gar
+        nicht erst angelegt, <code>Stmk2026Aus</code> verschwindet aus <code>wind_zones.py</code>. Kein PDF-Import
+        aus dem Vorgängerprojekt.</span><span class="n">1 Domäne</span></div>
+    <div class="lrow"><span class="w">Hardlinks aufgelöst</span>
+      <span class="d">52 Dateien werden zu echten Kopien. <code>data/</code> ist danach unabhängig, das
+        Vorgängerprojekt löschbar.</span><span class="n">+13 GB</span></div>
+    <div class="lrow add"><span class="w">Was dazukommt</span>
+      <span class="d">Der Gemeindegrenzen-Export; das neue Dashboard gegen das Manifest; <code>make test</code> —
+        die acht vorhandenen Tests hängen heute an keinem Target.</span><span class="n">3</span></div>
+  </div>
+</section>
+
+<section>
+  <div class="shead">
+    <h2><span class="num">06</span>Getroffene Entscheidungen</h2>
+    <p>Vier Punkte hingen an fachlichem Wissen, nicht am Code. Alle vier sind entschieden.</p>
+  </div>
+  <div class="dec done">
+    <h3>Ausschlusszonen <span class="verdict">beides entfällt</span></h3>
+    <p><code>WINDKRAFT_AUSSCHLUSSZONE.zip</code> wird gelöscht, und die Steiermark-SAPRO-Domäne wird gar nicht
+      erst angelegt: kein PDF aus dem Vorgängerprojekt, <code>Stmk2026Aus</code> verschwindet aus
+      <code>wind_zones.py</code>.</p>
+    <span class="cons"><b>Folge:</b> Band 37 behält die steirischen <i>Positiv</i>zonen aus
+      <code>luca_zonen/Stmk.shp</code> und verliert nur die SAPRO-2026-<i>Ausschluss</i>zonen. Nebeneffekt zum
+      Guten: die einzige nicht bitgleich reproduzierbare Farbextraktion fällt aus der Kette, und PyMuPDF wird
+      nur noch für Niederösterreich gebraucht.</span>
+  </div>
+  <div class="dec done">
+    <h3>Hardlinks <span class="verdict">echte Kopien</span></h3>
+    <p>Die 52 hardgelinkten Dateien werden zu eigenständigen Kopien, Kosten rund 13 GB.</p>
+    <span class="cons"><b>Folge:</b> <code>data/</code> ist danach unabhängig, das Vorgängerprojekt lässt sich
+      löschen, ohne dass hier etwas verschwindet. <code>tools/check_hardlink_safety.py</code> wird dabei von
+      „Schreibziele müssen Link-Count 1 haben" auf „<i>alle</i> Dateien müssen Link-Count 1 haben"
+      verschärft — aus der Warnung wird eine Invariante.</span>
+  </div>
+  <div class="dec done">
+    <h3>Prep <span class="verdict">nicht im Standardlauf</span></h3>
+    <p><code>make</code> baut nur Layer und Finalize. <code>make prep</code> ist ein bewusster, separater
+      Aufruf. <code>make all</code> hängt beides zusammen.</p>
+    <span class="cons"><b>Folge:</b> Der Alltagslauf rechnet nicht versehentlich fünf Stunden Kataster neu,
+      aber <code>make all</code> bleibt der Beweis, dass die Kette aus Rohdaten läuft. Damit das nicht
+      auseinanderläuft, schreibt jede Prep-Stufe einen Fingerabdruck ihrer Eingänge — passt er nicht mehr,
+      bricht der Layer-Bau ab, statt mit veralteten Zwischenständen weiterzurechnen.</span>
+  </div>
+  <div class="dec done">
+    <h3>Adressregister <span class="verdict">Graph korrigiert</span></h3>
+    <p>Die Lücke wird nicht als Einzelfall geflickt, sondern an der Ursache: wo ein Bibliotheksmodul im Auftrag
+      eines Skripts liest oder schreibt, bekommt der Graph eine abgeleitete Kante vom Modul zum Skript.</p>
+    <span class="cons"><b>Folge:</b> Der Pfad vom BEV-Adressregister zu den Streusiedlungs-Hüllen ist wieder
+      durchgängig, und dieselbe Korrektur schließt zugleich die Pfade der Referenzbänder. Abgeleitete Kanten
+      sind als solche markiert und bleiben von den belegten unterscheidbar.</span>
+  </div>
+</section>
+
+<section>
+  <div class="shead"><h2><span class="num">07</span>Grenzen des Modells</h2>
+    <p>Der Graph ist ein Werkzeug, keine Wahrheit. Zwei Stellen haben zu falschen Schlüssen geführt — eine wird
+      behoben, die andere bleibt und muss bekannt sein.</p></div>
+  <div class="note">
+    <p><b>Behoben: Bibliotheks-I/O riss den Pfad ab.</b> Ein Teil der Datei-Zugriffe passiert nicht im Skript,
+      sondern in einem Modul des <code>windkraft</code>-Pakets, und Skripte sind mit Modulen nur über
+      Import-Kanten verbunden, die bewusst nicht als Datenfluss zählen. Dadurch endete der Pfad
+      Rohdatei → Modul im Nichts — weshalb eine Auswertung behauptete, das Adressregister erreiche keinen
+      einzigen Layer. Die Korrektur setzt an der Ursache an und gilt für alle betroffenen Module, nicht nur
+      für dieses eine.</p>
+    <p style="margin-bottom:0"><b>Bleibt: Referenzbänder haben keinen Layer-Knoten.</b> Die Bänder 37 und 38
+      entstehen direkt in der Finalisierung, ohne Checkpoint dazwischen. Eine Quelle, die nur ein Referenzband
+      speist, hat deshalb keinen <code>layer:</code>-Knoten im Pfad — und darf nicht allein deshalb als
+      Sackgasse gelten. Wer eine Löschliste aus dem Graphen ableitet, muss diesen Fall ausnehmen.</p>
+  </div>
+</section>
+
+<footer>
+  <div>Entwurf vom 7. September 2026. Grundlage: der belegte Datenflussgraph unter
+    <code>docs/dataflow/flow_graph.json</code> — 220 Knoten, 348 Kanten, jede mit Fundstelle im Code.
+    Noch nichts davon ist umgesetzt; kein Code geschrieben, keine Datei gelöscht.</div>
+</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var DOM = [
+    {d:"Verwaltungsgrenzen", src:"VGD 50 generalisiert (BEV)", size:"", prep:["admin"], prep2:[],
+     lyr:["bundesland_masken","gemeinden"], bands:"alle indirekt · out/gemeinden.geojson",
+     note:"Basis für die bundeslandweisen Puffer und für die neue Deckungsprüfung."},
+    {d:"Kataster", src:"8 × DKM-SHP-ZIP + NÖ-DXF + Symbol-CSV", size:"7,8 GB",
+     prep:["kataster/a_noe_polygonize"], prep2:["kataster/b_export_parquet"],
+     lyr:["nonresidential_hulls_source","general_buildings_source","hig_hulls_source","bewohnt_einzellage_source"],
+     bands:"8–13",
+     note:"NÖ liefert nur Linienwerk; die Polygone werden per Kachelung und Mehrheitsvotum rekonstruiert. Teuerste Stufe der Kette."},
+    {d:"Adressregister", src:"BEV Adresse, Stichtagsdaten", size:"484 MB", prep:["adressen"], prep2:[],
+     lyr:["hig_hulls_source"], bands:"12–13",
+     note:"Speist die Streusiedlungserkennung: ≥5 adressierte Objekte in 200-m-Verkettung ergeben eine Hülle."},
+    {d:"Flächenwidmung", src:"9 Bundesland-Quellen, GPKG und SHP", size:"1,6 GB", prep:["widmung"], prep2:[],
+     lyr:["official_settlement_source","official_hig_source","ferienhaus_tourismus_source"], bands:"1–5",
+     note:"Niederösterreich ist das einzige Land mit 1200 m Siedlungspuffer statt 1000 m."},
+    {d:"OSM", src:"austria.osm.pbf", size:"760 MB", prep:["osm/a_extract"], prep2:["osm/b_layers"],
+     lyr:["roads","rail","cableway","water_bodies","nature_osm","military","airport","wka_bestand"],
+     bands:"14–22, 26, 38",
+     note:"Zwei Stufen, weil die osmium-Extraktion teuer ist und die Layer-Ableitung oft wiederholt wird."},
+    {d:"Gelände &amp; Wind", src:"DGM_R25, Leistungsdichte 150 m", size:"757 MB", prep:[], prep2:[],
+     lyr:["geography_slope","geography_elevation","geography_wind"], bands:"23–25",
+     note:"Bereits Raster im Zielgitter — kein Prep nötig, direkt in die Layer-Stufe."},
+    {d:"Naturschutz", src:"Schutzgebiete Österreich 2024", size:"73 MB", prep:["natur"], prep2:[],
+     lyr:["nature_protection_areas"], bands:"21",
+     note:"Amtliche Quelle; Band 22 stammt aus OSM und dient dem Abgleich."},
+    {d:"Windzonen", src:"luca_zonen, Eignungszonen, RED III, zonierung_noe", size:"4,9 MB",
+     prep:["zonen"], prep2:[], lyr:["—"], bands:"37",
+     note:"Referenzband, geht nicht in die Abschichtung ein. Die steirischen Positivzonen bleiben erhalten (luca_zonen/Stmk.shp); die SAPRO-2026-Ausschlusszonen entfallen laut Entscheidung. Die beiden Quellen, die heute bei Fehlen still ausfallen, werden zur harten Vorbedingung."},
+    {d:"NÖ SekROP-PDF", src:"Sektorales Raumordnungsprogramm, PDF-Karte", size:"16,6 MB",
+     prep:["noe/a_align"], prep2:["noe/b_vectorize"], lyr:["noe_pdf_750m_zones"], bands:"6–7",
+     note:"Trägt in Niederösterreich allein den 750-m-Abstand; die Kataster-Hüllen sind dort ausmaskiert."}
+  ];
+  var tb = document.getElementById("mxb");
+  tb.innerHTML = DOM.map(function(r, i){
+    var prep = r.prep.length ? r.prep.map(function(p){ return '<span class="step">' + p + '</span>'; }).join("")
+      : '<span class="step none">kein Prep</span>';
+    var prep2 = r.prep2.map(function(p){ return '<span class="step p2">' + p + '</span>'; }).join("");
+    return '<tr class="dom" data-i="' + i + '" tabindex="0">' +
+      '<td><span class="dname">' + r.d + (r.missing ? ' <span class="warn">·  fehlt</span>' : '') + '</span>' +
+        (r.size ? '<span class="dsize">' + r.size + '</span>' : '') + '</td>' +
+      '<td>' + r.src + '</td>' +
+      '<td>' + prep + prep2 + '</td>' +
+      '<td>' + r.lyr.map(function(l){ return '<span class="lyr">' + l + '</span>'; }).join("") + '</td>' +
+      '<td><span class="bd">' + r.bands + '</span></td></tr>' +
+      '<tr class="det" data-for="' + i + '" hidden><td colspan="5" style="color:var(--ink-2); ' +
+        'font-size:12.5px; padding-top:0">' + r.note + '</td></tr>';
+  }).join("");
+
+  tb.addEventListener("click", onPick);
+  tb.addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " "){ e.preventDefault(); onPick(e); } });
+  function onPick(e){
+    var tr = e.target.closest("tr.dom");
+    if (!tr) return;
+    var i = tr.dataset.i, det = tb.querySelector('tr.det[data-for="' + i + '"]');
+    var open = tr.classList.contains("on");
+    Array.prototype.forEach.call(tb.querySelectorAll("tr.dom"), function(x){ x.classList.remove("on"); });
+    Array.prototype.forEach.call(tb.querySelectorAll("tr.det"), function(x){ x.hidden = true; });
+    if (!open){ tr.classList.add("on"); det.hidden = false; }
+  }
+  var first = tb.querySelector('tr.dom[data-i="1"]');
+  if (first){ first.classList.add("on"); tb.querySelector('tr.det[data-for="1"]').hidden = false; }
+})();
+</script>
+</body>
+</html>
