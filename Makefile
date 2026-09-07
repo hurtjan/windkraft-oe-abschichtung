@@ -6,6 +6,7 @@ V2_TIF = $(V2_DIR)/osm_wka_distance_zones_widmung_v2.tif
 
 .PHONY: widmung-v2 widmung-v2-zoning widmung-v2-hig widmung-v2-osm widmung-v2-tif \
         widmung-v2-validate check-hardlinks check-raw-only check-guards prep all test worktree
+.PHONY: layers
 
 # Ohne dieses .DEFAULT_GOAL würde make(1) das erste im File stehende Ziel
 # nehmen - das ist widmung-v2-zoning (nur Stufe 1 von 5), nicht die volle
@@ -85,6 +86,29 @@ PREP_TARGETS := $(addprefix prep-,$(basename $(notdir $(wildcard make/prep/*.mk)
 prep: $(PREP_TARGETS)
 ifeq ($(strip $(PREP_TARGETS)),)
 	@echo "prep: noch keine Prep-Pakete vorhanden - die entstehen erst in Welle 1 (docs/rewrite/PLAN.md §7, W1.P1-W1.P9)."
+endif
+
+## Vorpaket W2.P0 (docs/rewrite/PLAN.md §13.8): dasselbe Muster wie oben bei
+## Prep, diesmal für die drei parallelen Layer-Pakete (W2.1, W2.3, W2.4).
+## Jedes bekommt seine eigene Datei make/layers/<domäne>.mk mit dem Ziel
+## `layer-<domäne>`. Siehe make/layers/README.md für die Konvention. Das
+## führende "-" lässt make weiterlaufen, solange noch keine einzige Datei
+## existiert (kein Fehler, kein Abbruch).
+-include make/layers/*.mk
+
+# Namen aller so eingelesenen Ziele, aus den Dateinamen abgeleitet -
+# make/layers/hig.mk ergibt layer-hig. Leer, solange kein make/layers/*.mk
+# existiert.
+LAYER_TARGETS := $(addprefix layer-,$(basename $(notdir $(wildcard make/layers/*.mk))))
+.PHONY: $(LAYER_TARGETS)
+
+## Ruft alle drei (bzw. die bereits vorhandenen) layer-<domäne>-Ziele auf.
+## Bewusst kein stiller Erfolg und kein Fehler, solange noch keines
+## existiert - nur die Auskunft, dass hier noch nichts läuft. Rückgabewert
+## in jedem Fall 0.
+layers: $(LAYER_TARGETS)
+ifeq ($(strip $(LAYER_TARGETS)),)
+	@echo "layers: noch keine Layer-Pakete vorhanden - die entstehen erst in Welle 2 (docs/rewrite/PLAN.md §7, W2.1/W2.3/W2.4)."
 endif
 
 ## Prep und Kette zusammen - der Beweislauf aus Rohdaten (Welle 5: W5.1).
@@ -172,7 +196,20 @@ worktree:
 		ln -s $(CURDIR)/output/abschichtung_widmung_v2/distance_layers \
 			"$$WT_DIR/output/abschichtung_widmung_v2/distance_layers"; \
 	fi; \
+	mkdir -p "$$WT_DIR/build"; \
+	if [ -L "$$WT_DIR/build/prep" ]; then \
+		: schon ein Symlink - unveraendert uebernehmen; \
+	elif [ ! -e "$$WT_DIR/build/prep" ]; then \
+		ln -s $(CURDIR)/build/prep "$$WT_DIR/build/prep"; \
+	else \
+		echo "Abbruch: $$WT_DIR/build/prep existiert bereits, ist aber kein Symlink - unerwarteter Zustand, nichts geloescht."; \
+		echo "$$CLEANUP"; \
+		exit 1; \
+	fi; \
 	echo "Angelegt: $$WT_DIR auf Zweig $(PAKET). data/ und distance_layers/ sind Symlinks auf dieses Repo (read-only, kein Kopieraufwand)."; \
 	echo "WARNUNG: ein Lauf mit --force-layers dort schreibt in das GETEILTE distance_layers/ und zerstört die Arbeit aller anderen Worktrees - nicht verwenden."; \
+	echo "Zusaetzlich (W2.P0, docs/rewrite/PLAN.md §13.8): build/prep/ ist ebenfalls ein Symlink auf dieses Repo (read-only, kein Kopieraufwand - die Prep-Ausgaben muessten sonst je Worktree neu gerechnet werden, allein Kataster 45-70 Minuten)."; \
+	echo "WARNUNG: build/prep/ ist GETEILT und nur zum Lesen gedacht - ein Schreibzugriff (z.B. ein erneutes 'make prep' aus diesem Worktree) trifft alle Layer-Worktrees gleichzeitig; nur die Prep-Stufe im Hauptrepo darf dort schreiben."; \
 	echo "git status ist absichtlich sauber: data/ ist seit W1.2 ohne jede versionierte Datei (kein --skip-worktree mehr noetig), der Symlink 'data' selbst steht in .git/info/exclude (geteilt ueber alle Worktrees, nicht versioniert)."; \
+	echo "build/ ist zusaetzlich ueber .gitignore repoweit ausgeschlossen - fuer den build/prep-Symlink ist kein weiterer Eintrag in .git/info/exclude noetig."; \
 	echo "Entfernen mit: git worktree remove $$WT_DIR && git branch -d $(PAKET)"

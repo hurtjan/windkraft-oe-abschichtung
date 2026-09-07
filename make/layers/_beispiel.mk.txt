@@ -1,0 +1,11 @@
+# Vorlage für make/layers/<domäne>.mk — siehe README.md in diesem Verzeichnis.
+#
+# Diese Datei trägt bewusst die Endung ".mk.txt", nicht ".mk": das
+# Haupt-Makefile liest nur "make/layers/*.mk" per -include ein
+# (docs/rewrite/PLAN.md §13.8), diese Vorlage soll dabei NICHT mitgelesen
+# werden. Zum Anlegen deines eigenen Ziels: Datei nach
+# make/layers/<domäne>.mk kopieren, "hig" durch deine Domäne ersetzen.
+
+.PHONY: layer-hig
+layer-hig:
+	uv run python -m pipeline.layers.hig
