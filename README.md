@@ -30,8 +30,13 @@ konsumiert, findet den Vertrag dafür in [`docs/HANDOFF.md`](docs/HANDOFF.md).
   Beobachtungen aus der Übernahme), `MIGRATION_MAP.tsv` (alte → neue Pfade),
   `analysis/` (Herleitungs-Dokumentation einzelner Verfahren).
 - `tests/` — Unit- und Äquivalenztests.
-- `config.json` — die eine Konfigurationsdatei im Wurzelverzeichnis; siehe
-  Hinweis zu `windkraft/config.py` unten.
+- `config.json` — die eine Konfigurationsdatei im Wurzelverzeichnis. Die
+  Rohpfade (`vgd`, `osm_dir`, `wind_pd_150`, `wind_pd_100`, `dgm`,
+  `nsg_zip`, `powerlines_gpkg`) stehen dort nicht mehr als Literal:
+  `windkraft/config.py:load_config()` befüllt `cfg["paths"]` beim Laden aus
+  dem Pfadvertrag `pipeline/contract.py` (`windkraft/config.py:8, 35-45`);
+  alles andere (Schwellwerte, Bundesland-Puffer, Windparameter usw.) bleibt
+  Literal in `config.json`.
 - `data/` und `output/` — beide gitignored (siehe `.gitignore`). Die einzige
   Ausnahme ist `data/README.md`: sie ist die Provenienz-Dokumentation für
   jede Datei unter `data/` und wird deshalb versioniert, obwohl der Ordner
@@ -50,15 +55,29 @@ konsumiert, findet den Vertrag dafür in [`docs/HANDOFF.md`](docs/HANDOFF.md).
   brew install osmium-tool
   ```
 
-  Unmissverständlich: ein fehlendes `osmium-tool` führt **nicht** zu einem
-  Abbruch. Der OSM-Extraktionsschritt fängt den resultierenden Fehler ab und
-  fällt still auf leere Masken zurück (siehe `docs/FOLLOWUPS.md`,
-  Abschnitt „Stille Fallbacks und Drift“). Ein Lauf ohne `osmium-tool` sieht
-  danach erfolgreich aus, ist aber inhaltlich falsch — es gibt keine
-  Warnung.
-- **Speicherbedarf:** `data/` und `output/` zusammen ≈ 18 GB (`du -sch data
-  output`: 13 GB + 5,1 GB, Stand nach der Migration in dieses Repo). Beide
-  Ordner sind gitignored; nur `data/README.md` ist versioniert.
+  In diesem Repo gilt das Gegenteil dessen, was das Altrepo einmal tat:
+  `_run_osmium()` (`windkraft/calc/abschichtung_common.py:413-414`,
+  `subprocess.run(cmd, check=True)`) fängt keine Exception ab — ein
+  fehlendes `osmium-tool` lässt den Lauf sofort mit `FileNotFoundError`
+  abbrechen. Der in `docs/FOLLOWUPS.md`, Abschnitt „Stille Fallbacks und
+  Drift“, dokumentierte stille Fallback (`CalledProcessError` abfangen,
+  auf leere Masken zurückfallen) lebte in `kataster_layers.py:876` des
+  Altrepos und wurde nicht mit übernommen. Still bleibt dagegen ein
+  anderer, leicht zu verwechselnder Fall: **fehlende OSM-Rohdaten** (nicht
+  das Tool) — `osm_layer_path()` (`abschichtung_common.py:470-511`) weicht
+  dann auf Alt-Shapefile-Pfade oder einen Platzhalterpfad aus, und
+  `read_layer()` (`abschichtung_common.py:517-519`) liefert für einen
+  fehlenden Pfad klaglos eine leere GeoDataFrame zurück. Ein Lauf mit
+  lückenhaften OSM-Daten (Tool installiert) sieht also weiterhin
+  erfolgreich aus, ist aber inhaltlich falsch — ein Lauf ganz ohne
+  `osmium-tool` dagegen bricht hier laut ab.
+- **Speicherbedarf:** `data/` und `output/` zusammen ≈ 24 GB (`du -sch data
+  output`, gemessen 07.09.2026: 13 GB + 11 GB — Momentaufnahme, kein
+  Fixwert). `output/` ist seit der ursprünglich nach der Migration
+  gemessenen 5,1 GB gewachsen: `output/kataster` (5,0 GB, aus
+  `scripts/preprocessing/export_at_dkm_geoparquet.py`) und der erste
+  vollständige Kettenlauf (`docs/RUN1_VERGLEICH.md`) sind dazugekommen.
+  Beide Ordner sind gitignored; nur `data/README.md` ist versioniert.
 
 ## Daten besorgen
 
@@ -87,11 +106,25 @@ Reihenfolge laufen müssen:
 4. `make widmung-v2-tif` — kombiniert alle Layer zum finalen GeoTIFF.
 5. `make widmung-v2-validate` — validiert das GeoTIFF gegen die Testpunkte.
 
+Daneben kennt das `Makefile` inzwischen ein Fünf-Stufen-Modell (Roh -> Prep
+-> Layer -> Finalize -> verify, `Makefile:46-60`): `make` ohne Argument ist
+seit `.DEFAULT_GOAL := widmung-v2` (`Makefile:16`) identisch mit
+`make widmung-v2` — **ohne** dieses `.DEFAULT_GOAL` würde `make(1)` das
+erste im File stehende Ziel nehmen, `widmung-v2-zoning` (nur Stufe 1 von
+5). `make prep` existiert als Ziel, tut aber noch nichts (`Makefile:56-57`,
+Platzhalter bis Welle 1 die Prep-Pakete liefert). `make all` hängt `prep`
+und `widmung-v2` aneinander (`Makefile:60`) und ist deshalb aktuell
+dasselbe wie `make`. `make test` führt `uv run pytest tests/ -v` aus
+(`Makefile:65-66`). `make worktree PAKET=<paket>` legt neben dem Repo ein
+einsatzfähiges Arbeitsverzeichnis für ein Paket an (`Makefile:68-137`).
+
 `make widmung-v2` führt alle fünf nacheinander aus. Laufzeit, gemessen am
 06.09.2026 auf einer Maschine mit bereits vorhandenen Caches/Checkpoints
 (Adressregister-Parquets, teilweise befüllter OSM-PBF-Extract-Cache) —
 **ein** gemessener Lauf auf **einer** Maschine, keine Garantie für andere
-Umgebungen oder einen Kaltstart ohne Caches:
+Umgebungen oder einen Kaltstart ohne Caches (vollständige Methodik und
+Bandvergleich gegen die Referenz-TIF aus `windkraft_ö_karten`:
+`docs/RUN1_VERGLEICH.md`):
 
 | Stufe | Skript | Dauer |
 | --- | --- | --- |
@@ -102,11 +135,20 @@ Umgebungen oder einen Kaltstart ohne Caches:
 | 5 validate | `05_validate.py` | 1 s |
 | **Gesamt** | | **866 s (14 min 26 s)** |
 
+Wichtiger Vorbehalt zu Stufe 1: `01_build_official_zoning_layers.py`
+verarbeitet in diesen 49 s ein bereits fertiges Kataster-GeoParquet
+(`output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet`), **nicht** die
+9,1 GB rohen DKM-Archive unter `data/kataster/` (`docs/MIGRATION_MAP.tsv:70`).
+Die Vorverarbeitung, die dieses GeoParquet erst erzeugt
+(`scripts/preprocessing/export_at_dkm_geoparquet.py`), ist in dieser
+Tabelle nicht enthalten und wurde in diesem Repo bislang nirgends gemessen
+(siehe `docs/rewrite/FORTSCHRITT.md`, Abschnitt „Gemessene Laufzeiten”).
+
 Bei einem Kaltstart ohne vorhandene Caches (insbesondere ein leerer
 OSM-PBF-Extract-Cache unter `output/abschichtung/osm_pbf_layers/`, ca. 4,6 GB)
-ist mit deutlich längerer Laufzeit zu rechnen als hier gemessen — die Kette
-wurde in diesem Repo bis zu diesem Lauf noch kein einziges Mal end-to-end
-ausgeführt (siehe Abschnitt „Status“).
+ist mit deutlich längerer Laufzeit zu rechnen als hier gemessen — vor
+diesem Lauf war die Kette in diesem Repo noch kein einziges Mal end-to-end
+ausgeführt worden (siehe Abschnitt „Status”).
 Wichtig: die Kopplung zwischen den Schritten läuft über Dateien im
 gemeinsamen Ausgabeordner (`output/abschichtung_widmung_v2/...`), nicht über
 Make-Abhängigkeiten — die Targets selbst kennen sich gegenseitig nicht, ein
@@ -135,10 +177,16 @@ Bandzahl, -namen und -reihenfolge im Manifest sind damit per Konstruktion
 identisch mit dem TIF. Farben, Kategorien und Default-Sichtbarkeit kommen
 aus der gemeinsamen Quelle `windkraft/viz/band_metadata.py`. Der Vertrag,
 den ein Konsument gegen dieses Manifest einhalten muss, steht in
-[`docs/HANDOFF.md`](docs/HANDOFF.md) — **noch nicht verifiziert ist nur der
-End-to-End-Lauf, der den Emitter tatsächlich in Produktion schreiben lässt**
-(siehe „Status“); das Referenz-Manifest in `docs/HANDOFF.md` stammt aus
-einem älteren Artefakt.
+[`docs/HANDOFF.md`](docs/HANDOFF.md). Der End-to-End-Lauf, der den Emitter
+tatsächlich in Produktion schreiben lässt, hat inzwischen stattgefunden
+(06.09.2026, `docs/RUN1_VERGLEICH.md`) — Bandzahl, -namen, -reihenfolge und
+alle Vertragsfelder des Manifests stimmen mit dem zuvor generierten
+Referenz-Manifest exakt überein; offen sind nur inhaltliche
+Detailabweichungen (Caveat-Texte, 18 von 38 Bändern mit Pixelabweichungen
+< 0,004 %, siehe Abschnitt „Status” und `docs/RUN1_VERGLEICH.md`, Abschnitt
+10). Das Referenz-Manifest in `docs/HANDOFF.md` selbst stammt weiterhin aus
+einem älteren Artefakt von vor diesem Lauf — es zu aktualisieren ist nicht
+Teil dieses Pakets.
 
 ## Was dieses Repo nicht ist
 
@@ -147,11 +195,22 @@ einem älteren Artefakt.
   nicht übernommen und ist hier nicht lauffähig.
 - **Keine eigenständige OSM-Kette.** `scripts/main/create_osm_wka_distance_zones.py`
   (reine OSM-Abstandszonen ohne Widmung) ist nicht Teil dieses Repos.
-- **Keine Kataster-Kette.** Die Erzeugung von `at_dkm_gst_nfl_epsg31287.geoparquet`
-  und der übrigen Kataster-Layer läuft weiterhin ausschließlich im alten
-  Repo; dieses Repo liest ihr Ergebnis nur als Eingabedatensatz.
-- **Keine Präsentations-/Auswertungsskripte** über den unter „Struktur“
-  genannten Layer-Viewer hinaus — insbesondere keine Dashboards.
+- **Kataster-Kette ist migriert, aber noch nicht an `make` angebunden.**
+  `scripts/preprocessing/export_at_dkm_geoparquet.py` erzeugt
+  `output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet` (gelesen von Stufe
+  2, `02_build_hig_sources.py:197`, über `--dkm-parquet`), und
+  `create_noe_dkm_polygon_fill_map.py` liefert dafür das
+  NÖ-DXF-Vorprodukt — beides läuft seit der Code-Übernahme in diesem Repo,
+  nicht mehr im alten. Kein `make`-Target ruft die beiden Skripte bisher
+  auf; `make prep` ist noch ein Platzhalter (`Makefile:56-57`) — bis Welle
+  1 die Prep-Pakete liefert, müssen sie von Hand aufgerufen werden.
+- **Kein funktionierendes Dashboard-Skript.**
+  `scripts/analysis/build_v2_dashboard_data.py` existiert und wurde
+  übernommen — bricht aber am aktuellen 38-Band-TIF hart ab, weil sein
+  `EXCLUSION_LAYERS` noch sieben Bandnamen aus dem Pre-Clean-Schema nennt
+  (siehe Abschnitt „Das Band-Manifest" oben, `docs/FOLLOWUPS.md`). Über den
+  unter „Struktur“ genannten Layer-Viewer hinaus gibt es sonst keine
+  Präsentations-/Auswertungsskripte.
 
 Für all das ist `windkraft_ö_karten` weiterhin die Quelle der Wahrheit.
 
@@ -188,6 +247,8 @@ Hardlink-Invariante".
 - [`docs/widmung_v2.md`](docs/widmung_v2.md) — Referenzkarte der Kette.
 - [`docs/HANDOFF.md`](docs/HANDOFF.md) — Vertrag für Konsumenten des
   GeoTIFF und seines Band-Manifests.
+- [`docs/RUN1_VERGLEICH.md`](docs/RUN1_VERGLEICH.md) — Methodik und
+  Ergebnis des ersten End-to-End-Laufs, Quelle der Laufzeiten oben.
 
 ## Status
 
@@ -199,11 +260,20 @@ Follow-up-Dokumentation. Der mitübernommene Layer-Viewer
 (`scripts/webmap/build_layer_viewer.py`) erwies sich als toter Code
 (`NameError` bei jedem Aufruf) und wurde in W1.5 gelöscht.
 
-Fehlt: ein tatsächlich verifizierter Lauf der vollständigen Kette gegen
-`windkraft_ö_karten` (Voraussetzung dafür, dass das alte Repo abgelöst werden
-kann) — die Kette wurde in diesem Repo noch kein einziges Mal end-to-end
-ausgeführt, das ist die einzige echte Absicherung, dass Code-Übernahme und
-Emitter zusammen tatsächlich funktionieren. Ebenfalls offen: die in
-`docs/FOLLOWUPS.md` gesammelten Entscheidungen (u. a.
+Erledigt seit dem 06.09.2026 zusätzlich: ein erster vollständiger
+End-to-End-Lauf der Kette in diesem Repo, verglichen gegen die aus
+`windkraft_ö_karten` übernommene Referenz-TIF (SHA-256-geprüft, Altrepo
+dabei unverändert) — siehe `docs/RUN1_VERGLEICH.md`. Bandzahl (38),
+Bandnamen/-reihenfolge, alle 26 globalen Tags und alle Vertragsfelder des
+Band-Manifests stimmen exakt überein; 20 von 38 Bändern sind pixelgenau
+identisch mit der Referenz. Offen bleibt: 18 von 38 Bändern
+(Human-Exclusion-Kette) weichen um < 0,004 % der jeweiligen Bandfläche ab,
+ohne dass die Ursache abschließend geklärt wurde, ebenso ein
+Größenunterschied der TIF-Datei (119 MB vs. 129 MB) und geänderte
+Caveat-Texte im Manifest (vollständige Rangliste aller Abweichungen:
+`docs/RUN1_VERGLEICH.md`, Abschnitt 10). Ob das für die Ablösung des alten
+Repos ausreicht, ist damit noch nicht entschieden — das ist eine
+inhaltliche Frage, keine, die sich aus dem Lauf allein beantwortet.
+Ebenfalls offen: die in `docs/FOLLOWUPS.md` gesammelten Entscheidungen (u. a.
 `config.py`-Pfadauflösung, Projektname/Entry-Point in `pyproject.toml`,
 veraltete `EXCLUSION_LAYERS`-Liste im Dashboard-Skript).
