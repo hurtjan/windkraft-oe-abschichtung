@@ -134,14 +134,17 @@ RAW = {
         # per <zone_dir>/<key>.shp aufgelöst (kein eigener source_path);
         # scripts/widmung_v2/04_create_distance_zones.py:370 (--vorrangzonen-dir).
         "luca_zonen_dir": DATA / "zonen" / "luca_zonen",
-        # windkraft/calc/wind_zones.py:105,146 (hartkodierter source_path,
+        # windkraft/calc/wind_zones.py:100,126 (hartkodierter source_path,
         # Positiv- UND Ausschlusszonen im selben Layer, per Attributfilter getrennt).
         "eignungszonen_zip": DATA / "zonen" / "WK_Eignungszonen.zip",
-        # windkraft/calc/wind_zones.py:120 (hartkodierter source_path).
+        # windkraft/calc/wind_zones.py:115 (hartkodierter source_path).
         "red3_zip": DATA / "zonen" / "RED_III_Windkraftbeschleunigungszone.zip",
-        # ausschlusszone_zip steht NICHT hier - siehe LEGACY_ENTFAELLT unten:
-        # die Datei entfällt in Welle 1 (Entscheidung (a) des Plans,
-        # umgesetzt in Paket W1.7), RAW beschreibt den Zielzustand.
+        # ausschlusszone_zip steht NICHT (mehr) hier: Paket W1.7 hat die
+        # Registrierung in windkraft/calc/wind_zones.py entfernt (Entscheidung
+        # (a) des Plans), es gibt also keinen Codeleser mehr. Die Datei selbst
+        # liegt bis W1.2 noch unter data/WINDKRAFT_AUSSCHLUSSZONE.zip und stand
+        # bis hierher unter LEGACY_ENTFAELLT - der Eintrag ist mit dem Codeleser
+        # entfallen, nicht erst mit der Datei.
     },
     "noe_sekrop": {
         # scripts/noe/extract_noe_vector_layers.py:48,
@@ -193,11 +196,6 @@ LEGACY_ENTFAELLT = {
     # OSM-Kette liest die Datei aber weiter. Entfernt Datei und Codeeintrag:
     # Paket W1.2.
     "powerlines_gpkg": DATA / "osm_power_lines.gpkg",
-    # windkraft/calc/wind_zones.py:138 (hartkodierter source_path). Liegt
-    # noch an der alten Stelle direkt unter data/ (PLAN.md §11.2: "vier
-    # Dateien bleiben liegen"). Entfernt Datei und Codeeintrag: Entscheidung
-    # (a) des Plans, umgesetzt in Paket W1.7.
-    "ausschlusszone_zip": DATA / "WINDKRAFT_AUSSCHLUSSZONE.zip",
 }
 
 

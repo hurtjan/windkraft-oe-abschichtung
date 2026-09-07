@@ -19,11 +19,7 @@ verfügbare Fläche NICHT ein. Die Rechtswirkung steht je Quelle in
     Positivzone; beschleunigt die Genehmigung, verbietet das Außerhalb nicht
     (Kärnten RED-III-Windkraftbeschleunigungszonen).
 ``forbidden``
-    Rechtsverbindliche Ausschlusszone (Bgld Ausschlusszonen-Verordnung,
-    Stmk SAPRO 2026).
-``advisory``
-    Unverbindliches Ausschluss-Instrument (OÖ Windkraft-Masterplan 2017,
-    Attribut ``Regulation=nonBinding``).
+    Rechtsverbindliche Ausschlusszone (Bgld Ausschlusszonen-Verordnung).
 
 Die NÖ-Zonierung wird nicht hier, sondern über ``--official-zoning-geojson``
 geladen und ins Positivband vereinigt.
@@ -52,7 +48,6 @@ TARGET_CRS = "EPSG:31287"
 REGIME_EXCLUSIVE = "exclusive"
 REGIME_ACCELERATED = "accelerated"
 REGIME_FORBIDDEN = "forbidden"
-REGIME_ADVISORY = "advisory"
 
 
 @dataclass(frozen=True)
@@ -122,22 +117,7 @@ WIND_ZONE_SOURCES = (
 )
 
 # Negativzonen -> Band official_wind_exclusion_zoning.
-#
-# Bewusst NICHT enthalten: die Positivzonen der SAPRO-2026-Novelle. Sie stammen
-# aus derselben PDF-Farbextraktion wie die Ausschlusszonen unten (Median-Lage-
-# fehler ~250 m laut output/steiermark_zonen/sapro2026/georef.json). Bei den
-# 1-3 km großen Positivzonen liegt der Fehler in der Größenordnung der Objekte
-# selbst (nur 10% Deckung mit den exakten luca-Vektoren), bei den im Mittel
-# ~65 km² großen Ausschlussblöcken ist er verhältnismäßig unkritisch.
 WIND_EXCLUSION_ZONE_SOURCES = (
-    WindZoneSource(
-        key="OOe",
-        bundesland="Oberösterreich",
-        regime=REGIME_ADVISORY,
-        label="Ausschlusszone Windkraft-Masterplan 2017",
-        source_path="data/WINDKRAFT_AUSSCHLUSSZONE.zip",
-        note="Attribut Regulation=nonBinding; einziges OÖ-Instrument, keine Positivzonen",
-    ),
     WindZoneSource(
         key="BgldAus",
         bundesland="Burgenland",
@@ -146,16 +126,6 @@ WIND_EXCLUSION_ZONE_SOURCES = (
         source_path="data/zonen/WK_Eignungszonen.zip",
         filter_field="Status",
         keep_prefixes=("Ausschlusszone",),
-    ),
-    WindZoneSource(
-        key="Stmk2026Aus",
-        bundesland="Steiermark",
-        regime=REGIME_FORBIDDEN,
-        label="Ausschlusszonen SAPRO Windenergie 2026 (Novelle)",
-        source_path="output/steiermark_zonen/sapro2026/sapro2026_zonen.geojson",
-        filter_field="type",
-        keep_prefixes=("Ausschlusszone",),
-        note="aus PDF-Karte extrahiert, Median-Lagefehler ~250 m (p90 ~800 m)",
     ),
 )
 

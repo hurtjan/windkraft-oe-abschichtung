@@ -123,7 +123,7 @@ entschieden.
 
 | Entscheidung | Folge |
 |---|---|
-| **(a) Ausschlusszonen — beides entfällt.** `WINDKRAFT_AUSSCHLUSSZONE.zip` wird gelöscht, die Steiermark-SAPRO-Domäne wird gar nicht erst angelegt: kein PDF aus dem Vorgängerprojekt, `Stmk2026Aus` verschwindet aus `wind_zones.py`. | Band 37 behält die steirischen *Positiv*zonen aus `luca_zonen/Stmk.shp` und verliert nur die SAPRO-2026-*Ausschluss*zonen. Nebeneffekt zum Guten: die einzige nicht bitgleich reproduzierbare Farbextraktion fällt aus der Kette, PyMuPDF wird nur noch für Niederösterreich gebraucht. |
+| **(a) Ausschlusszonen — beides entfällt.** `WINDKRAFT_AUSSCHLUSSZONE.zip` wird gelöscht, die Steiermark-SAPRO-Domäne wird gar nicht erst angelegt: kein PDF aus dem Vorgängerprojekt, `Stmk2026Aus` verschwindet aus `wind_zones.py`. **Gemessen in W1.7: Band 37 ändert sich überhaupt nicht.** Die Annahme, es verliere die SAPRO-2026-Ausschlusszonen, war falsch — `load_wind_exclusion_zones()` wird im ganzen Repo nirgends aufgerufen, und ein Band `official_wind_exclusion_zoning` existiert im 38-Band-Schema nicht. Die Ausschlusszonen erreichten nie ein Band. Die Entfernung bleibt richtig (Code, der nichts tut, gehört weg), ist aber folgenlos. Nebeneffekt zum Guten: die einzige nicht bitgleich reproduzierbare Farbextraktion fällt aus der Kette, PyMuPDF wird nur noch für Niederösterreich gebraucht. |
 | **(b) Hardlinks — echte Kopien.** Die 52 hardgelinkten Dateien werden zu eigenständigen Kopien, Kosten rund 13 GB. | `data/` ist danach unabhängig, das Vorgängerprojekt lässt sich löschen, ohne dass hier etwas verschwindet. `tools/check_hardlink_safety.py` wird von „Schreibziele müssen Link-Count 1 haben" auf „*alle* Dateien müssen Link-Count 1 haben" verschärft — aus der Warnung wird eine Invariante. |
 | **(c) Prep — nicht im Standardlauf.** `make` baut nur Layer und Finalize. `make prep` ist ein bewusster, separater Aufruf. `make all` hängt beides zusammen. | Der Alltagslauf rechnet nicht versehentlich fünf Stunden Kataster neu, aber `make all` bleibt der Beweis, dass die Kette aus Rohdaten läuft. Jede Prep-Stufe schreibt einen Fingerabdruck ihrer Eingänge — passt er nicht mehr, bricht der Layer-Bau ab, statt mit veralteten Zwischenständen weiterzurechnen. |
 | **(d) Adressregister — Graph korrigiert.** Die Lücke wird an der Ursache behoben: wo ein Bibliotheksmodul im Auftrag eines Skripts liest oder schreibt, bekommt der Graph eine abgeleitete Kante vom Modul zum Skript. | Der Pfad vom BEV-Adressregister zu den Streusiedlungs-Hüllen ist wieder durchgängig, und dieselbe Korrektur schließt zugleich die Pfade der Referenzbänder. Abgeleitete Kanten sind als solche markiert und bleiben von den belegten unterscheidbar. |
@@ -171,10 +171,13 @@ Endergebnisses ist. Dort summiert sich alles Vorgelagerte; die Fläche
 zählt, nicht die Pixelzahl.
 
 Die Bänder 37 und 38 sind Referenzbänder und gehen nicht in die
-Abschichtung ein. Für Band 37 gilt zusätzlich: der Wegfall der steirischen
-SAPRO-2026-Ausschlusszonen ist eine **beschlossene inhaltliche Änderung**
-und keine Abweichung — er wird einmal vermessen und im Register vermerkt,
-löst aber keine Ampel aus.
+Abschichtung ein.
+
+Für Band 37 war eine Ausnahme vorgesehen: der Wegfall der steirischen
+SAPRO-2026-Ausschlusszonen galt als beschlossene inhaltliche Änderung.
+**W1.7 hat gemessen, dass es diese Änderung nicht gibt** — die
+Ausschlusszonen erreichten nie ein Band. Die Ausnahme entfällt ersatzlos:
+**alle 38 Bänder müssen bitgleich zu `run1` sein**, ohne Sonderfall.
 
 ### Ablauf je Paket
 
@@ -440,6 +443,59 @@ gehört in W2.1–W2.3, nicht nur in die Prep-Pakete.
 `data/adressregister`. Das Skript ist kettenfremd und wird von keinem
 Make-Ziel aufgerufen, es bricht bei Direktaufruf also laut statt still —
 aber W0.1 hat es zerbrochen, also hat W0.1 es repariert.
+
+## 12. Zuschnitt der Welle 1
+
+Achtzehn Pakete sind formal parallel. Zwei Sachverhalte verbieten es
+trotzdem, sie alle gleichzeitig loszulassen — beide beim Durchdenken nach
+Welle 0 aufgefallen, keiner steht in §7.
+
+### 12.1 Erledigt: die Vergleichsbasis wechselt doch nicht
+
+Ursprünglich stand hier, W1.7 verschiebe die Basis: Band 37 verliere die
+steirischen Ausschlusszonen, also müsse ein neuer Vergleichsstand `run2`
+erzeugt werden, sonst melde jedes folgende Paket eine Abweichung, die es
+nicht verursacht hat.
+
+**Die Prämisse war falsch, und W1.7 hat es gemessen.**
+`load_wind_exclusion_zones()` wird im ganzen Repo nirgends aufgerufen; ein
+Band `official_wind_exclusion_zoning` gibt es im 38-Band-Schema nicht. Die
+Ausschlusszonen erreichten nie ein Band. `run2.tif` ist bitgleich zu
+`run1.tif` — dieselbe `sha256`, alle 38 Bänder.
+
+**Folge: `run1` bleibt für das gesamte Projekt die Vergleichsbasis.** Kein
+Wechsel, kein Sonderfall in Band 37, keine Ausnahme in der Ampel. Das ist
+eine Fehlerquelle weniger für die verbleibenden Pakete.
+
+Die Reihenfolge W1.7 vor W1.2 bleibt trotzdem richtig — Code entfernen,
+bevor die Datei verschwindet, ist unabhängig vom Messergebnis die saubere
+Richtung.
+
+### 12.2 W1.2 und W1.3 fassen den geteilten Rohbaum an
+
+`make worktree` verlinkt `data/` in jedes Arbeitsverzeichnis. Das ist
+gefahrlos, solange der Baum unveränderlich ist — genau das sind diese beiden
+Pakete aber nicht: W1.3 ersetzt 52 Dateien durch echte Kopien, W1.2 löscht
+fünf Einträge. Ein Abnahmelauf, der währenddessen liest, kann eine Datei
+halb ersetzt sehen.
+
+**Beide bekommen ein eigenes Zeitfenster, in dem sonst nichts rechnet.** Und
+die Reihenfolge darin ist nicht beliebig: **W1.7 muss die Codestelle
+entfernt haben, bevor W1.2 die Datei löscht.** Sonst liegt dazwischen ein
+Zustand, in dem `wind_zones.py` eine fehlende Datei still überspringt und
+Band 37 sich ändert, ohne dass es jemand beschlossen hätte — der stille
+Fallback, den dieses Projekt ohnehin loswerden will, würde ausgerechnet die
+Abnahme verfälschen.
+
+### 12.3 Reihenfolge
+
+| Stufe | Pakete | gleichzeitig? |
+|---|---|---|
+| 1 | W1.7 → `run2` als neue Basis | allein |
+| 2 | W1.1, W1.5, W1.6, W1.8, W1.9 | ja, fünf |
+| 3 | W1.2, dann W1.3 | allein, nichts sonst rechnet |
+| 4 | W1.4 (Wächter) | allein — braucht W1.1 und W1.2 |
+| 5 | W1.P1 – W1.P9 | ja, aber gedrosselt: schwere Läufe konkurrieren um Platte und Kerne |
 
 ## Maschinensichten
 
