@@ -42,12 +42,12 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | W1.3 | Hardlinks auflösen | **fertig** | 20 min | 14 min | 48/48 aufgelöst · Vorgänger 48/48 unversehrt |
 | W1.4 | Wächter für Rohdaten | **fertig** | 25 min | 13 min | bitgleich · 129 → **136** Tests |
 | W1.P0 | Vorfeld der Prep-Welle | **fertig** | 20 min | 13 min | bitgleich · 136 → **147** Tests |
-| W1.P1 | Prep: Verwaltungsgrenzen | offen | 25 min | | |
+| W1.P1 | Prep: Verwaltungsgrenzen | **fertig** | 25 min | 12 min | Bundesländer **0,0 m² Differenz** · 147 Tests |
 | W1.P2 | Prep: Kataster | offen | 60 min | | **+ unbekannter Volllauf** |
 | W1.P3 | Prep: Adressregister | offen | 40 min | | |
 | W1.P4 | Prep: Flächenwidmung | offen | 45 min | | |
 | W1.P5 | Prep: OSM, zwei Stufen | offen | 45 min | | |
-| W1.P6 | Prep: Gelände und Wind | offen | 20 min | | |
+| W1.P6 | Prep: Gelände und Wind | **fertig** | 20 min | 19 min | Windraster weicht **vollständig** ab · 147 Tests |
 | W1.P7 | Prep: Naturschutz | offen | 25 min | | |
 | W1.P8 | Prep: Windzonen | offen | 30 min | | braucht W1.7 |
 | W1.P9 | Prep: NÖ-SekROP-PDF, zwei Stufen | offen | 45 min | | |
@@ -634,6 +634,69 @@ alle neun Prep-Pfade im Vertrag und ersetzt die neun Makefile-Ziele durch
 `-include make/prep/*.mk`. Danach schreibt jedes Prep-Paket sein Ziel in
 **seine eigene Datei** `make/prep/<domäne>.mk` — neun verschiedene Dateien
 statt neun Änderungen an einer. Der Konflikt entsteht gar nicht erst.
+
+### W1.P1 — Prep: Verwaltungsgrenzen · fertig
+
+Commit `b75f6c8`, Zweig `w1.p1`. Geschätzt 25 min, gebraucht 12. Erstes
+Prep-Paket überhaupt.
+
+`pipeline/prep/admin.py` liest die VGD-Rohquelle **einmal** und schreibt
+zwei Ableitungen: `gemeinden.gpkg` (2093 politische Gemeinden) und
+`bundesland_masken.gpkg` (9 Bundesländer). Letzteres ist genau die
+Operation, die `abschichtung_common.py` heute bei **jedem** Aufruf von
+`official_wind_zoning_mask` erneut rechnet — der erste sichtbare Beleg
+dafür, wozu die Prep-Welle gut ist.
+
+**Der Gleichheitsnachweis ist der beste bisher.** Nicht gegen eine
+nachgebaute Formel verglichen, sondern gegen die **tatsächlich laufende
+Funktion** `admin_boundaries()` plus dieselbe Dissolve-Zeile, die die Kette
+heute ausführt. Ergebnis: maximale symmetrische Differenzfläche **0,0 m²**
+über alle neun Länder.
+
+Für die Gemeinden gibt es heute keinen Konsumenten — das Produkt entsteht
+für W4.2. Statt Laufzeit-Äquivalenz hat der Agent deshalb **Verlustfreiheit**
+belegt: Flächensumme vor und nach dem Dissolve identisch, GKZ-Menge
+identisch, alle Attribute je GKZ konstant. Eine andere Frage, sauber als
+solche benannt und passend beantwortet.
+
+Drei Dinge deckt der Vergleich **nicht** ab, und der Agent sagt es selbst:
+kein bounds-gefilterter Lauf, keine Prüfung auf Fließkommarauschen beim
+GPKG-Rundtrip, keine Prüfung von Attributreihenfolge und -typen für die
+Konsumenten der Welle 2.
+
+**Abnahme: bitgleich, 147 Tests unverändert, Wächter grün.**
+
+### W1.P6 — Prep: Gelände und Wind · fertig
+
+Commit `eee51d4`, Zweig `w1.p6`. Geschätzt 20 min, gebraucht 19 — davon
+rund sieben Minuten Schlaf auf dem eigenen Hintergrundlauf, die Regel §13.7
+des Plans künftig einspart.
+
+**Das Windraster weicht in allen vier geprüften Merkmalen ab:**
+
+| | DGM_R25.tif | AUT_power-density_150m.tif | Ziel |
+|---|---|---|---|
+| CRS | EPSG:31287 ✓ | **EPSG:4326** | EPSG:31287 |
+| Auflösung | 25 m ✓ | **0,0025°** — Grad, nicht Meter | 25 m |
+| Größe | 24001 × 14001 ✓ | **3069 × 1076** | 24001 × 14001 |
+
+Das Gelände passt exakt, das Windraster überhaupt nicht — und zwar nicht
+knapp, sondern in einem anderen Koordinatensystem mit einer
+Winkeleinheit statt einer Längeneinheit.
+
+**Der Befund ist trotzdem harmlos, und das ist die eigentliche Aussage.**
+`abschichtung_common.py` liest heute schon **beide** Raster per
+`reproject()` bilinear auf das DGM-Gitter; der Windrohwert wird nirgends
+übernommen. Die stillschweigende Annahme, vor der §13.5 warnt, existiert im
+heutigen Produktivcode also **nicht**. Sie entstünde erst, wenn die neue
+Layer-Stufe der Welle 2 diesen Reprojektionsschritt fallen ließe — und
+genau davor schützt jetzt ein Prüfbericht, der die Abweichung in Zahlen
+festhält, statt sie erst beim ersten falschen Ergebnis auffallen zu lassen.
+
+`build/prep/gelaende/pruefbericht.md`, menschenlesbar, gemessen gegen Soll.
+Kein Abbruch, keine Umformung, keine Datenänderung.
+
+**Abnahme: bitgleich, 147 Tests unverändert, Wächter grün.**
 
 ## Offene Punkte
 
