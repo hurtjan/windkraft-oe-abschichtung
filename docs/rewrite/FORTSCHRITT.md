@@ -31,11 +31,11 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | W0.2 | Pfadvertrag anlegen | **fertig** | — | 28 min | bitgleich · 131 Tests |
 | W0.3 | Verzeichnisgerüst und Make-Ziele | **fertig** | — | 12 min | 131 Tests · `make -n` gleich |
 | W1.7 | Ausschlusszonen entfernen | **fertig** | 25 min | 15 min | bitgleich — *keine* Bandänderung |
-| W1.1 | Adress-Cache-Weiche entfernen | offen | 20 min | | |
-| W1.5 | Tote Skripte löschen | offen | 15 min | | |
+| W1.1 | Adress-Cache-Weiche entfernen | **fertig** | 20 min | 8 min | bitgleich · 130 Tests · Cache echt geprüft |
+| W1.5 | Tote Skripte löschen | **fertig** | 15 min | 14 min | bitgleich · 130 Tests |
 | W1.6 | NÖ-PDF-HiG-Sackgasse entfernen | offen | 25 min | | |
-| W1.8 | Paketmetadaten bereinigen | offen | 15 min | | |
-| W1.9 | Doku-Widersprüche korrigieren | offen | 15 min | | |
+| W1.8 | Paketmetadaten bereinigen | **fertig** | 15 min | 8 min | bitgleich · 130 Tests |
+| W1.9 | Doku-Widersprüche korrigieren | **fertig** | 15 min | 13 min | nur Doku · 130 Tests |
 | W1.2 | Tote Daten löschen, Provenienz retten | offen | 20 min | | Datenfenster |
 | W1.3 | Hardlinks auflösen | offen | 20 min | | Datenfenster · 13 GB |
 | W1.4 | Wächter für Rohdaten | offen | 25 min | | braucht W1.1, W1.2 |
@@ -62,9 +62,20 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 
 | | |
 |---|---|
-| Gebraucht bisher | **1 h 30** für drei Pakete (49 + 28 + 12 min) |
-| Verbleibend, geschätzt | **rund 6 h** Wanduhrzeit |
+| Gebraucht bisher | **1 h 59** für acht Pakete |
+| davon Welle 0 | 1 h 30, seriell (49 + 28 + 12 min) |
+| davon Welle 1, Aufräumen | 29 min (W1.7 seriell 15 min, dann vier parallel in 14 min) |
+| Verbleibend, geschätzt | **rund 5 h** Wanduhrzeit |
 | Davon unbekannt | die Kataster-Vorverarbeitung — keine Messung existiert |
+
+Der erste echte Parallelbatch hat die Schätzung bestätigt und leicht
+unterboten: vier Pakete, geschätzt 65 min in Summe, gebraucht 14 min
+Wanduhrzeit. Der Gewinn ist nicht der Faktor vier, sondern der Faktor
+gegenüber der **Summe** — die einzelnen Pakete waren zugleich schneller als
+geschätzt (8, 8, 13, 14 statt 20, 15, 15, 15). Ich schätze Pakete dieser
+Größe also systematisch zu hoch. Die Prep-Schätzungen lasse ich trotzdem
+stehen: dort dominiert Rechenzeit, nicht Denkzeit, und die skaliert nicht
+mit.
 
 Die 6 Stunden sind **nicht** die Summe der Einzelschätzungen (die ergäbe
 gut 13 h), weil Pakete parallel laufen. Gerechnet ist je Stufe das längste
@@ -73,7 +84,7 @@ Paket plus Puffer für meine eigene Abnahme, die seriell bleibt:
 | Stufe | Pakete | Dauer |
 |---|---|---:|
 | W1.7 allein | 1 | 25 min |
-| Aufräumen, parallel | 5 | 25 min |
+| Aufräumen, parallel | 5 | ~~25 min~~ · 4 davon in **14 min** gemessen |
 | Datenfenster, seriell | 2 | 40 min |
 | Wächter | 1 | 25 min |
 | Prep, gedrosselt auf drei gleichzeitig | 9 | 2 h 25 |
@@ -268,11 +279,106 @@ wie die Positivzone `Bgld`, per Attributfilter getrennt), aber niemand ruft
 die Funktion. Das gehört in W1.5 mit entfernt, nicht in dieses Paket — es
 fällt nicht unter Entscheidung (a).
 
+### W1.1 — Adress-Cache-Weiche entfernen · fertig
+
+Commit `d29c801`, Zweig `w1.1`. Geschätzt 20 min, gebraucht 8.
+
+Die Weiche war heimtückischer als aus dem Plan ersichtlich: Fand der Code
+die Cache-Datei direkt in `data_dir`, überschrieb er den aus `cache_dir`
+berechneten Pfad. Nach dem ersten produktiven Lauf existierte diese Datei
+immer — der Parameter `cache_dir` war also nicht gelegentlich, sondern ab
+dann grundsätzlich wirkungslos. Beide Funktionen (`load_address_points`,
+`load_building_points`) lesen jetzt `cache_dir or contract.PREP["adressen"]`.
+
+**Der Nachweis ist stärker als verlangt.** Statt eines Codetests hat der
+Agent beide Funktionen gegen leeren Cache wirklich laufen lassen: 2.516.345
+Adress- und 2.524.624 Gebäudepunkte, Cache entstand unter
+`build/prep/adressen/`, und `data/adressen/*.parquet` blieb nach md5 und
+Zeitstempel unangetastet. Damit ist in einem Schritt belegt, dass der
+Vertragspfad greift **und** dass nicht mehr nach `data/` geschrieben wird.
+Kosten: rund sechs Sekunden.
+
+### W1.5 — Tote Skripte löschen · fertig
+
+Commit `9c64a85`, Zweig `w1.5`. Geschätzt 15 min, gebraucht 14.
+
+Drei Skripte gelöscht, jede Begründung vorher einzeln nachgeprüft und
+bestätigt: `scripts/webmap/build_layer_viewer.py` benutzt zwei Namen, die
+im ganzen Repo nirgends definiert werden (sicherer `NameError`);
+`scripts/analysis/build_v2_dashboard_data.py` nennt acht Bandnamen, die im
+kanonischen 38-Band-Schema fehlen; `scripts/noe/derive_pdf_hig_sources.py`
+ruft nur eine Funktion auf, die `extract_noe_vector_layers.py:286` bereits
+selbst aufruft.
+
+Dazu der Nachtrag aus W1.7: `load_wind_exclusion_zones()`,
+`WIND_EXCLUSION_ZONE_SOURCES` mit dem letzten Eintrag `BgldAus` und die
+verwaiste Konstante `REGIME_FORBIDDEN` sind weg. Die Datei
+`WK_Eignungszonen.zip` und die Positivzone `Bgld`, die dieselbe Datei per
+Attributfilter liest, bleiben unberührt.
+
+Fünf mitgezogene Verweise wurden **korrigiert statt gelöscht** — darunter
+eine `FileNotFoundError`-Meldung, die auf ein nun fehlendes Skript zeigte.
+Eine Fehlermeldung, die auf nichts verweist, ist schlimmer als keine.
+
+**Abnahme: bitgleich, 130 Tests grün** — mit einer Einschränkung, die der
+Agent selbst benannt hat: keiner der drei gelöschten Skriptpfade und keine
+der Wind-Zonen-Änderungen liegt in der Bandkette. Die Bitgleichheit war
+also zu erwarten und beweist hier wenig. Was wirklich trägt, ist die
+Einzelprüfung der drei Löschbegründungen davor.
+
+### W1.8 — Paketmetadaten bereinigen · fertig
+
+Commit `63e7b8b`, Zweig `w1.8`. Geschätzt 15 min, gebraucht 8.
+
+Drei vorbestehende Fehler, keiner davon durch diesen Umbau verursacht:
+
+- `[project.scripts] windkraft = "windkraft.__main__:main"` verwies auf eine
+  Datei, die es nicht gibt. Es war der einzige Einstiegspunkt.
+- Es gab **gar keine** `[build-system]`-Sektion. Das Paket war nie
+  installierbar; `uv sync` sagte das in einer Warnung, die niemand las.
+  Jetzt hatchling, mit `windkraft` und `pipeline` im Wheel.
+- PyMuPDF stand als optionales Extra, obwohl drei Dateien `fitz` hart
+  importieren. Jetzt reguläre Abhängigkeit, das leere Extra entfällt.
+
+In `uv.lock` wechselt die Wurzel dadurch von `virtual` auf `editable`; die
+36 Auflösungen der Fremdpakete bleiben unverändert.
+
+**Abnahme: bitgleich, 130 Tests grün.**
+
+### W1.9 — Doku-Widersprüche korrigieren · fertig
+
+Commit `89fad40`, Zweig `w1.9`. Geschätzt 15 min, gebraucht 13. Berührt nur
+`README.md`.
+
+Sieben falsche Aussagen, jede mit `datei:zeile` belegt. Die drei
+folgenreichsten:
+
+- Das README behauptete, die Kette sei „in diesem Repo noch kein einziges
+  Mal end-to-end ausgeführt" worden — im Präsens, obwohl der Lauf vom
+  06.09.2026 in `docs/RUN1_VERGLEICH.md` dokumentiert ist.
+- Fehlendes `osmium-tool` falle „still auf leere Masken zurück". In diesem
+  Repo bricht es mit `FileNotFoundError` ab; der stille Rückfall lebte nur
+  im Vorgängerprojekt. Eine Aussage, die aus dem Alt-Repo mitgewandert ist,
+  ohne dass jemand sie nachprüfte.
+- Speicherbedarf mit 18 GB angegeben, gemessen sind 24.
+
+Dazu ein toter Vorwärtsverweis („siehe Hinweis unten"), der auf keinen
+Abschnitt zeigt, und die fehlende Erwähnung der W0.3-Make-Ziele.
+
+**Kein Nachweislauf nötig, kein Code berührt. 130 Tests unverändert grün.**
+
 ## Offene Punkte
 
 | # | Punkt | Fällig |
 |---|---|---|
 | 1 | **Worktrees haben kein `data/`.** Regel 3 des Plans verlangt je Paket ein eigenes Worktree; `data/` ist gitignoriert, ein frisches Worktree ist also leer. Jedes Paket, dessen Abnahme einen Lauf verlangt, wäre dort nicht abnehmbar. Lösung: `data/` in jedes Worktree hineinverlinken — gefahrlos, weil der Baum unveränderlich ist. Steht so nicht im Plan. | vor Welle 1 |
+| 1b | **Jedes Worktree ist von Geburt an schmutzig.** `make worktree` ersetzt `data/` durch einen Symlink; git meldet danach `data/README.md` als gelöscht und `data` als unverfolgt. Ein unaufmerksamer Commit nähme die Löschung mit. Behebung: nach dem Verlinken `git update-index --skip-worktree data/README.md` im Worktree, dann ist der Status sauber. | vor der Prep-Welle |
 | 2 | Laufzeit der Kataster-Vorverarbeitung ist unbekannt. | W1.P2 |
+| 5 | **`sys.path`-Präambeln.** W1.8 hat die Voraussetzung geschaffen (Paket ist jetzt installierbar), aber die Präambeln stehen noch in rund einem Dutzend Dateien unter `scripts/` und `tests/`. Zum Entfernen fehlt: `scripts/` ist kein Paket, Aufrufe müssten auf `python -m` umgestellt werden, und `tools/` bräuchte womöglich ebenfalls Paketstatus. Eigenes Paket wert, gehört nicht in W1.8. | Welle 4 oder später |
 | 3 | `docs/widmung_v2_provenance.md` nennt Quellpfade, die es nicht mehr gibt. Unklar, ob eingefrorene Momentaufnahme wie `RUN1_VERGLEICH.md` oder lebende Doku. | Welle 1, Widmungspakete |
 | 4 | `config.json:osm_dir` und `wind_pd_100` zeigen auf Dateien, die es nie gab. Mitgezogen, aber weiterhin tot. | W1.x |
+| 6 | `describe_sources()` in `windkraft/calc/wind_zones.py` hat keinen Aufrufer. Von W1.5 bewusst nicht angetastet, weil außerhalb des Auftrags. | W1.x |
+| 7 | `windkraft/calc/streusiedlung.py` nimmt ein `cache_dir` entgegen, aber W1.1 fand keinen Aufrufer mit hartem Vorgabewert. Entweder toter Parameter oder ein übersehener Pfad nach `data/`. | W1.6 oder W1.4 |
+| 8 | Ungenutzter Import `admin_boundaries` in `windkraft/calc/hig_source_masks.py`, vorbestehend, von `ruff` gefunden. | Sammelposten |
+| 9 | `docs/HANDOFF.md` trägt ein veraltetes Referenz-Manifest. Das README verweist nur darauf, dass es veraltet ist. Wer es aktualisiert, ist nicht festgelegt. | Welle 4 |
+| 10 | Die 18 von 38 Bändern, die zwischen `run1` und der Referenz-TIF um < 0,004 % abweichen, sind laut `RUN1_VERGLEICH.md` **ungeklärt**. Das berührt die Projektfrage, ob `run1` das Vorgängerprojekt als Quelle der Wahrheit ablösen darf. Keine Textkorrektur, sondern eine Entscheidung. | Nutzer, vor Welle 5 |
