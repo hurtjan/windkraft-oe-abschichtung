@@ -40,7 +40,8 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | — | Zusammenführung der vier Zweige | **fertig** | 15 min | 30 min | bitgleich · 130 Tests · 3 stille Fehler gefunden |
 | W1.2 | Tote Daten löschen, Provenienz retten | **fertig** | 20 min | 22 min | bitgleich · 50/50 Inodes · 129+1 Tests |
 | W1.3 | Hardlinks auflösen | **fertig** | 20 min | 14 min | 48/48 aufgelöst · Vorgänger 48/48 unversehrt |
-| W1.4 | Wächter für Rohdaten | offen | 25 min | | braucht W1.1, W1.2 |
+| W1.4 | Wächter für Rohdaten | **fertig** | 25 min | 13 min | bitgleich · 129 → **136** Tests |
+| W1.P0 | Vorfeld der Prep-Welle | offen | 20 min | | verhindert neun Konflikte |
 | W1.P1 | Prep: Verwaltungsgrenzen | offen | 25 min | | |
 | W1.P2 | Prep: Kataster | offen | 60 min | | **+ unbekannter Volllauf** |
 | W1.P3 | Prep: Adressregister | offen | 40 min | | |
@@ -545,6 +546,62 @@ trägt, die Lücke bleibt eine Lücke. Dass er sie nennt, statt sie zu
 glätten, ist mehr wert als die Lücke kostet.
 
 **Abnahme: bitgleich, 129 Tests grün plus 1 übersprungen.**
+
+### W1.4 — Wächter für Rohdaten · fertig
+
+Commit `b26ce83`. Geschätzt 25 min, gebraucht 13. **Damit ist der
+Aufräum- und Absicherungsteil der Welle 1 abgeschlossen.**
+
+`tools/check_raw_only.py` ist ein AST-Wächter, kein Textsucher — und das
+ist der Punkt. Er verfolgt das Pfadargument bekannter Schreibaufrufe
+rückwärts durch Zuweisungen und erkennt dabei genau die drei Fallen, die
+dieses Projekt schon gestellt hat: zusammengesetzte Pfade
+(`ROOT / "data" / "x"`, ohne Teilstring `data/`), Vertragspfade
+(`contract.RAW[...]`, wo im Code nirgends „data" steht) und
+Parameter-Vorgabewerte, die erst greifen, wenn ein Argument fehlt — die
+W1.1-Falle.
+
+**Wichtiger als was er findet, ist was er zugibt nicht zu finden.** Der
+Docstring nennt sechs Lücken, darunter die entscheidende: keine
+funktionsübergreifende Verfolgung. Ein `data/`-Pfad, der als Parameter
+hereingereicht wird und dessen Herkunft erst beim Aufrufer sichtbar ist,
+entgeht ihm. Der Agent hat prompt ein Beispiel dafür gefunden
+(`widmung_sources.py::_ensure_ktn_gpkg`) und es von Hand geprüft — der
+Default beim einzigen Aufrufer ist unkritisch. Ein Wächter mit
+dokumentierten Grenzen ist brauchbar; einer, der Vollständigkeit
+vortäuscht, ist gefährlich.
+
+Verdrahtet als `make check-raw-only`, zusammen mit dem Hardlink-Wächter
+unter `make check-guards`. Beide grün gegen das echte Repo: 129 Dateien
+hardlinkgeprüft, 31 Python-Dateien schreibgeprüft, kein Fund.
+
+**Zusatzauftrag A, gut entschieden:** Der leere `LEGACY_ENTFAELLT`-Test
+bleibt als Vorbereitung stehen, bekommt aber einen aktiven Partner, der
+gegen die Leerheit prüft — statt dass ein „1 übersprungen" beiläufig
+durchrutscht. Er schlägt fehl, sobald jemand einen Eintrag hinzufügt, ohne
+die Zeile mitzuziehen.
+
+**Abnahme: bitgleich, Tests von 129 auf 136 gestiegen** (Ausgangszahl per
+`git stash -u` unmittelbar vor der Änderung selbst gemessen — die Lücke aus
+W1.3 ist geschlossen).
+
+### W1.P0 — Vorfeld der Prep-Welle · geplant
+
+Kein Paket aus dem ursprünglichen Plan, sondern eine Reaktion auf die
+gemessene Zusammenführungskosten-Regel (§13.3 des Plans).
+
+**Das Problem:** Die neun Prep-Pakete laufen parallel. Jedes von ihnen
+würde einen Eintrag in `pipeline/contract.py:PREP` und ein Ziel im
+`Makefile` hinzufügen. Das sind **zwei garantierte neunfache Konflikte** an
+derselben Stelle — genau die Sorte, die beim letzten Batch drei falsche
+README-Aussagen erzeugt hat, nur schlimmer, weil `Makefile` und Vertrag
+funktional sind und nicht nur Prosa.
+
+**Die Lösung, vor dem Batch statt danach:** Ein kleines Vorpaket erklärt
+alle neun Prep-Pfade im Vertrag und ersetzt die neun Makefile-Ziele durch
+`-include make/prep/*.mk`. Danach schreibt jedes Prep-Paket sein Ziel in
+**seine eigene Datei** `make/prep/<domäne>.mk` — neun verschiedene Dateien
+statt neun Änderungen an einer. Der Konflikt entsteht gar nicht erst.
 
 ## Offene Punkte
 
