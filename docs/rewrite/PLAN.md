@@ -616,6 +616,52 @@ an — neun verschiedene Dateien statt neun Änderungen an einer.
 Das kostet zwanzig Minuten vorher und spart eine Zusammenführung, die nach
 der gemessenen Regel aus §13.3 sonst über eine Stunde gekostet hätte.
 
+### 13.5 Auflösung des Widerspruchs zu `gelaende`
+
+W1.P0 hat einen echten Widerspruch in diesem Plan gefunden: **§4 sagt, die
+Domäne `gelaende` brauche kein Prep. §7 sieht trotzdem ein Paket W1.P6 mit
+eigenem Prep-Modul dafür vor.** Beides kann nicht wörtlich stimmen.
+
+**Beides stimmt, sobald man „Prep" genauer fasst.** Die beiden Dateien
+(`DGM_R25.tif`, `AUT_power-density_150m.tif`) sind bereits Raster im
+Zielformat — sie brauchen keine **Umformung**. Was sie brauchen, ist eine
+**Prüfung**: dass Gitter, Auflösung und CRS wirklich zu EPSG:31287, 25 m,
+24001 × 14001 passen, bevor die Layer-Stufe das stillschweigend annimmt.
+Genau diese Annahme ist die Sorte, die in diesem Projekt schon mehrfach
+unbemerkt falsch war.
+
+**Verbindliche Fassung:**
+
+> Die Domäne `gelaende` durchläuft **keine Umformung**, aber eine
+> Prep-Stufe wie alle anderen. W1.P6 schreibt keinen umgeformten Datensatz,
+> sondern einen **Prüfbericht und einen Fingerabdruck** nach
+> `build/prep/gelaende/`. Damit hat jede der neun Domänen dieselbe Form —
+> eine Stufe, eine Ausgabe, ein Fingerabdruck — und die Kette hat keine
+> Sonderfälle. Der Eintrag `PREP["gelaende"]` bleibt.
+
+Der Satz in §4 ist damit als „keine Umformung nötig" zu lesen, nicht als
+„keine Stufe nötig".
+
+### 13.6 Gemeinsame Entscheidungen sind gefährlicher als gemeinsame Dateien
+
+§13.4 sucht vor einem Batch nach Dateien, die mehrere Pakete anfassen
+müssten. W1.P0 hat gezeigt, dass das nicht reicht.
+
+`pipeline/fingerprint.py` wäre von keinem Paket geteilt worden: Jedes der
+neun hätte seinen Fingerabdruck in **seiner eigenen** Datei implementiert.
+Kein Konflikt, kein Merge-Problem, keine Warnung — und am Ende neun leicht
+verschiedene Antworten auf dieselbe Frage. Aufgefallen wäre das erst, wenn
+Welle 5 sich darauf verlässt, dass Fingerabdrücke vergleichbar sind.
+
+**Ergänzung zur Regel aus §13.4:**
+
+> Vor einem Batch frage ich nicht nur „welche Datei fassen alle an", sondern
+> auch: **„welche Frage muss jedes Paket beantworten?"** Jede Antwort, die
+> für alle gleich ausfallen soll — ein Fingerabdruck, ein Namensschema, ein
+> Fehlerverhalten, ein Ausgabeformat — wird **vorher einmal** entschieden
+> und als gemeinsames Modul bereitgestellt. Sonst driften neun Pakete
+> auseinander, ohne je zu kollidieren.
+
 ## Maschinensichten
 
 - [`domains.tsv`](domains.tsv) / `domains.json` — Domänenmatrix, maschinenlesbar (`src/extract_domains.py`).

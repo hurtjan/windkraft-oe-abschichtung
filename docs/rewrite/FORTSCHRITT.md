@@ -41,7 +41,7 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | W1.2 | Tote Daten löschen, Provenienz retten | **fertig** | 20 min | 22 min | bitgleich · 50/50 Inodes · 129+1 Tests |
 | W1.3 | Hardlinks auflösen | **fertig** | 20 min | 14 min | 48/48 aufgelöst · Vorgänger 48/48 unversehrt |
 | W1.4 | Wächter für Rohdaten | **fertig** | 25 min | 13 min | bitgleich · 129 → **136** Tests |
-| W1.P0 | Vorfeld der Prep-Welle | offen | 20 min | | verhindert neun Konflikte |
+| W1.P0 | Vorfeld der Prep-Welle | **fertig** | 20 min | 13 min | bitgleich · 136 → **147** Tests |
 | W1.P1 | Prep: Verwaltungsgrenzen | offen | 25 min | | |
 | W1.P2 | Prep: Kataster | offen | 60 min | | **+ unbekannter Volllauf** |
 | W1.P3 | Prep: Adressregister | offen | 40 min | | |
@@ -585,7 +585,39 @@ die Zeile mitzuziehen.
 `git stash -u` unmittelbar vor der Änderung selbst gemessen — die Lücke aus
 W1.3 ist geschlossen).
 
-### W1.P0 — Vorfeld der Prep-Welle · geplant
+### W1.P0 — Vorfeld der Prep-Welle · fertig
+
+Commit `6a9e8a2`. Geschätzt 20 min, gebraucht 13. Tests von 136 auf 147.
+
+Die beiden vorhergesehenen Konflikte sind entschärft: `PREP` deckt jetzt
+alle neun Domänen ab (12 Blattpfade), und das `Makefile` liest Prep-Ziele
+über `-include make/prep/*.mk` ein. Der Mechanismus wurde nicht behauptet,
+sondern **belegt** — zwei echte `.mk`-Dateien angelegt, `make prep` rief
+beide auf, danach entfernt und der No-op-Zustand erneut geprüft. `make -n`
+für das Standardziel ist vor und nach der Änderung byte-identisch.
+
+**Der Ertrag liegt aber in den zwei Dateien, die ich nicht auf der Liste
+hatte:**
+
+`pipeline/prep/__init__.py` — sobald das erste der neun Pakete eine Datei
+unter `pipeline/prep/` anlegt, müsste es die Paketmarkierung mit anlegen.
+Bei neun Paralleln ist das ein „wer war zuerst da"-Konflikt. Jetzt liegt sie
+da.
+
+`pipeline/fingerprint.py` — das ist der wertvollere Fund. Entscheidung (c)
+des Plans verlangt von **jeder** Prep-Stufe einen Fingerabdruck ihrer
+Eingaben. Ohne Vorbereitung hätte jedes der neun Pakete seine eigene,
+leicht andere Logik erfunden. Das hätte **keine** Merge-Konflikte erzeugt —
+jedes in seiner eigenen Datei — und wäre genau deshalb erst viel später
+aufgefallen. Der Agent hat eine minimale gemeinsame Implementierung
+geschrieben (Größe und mtime, kein teurer Inhalts-Hash), mit sieben Tests.
+
+Das ist die Sorte Überschneidung, die meine Konfliktregel aus §13.4 **nicht**
+findet: Sie sucht nach gemeinsamen Dateien, nicht nach gemeinsamen
+Entscheidungen. Neun Pakete, die dieselbe Frage unabhängig beantworten,
+kollidieren nie und driften trotzdem auseinander.
+
+### W1.P0 — ursprüngliche Begründung
 
 Kein Paket aus dem ursprünglichen Plan, sondern eine Reaktion auf die
 gemessene Zusammenführungskosten-Regel (§13.3 des Plans).
