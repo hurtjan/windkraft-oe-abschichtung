@@ -1,20 +1,30 @@
-# data/ — Herkunft der Rohdaten
+# Rohdaten — Herkunft von `data/`
 
 > **Dies ist eine Beschreibung, keine Kopie.** Die Rohdaten selbst liegen
 > **nicht** in diesem Repo — `data/` ist per `.gitignore` vollständig
-> ausgeschlossen (`/data/*`), nur diese Datei ist als Ausnahme eingecheckt
-> (`!/data/README.md`). `output/` ist komplett `.gitignore`d, ohne Ausnahme.
-> Ein neues Setup muss jeden Datensatz unten selbst von seiner Quelle
-> beziehen bzw. — im gewöhnlichen Fall — per Hardlink aus dem alten Repo
-> (`windkraft_ö_karten/`) übernehmen. Diese Datei ist die einzige
-> Nachweiskette dafür, mit welchen Daten gerechnet wurde.
+> ausgeschlossen (`/data/*`), ohne Ausnahme. `output/` ebenso, komplett
+> `.gitignore`d. Ein neues Setup muss jeden Datensatz unten selbst von
+> seiner Quelle beziehen bzw. — im gewöhnlichen Fall — per Hardlink aus dem
+> alten Repo (`windkraft_ö_karten/`) übernehmen. Diese Datei ist die
+> einzige Nachweiskette dafür, mit welchen Daten gerechnet wurde.
+>
+> **Nachtrag (Paket W1.2):** Diese Datei lag ursprünglich unter
+> `data/README.md` und war dort die einzige Ausnahme von `/data/*`
+> (`!/data/README.md`). W1.2 hat sie nach `docs/rohdaten.md` verschoben,
+> weil `data/` nach diesem Paket ausnahmslos Rohdatenbaum bleibt und keine
+> versionierte Datei mehr enthält — siehe `tools/check_raw_only.py` (W1.4).
+> Der `worktree`-Baustein im `Makefile`, der zuvor `data/README.md` per
+> `git update-index --skip-worktree` behandelte, wurde entsprechend
+> angepasst (siehe Bericht zu W1.2). Pfadangaben unten, die auf
+> `data/README.md` verweisen, sind historisch und beziehen sich auf den
+> Stand vor diesem Umzug.
 >
 > **Dieses Dokument ist die Nachfolgeversion von
 > `windkraft_ö_karten/source_data_README.md`**, neu geschrieben für die
 > Abschichtung-Restrukturierung (`master_windkraft/abschichtung/`). Alle
-> Pfade unten sind Zielpfade unter diesem `data/`, nicht die (teils
-> historisch gewachsenen, uneinheitlichen) Pfade im alten Repo — diese sind
-> als „Quellpfad (altes Repo)“ separat angegeben, weil die Migration per
+> Pfade unten sind Zielpfade unter `data/`, nicht die (teils historisch
+> gewachsenen, uneinheitlichen) Pfade im alten Repo — diese sind als
+> „Quellpfad (altes Repo)“ separat angegeben, weil die Migration per
 > Hardlink noch aussteht und jemand sie nachvollziehen können muss.
 >
 > Stand der Prüfung: 2026-09-06, gegen den Datenbestand von
@@ -193,7 +203,6 @@ data/
 ├── adressen/                       484 MB  BEV-Adressregister (+ 2 Parquet-Caches)
 ├── admin/
 │   └── VGD_Oesterreich_gen_50_20221002/    20 MB  Verwaltungsgrenzen
-├── osm_power_lines.gpkg            13 MB   (gelesen, Band seit Clean-38 nicht mehr gespeichert)
 ├── natur/
 │   └── SG_AT_2024_v_April_Stand_3_April_2024.zip   73 MB
 ├── kataster/                       9,1 GB  DKM/BEV-Rohdaten, 9 Archive → Geoparquet (erzeugt, §4)
@@ -205,15 +214,28 @@ data/
 │   │   └── Sbg.shp                 148 KB  NICHT reproduzierbar, siehe §0.1
 │   ├── WK_Eignungszonen.zip        268 KB  Burgenland
 │   └── RED_III_Windkraftbeschleunigungszone.zip   28 KB  Kärnten
-├── WINDKRAFT_AUSSCHLUSSZONE.zip    4,4 MB
 └── noe_sekrop/
     └── TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf   16 MB  (nur Precondition für pdf_750m-Layer)
 ```
 
-Stand nach der Umsortierung des `data/`-Baums (Paket W0.1a) und dem
-Nachziehen der Codepfade (W0.1b); alte Verzeichnisnamen (`admin_boundaries/`,
-`adressregister/`, `naturschutzgebiete/`, `nö_zonierung/`,
-`flächenwidmungen/`, `new_widmungs_data/`) existieren nicht mehr, siehe §2/§3.
+**Entfernt in Paket W1.2** (waren bis dahin an der Wurzel von `data/`, siehe
+§2/§3.1 für den historischen Befund): `osm_power_lines.gpkg` (13 MB —
+Codeleser `abschichtung_common.py:966` bestand nur als toter Fallback, der
+nie griff, solange das OSM-PBF vorhanden ist, und dessen Ergebnisband
+`power_380_400kv` seit dem Clean-38-Schema ohnehin nicht mehr gespeichert
+wird), `WINDKRAFT_AUSSCHLUSSZONE.zip` (4,4 MB — kein Codeleser mehr, seit
+W1.7 die Registrierung in `wind_zones.py` entfernt hat) und
+`windkraftzonen_shapefile_2024.json` (588 KB — nie von einem Skript der
+Referenzkette gelesen, siehe §3.1). `data/README.md` ist nach
+`docs/rohdaten.md` verschoben (diese Datei hier). `.DS_Store` (zwei Stück)
+und `data/adressen/.claude/` (Werkzeug-/Session-Metadaten) sind ebenfalls
+entfernt.
+
+Stand nach der Umsortierung des `data/`-Baums (Paket W0.1a), dem Nachziehen
+der Codepfade (W0.1b) und dem Löschen der oben genannten toten Pfade
+(W1.2); alte Verzeichnisnamen (`admin_boundaries/`, `adressregister/`,
+`naturschutzgebiete/`, `nö_zonierung/`, `flächenwidmungen/`,
+`new_widmungs_data/`) existieren nicht mehr, siehe §2/§3.
 
 `output/` (komplett `.gitignore`d, keine Ausnahme) enthält die **erzeugten**
 Artefakte, insbesondere `output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet`
@@ -231,16 +253,23 @@ Artefakte, insbesondere `output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet`
 | Leistungsdichte 150 m | `data/gelaende/AUT_power-density_150m.tif` | Global Wind Atlas | https://globalwindatlas.info | 29.03.2026 | **6,6 MB** | unbekannt — zu klären | ja |
 | Verwaltungsgrenzen | `data/admin/VGD_Oesterreich_gen_50_20221002/` | BEV, generalisiert 1:50.000 | unbekannt — zu klären | 02.10.2022 | **20 MB** | unbekannt — zu klären | ja, eingeschränkt |
 | Naturschutzgebiete | `data/natur/SG_AT_2024_v_April_Stand_3_April_2024.zip` | Umweltbundesamt / DORIS (OGD) | unbekannt — zu klären | 03.04.2024 | **73 MB** | unbekannt — zu klären | ja, eingeschränkt |
-| OSM-Stromleitungen | `data/osm_power_lines.gpkg` | abgeleitet aus Geofabrik-OSM | — (Export aus OSM-PBF) | 31.03.2026 | **13 MB** | ODbL 1.0 | ja |
+| OSM-Stromleitungen (**entfernt, Paket W1.2**) | war `data/osm_power_lines.gpkg` | abgeleitet aus Geofabrik-OSM | — (Export aus OSM-PBF) | 31.03.2026 | **13 MB** | ODbL 1.0 | entfällt |
 
-**Wichtiger Hinweis zu `osm_power_lines.gpkg`:** Die Datei wird weiterhin
-gelesen (Widmung-v2-Kette, `abschichtung_common.py` ~Zeile 934), das daraus
-gebaute Band `power_380_400kv` ist im **Clean-38-Schema aber nicht mehr
-enthalten** — Stromleitungen sind seit `build_widmung_v2_layers.py` kein
-Ausschlusskriterium mehr. Die Datei bleibt also Teil der Kette, ohne dass
-ihr Ergebnis noch ausgegeben wird. (Wörtlich aus dem Kommentar in
-`config.json`: „Für v2 wirkungslos; weiterhin aktiv für die OSM-Kette und
-Widmung v1.“)
+**Entfernt in Paket W1.2 (war zuvor `data/osm_power_lines.gpkg`).** Die
+Datei hatte einen einzigen Codeleser, `abschichtung_common.py:966`
+(`build_infrastructure_masks()`, aufgerufen von
+`scripts/widmung_v2/03_build_osm_layers.py`) — aber nur als Fallback, der
+ausschließlich greift, wenn das konfigurierte OSM-PBF fehlt
+(`pbf.exists()` ist `False`). Mit gepflegtem PBF (`data/osm/austria-260330.osm.pbf`,
+Regelfall) wurde die Datei nie geöffnet. Das daraus gebaute Band
+`power_380_400kv` ist zudem im **Clean-38-Schema nicht mehr enthalten** —
+Stromleitungen sind seit `build_widmung_v2_layers.py` kein
+Ausschlusskriterium mehr, das Ergebnis wäre also ohnehin verworfen worden.
+Der Registereintrag `pipeline.contract.LEGACY_ENTFAELLT["powerlines_gpkg"]`
+und der einzige Konsument dieses Eintrags,
+`windkraft/config.py:load_config()`, sind mit W1.2 ebenfalls entfernt —
+`cfg["paths"]` trägt seither keinen Schlüssel `powerlines_gpkg` mehr (siehe
+§5).
 
 **Was NICHT mitgezogen wird:** Der Legacy-Fallback
 `austria-260328-free.shp/` bzw. `.zip` (Geofabrik-Shapefiles, 4,9 GB) wird
@@ -264,7 +293,7 @@ sondern dient nur dem Soll/Ist-Vergleich. Zusammen unter 1 MB (ohne
 | Stmk, Sbg | `data/zonen/luca_zonen/{Stmk,Sbg}.shp` | handdigitalisiert | **keine** — siehe §0.1 | unbekannt — zu klären | 72 KB / 148 KB | strukturell unklar, siehe §0.1 | **nein** |
 | Bgld | `data/zonen/WK_Eignungszonen.zip` | Land Burgenland | unbekannt — zu klären | `EXPORT_DAT 20260721` | **268 KB** | unbekannt — zu klären | ja, eingeschränkt |
 | Ktn | `data/zonen/RED_III_Windkraftbeschleunigungszone.zip` | Land Kärnten | unbekannt — zu klären | unbekannt — zu klären | **28 KB** | unbekannt — zu klären | ja, eingeschränkt |
-| — | `data/WINDKRAFT_AUSSCHLUSSZONE.zip` | unbekannt — zu klären | unbekannt — zu klären | unbekannt — zu klären | **4,4 MB** | unbekannt — zu klären | unbekannt — zu klären |
+| — | **entfernt, Paket W1.2** (war `data/WINDKRAFT_AUSSCHLUSSZONE.zip`) | unbekannt — zu klären | unbekannt — zu klären | unbekannt — zu klären | **4,4 MB** | unbekannt — zu klären | entfällt |
 
 **Datenqualitäts-Hinweis (verifiziert bei dieser Prüfung, weicht von der
 Vorgabe-Annahme ab):** `data/windkraftzonen_shapefile_2024.json` wurde
@@ -302,6 +331,20 @@ verifiziert direkt im Quellcode:
 Pfad speist `build_official_zoning_masks()` und damit `OFFICIAL_ZONING_BANDS`
 (Band 37). `windkraftzonen_shapefile_2024.json` wird von keinem Skript der
 Referenzkette gelesen (per Grep über alle `.py`-Dateien, siehe auch §6).
+
+**Nachtrag (Paket W1.2):** Sowohl `data/windkraftzonen_shapefile_2024.json`
+als auch `data/WINDKRAFT_AUSSCHLUSSZONE.zip` sind mit W1.2 aus `data/`
+entfernt worden — der obige Befund zu fehlenden Codelesern ist damit die
+Löschbegründung, nicht mehr nur eine Beobachtung. Für
+`windkraftzonen_shapefile_2024.json` war das eine reine
+Vorwärts-/Rückwärtssuche ohne Treffer (kein `.py`-Skript öffnet den Pfad,
+auch nicht zusammengesetzt); für `WINDKRAFT_AUSSCHLUSSZONE.zip` hatte
+bereits W1.7 den letzten Codeleser in `wind_zones.py` entfernt (siehe
+dortige Modul-Docstring-Notiz zu `load_wind_exclusion_zones()`). Die
+Autoritätsfrage zwischen `zonierung_noe.json` und
+`windkraftzonen_shapefile_2024.json` (oben als „bewusst offen“
+beschrieben) ist damit nicht mehr aktuell: Es existiert nur noch
+`zonierung_noe.json`.
 
 ### 3.2 NÖ-SekROP, Mindestabstandszonen (Precondition)
 
@@ -591,11 +634,22 @@ Zwischenprodukt der eigenen Pipeline, kein extern bezogenes Rohdatum.
 
 ## 5. `config/config.json` — was für die Referenzkette tatsächlich wirkt
 
-`load_config()` (`windkraft/config.py`) macht **genau 9 Pfad-Keys**
+`load_config()` (`windkraft/config.py`) macht **genau 8 Pfad-Keys**
 relativ zum Config-Verzeichnis absolut — verifiziert im Quellcode:
 `data_dir`, `vgd`, `osm_dir`, `wind_pd_150`, `wind_pd_100`, `dgm`, `nsg_zip`,
-`powerlines_gpkg`, `output_dir`. Zusätzlich berechnet es `_derived`
-(PD-Verhältnis 150/130 m, Slope-Schwelle in %, Turbinendichte).
+`output_dir`. Zusätzlich berechnet es `_derived` (PD-Verhältnis 150/130 m,
+Slope-Schwelle in %, Turbinendichte).
+
+**Nachtrag (Paket W1.2):** Bis zu diesem Paket waren es 9 Pfad-Keys,
+zusätzlich `powerlines_gpkg` (`data/osm_power_lines.gpkg`, siehe §2). Mit
+der Datei ist auch der Registereintrag
+`pipeline.contract.LEGACY_ENTFAELLT["powerlines_gpkg"]` entfernt worden —
+der Codepfad, der ihn nach `cfg["paths"]["powerlines_gpkg"]` kopierte, ist
+mit ihm entfernt. `cfg["paths"]` liefert diesen Schlüssel seither nicht
+mehr; `abschichtung_common.py:966` liest ihn per `cfg["paths"].get(...,
+"")` und bekommt einen leeren Pfad statt eines Zeigers auf die entfernte
+Datei. Das ist nur relevant, wenn das OSM-PBF fehlt (siehe §2) — ein Fall,
+der außerhalb dieses Pakets liegt und hier nicht angefasst wurde.
 
 **Wirksam für die Widmung-v2-Referenzkette:**
 `exclusion.slope_max_deg`, `exclusion.elevation_max`, `wind.pd_min` /
@@ -626,8 +680,8 @@ wirksam für die Legacy-Ketten (`python -m windkraft calc`, `viz/pdf_map.py`,
 | BEV-Adressregister-Parquet-Caches (`adressen_31287.parquet`, `bev_gebaeude_31287.parquet`) | Build-Artefakte von `windkraft/calc/bev_register.py`; werden beim ersten Lauf automatisch neu erzeugt. (Zählen in §2 trotzdem zur Adressregister-Gesamtgröße, weil sie bereits vorliegen und einen Lauf ohne `ADRESSE.csv`/`GEBAEUDE.csv` ermöglichen.) |
 | Entpackte Naturschutz-Ordner | Der Code entpackt das ZIP zur Laufzeit in ein `tempfile.TemporaryDirectory()` (`abschichtung_common.py:1131-1145`); bereits entpackte Ordner sind ungenutzte Zweitkopien |
 | `_problem/`-Unterordner bei den Flächenwidmungsdaten | Laut eigener `README.md` entbehrlich: kaputter, aber inhaltlich identischer Zweitdownload einer bereits vorhandenen Datei. **Verifiziert bei dieser Prüfung:** `data/new_widmungs_data/_problem` existiert im neuen Repo tatsächlich **nicht** (`find`/`ls` liefern keinen Treffer), obwohl `new_widmungs_data/` als Ganzes hardlink-migriert wurde und die Ausnahme dort auf Unterordner-Ebene hätte greifen müssen — die Ausnahme wurde also korrekt umgesetzt. Im alten Repo liegt `data/new_widmungs_data/_problem` weiterhin, **28 MB**. `windkraft/calc/widmung_sources.py` referenziert `_problem` an keiner Stelle (per Grep) — der Ordner ist für die Referenzkette inert, unabhängig davon, ob er migriert wird. |
-| `.claude`-Ordner unter `data/` | Werkzeug-/Session-Metadaten, kein Rohdatenbezug |
-| Im Code unreferenzierte Dateien (`FLWI_WIDMUNGEN_L/`, `AUT_capacity-factor_IEC*.tif`, `rea_windrichtungen.grib`, `windkraftzonen_shapefile_2024.json`, `zonierung.qlr`) | Per Grep über alle `.py`-Dateien: kommen in keinem Skript der Referenzkette vor (Details und eine Einschränkung zu `FLWI_WIDMUNGEN_L` in §7). **Ausnahme, bei dieser Prüfung verifiziert:** `windkraftzonen_shapefile_2024.json` ist trotz dieser Einstufung tatsächlich unter `data/` gelandet (Hardlink, Link-Count 2) — siehe §3.1. Die übrigen vier genannten Dateien/Ordner fehlen tatsächlich unter `data/` (verifiziert per `ls`). |
+| `.claude`-Ordner unter `data/` | Werkzeug-/Session-Metadaten, kein Rohdatenbezug. **Nachtrag W1.2:** Ein solcher Ordner (`data/adressen/.claude/`) war tatsächlich vorhanden — vermutlich Nebenwirkung eines Werkzeuglaufs mit Arbeitsverzeichnis unter `data/adressen/` — und ist mit W1.2 entfernt worden (leer, kein Inhalt außer einem leeren `.cc-writes`-Unterordner). |
+| Im Code unreferenzierte Dateien (`FLWI_WIDMUNGEN_L/`, `AUT_capacity-factor_IEC*.tif`, `rea_windrichtungen.grib`, `windkraftzonen_shapefile_2024.json`, `zonierung.qlr`) | Per Grep über alle `.py`-Dateien: kommen in keinem Skript der Referenzkette vor (Details und eine Einschränkung zu `FLWI_WIDMUNGEN_L` in §7). `windkraftzonen_shapefile_2024.json` war trotz dieser Einstufung tatsächlich unter `data/` gelandet (Hardlink, Link-Count 2) — siehe §3.1 — und ist mit **Paket W1.2 entfernt** worden, mangels Codeleser. Die übrigen vier genannten Dateien/Ordner fehlen weiterhin unter `data/` (verifiziert per `ls`). |
 
 ---
 
@@ -649,7 +703,7 @@ Wer sie sucht, findet sie nur im alten Repo:
 | `Birdlife_Zonierung_Wind_NOE_2024.zip` | **8,6 MB** | Nicht von der Referenzkette gelesen |
 | `steiermark_zonen/` | **18 MB** | Nicht von der Referenzkette gelesen |
 | `nö_zonierung/` (außer `TeilC_3_2_...pdf`, das migriert wird) | **~109 MB** (125 MB Ordner minus 16 MB PDF) | Weitere TeilC-PDFs, für v2 nicht relevant |
-| `windkraftzonen_shapefile_2024.json` | **588 KB** | Nahe-Duplikat von `zonierung_noe.json` — **nicht** byteidentisch (11 Bytes Unterschied bei gleicher Dateigröße, siehe §3.1), aber redundant genug, um nicht zu migrieren. **Überholt (bei dieser Prüfung verifiziert):** Die Datei liegt entgegen dieser Einstufung inzwischen doch auch unter `data/` im neuen Repo (per Hardlink, Link-Count 2) — siehe die aktualisierte Migrationsstatus-Notiz in §3.1. Dieser Tabelleneintrag ist insofern überholt; die Datei ist trotzdem weiterhin von keinem Skript der Referenzkette gelesen. |
+| `windkraftzonen_shapefile_2024.json` | **588 KB** | Nahe-Duplikat von `zonierung_noe.json` — **nicht** byteidentisch (11 Bytes Unterschied bei gleicher Dateigröße, siehe §3.1), aber redundant genug, um nicht zu migrieren. **Zwischenzeitlich überholt, jetzt wieder zutreffend:** Die Datei war entgegen dieser Einstufung eine Zeit lang zusätzlich unter `data/` im neuen Repo gelandet (per Hardlink, Link-Count 2 — siehe die Migrationsstatus-Notiz in §3.1), ist aber mit **Paket W1.2** dort wieder entfernt worden, mangels Codeleser. Sie liegt damit wieder ausschließlich im alten Repo, wie diese Tabelle es ursprünglich beschrieb. |
 
 ---
 
