@@ -152,8 +152,11 @@ RAW = {
         # inzwischen ebenfalls gelöscht.
     },
     "noe_sekrop": {
-        # scripts/noe/extract_noe_vector_layers.py:48,
-        # windkraft/noe/pdf_align.py:45, scripts/noe/align_pdf_shapefile.py
+        # pipeline/prep/noe_sekrop.py (PDF_PATH, beide Stufen) - vormals
+        # scripts/noe/extract_noe_vector_layers.py:48 und
+        # scripts/noe/align_pdf_shapefile.py, per Paket W1.P9 dorthin
+        # verschoben (siehe dessen Bericht). windkraft/noe/pdf_align.py:45
+        # bleibt als geteilte GPTS-Konstante bestehen, von dort importiert.
         # (DATA / "noe_sekrop" / ... - zusammengesetzt, siehe PLAN.md §11.1)
         "pdf": DATA / "noe_sekrop" / "TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf",
     },
