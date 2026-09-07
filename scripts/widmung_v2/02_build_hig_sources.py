@@ -11,8 +11,6 @@ Geschriebene Checkpoint-Raster (25 m, Pipeline-Lattice):
   official_hig_source            amtl. HiG-Widmung ohne Ferienhaus
   noe_pdf_750m_zones             NÖ-SekROP-Zonen, BEREITS Objekt + 750 m (nur
                                  Kandidatenfilter/Abdeckung, kein Quellband)
-  noe_pdf_hig_source             rekonstruierte SekROP-QUELLOBJEKTE (Erosion
-                                 um 750−50 m); Puffer entsteht im Aggregat
   hig_hulls_source               STREUSIEDLUNGS-Hüllen: bewohnt UND >= 5
                                  adressierte Objekte, 200-m-Verkettung (750 m)
   bewohnt_einzellage_source      bewohnte Hüllen UNTER der Schwelle (25 m) -
@@ -71,7 +69,6 @@ from windkraft.calc.streusiedlung import chain_hull_params  # noqa: E402
 from windkraft.calc.hig_source_masks import (  # noqa: E402
     candidate_filter_mask,
     noe_pdf_mask,
-    noe_pdf_source_mask,
     widmung_seed,
     zoning_masks,
 )
@@ -81,7 +78,6 @@ SOURCE_LAYER_NAMES = [
     "ferienhaus_tourismus_source",
     "official_hig_source",
     "noe_pdf_750m_zones",
-    "noe_pdf_hig_source",
     "hig_hulls_source",
     "bewohnt_einzellage_source",
     "nonresidential_hulls_source",
@@ -96,7 +92,6 @@ def build_sources(cfg: dict, grid: dict, args: argparse.Namespace) -> dict[str, 
     with timed("Stufe A: Widmungsmasken"):
         zoning = zoning_masks(zoning_dir, grid)
         noe_pdf = noe_pdf_mask(Path(args.noe_dir), grid)
-        noe_pdf_source = noe_pdf_source_mask(Path(args.noe_dir), grid)
 
     with timed(f"Stufe A: Kandidaten-Filter (+{args.filter_buffer_m:g} m)"):
         # NÖ-PDF-Zonen sind schon 750-m-Zonen; sie filtern ohne weitere Aufweitung.
@@ -179,7 +174,6 @@ def build_sources(cfg: dict, grid: dict, args: argparse.Namespace) -> dict[str, 
         "ferienhaus_tourismus_source": zoning["ferienhaus_tourismus_source"],
         "official_hig_source": zoning["official_hig_source"],
         "noe_pdf_750m_zones": noe_pdf,
-        "noe_pdf_hig_source": noe_pdf_source,
         "hig_hulls_source": streusiedlung_mask,
         "bewohnt_einzellage_source": einzellage_mask,
         "nonresidential_hulls_source": masks[HULL_CLASS_INDUSTRIE] | masks[HULL_CLASS_UNBEWOHNT],

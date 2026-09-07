@@ -14,7 +14,6 @@ from pathlib import Path
 import numpy as np
 
 from windkraft.calc.abschichtung_common import (
-    admin_boundaries,
     raster_mask,
     read_layer,
     uniform_buffer_cell_mask,
@@ -23,15 +22,6 @@ from windkraft.calc.abschichtung_common import (
 FERIENHAUS_CATEGORY = "ferienhaus_tourismus"
 
 NOE_PDF_LAYER_NAMES = ("pdf_750m_geb", "pdf_750m_gwr", "pdf_750m_gruenland_widmung")
-
-# Rekonstruierte QUELLOBJEKTE hinter den Zonen (windkraft/noe/pdf_hig_sources.py):
-# das PDF exportiert nur die dissolveten 750-m-Puffer, die Quellen entstehen per
-# Erosion um 750−δ. Diese Layer werden von der Pipeline normal mit 750 m gepuffert.
-NOE_PDF_SOURCE_LAYER_NAMES = (
-    "pdf_hig_source_geb",
-    "pdf_hig_source_gwr",
-    "pdf_hig_source_gruenland_widmung",
-)
 
 
 def zoning_masks(zoning_dir: Path, grid: dict) -> dict[str, np.ndarray]:
@@ -74,26 +64,6 @@ def noe_pdf_mask(noe_dir: Path, grid: dict) -> np.ndarray:
     mask = np.zeros(grid["shape"], dtype=bool)
     for layer in noe_pdf_layer_masks(noe_dir, grid).values():
         mask |= layer
-    return mask
-
-
-def noe_pdf_source_mask(noe_dir: Path, grid: dict) -> np.ndarray:
-    """Rekonstruierte SekROP-Quellobjekte; werden im Aggregat 750 m gepuffert.
-
-    Fehlende Dateien sind ein harter Fehler: ein leeres NÖ-Quellband würde
-    lautlos einen Großteil des NÖ-Ausschlusses entfernen.
-    """
-    mask = np.zeros(grid["shape"], dtype=bool)
-    for name in NOE_PDF_SOURCE_LAYER_NAMES:
-        path = noe_dir / f"{name}.geojson"
-        if not path.exists():
-            raise FileNotFoundError(
-                f"NÖ-PDF-Quellobjekte fehlen: {path}. Erst "
-                "`uv run --extra pdf python scripts/noe/extract_noe_vector_layers.py` ausführen "
-                "(ruft derive_layer_files() selbst auf)."
-            )
-        sources = read_layer(path, bounds=grid["bounds"])
-        mask |= raster_mask(sources, 0.0, grid, name)
     return mask
 
 
