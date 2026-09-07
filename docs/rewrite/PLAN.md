@@ -64,7 +64,7 @@ zurück. Domänen mit aufwendiger Aufbereitung bekommen zwei Prep-Stufen
 statt einer.
 
 1. **Roh** (`data/`) — read-only, extern bezogen oder händisch, nie von
-   einem Skript geschrieben. 10 Themengruppen, ~11 GB.
+   einem Skript geschrieben. 10 Themengruppen, ~12 GB.
    `tools/check_raw_only.py` bricht den Build ab, wenn hier etwas
    Abgeleitetes liegt.
 2. **Prep** (`build/prep/<domäne>/`) — ein Skript je Domäne: entpacken,
@@ -85,7 +85,7 @@ statt einer.
 
 ```
 data/                    read-only, extern bezogen, nie geschrieben
-  <10 Themengruppen>/     ~11 GB
+  <10 Themengruppen>/     ~12 GB
 build/                   jederzeit löschbar, gitignored
   prep/<domäne>/          Ausgabe der Prep-Stufe(n)
   layers/*.tif            Checkpoints je Quellklasse
@@ -107,10 +107,10 @@ Bandnummern sind die tatsächlichen Deskriptoren des heutigen 38-Band-Rasters.
 | Domäne | Rohquelle | Größe | Prep | Erzeugte Layer | Bänder | Anmerkung |
 |---|---|---|---|---|---|---|
 | Verwaltungsgrenzen | VGD 50 generalisiert (BEV) | — | admin | bundesland_masken; gemeinden | alle indirekt · `out/gemeinden.geojson` | Basis für die bundeslandweisen Puffer und für die neue Deckungsprüfung. |
-| Kataster | 8 × DKM-SHP-ZIP + NÖ-DXF + Symbol-CSV | 7,8 GB | kataster/a_noe_polygonize → kataster/b_export_parquet | nonresidential_hulls_source; general_buildings_source; hig_hulls_source; bewohnt_einzellage_source | 8–13 | NÖ liefert nur Linienwerk; die Polygone werden per Kachelung und Mehrheitsvotum rekonstruiert. Teuerste Stufe der Kette. |
+| Kataster | 8 × DKM-SHP-ZIP + NÖ-DXF + Symbol-CSV | 9,1 GB | kataster/a_noe_polygonize → kataster/b_export_parquet | nonresidential_hulls_source; general_buildings_source; hig_hulls_source; bewohnt_einzellage_source | 8–13 | NÖ liefert nur Linienwerk; die Polygone werden per Kachelung und Mehrheitsvotum rekonstruiert. Teuerste Stufe der Kette. |
 | Adressregister | BEV Adresse, Stichtagsdaten | 484 MB | adressen | hig_hulls_source | 12–13 | Speist die Streusiedlungserkennung: ≥5 adressierte Objekte in 200-m-Verkettung ergeben eine Hülle. |
 | Flächenwidmung | 9 Bundesland-Quellen, GPKG und SHP | 1,6 GB | widmung | official_settlement_source; official_hig_source; ferienhaus_tourismus_source | 1–5 | Niederösterreich ist das einzige Land mit 1200 m Siedlungspuffer statt 1000 m. |
-| OSM | austria.osm.pbf | 760 MB | osm/a_extract → osm/b_layers | roads; rail; cableway; water_bodies; nature_osm; military; airport; wka_bestand | 14–22, 26, 38 | Zwei Stufen, weil die osmium-Extraktion teuer ist und die Layer-Ableitung oft wiederholt wird. |
+| OSM | austria.osm.pbf | 760 MB | osm/a_extract → osm/b_layers | buildings; roads; railways; powerlines; transport; aerialways; military; nature; windpower; water | 14–22, 26, 38 | **Zehn** Objektgruppen, nicht acht: die Namen sind die Schlüssel aus `OSM_PBF_FILTERS`, nicht Bandnamen. `buildings` ist mit 8,5 Mio Objekten die größte und fehlte hier ganz. `powerlines` wird extrahiert, seine Maske `power_380_400kv` steht aber seit dem Clean-Schema nicht mehr in `INFRA_LAYER_NAMES` und wird nie persistiert (Punkt 27). Drei weitere Schlüssel — `landuse`, `places`, `addresses` — sind deklariert und tot (Punkt 26). Zwei Stufen, weil die osmium-Extraktion teuer ist (**gemessen 286 s**) und die Layer-Ableitung oft wiederholt wird. |
 | Gelände & Wind | DGM_R25, Leistungsdichte 150 m | 757 MB | kein Prep | geography_slope; geography_elevation; geography_wind | 23–25 | Bereits Raster im Zielgitter — kein Prep nötig, direkt in die Layer-Stufe. |
 | Naturschutz | Schutzgebiete Österreich 2024 | 73 MB | natur | nature_protection_areas | 21 | Amtliche Quelle; Band 22 stammt aus OSM und dient dem Abgleich. |
 | Windzonen | luca_zonen, Eignungszonen, RED III, zonierung_noe | 4,9 MB | zonen | — | 37 | Referenzband, geht nicht in die Abschichtung ein. Die steirischen Positivzonen bleiben erhalten (`luca_zonen/Stmk.shp`); die SAPRO-2026-Ausschlusszonen entfallen laut Entscheidung. Die beiden Quellen, die heute bei Fehlen still ausfallen, werden zur harten Vorbedingung. |
