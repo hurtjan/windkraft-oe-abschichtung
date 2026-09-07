@@ -23,8 +23,10 @@ konsumiert, findet den Vertrag dafür in [`docs/HANDOFF.md`](docs/HANDOFF.md).
 - `scripts/` — dünne CLI-Einstiegspunkte, die auf das Paket aufsetzen:
   `widmung_v2/` (die fünf nummerierten Kettenschritte), `noe/`
   (Niederösterreich-Datenaufbereitung), `preprocessing/` (einmalige
-  Datenaufbereitung), `analysis/` und `webmap/` (Auswertungs- und
-  Inspektionswerkzeuge, z. B. der Layer-Viewer).
+  Datenaufbereitung). `analysis/` und `webmap/` enthielten je ein
+  Auswertungs-/Inspektionswerkzeug (Dashboard-Daten, Layer-Viewer) — beide
+  erwiesen sich als toter Code und wurden in W1.5 gelöscht; `analysis/`
+  existiert seither nicht mehr, `webmap/` ist leer.
 - `docs/` — Nachschlagedokumentation: `widmung_v2.md` (Referenzkarte der
   Kette), `widmung_v2_provenance.md` (Provenienz), `FOLLOWUPS.md` (offene
   Beobachtungen aus der Übernahme), `MIGRATION_MAP.tsv` (alte → neue Pfade),
@@ -204,13 +206,16 @@ Teil dieses Pakets.
   nicht mehr im alten. Kein `make`-Target ruft die beiden Skripte bisher
   auf; `make prep` ist noch ein Platzhalter (`Makefile:56-57`) — bis Welle
   1 die Prep-Pakete liefert, müssen sie von Hand aufgerufen werden.
-- **Kein funktionierendes Dashboard-Skript.**
-  `scripts/analysis/build_v2_dashboard_data.py` existiert und wurde
-  übernommen — bricht aber am aktuellen 38-Band-TIF hart ab, weil sein
-  `EXCLUSION_LAYERS` noch sieben Bandnamen aus dem Pre-Clean-Schema nennt
-  (siehe Abschnitt „Das Band-Manifest" oben, `docs/FOLLOWUPS.md`). Über den
-  unter „Struktur“ genannten Layer-Viewer hinaus gibt es sonst keine
-  Präsentations-/Auswertungsskripte.
+- **Keine Präsentations-/Auswertungsskripte** über die Kette hinaus —
+  insbesondere keine Dashboards. `scripts/analysis/build_v2_dashboard_data.py`
+  existierte bei der Übernahme, brach aber am aktuellen 38-Band-TIF hart ab
+  (`EXCLUSION_LAYERS` nannte acht Bandnamen aus dem Pre-Clean-Schema, die es
+  nicht mehr gibt — siehe Abschnitt „Das Band-Manifest" oben) und wurde als
+  toter Code in W1.5 gelöscht; `scripts/analysis/` existiert seither nicht
+  mehr. Der ebenfalls mitübernommene Layer-Viewer
+  (`scripts/webmap/build_layer_viewer.py`, unter „Struktur“ oben erwähnt)
+  war unabhängig davon durch einen `NameError` bei jedem Aufruf tot und
+  wurde im selben Paket gelöscht.
 
 Für all das ist `windkraft_ö_karten` weiterhin die Quelle der Wahrheit.
 
@@ -275,5 +280,8 @@ Caveat-Texte im Manifest (vollständige Rangliste aller Abweichungen:
 Repos ausreicht, ist damit noch nicht entschieden — das ist eine
 inhaltliche Frage, keine, die sich aus dem Lauf allein beantwortet.
 Ebenfalls offen: die in `docs/FOLLOWUPS.md` gesammelten Entscheidungen (u. a.
-`config.py`-Pfadauflösung, Projektname/Entry-Point in `pyproject.toml`,
-veraltete `EXCLUSION_LAYERS`-Liste im Dashboard-Skript).
+`config.py`-Pfadauflösung, Projektname/Entry-Point in `pyproject.toml`). Die
+dort ebenfalls vermerkte veraltete `EXCLUSION_LAYERS`-Liste im
+Dashboard-Skript ist durch dessen Löschung in W1.5 gegenstandslos
+geworden — `docs/FOLLOWUPS.md` selbst nennt diesen Punkt weiterhin als
+offen und wäre bei Gelegenheit zu bereinigen.
