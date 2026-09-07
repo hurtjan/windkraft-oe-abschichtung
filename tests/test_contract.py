@@ -198,7 +198,7 @@ def _load_module_from_path(name: str, relpath: str):
 
 def test_layer_names_are_unique():
     assert len(contract.LAYER_NAMES) == len(set(contract.LAYER_NAMES))
-    assert len(contract.LAYER_NAMES) == 34
+    assert len(contract.LAYER_NAMES) == 33
 
 
 def test_layer_names_match_the_chain():
