@@ -642,6 +642,28 @@ unbemerkt falsch war.
 Der Satz in §4 ist damit als „keine Umformung nötig" zu lesen, nicht als
 „keine Stufe nötig".
 
+**Nachtrag: die Abbruchbedingung entfällt.** §7 nennt in der
+Abnahme-Spalte zu W1.P6 „Bricht ab, wenn Gitter oder CRS abweichen". W1.P6
+hat gemessen, dass das Windraster in **allen vier** geprüften Merkmalen
+abweicht — EPSG:4326 statt 31287, 0,0025 Grad statt 25 Meter, 3069 × 1076
+statt 24001 × 14001. Eine abbrechende Prüfung würde also die **heute
+funktionierende Kette anhalten**.
+
+Sie tut es zu Unrecht: `abschichtung_common.py` reprojiziert beide Raster
+ohnehin bilinear auf das DGM-Gitter. Die Abweichung ist keine Störung,
+sondern der erwartete Zustand einer fremden Quelle.
+
+> **Verbindlich:** Die Prüfstufe `gelaende` **berichtet und bricht nie ab.**
+> Sie schreibt die gemessenen Werte gegen die Sollwerte in einen
+> Prüfbericht. Ob eine Abweichung toleriert oder behoben wird, entscheidet
+> die Layer-Stufe in Welle 2 — dort, wo das Wissen darüber sitzt, was mit
+> dem Raster geschieht.
+
+Die allgemeine Lehre: **Eine Prüfung, die abbricht, muss wissen, was
+richtig ist.** Diese hier wusste es nicht — der Sollwert stammte aus meiner
+Annahme, nicht aus einer Messung. Eine berichtende Prüfung ist in so einem
+Fall nicht die schwächere Wahl, sondern die einzig ehrliche.
+
 ### 13.6 Gemeinsame Entscheidungen sind gefährlicher als gemeinsame Dateien
 
 §13.4 sucht vor einem Batch nach Dateien, die mehrere Pakete anfassen
@@ -661,6 +683,38 @@ Welle 5 sich darauf verlässt, dass Fingerabdrücke vergleichbar sind.
 > Fehlerverhalten, ein Ausgabeformat — wird **vorher einmal** entschieden
 > und als gemeinsames Modul bereitgestellt. Sonst driften neun Pakete
 > auseinander, ohne je zu kollidieren.
+
+### 13.7 Der Nachweislauf gehört nicht in jedes Paket
+
+Bis einschließlich W1.P2 hat **jedes** Paket den vollen Nachweislauf
+ausgeführt: `04_create_distance_zones.py` gegen die geteilten
+Checkpoint-Layer, rund 165 Sekunden, Prüfsumme gegen `run1`. Für die
+Aufräum- und Datenpakete war das richtig — sie haben Code angefasst, den
+die Kette liest.
+
+**Für die Prep-Welle ist es Verschwendung.** Eine Prep-Stufe schreibt nach
+`build/prep/`; die Kette liest heute noch die Rohdatei und wird erst in
+Welle 2 umgestellt. Der Nachweislauf kann also gar nichts über die
+Prep-Stufe aussagen — er belegt nur, dass nichts *anderes* kaputtging.
+Neun Mal dieselbe Aussage, bei drei gleichzeitigen Paketen zusätzlich
+verlangsamt durch Konkurrenz um dieselbe Platte.
+
+Dazu kommt ein praktisches Problem: Der Lauf ist lang genug, dass Agenten
+ihn in den Hintergrund schieben und sich dann auf eine Benachrichtigung
+schlafen legen, die in diesem Setup nicht ankommt. Das ist bisher **fünfmal**
+passiert. Jedes Mal war der Lauf längst fertig.
+
+**Neue Regelung ab W1.P3:**
+
+> Ein Prep-Paket führt **keinen** eigenen Nachweislauf durch. Seine Abnahme
+> besteht aus `make test`, `make check-guards`, dem Lauf seines eigenen
+> `prep-<domäne>`-Ziels und seinem fachlichen Gleichheitsnachweis. **Ein**
+> Nachweislauf findet an der Wellengrenze statt, nach dem Zusammenführen
+> aller Prep-Pakete — dort ist er aussagekräftig, weil er alle Änderungen
+> zugleich prüft.
+
+Aus neun Läufen wird einer. Der Nebeneffekt ist der wichtigere: Die
+häufigste Fehlerquelle dieser Sitzung verschwindet aus neun Aufträgen.
 
 ## Maschinensichten
 
