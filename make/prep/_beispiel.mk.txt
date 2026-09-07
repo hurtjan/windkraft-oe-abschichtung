@@ -1,0 +1,11 @@
+# Vorlage für make/prep/<domäne>.mk — siehe README.md in diesem Verzeichnis.
+#
+# Diese Datei trägt bewusst die Endung ".mk.txt", nicht ".mk": das
+# Haupt-Makefile liest nur "make/prep/*.mk" per -include ein
+# (docs/rewrite/PLAN.md §13.4), diese Vorlage soll dabei NICHT mitgelesen
+# werden. Zum Anlegen deines eigenen Ziels: Datei nach
+# make/prep/<domäne>.mk kopieren, "admin" durch deine Domäne ersetzen.
+
+.PHONY: prep-admin
+prep-admin:
+	uv run python -m pipeline.prep.admin

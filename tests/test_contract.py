@@ -198,6 +198,58 @@ def test_prep_and_layers_live_under_build():
         assert contract.BUILD in path.parents, f"LAYERS-Pfad nicht unter build/: {path}"
 
 
+# ---------------------------------------------------------------------------
+# 4b. PREP deckt alle neun Domänen der Prep-Welle vollständig ab (PLAN.md
+#     §7, W1.P1-W1.P9; Vorpaket W1.P0, §13.4). Diese Zusicherungen sind der
+#     eigentliche Zweck von W1.P0: sie beweisen, dass keines der neun
+#     Prep-Pakete beim parallelen Start noch selbst einen Eintrag in PREP
+#     nachtragen muss.
+# ---------------------------------------------------------------------------
+
+# Die neun Domänen sind genau die neun Unterverzeichnisse von data/ (siehe
+# contract.RAW-Schlüssel oben) und damit auch die neun Top-Level-Schlüssel
+# von PREP - unabhängig davon, ob eine Domäne eine oder zwei Prep-Stufen hat.
+PREP_DOMAINS = frozenset(contract.RAW.keys())
+
+# Domänen mit zwei Prep-Stufen (PLAN.md §4/§7: teure Extraktion getrennt von
+# billigerer Ableitung) - alle anderen sechs Domänen haben genau eine Stufe,
+# also einen Path-Wert statt eines verschachtelten dict.
+PREP_TWO_STAGE_DOMAINS = frozenset({"kataster", "osm", "noe_sekrop"})
+
+
+def test_prep_covers_all_nine_domains():
+    assert PREP_DOMAINS == frozenset({
+        "admin", "kataster", "adressen", "widmung", "osm",
+        "gelaende", "natur", "zonen", "noe_sekrop",
+    })
+    assert len(PREP_DOMAINS) == 9
+    assert set(contract.PREP.keys()) == PREP_DOMAINS
+
+
+def test_prep_two_stage_domains_have_a_and_b_stage():
+    for domain in PREP_TWO_STAGE_DOMAINS:
+        stages = contract.PREP[domain]
+        assert isinstance(stages, dict), f"PREP[{domain!r}] sollte zwei Stufen haben (dict), ist {stages!r}"
+        # Jeder Stage-Schlüssel beginnt mit "a_" bzw. "b_" (erste vor zweiter
+        # Stufe) - siehe Kommentare je Domäne in contract.py.
+        assert {k[:2] for k in stages} == {"a_", "b_"}, (
+            f"PREP[{domain!r}] hat keine a_/b_-Stufen: {sorted(stages)}"
+        )
+
+
+def test_prep_single_stage_domains_are_bare_paths():
+    for domain in PREP_DOMAINS - PREP_TWO_STAGE_DOMAINS:
+        assert isinstance(contract.PREP[domain], Path), (
+            f"PREP[{domain!r}] sollte eine einstufige Domäne sein (Path), "
+            f"ist {contract.PREP[domain]!r}"
+        )
+
+
+def test_prep_leaf_count():
+    # 6 einstufige Domänen + 3 zweistufige Domänen * 2 Stufen = 12 Pfade.
+    assert len(_iter_leaf_paths(contract.PREP)) == 12
+
+
 def test_products_live_under_out():
     for path in contract.PRODUCTS.values():
         assert contract.OUT in path.parents, f"PRODUCTS-Pfad nicht unter out/: {path}"
