@@ -12,11 +12,12 @@ W0.1 in dessen §11. Die Belege liegen unter
 
 | | |
 |---|---|
-| Abgeschlossen | 11 von 30 — Welle 0, Aufräumteil und **beide Datenfenster** der Welle 1 |
-| Als Nächstes | W1.4, die Wächter — danach beginnt die Prep-Welle |
+| Abgeschlossen | **21 von 30** — Welle 0 vollständig, Welle 1 vollständig **inklusive aller neun Prep-Pakete**, beide Zusammenführungen |
+| Als Nächstes | zwei Nachzügler (Punkt 19, Punkt 22), dann Welle 2 |
 | `data/` | **hardlinkfrei**, 50 echte Dateien, per Wächter als Invariante gesichert |
-| Zweig | `docs/audit-und-plan`, kein Remote |
-| Abweichungen bisher | keine — alle Pakete bitgleich |
+| Zweig | `docs/audit-und-plan`, Kopf `ca386b1`, kein Remote |
+| Worktrees | keine — alle neun abgebaut, alle Zweige mit `git branch -d` gelöscht |
+| Abweichungen bisher | **keine** — alle Pakete bitgleich, `sha256` an der Wellengrenze bestätigt |
 
 ## Paketübersicht
 
@@ -51,6 +52,9 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | W1.P7 | Prep: Naturschutz | **fertig** | 25 min | 8 min | 920 Geometrien **WKB-bytegleich** · 147 Tests |
 | W1.P8 | Prep: Windzonen | **fertig** | 30 min | 7 min | **0,0 m²** bei allen vier Quellen · 147 Tests |
 | W1.P9 | Prep: NÖ-SekROP-PDF, zwei Stufen | **fertig** | 45 min | 20 min | **12/12 GeoJSON bytegleich** · Laufzeit halbiert |
+| — | Zusammenführung der Prep-Welle | **fertig** | 25 min | 7 min | **9 Merges konfliktfrei** · `sha256` bitgleich · 147+1 Tests |
+| — | Datenfenster: alte Adress-Parquets (Punkt 19) | offen | 15 min | | |
+| — | Prep-Stufe für die fünfte Zonenquelle (Punkt 22) | offen | 20 min | | |
 | W2.1 | Layer: Widmung | offen | 40 min | | |
 | W2.2 | Layer: Häuser im Grünen | offen | 40 min | | |
 | W2.3 | Layer: OSM und Infrastruktur | offen | 45 min | | |
@@ -65,12 +69,22 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 
 | | |
 |---|---|
-| Gebraucht bisher | **3 h 19** für elf Pakete plus die Zusammenführung |
-| davon Welle 0 | 1 h 30, seriell (49 + 28 + 12 min) |
+| Gebraucht bisher | **rund 4 h 45** Wanduhrzeit für 21 Pakete plus zwei Zusammenführungen |
+| davon Welle 0 | 1 h 29, seriell (49 + 28 + 12 min) |
 | davon Welle 1, Aufräumen | 29 min (W1.7 seriell 15 min, dann vier parallel in 14 min) |
-| davon Zusammenführung | 30 min — doppelt so lang wie geschätzt |
-| Verbleibend, geschätzt | **rund 5 h** Wanduhrzeit |
-| Davon unbekannt | die Kataster-Vorverarbeitung — keine Messung existiert |
+| davon erste Zusammenführung | 30 min — doppelt so lang wie geschätzt |
+| davon beide Datenfenster | 36 min, seriell (22 + 14) |
+| davon Wächter und Vorfeld | 26 min (13 + 13) |
+| davon Prep-Welle | rund 60 min für neun Pakete in Schüben (Summe der Einzelzeiten: 133 min) |
+| davon zweite Zusammenführung | **7 min** |
+| Verbleibend, geschätzt | **4 bis 5 ½ h** Wanduhrzeit |
+| Davon unbekannt | **nichts mehr** — die Kataster-Vorverarbeitung ist von W1.P2 auf 45–70 min vermessen |
+
+**Summe geschätzt gegen summe gebraucht**, über alle 20 Positionen mit
+Schätzung (Welle 0 hatte keine): **550 min geschätzt, 297 min gebraucht —
+minus 46 %.** Ich setze systematisch fast das Doppelte an. Genau zwei
+Positionen liefen über: W1.2 mit +10 % und die erste Zusammenführung mit
++100 %.
 
 Der erste echte Parallelbatch hat die Schätzung bestätigt und leicht
 unterboten: vier Pakete, geschätzt 65 min in Summe, gebraucht 14 min
@@ -88,21 +102,33 @@ Prosa. Das ist der Preis der Parallelität und gehört ab jetzt in die
 Schätzung jeder Parallelstufe: **rund die Hälfte der eingesparten Zeit
 kommt als Zusammenführung zurück, sobald sich Dateimengen überschneiden.**
 
-Die 6 Stunden sind **nicht** die Summe der Einzelschätzungen (die ergäbe
-gut 13 h), weil Pakete parallel laufen. Gerechnet ist je Stufe das längste
+Die Restdauer ist **nicht** die Summe der Einzelschätzungen (die ergäbe
+gut 6 ¾ h), weil Pakete parallel laufen. Gerechnet ist je Stufe das längste
 Paket plus Puffer für meine eigene Abnahme, die seriell bleibt:
 
-| Stufe | Pakete | Dauer |
+| Stufe | Pakete | Wanduhr |
 |---|---|---:|
-| W1.7 allein | 1 | 25 min |
-| Aufräumen, parallel | 5 | ~~25 min~~ · 4 davon in **14 min** gemessen |
-| Datenfenster, seriell | 2 | 40 min |
-| Wächter | 1 | 25 min |
-| Prep, gedrosselt auf drei gleichzeitig | 9 | 2 h 25 |
+| ~~W1.7 allein~~ | 1 | ~~25~~ · **15 min** |
+| ~~Aufräumen, parallel~~ | 5 | ~~25~~ · **14 min** gemessen |
+| ~~Datenfenster, seriell~~ | 2 | ~~40~~ · **36 min** |
+| ~~Wächter und Vorfeld~~ | 2 | ~~25~~ · **26 min** |
+| ~~Prep, gedrosselt~~ | 9 | ~~2 h 25~~ · **rund 60 min** |
+| ~~Zusammenführung Prep~~ | — | ~~25~~ · **7 min** |
+| Zwei Nachzügler (Punkt 19, 22) | 2 | 20 min |
 | Welle 2, parallel | 3 | 45 min |
+| Zusammenführung Welle 2 | — | 20 min |
 | Welle 3, seriell | 2 | 1 h 15 |
 | Welle 4, parallel | 3 | 40 min |
-| Welle 5 | 1 | 15 min + ? |
+| Zusammenführung Welle 4 | — | 15 min |
+| Welle 5, inklusive Kataster-Volllauf | 1 | 1 h 15 – 1 h 40 |
+| **Restdauer** | **11** | **5 ¼ – 5 ¾ h roh · 4 – 4 ½ h korrigiert** |
+
+Die Korrektur wendet den gemessenen Faktor 0,55 nur auf die **Denkzeit**
+an. Welle 5 bleibt unkorrigiert: dort dominiert Maschinenzeit, die nicht
+mitschrumpft — 45–70 min Kataster-Vorverarbeitung plus 14:26 Kettenlauf.
+Und die vier Zusammenführungen setze ich weiterhin großzügig an, obwohl die
+letzte 7 min brauchte; der Grund dafür steht unten und gilt nicht
+automatisch für Welle 2.
 
 **Warum nicht alle achtzehn gleichzeitig:** Innerhalb eines Pakets ist
 nichts parallel — schreiben, prüfen, beweisen bauen aufeinander auf. Die
@@ -958,6 +984,65 @@ Millionen Gebäuden ist das eine vertretbare Grenze.
 
 **Abnahme: 147 Tests unverändert, Wächter grün vor und nach dem Lauf.**
 
+### Zusammenführung der Prep-Welle · fertig
+
+Neun Merge-Commits, alle mit `--no-ff`, in der geplanten Reihenfolge:
+`556d238` (w1.p1), `54a77e3` (w1.p2), `d219adc` (w1.p3), `1755f1e` (w1.p4),
+`8334021` (w1.p5), `a893ff2` (w1.p6), `197bf63` (w1.p7), `7b9fa48` (w1.p8),
+`ca386b1` (w1.p9). Davor `4f10e9e` mit meinem Fortschrittsprotokoll.
+Kopf: `ca386b1`. Geschätzt 25 min, gebraucht **7**.
+
+**Kein einziger Konflikt.** Bei w1.p9 meldete Git „Auto-merging
+`pipeline/contract.py`" — die eine Datei, die zwei Pakete anfassen —, und
+die Zeilen lagen disjunkt, wie die Vorprüfung angekündigt hatte.
+
+**Das ist der Ertrag von W1.P0, und er ist jetzt beziffert.** Die erste
+Zusammenführung hatte vier Zweige, kostete 30 statt 15 Minuten und
+erzeugte drei stille Fehler in der Prosa. Diese hatte **neun** Zweige und
+kostete 7 Minuten. Der Unterschied ist nicht Glück: W1.P0 hat vorab alle
+neun Vertragspfade erklärt und die neun Make-Ziele auf neun **eigene**
+Dateien verteilt. Zwei garantierte neunfache Konflikte sind dadurch nie
+entstanden. Ein Vorpaket von 13 Minuten hat mehr gespart, als es gekostet
+hat — und die drei falschen Sätze des letzten Mal gab es diesmal nicht,
+weil keine zwei Pakete dieselbe Prosa anfassten.
+
+**Die vier inhaltlichen Nachprüfungen, die ich verlangt hatte:**
+
+| Prüfung | Ergebnis |
+|---|---|
+| Alle neun Module unter `pipeline/prep/` da? | ja, inkl. Unterpaket `kataster/` mit fünf Dateien |
+| Alle neun Ziele da und über `-include` auflösbar? | ja — `make -n prep` liefert **zehn** Aufrufe für neun Domänen |
+| `pipeline/contract.py` nach beiden Merges konsistent? | ja, RAW- und PREP-Block deckungsgleich mit dem Code |
+| Benutzen alle neun `pipeline/fingerprint.py` **gleich**? | ja — nur `write()`/`matches()`, keine Eigenbauten |
+
+Die zehnte Zeile in `make -n prep` ist kein Fehler: Kataster ist als
+einziges Paket wirklich in zwei Moduldateien getrennt
+(`a_noe_polygonize`, `b_export_parquet`). `osm` und `noe_sekrop` sind
+konzeptionell zweistufig, aber bewusst in **einer** Datei mit zwei
+Funktionen implementiert — in `.mk`- und Vertragskommentar jeweils
+ausdrücklich vermerkt. Der Zuschnitt ist damit uneinheitlich, aber
+begründet und dokumentiert.
+
+**Die vierte Prüfung war die wichtigste, und sie ist die einzige, die kein
+Werkzeug erzwungen hätte.** Neun Pakete, die dieselbe Frage unabhängig
+beantworten, kollidieren nie — sie driften still auseinander. Hier taten
+sie es nicht, weil W1.P0 die Antwort vorgegeben hatte.
+
+**Der Nachweislauf der Wellengrenze, der neun einzelne ersetzt:** `sha256`
+`dc58b011…9e3df1`, **bitgleich**. Rund drei Minuten, aktiv mit
+`pgrep`/`ls -l` in 20-Sekunden-Schritten verfolgt — kein Schlaf auf dem
+eigenen Hintergrundlauf, zum ersten Mal nach fünf Vorfällen. Prüfdatei,
+Sidecar und Log danach gelöscht.
+
+**Abnahme: 147 Tests bestanden plus 1 übersprungen, unverändert vor und
+nach den neun Merges. `make check-guards` grün** — 129 Dateien
+hardlinkgeprüft, 41 Python-Dateien schreibgeprüft.
+
+**Abbau ohne Gewalt:** neun Worktrees mit `git worktree remove`, neun
+Zweige mit `git branch -d`. Kein `--force`, kein `-D`. Beim letzten Mal
+ging das noch nicht — die Symlink-Nebenwirkung ist seit `81849de`
+behoben.
+
 ## Offene Punkte
 
 | # | Punkt | Fällig |
@@ -980,7 +1065,7 @@ Millionen Gebäuden ist das eine vertretbare Grenze.
 | 9 | `docs/HANDOFF.md` trägt ein veraltetes Referenz-Manifest. Das README verweist nur darauf, dass es veraltet ist. Wer es aktualisiert, ist nicht festgelegt. | Welle 4 |
 | 10 | Die 18 von 38 Bändern, die zwischen `run1` und der Referenz-TIF um < 0,004 % abweichen, sind laut `RUN1_VERGLEICH.md` **ungeklärt**. Das berührt die Projektfrage, ob `run1` das Vorgängerprojekt als Quelle der Wahrheit ablösen darf. Keine Textkorrektur, sondern eine Entscheidung. | Nutzer, vor Welle 5 |
 | 11 | `docs/FOLLOWUPS.md` führt die veraltete `EXCLUSION_LAYERS`-Liste weiterhin als offenen Punkt, obwohl W1.5 das ganze Skript gelöscht hat. Im README nachgezogen, dort nicht — die Datei galt als eingefroren. Zu klären: eingefrorene Momentaufnahme oder lebende Liste? Dieselbe Frage wie Punkt 3. | mit Punkt 3 |
-| 12 | **Sackgasse eine Ebene höher.** Nachdem W1.6 `noe_pdf_source_mask()` entfernt hat, erzeugt `windkraft/noe/pdf_hig_sources.py:derive_layer_files()` (aufgerufen in `scripts/noe/extract_noe_vector_layers.py:286`) `output/noe/pdf_hig_source_*.geojson`, die niemand mehr liest. Fremder Besitz, deshalb von W1.6 korrekt liegengelassen. | W1.P9 |
+| ~~12~~ | ~~Sackgasse eine Ebene höher: `pdf_hig_sources.py` erzeugt GeoJSON, die niemand liest.~~ **Erledigt in W1.P9** — das Modul `windkraft/noe/pdf_hig_sources.py` ist als ganzes weg, die Sackgasse an `e3d3655` belegt statt geglaubt. | — |
 | 13 | Der `Run:`-Hinweis im Docstring von `scripts/widmung_v2/02_build_hig_sources.py:26-27` nennt den alten Pfad `scripts/main/build_hig_sources.py`. Vorbestehend. | Sammelposten |
 | 17 | `windkraft/util/admin.py` (`load_vgd`, `load_laender`, `load_bezirke`, `load_austria`) ist tot — nirgends importiert außer in einem Kommentar, der es ausdrücklich als „bewusst nicht mitgenommen" bezeichnet. | Aufräumwelle |
 | 18 | Drei Skripte lesen die VGD-Rohdatei direkt und unabhängig von `admin_boundaries()`: `create_noe_dkm_polygon_fill_map.py`, `extract_noe_vector_layers.py`, `align_pdf_shapefile.py` — teils **ohne `to_crs`**. Die Annahme, die Rohdatei sei bereits EPSG:31287, stimmt hier zufällig. Bei der Umstellung auf `build/prep/admin/` zu prüfen. | Welle 2 |
