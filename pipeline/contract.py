@@ -16,7 +16,7 @@ braucht, prüft selbst - siehe tests/test_contract.py.
 Abschnitte: RAW ist der Zielzustand des unveränderlichen Rohbaums (33
 Pfade je Domäne). LEGACY_TOT und LEGACY_ENTFAELLT sind zwei verschiedene
 Sorten Altlast, die deshalb nicht unter RAW stehen - Unterschied siehe
-Kommentar dort. PREP sind die Prep-Ausgaben, LAYERS die 34
+Kommentar dort. PREP sind die Prep-Ausgaben, LAYERS die 33
 Checkpoint-Layernamen samt abgeleitetem Pfad, PRODUCTS die vier
 Endprodukte.
 
@@ -237,9 +237,11 @@ PREP = {
 # LAYERS - Checkpoint-Layer der Rasterisierungsstufe. Bezeichner zuerst, Pfad
 # wird daraus abgeleitet (<name>.tif unter build/layers/) - wie es heute schon
 # layer_path() in windkraft/calc/abschichtung_common.py tut. Zielzustand:
-# heute liegen die entsprechenden 34 Checkpoints noch unter
+# heute liegen die entsprechenden 33 Checkpoints noch unter
 # output/abschichtung_widmung_v2/distance_layers/, Datei- und Codenamen sind
-# dort bereits deckungsgleich (siehe Bericht zu W0.2).
+# dort bereits deckungsgleich (siehe Bericht zu W0.2). Ausnahme: der Checkpoint
+# noe_pdf_hig_source wurde dort nie gelesen (Paket W1.6 hat den Erzeuger
+# entfernt) und fehlt deshalb hier absichtlich.
 # ---------------------------------------------------------------------------
 
 LAYER_NAMES = (
@@ -248,7 +250,6 @@ LAYER_NAMES = (
     "ferienhaus_tourismus_source",
     "official_hig_source",
     "noe_pdf_750m_zones",
-    "noe_pdf_hig_source",
     "hig_hulls_source",
     "bewohnt_einzellage_source",
     "nonresidential_hulls_source",
