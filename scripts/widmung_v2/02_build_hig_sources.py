@@ -196,7 +196,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--noe-dir", default="output/noe", help="Verzeichnis der pdf_750m_*.geojson")
     p.add_argument("--dkm-parquet", default="output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet")
     p.add_argument("--address-dir", default="data/adressen")
-    p.add_argument("--cache-dir", default="output/adressregister_cache", help="Ablage der BEV-Parquet-Caches")
+    p.add_argument("--cache-dir", default="build/prep/adressen", help="Ablage der BEV-Parquet-Caches")
     p.add_argument("--layer-dir", default="output/abschichtung_widmung_v2/distance_layers")
     p.add_argument("--out-dir", default="output/abschichtung_widmung_v2")
     p.add_argument("--bbox", default=None, help="EPSG:31287 bbox minx,miny,maxx,maxy für Smoke-Tests")
