@@ -14,10 +14,12 @@ dependencies = [
     "pyproj",
     "Pillow",
     "matplotlib",
+    "PyMuPDF",
 ]
 
-[project.optional-dependencies]
-pdf = ["PyMuPDF"]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[project.scripts]
-windkraft = "windkraft.__main__:main"
+[tool.hatch.build.targets.wheel]
+packages = ["windkraft", "pipeline"]
