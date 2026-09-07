@@ -257,9 +257,10 @@ derselben Welle teilen sich niemals eine Datei.
 | W1.P7 | 1 | Prep | Prep: Naturschutz | `pipeline/prep/natur.py` | W0.2 | Schutzgebiete aus dem ZIP entpackt und reprojiziert; Featurezahl identisch. |
 | W1.P8 | 1 | Prep | Prep: Windzonen | `pipeline/prep/zonen.py` | W0.2, W1.7 | Alle verbleibenden Zonenquellen als harte Vorbedingung — kein stiller Ausfall mehr bei fehlender Datei. |
 | W1.P9 | 1 | Prep | Prep: NÖ-SekROP-PDF, zwei Stufen | `pipeline/prep/noe/`; `scripts/noe/*` (Umzug) | W0.2 | Alignment und Vektorisierung getrennt; erzeugte GeoJSON deckungsgleich mit den bestehenden. |
-| W2.1 | 2 | Layer | Layer: Widmung | `pipeline/layers/widmung.py` | Welle 1 | Erzeugte Layer bitgleich zu den bestehenden Checkpoints. |
-| W2.2 | 2 | Layer | Layer: Häuser im Grünen | `pipeline/layers/hig.py` | Welle 1 | Bitgleich; die NÖ-Ausmaskierung bleibt unverändert erhalten. |
-| W2.3 | 2 | Layer | Layer: OSM und Infrastruktur | `pipeline/layers/osm.py` | Welle 1 | Bitgleich; Wiederaufsetzen überspringt vorhandene Layer nachweislich korrekt. |
+| W2.P0 | 2 | Layer | Vorfeld der Layer-Welle | `pipeline/layers/__init__.py`; `make/layers/README.md`; `Makefile` (nur `-include` und `worktree`) | Welle 1 | `make -n` für jedes bestehende Ziel byte-identisch; ein Wegwerf-Worktree sieht `build/prep/` und schreibt nicht hinein. |
+| W2.1 | 2 | Layer | Layer: Widmung und Häuser im Grünen | `pipeline/layers/hig.py` | W2.P0 | Bitgleich; die NÖ-Ausmaskierung bleibt unverändert erhalten. **W2.2 ist hier aufgegangen** — Begründung in §13.8. |
+| W2.3 | 2 | Layer | Layer: OSM und Infrastruktur | `pipeline/layers/osm.py` | W2.P0 | Bitgleich; Wiederaufsetzen überspringt vorhandene Layer nachweislich korrekt. |
+| W2.4 | 2 | Layer | Layer: Natur, Gelände, Zonen und Puffer | `pipeline/layers/geo.py` | W2.P0 | Bitgleich für **alle 17** Checkpoints aus `04_create_distance_zones.py`; die Geometrietyp-Empfindlichkeit gegen den GPKG-Promotionseffekt geprüft und beantwortet. |
 | W3.1 | 3 | Finalisierung | Finalisierung und Manifest-Vertrag | `pipeline/finalize.py`; `windkraft/calc/band_manifest.py` | Welle 2 | 38 Bänder, Manifest mit Nummer, Name, Rolle, Puffer und Quelle je Band; Schema versioniert. |
 | W3.2 | 3 | Finalisierung | Validierung | `pipeline/validate.py` | W3.1 | Prüft das TIF gegen run1 nach der Ampel aus Abschnitt 6 und schreibt `abweichungen.tsv`. |
 | W4.1 | 4 | Prüfung | Dashboard neu | `pipeline/verify/dashboard.py`; `out/dashboard/` | W3.1 | Liest ausschließlich das Manifest; keine Bandnamen im Code. Läuft gegen ein Manifest mit geänderter Bandzahl ohne Anpassung. |
@@ -715,6 +716,83 @@ passiert. Jedes Mal war der Lauf längst fertig.
 
 Aus neun Läufen wird einer. Der Nebeneffekt ist der wichtigere: Die
 häufigste Fehlerquelle dieser Sitzung verschwindet aus neun Aufträgen.
+
+### 13.8 Eine Konfliktprüfung findet keine Lücke
+
+§13.4 verlangt vor jedem Batch, die geteilten Dateien vorab zu erklären.
+Vor Welle 2 habe ich das getan — und die Prüfung hat meinen Verdacht
+sauber widerlegt: die Funktionsblöcke von HiG (769–958) und OSM
+(958–1154) in `abschichtung_common.py` sind disjunkt, und `contract.py`
+führt alle 33 Layernamen bereits vollständig. Zwei befürchtete
+Konfliktherde existieren nicht.
+
+**Gefunden wurde etwas anderes, und es war schwerer.** Der Test
+`tests/test_contract.py:280-302` setzt die Sollmenge der Checkpoints aus
+**vier** Skripten zusammen; mein §7 beauftragte **drei**. Die 17 Layer aus
+`04_create_distance_zones.py` — Puffer, Naturschutz, Gelände, offizielle
+Windzonen, WKA-Bestand — hatten keinen Besitzer. Nach Welle 2 hätte ein
+Viertel der Kette gefehlt.
+
+> **Regel 7.** Vor jeder Welle wird die Paketliste **gegen das Ziel**
+> geprüft, nicht gegen sich selbst. Die Frage lautet nicht nur „welche
+> Datei fassen zwei Pakete an", sondern „welcher Teil des Ziels gehört
+> **keinem**". Die Sollmenge kommt dabei aus Vertrag und Tests, nicht aus
+> meiner eigenen Tabelle — sonst prüfe ich die Quelle des Fehlers gegen
+> sich selbst.
+
+Der Unterschied ist grundsätzlich: Eine Konfliktprüfung sucht
+Überschneidungen. Eine Lücke *ist* keine Überschneidung. Kein Merge, kein
+Test und kein Wächter meldet sie, denn es fehlt nichts, was jemand
+versprochen hätte — und kein Paket meldet sie, weil keines dafür
+zuständig ist. Sie fällt erst am fertigen Ergebnis auf.
+
+**Drei Folgen für den Zuschnitt der Welle 2:**
+
+**W2.2 geht in W2.1 auf.** `hig_source_masks.py:70-75` verundet in
+`widmung_seed()` die drei Widmungs-Layer, und das Ergebnis geht als
+Eingabefilter in `candidate_filter_mask()`, die die Hüllenerkennung
+einschränkt. Die HiG-Layer sind heute ohne die Widmungs-Layer nicht
+berechenbar — beide entstehen in einem einzigen
+`ensure_group_layers()`-Aufruf. Getrennt blieben nur zwei Wege:
+`widmung_seed()` verdoppeln, also genau die stille Drift aus §13.6, oder
+eine Datei zu zweit besitzen, was Regel 1 verbietet. Meine
+„Braucht"-Spalte sagte für beide „Welle 1"; richtig wäre eine Kante
+zwischen ihnen gewesen. Ein Paket ist sauberer als eine Kante.
+
+**W2.4 ist neu** und übernimmt die 17 herrenlosen Checkpoints. §3 sagt,
+Stufe 4 gelte für jede Domäne; dann muss sie auch für jede beauftragt
+sein. Die Alternative — sie in W3.1 aufgehen zu lassen — widerspräche §3,
+das die Finalisierung als reine Komposition aus vorhandenen Checkpoints
+beschreibt.
+
+**W2.P0 ist neu** und richtet das Vorfeld ein, wie W1.P0 es für die
+Prep-Welle tat. Drei Dinge gehören hinein, jedes davon sonst ein
+Dreifachkonflikt oder Schlimmeres:
+
+1. `pipeline/layers/__init__.py` — sonst legt es an, wer zuerst kommt.
+2. `-include make/layers/*.mk` im `Makefile`, analog zum Prep-Muster.
+   Ohne das schreiben drei Pakete ihre Ziele in dieselbe Datei.
+3. **`build/prep/` ins `worktree`-Ziel**, als Symlink wie `data/` und
+   `distance_layers/`. Das ist der teuerste der drei Punkte: Heute
+   verlinkt `Makefile:163-174` nur diese beiden. Drei Layer-Worktrees
+   hätten die Prep-Stufe je einzeln neu gerechnet — Kataster allein 45 bis
+   70 Minuten, dreifach. Und eine Kopie von Hand zerrisse die
+   mtime-basierten Fingerabdrücke aus `fingerprint.py:33-35`, was
+   folgenlos aussieht und stille Neuberechnungen auslöst.
+
+**Die gefährlichste Stelle der Welle** liegt ausgerechnet im bislang
+herrenlosen Block. `layer_done()` (`abschichtung_common.py:1421-1439`)
+prüft Form, CRS, Transform und Bandname — **nicht die Eingabe**. Trifft
+das auf den GPKG-Promotionseffekt aus Punkt 20 (zweimal belegt: 383 von
+920 bei Naturschutz, 49 von 71 bei den NÖ-Zonen), schreibt sich ein
+falscher Wert ins Band und wird beim nächsten Lauf als „fertig"
+akzeptiert. Ab Welle 2 wird jede Abweichung zur Frage — hier ist die
+Stelle, an der sie niemand stellt. Deshalb steht die
+Geometrietyp-Prüfung ausdrücklich in der Abnahme von W2.4.
+
+**Nachtrag:** Die Maschinensichten unten nennen 30 Arbeitspakete. Mit
+W2.P0 und W2.4 sind es 32, und `packages.tsv`/`packages.json` sind
+entsprechend veraltet — dieselbe Baustelle wie Punkt 16.
 
 ## Maschinensichten
 
