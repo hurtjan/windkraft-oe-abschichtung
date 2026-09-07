@@ -127,6 +127,11 @@ worktree:
 	if [ ! -L "$$WT_DIR/data" ]; then \
 		ln -s $(CURDIR)/data "$$WT_DIR/data"; \
 	fi; \
+	git -C "$$WT_DIR" update-index --skip-worktree data/README.md; \
+	COMMON_DIR=$$(git -C "$$WT_DIR" rev-parse --git-common-dir); \
+	if ! grep -qxF '/data' "$$COMMON_DIR/info/exclude" 2>/dev/null; then \
+		echo '/data' >> "$$COMMON_DIR/info/exclude"; \
+	fi; \
 	mkdir -p "$$WT_DIR/output/abschichtung_widmung_v2"; \
 	if [ ! -L "$$WT_DIR/output/abschichtung_widmung_v2/distance_layers" ]; then \
 		ln -s $(CURDIR)/output/abschichtung_widmung_v2/distance_layers \
@@ -134,4 +139,5 @@ worktree:
 	fi; \
 	echo "Angelegt: $$WT_DIR auf Zweig $(PAKET). data/ und distance_layers/ sind Symlinks auf dieses Repo (read-only, kein Kopieraufwand)."; \
 	echo "WARNUNG: ein Lauf mit --force-layers dort schreibt in das GETEILTE distance_layers/ und zerstört die Arbeit aller anderen Worktrees - nicht verwenden."; \
-	echo "Entfernen mit: git worktree remove --force $$WT_DIR && git branch -D $(PAKET)"
+	echo "git status ist absichtlich sauber: data/README.md ist per --skip-worktree ausgenommen, der Symlink 'data' selbst steht in .git/info/exclude (geteilt ueber alle Worktrees, nicht versioniert)."; \
+	echo "Entfernen mit: git worktree remove $$WT_DIR && git branch -d $(PAKET)"
