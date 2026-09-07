@@ -12,10 +12,10 @@ W0.1 in dessen §11. Die Belege liegen unter
 
 | | |
 |---|---|
-| Abgeschlossen | 3 von 30 — **Welle 0 vollständig** |
-| In Arbeit | Welle 1, 18 Pakete |
-| Zweig | `docs/audit-und-plan`, kein Remote |
-| Abweichungen bisher | keine — beide Pakete bitgleich |
+| Abgeschlossen | 8 von 30 — **Welle 0 vollständig**, Aufräumteil der Welle 1 zusammengeführt |
+| In Arbeit | Welle 1, 13 Pakete offen |
+| Zweig | `docs/audit-und-plan`, Kopf `81849de`, kein Remote |
+| Abweichungen bisher | keine — alle Pakete bitgleich |
 
 ## Paketübersicht
 
@@ -36,6 +36,7 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | W1.6 | NÖ-PDF-HiG-Sackgasse entfernen | offen | 25 min | | |
 | W1.8 | Paketmetadaten bereinigen | **fertig** | 15 min | 8 min | bitgleich · 130 Tests |
 | W1.9 | Doku-Widersprüche korrigieren | **fertig** | 15 min | 13 min | nur Doku · 130 Tests |
+| — | Zusammenführung der vier Zweige | **fertig** | 15 min | 30 min | bitgleich · 130 Tests · 3 stille Fehler gefunden |
 | W1.2 | Tote Daten löschen, Provenienz retten | offen | 20 min | | Datenfenster |
 | W1.3 | Hardlinks auflösen | offen | 20 min | | Datenfenster · 13 GB |
 | W1.4 | Wächter für Rohdaten | offen | 25 min | | braucht W1.1, W1.2 |
@@ -62,9 +63,10 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 
 | | |
 |---|---|
-| Gebraucht bisher | **1 h 59** für acht Pakete |
+| Gebraucht bisher | **2 h 29** für acht Pakete plus die Zusammenführung |
 | davon Welle 0 | 1 h 30, seriell (49 + 28 + 12 min) |
 | davon Welle 1, Aufräumen | 29 min (W1.7 seriell 15 min, dann vier parallel in 14 min) |
+| davon Zusammenführung | 30 min — doppelt so lang wie geschätzt |
 | Verbleibend, geschätzt | **rund 5 h** Wanduhrzeit |
 | Davon unbekannt | die Kataster-Vorverarbeitung — keine Messung existiert |
 
@@ -76,6 +78,13 @@ geschätzt (8, 8, 13, 14 statt 20, 15, 15, 15). Ich schätze Pakete dieser
 Größe also systematisch zu hoch. Die Prep-Schätzungen lasse ich trotzdem
 stehen: dort dominiert Rechenzeit, nicht Denkzeit, und die skaliert nicht
 mit.
+
+**Die Zusammenführung war der einzige Posten, den ich zu niedrig geschätzt
+habe** — 15 min angesetzt, 30 gebraucht. Der Aufwand steckte nicht im
+Mergen, sondern in der inhaltlichen Nachprüfung der zusammengeführten
+Prosa. Das ist der Preis der Parallelität und gehört ab jetzt in die
+Schätzung jeder Parallelstufe: **rund die Hälfte der eingesparten Zeit
+kommt als Zusammenführung zurück, sobald sich Dateimengen überschneiden.**
 
 Die 6 Stunden sind **nicht** die Summe der Einzelschätzungen (die ergäbe
 gut 13 h), weil Pakete parallel laufen. Gerechnet ist je Stufe das längste
@@ -367,12 +376,55 @@ Abschnitt zeigt, und die fehlende Erwähnung der W0.3-Make-Ziele.
 
 **Kein Nachweislauf nötig, kein Code berührt. 130 Tests unverändert grün.**
 
+### Zusammenführung der vier Zweige · fertig
+
+Merge-Commits `cf09615` (w1.1), `3679935` (w1.8), `7bbdd1a` (w1.5),
+`fa481ae` (w1.9), alle mit `--no-ff`. Nachkorrektur `c007fe4`,
+Werkzeugreparatur `81849de`. Kopf: `81849de`.
+
+**Der Merge war nicht trivial, und das war vorhersehbar.** `w1.5` hat drei
+Skripte gelöscht, über die `w1.9` im README Aussagen korrigiert hatte. Git
+hat beide Änderungen klaglos zusammengeführt — **ohne einen einzigen
+Konfliktmarker** — und dabei drei Aussagen erzeugt, die einzeln aus
+korrekten Änderungen stammen und gemeinsam falsch sind:
+
+1. `w1.9` hatte den Satz „insbesondere keine Dashboards" als falsch
+   markiert, weil `build_v2_dashboard_data.py` existierte. `w1.5` hat es
+   gelöscht. Der ursprüngliche Satz ist damit wieder wahr, die Korrektur
+   ihrerseits falsch. Neu formuliert, nicht der Alttext zurückgeholt.
+2. Der Struktur-Abschnitt nannte `analysis/` und `webmap/` als aktive
+   Werkzeuge. Beide Verzeichnisse sind jetzt leer bzw. weg.
+3. Der Status-Abschnitt führte die veraltete `EXCLUSION_LAYERS`-Liste als
+   offenen Punkt — das ganze Skript ist weg, der Punkt gegenstandslos.
+
+**Die Lehre gilt über dieses Paket hinaus:** Ein sauberer Merge ist kein
+Beweis für ein richtiges Ergebnis. Wo zwei parallele Pakete dieselbe Datei
+aus verschiedenen Richtungen ändern, muss die zusammengeführte Fassung
+danach **inhaltlich** gegen den Code geprüft werden. Für Prosa leistet das
+kein Werkzeug. Ich schreibe diese Nachprüfung ab jetzt in jeden
+Merge-Auftrag, bei dem sich Dateimengen überschneiden.
+
+**Nebenbefund zur Werkzeugreparatur:** `git update-index --skip-worktree
+data/README.md` allein reichte **nicht**. Es blendet nur den Indexeintrag
+aus; der Symlink `data` war nie getrackt und blieb als `??` stehen. Erst der
+zusätzliche Eintrag `/data` in `.git/info/exclude` (idempotent gesetzt)
+macht ein frisches Worktree wirklich sauber. Am Wegwerf-Worktree
+`repair-check` verifiziert.
+
+Beim Abbau ließ sich keines der vier Worktrees mit `git worktree remove`
+entfernen — dieselbe Symlink-Nebenwirkung. Der Agent hat **nicht** mit
+`--force` gearbeitet, sondern in jedem Worktree den Symlink entfernt und
+`data/README.md` wiederhergestellt; danach ging alles regulär. Vier Branches
+mit `git branch -d`, keiner mit `-D`.
+
+**Abnahme: bitgleich, 130 Tests grün, Arbeitsbaum sauber.**
+
 ## Offene Punkte
 
 | # | Punkt | Fällig |
 |---|---|---|
-| 1 | **Worktrees haben kein `data/`.** Regel 3 des Plans verlangt je Paket ein eigenes Worktree; `data/` ist gitignoriert, ein frisches Worktree ist also leer. Jedes Paket, dessen Abnahme einen Lauf verlangt, wäre dort nicht abnehmbar. Lösung: `data/` in jedes Worktree hineinverlinken — gefahrlos, weil der Baum unveränderlich ist. Steht so nicht im Plan. | vor Welle 1 |
-| 1b | **Jedes Worktree ist von Geburt an schmutzig.** `make worktree` ersetzt `data/` durch einen Symlink; git meldet danach `data/README.md` als gelöscht und `data` als unverfolgt. Ein unaufmerksamer Commit nähme die Löschung mit. Behebung: nach dem Verlinken `git update-index --skip-worktree data/README.md` im Worktree, dann ist der Status sauber. | vor der Prep-Welle |
+| ~~1~~ | ~~Worktrees haben kein `data/`.~~ **Erledigt in W0.3**: `make worktree` verlinkt `data/` und die geteilten `distance_layers/` hinein. Im Parallelbatch bewährt. | — |
+| ~~1b~~ | ~~Jedes Worktree ist von Geburt an schmutzig.~~ **Erledigt in `81849de`** — aber anders als hier vermutet: `--skip-worktree` allein reichte nicht, weil der Symlink `data` nie getrackt war und als `??` stehenblieb. Nötig war zusätzlich `/data` in `.git/info/exclude`. | — |
 | 2 | Laufzeit der Kataster-Vorverarbeitung ist unbekannt. | W1.P2 |
 | 5 | **`sys.path`-Präambeln.** W1.8 hat die Voraussetzung geschaffen (Paket ist jetzt installierbar), aber die Präambeln stehen noch in rund einem Dutzend Dateien unter `scripts/` und `tests/`. Zum Entfernen fehlt: `scripts/` ist kein Paket, Aufrufe müssten auf `python -m` umgestellt werden, und `tools/` bräuchte womöglich ebenfalls Paketstatus. Eigenes Paket wert, gehört nicht in W1.8. | Welle 4 oder später |
 | 3 | `docs/widmung_v2_provenance.md` nennt Quellpfade, die es nicht mehr gibt. Unklar, ob eingefrorene Momentaufnahme wie `RUN1_VERGLEICH.md` oder lebende Doku. | Welle 1, Widmungspakete |
@@ -382,3 +434,4 @@ Abschnitt zeigt, und die fehlende Erwähnung der W0.3-Make-Ziele.
 | 8 | Ungenutzter Import `admin_boundaries` in `windkraft/calc/hig_source_masks.py`, vorbestehend, von `ruff` gefunden. | Sammelposten |
 | 9 | `docs/HANDOFF.md` trägt ein veraltetes Referenz-Manifest. Das README verweist nur darauf, dass es veraltet ist. Wer es aktualisiert, ist nicht festgelegt. | Welle 4 |
 | 10 | Die 18 von 38 Bändern, die zwischen `run1` und der Referenz-TIF um < 0,004 % abweichen, sind laut `RUN1_VERGLEICH.md` **ungeklärt**. Das berührt die Projektfrage, ob `run1` das Vorgängerprojekt als Quelle der Wahrheit ablösen darf. Keine Textkorrektur, sondern eine Entscheidung. | Nutzer, vor Welle 5 |
+| 11 | `docs/FOLLOWUPS.md` führt die veraltete `EXCLUSION_LAYERS`-Liste weiterhin als offenen Punkt, obwohl W1.5 das ganze Skript gelöscht hat. Im README nachgezogen, dort nicht — die Datei galt als eingefroren. Zu klären: eingefrorene Momentaufnahme oder lebende Liste? Dieselbe Frage wie Punkt 3. | mit Punkt 3 |
