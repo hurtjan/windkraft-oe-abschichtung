@@ -12,8 +12,8 @@ W0.1 in dessen §11. Die Belege liegen unter
 
 | | |
 |---|---|
-| Abgeschlossen | 2 von 30 (W0.1, W0.2) |
-| In Arbeit | W0.3 — Verzeichnisgerüst und Make-Ziele |
+| Abgeschlossen | 3 von 30 — **Welle 0 vollständig** |
+| In Arbeit | Welle 1, 18 Pakete |
 | Zweig | `docs/audit-und-plan`, kein Remote |
 | Abweichungen bisher | keine — beide Pakete bitgleich |
 
@@ -25,7 +25,7 @@ Status: `offen` · `läuft` · `fertig` · `blockiert`
 |---|---|---|---|---|---|
 | W0.1 | 0 | Rohdaten nach Thema sortieren | **fertig** | `5aab405`, `3fd54a8` | bitgleich + Inode-Abgleich |
 | W0.2 | 0 | Pfadvertrag anlegen | **fertig** | `84585cb` | 131/131 Tests, bitgleich |
-| W0.3 | 0 | Verzeichnisgerüst und Make-Ziele | offen | — | — |
+| W0.3 | 0 | Verzeichnisgerüst und Make-Ziele | **fertig** | s. Protokoll | 131/131 Tests, Ziele belegt gleich |
 | W1.1 | 1 | Adress-Cache-Weiche entfernen | offen | — | — |
 | W1.2 | 1 | Tote Daten löschen, Provenienz retten | offen | — | — |
 | W1.3 | 1 | Hardlinks auflösen | offen | — | — |
@@ -160,6 +160,45 @@ der beide Seiten aus derselben Quelle bezieht, prüft nichts.
 Vertragspfade per `os.path.relpath()` in relative Strings zurück, um die
 Altwerte buchstäblich zu treffen. Das ist richtig, solange es Konsumenten
 von `cfg["paths"]` gibt, und verschwindet mit dem letzten.
+
+### W0.3 — Verzeichnisgerüst und Make-Ziele · fertig
+
+`build/` und `out/` sind in `.gitignore`, entstehen zur Laufzeit über
+`pipeline/runtime.py` und **nicht** beim Import des Vertrags — der
+beschreibt und prüft, er legt nichts an. Keine leeren Unterpakete auf
+Vorrat: `pipeline/prep/`, `layers/`, `verify/` entstehen mit den Paketen,
+die sie füllen.
+
+Vier Ziele stehen: `make` (heutige Kette, unverändert), `make prep` (sagt,
+dass die Prep-Pakete erst in Welle 1 entstehen — kein stiller Erfolg),
+`make all`, `make test`. Letzteres gab es bisher **gar nicht**, weshalb die
+acht vorhandenen Tests als unerreichbar galten; sie laufen jetzt.
+
+**Abnahme: bestanden.** 131 Tests grün. Die Gleichheit der Kette ist nicht
+durch einen Lauf belegt, sondern durch `make -n`: die fünf Befehlszeilen des
+heutigen Ziels und die des neuen Standardziels stehen Zeile für Zeile
+nebeneinander und sind identisch. `git diff Makefile` zeigt ausschließlich
+Hinzufügungen.
+
+**Vorgefundener Fehler, nicht von diesem Paket verursacht:** `make` ohne
+Argument lief bisher **nicht** die Kette, sondern nur Stufe 1 von 5. GNU
+Make nimmt ohne `.DEFAULT_GOAL` das erste Ziel der Datei, und das war
+`widmung-v2-zoning`. Wer der Dokumentation folgte und `make` tippte, bekam
+ein Fünftel der Arbeit ohne jeden Hinweis. Gegen den sauberen HEAD
+gegengeprüft, dann per `.DEFAULT_GOAL` behoben.
+
+**`make worktree PAKET=<paket>`** ist die Voraussetzung für Welle 1: es legt
+ein Worktree an, hängt `data/` als **Symlink** hinein (13 GB achtzehnmal zu
+kopieren wäre absurd, ein Hardlink-Baum gefährlich) und teilt die 34
+Checkpoint-Layer lesend, damit eine Abnahme drei statt vierzehn Minuten
+kostet. Das Ziel warnt bei jedem Aufruf vor `--force-layers` — ein solcher
+Lauf schriebe ins geteilte Layer-Verzeichnis und zerstörte die Arbeit aller
+anderen Worktrees.
+
+Beim Test aufgefallen: `data/README.md` ist die einzige versionierte Datei
+unter `data/`, also legt `git worktree add` das Verzeichnis bereits an — und
+`ln -s` hängt sich dann *hinein* statt es zu ersetzen. Ergebnis wäre
+`data/data` gewesen. Behoben und mit einem Wegwerf-Worktree verifiziert.
 
 ## Offene Punkte
 

@@ -2,6 +2,12 @@
 !/data/README.md
 /output/
 
+# Erzeugte Bäume der neuen Kette (docs/rewrite/PLAN.md §3): build/ ist
+# jederzeit löschbar, out/ enthält genau vier Produkte. Beides entsteht
+# zur Laufzeit über pipeline/runtime.py, nicht als leerer .gitkeep-Ordner.
+/build/
+/out/
+
 __pycache__/
 *.py[cod]
 .venv/
