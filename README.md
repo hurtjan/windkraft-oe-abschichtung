@@ -121,9 +121,10 @@ dass sie vom tatsächlichen Raster wegdriften konnten, ohne dass es jemandem
 auffiel. Die Belege dafür liegen vor: `dashboard_data.json` trug 63 Bänder
 vom 06.08., `viewer/manifest.json` 39 Layer vom 10.08., das aktuelle TIF hat
 38 Bänder vom 04.09. — drei verschiedene Zählungen zu drei verschiedenen
-Zeitpunkten. Sichtbarste Konsequenz: `scripts/analysis/build_v2_dashboard_data.py`
-bricht am aktuellen TIF hart ab, weil sein `EXCLUSION_LAYERS` noch sieben
-Bandnamen aus dem Pre-Clean-Schema nennt (siehe `docs/FOLLOWUPS.md`).
+Zeitpunkten. Sichtbarste Konsequenz war `scripts/analysis/build_v2_dashboard_data.py`:
+es brach am aktuellen TIF hart ab, weil sein `EXCLUSION_LAYERS` acht
+Bandnamen aus dem Pre-Clean-Schema nannte, die es nicht mehr gibt (siehe
+`docs/FOLLOWUPS.md`) — als toter Code in W1.5 gelöscht.
 
 **Umgesetzt:** der Writer-Schritt (`scripts/widmung_v2/04_create_distance_zones.py`)
 schreibt seit `windkraft/calc/band_manifest.py` (`write_band_manifest()`)
@@ -191,11 +192,12 @@ Hardlink-Invariante".
 ## Status
 
 Erledigt: Code-Übernahme der Widmung-v2-Kette, `windkraft/`-Paket,
-`scripts/`, Tests, `config.json` im Wurzelverzeichnis, Layer-Viewer
-(`scripts/webmap/build_layer_viewer.py`), gemeinsame Bandmetadaten
-(`windkraft/viz/band_metadata.py`), der Band-Manifest-Emitter
+`scripts/`, Tests, `config.json` im Wurzelverzeichnis, gemeinsame
+Bandmetadaten (`windkraft/viz/band_metadata.py`), der Band-Manifest-Emitter
 (`windkraft/calc/band_manifest.py`), Migrations- und
-Follow-up-Dokumentation.
+Follow-up-Dokumentation. Der mitübernommene Layer-Viewer
+(`scripts/webmap/build_layer_viewer.py`) erwies sich als toter Code
+(`NameError` bei jedem Aufruf) und wurde in W1.5 gelöscht.
 
 Fehlt: ein tatsächlich verifizierter Lauf der vollständigen Kette gegen
 `windkraft_ö_karten` (Voraussetzung dafür, dass das alte Repo abgelöst werden

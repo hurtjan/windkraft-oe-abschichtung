@@ -1,14 +1,12 @@
-"""Amtliche Windkraft-Zonen je Bundesland — Positiv- und Negativzonen.
+"""Amtliche Windkraft-Zonen je Bundesland — Positivzonen.
 
-Single source of truth for the polygons behind the two reference bands
-``official_wind_zoning`` (Positivzonen) and ``official_wind_exclusion_zoning``
-(Ausschlusszonen). Both Abschichtung pipelines
+Single source of truth for the polygons behind the reference band
+``official_wind_zoning`` (Positivzonen). Both Abschichtung pipelines
 (``scripts/main/create_osm_wka_distance_zones.py`` and
-``windkraft/calc/abschichtung_common.py``) load through :func:`load_wind_zones`
-/ :func:`load_wind_exclusion_zones`, so a new Bundesland only has to be
-registered in :data:`WIND_ZONE_SOURCES` / :data:`WIND_EXCLUSION_ZONE_SOURCES`.
+``windkraft/calc/abschichtung_common.py``) load through :func:`load_wind_zones`,
+so a new Bundesland only has to be registered in :data:`WIND_ZONE_SOURCES`.
 
-Beide Bänder sind reine Referenz-Overlays — sie schränken die berechnete
+Das Band ist ein reines Referenz-Overlay — es schränkt die berechnete
 verfügbare Fläche NICHT ein. Die Rechtswirkung steht je Quelle in
 ``WindZoneSource.regime``:
 
@@ -18,8 +16,15 @@ verfügbare Fläche NICHT ein. Die Rechtswirkung steht je Quelle in
 ``accelerated``
     Positivzone; beschleunigt die Genehmigung, verbietet das Außerhalb nicht
     (Kärnten RED-III-Windkraftbeschleunigungszonen).
-``forbidden``
-    Rechtsverbindliche Ausschlusszone (Bgld Ausschlusszonen-Verordnung).
+
+Eine frühere Ausschlusszonen-Registrierung (Negativband
+``official_wind_exclusion_zoning``, ``load_wind_exclusion_zones()``,
+``WIND_EXCLUSION_ZONE_SOURCES``, Regime ``forbidden``) ist in W1.5 entfernt
+worden: das Band existiert im 38-Band-Schema nicht, und die Ladefunktion
+hatte keinen Aufrufer (siehe ``docs/rewrite/FORTSCHRITT.md``, Eintrag W1.5).
+Der einzige verbliebene Eintrag, ``BgldAus``, filterte dieselbe Datei wie
+die Positivzone ``Bgld`` (``data/zonen/WK_Eignungszonen.zip``) nur auf die
+andere Attributgruppe — die Positivzone und die Datei bleiben unverändert.
 
 Die NÖ-Zonierung wird nicht hier, sondern über ``--official-zoning-geojson``
 geladen und ins Positivband vereinigt.
@@ -47,7 +52,6 @@ TARGET_CRS = "EPSG:31287"
 
 REGIME_EXCLUSIVE = "exclusive"
 REGIME_ACCELERATED = "accelerated"
-REGIME_FORBIDDEN = "forbidden"
 
 
 @dataclass(frozen=True)
@@ -113,19 +117,6 @@ WIND_ZONE_SOURCES = (
         # (~Zeile 157-170) sie still - gleiches Risiko für Band 37 wie beim
         # Bgld-Eintrag oben.
         source_path="data/zonen/RED_III_Windkraftbeschleunigungszone.zip",
-    ),
-)
-
-# Negativzonen -> Band official_wind_exclusion_zoning.
-WIND_EXCLUSION_ZONE_SOURCES = (
-    WindZoneSource(
-        key="BgldAus",
-        bundesland="Burgenland",
-        regime=REGIME_FORBIDDEN,
-        label="Ausschlusszonen gem. Verordnung",
-        source_path="data/zonen/WK_Eignungszonen.zip",
-        filter_field="Status",
-        keep_prefixes=("Ausschlusszone",),
     ),
 )
 
@@ -261,15 +252,6 @@ def load_wind_zones(
 ) -> gpd.GeoDataFrame | None:
     """Positivzonen for the band ``official_wind_zoning``."""
     return load_zones(WIND_ZONE_SOURCES, zone_dir, enabled, bl_boundaries)
-
-
-def load_wind_exclusion_zones(
-    zone_dir: str | Path,
-    enabled: bool = True,
-    bl_boundaries: gpd.GeoDataFrame | None = None,
-) -> gpd.GeoDataFrame | None:
-    """Negativzonen for the band ``official_wind_exclusion_zoning``."""
-    return load_zones(WIND_EXCLUSION_ZONE_SOURCES, zone_dir, enabled, bl_boundaries)
 
 
 def describe_sources(sources: tuple[WindZoneSource, ...] = WIND_ZONE_SOURCES) -> str:
