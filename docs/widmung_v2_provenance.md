@@ -27,7 +27,7 @@ geprüft (`ls`, `stat`, rasterio-Metadaten). Code-Stellen sind als `pfad:zeile` 
 flowchart LR
   subgraph RAW["Rohdaten (data/)"]
     FW["Flächenwidmung 9 BL<br/>data/new_widmungs_data/*<br/>data/flächenwidmungen/*"]
-    DKM["DKM Kataster<br/>output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet"]
+    DKM["DKM Kataster<br/>build/prep/kataster/b_export_parquet/at_dkm_gst_nfl_epsg31287.geoparquet<br/>(seit Paket W2.1; vormals output/kataster/…, siehe Tabelle unten)"]
     BEV["BEV Adressregister<br/>data/adressregister/"]
     NOEPDF["NÖ SekROP PDF-Zonen<br/>output/noe/pdf_750m_*.geojson"]
     PBF["OSM Österreich<br/>data/austria-260330.osm.pbf"]
@@ -145,7 +145,8 @@ Wien Vollausschluss" – veraltet.)
 
 | Datei | Was | Genutzte Spalten / Filter | Größe / Datum |
 |---|---|---|---|
-| `output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet` | DKM-Nutzungsflächen ganz Österreich (selbst erzeugt aus BEV-DKM, siehe `scripts/kataster/`) | `source_layer ∈ {NFL_V2, NFL_DXF_POLYGONIZED}` ∧ (`ns ∈ {41, 52, 66, 71, …}` ∨ `ns_category ∈ {Baufläche, Garten}`); 41/66 = Gebäude, 52/71 = Garten (`windkraft/calc/kataster_layers.py:344-347`, `hig_detection.py:53-55,161-172`) | 5,3 GB, 15.05. |
+| `output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet` (Stand dieser Zeile: Vorgängerprojekt-Altlast, seit Paket W2.1 von keinem Codepfad mehr als Vorgabewert referenziert – siehe unten) | DKM-Nutzungsflächen ganz Österreich (selbst erzeugt aus BEV-DKM, siehe `scripts/kataster/`) | `source_layer ∈ {NFL_V2, NFL_DXF_POLYGONIZED}` ∧ (`ns ∈ {41, 52, 66, 71, …}` ∨ `ns_category ∈ {Baufläche, Garten}`); 41/66 = Gebäude, 52/71 = Garten (`windkraft/calc/kataster_layers.py:344-347`, `hig_detection.py:53-55,161-172`) | 5,3 GB, 15.05. |
+| `build/prep/kataster/b_export_parquet/at_dkm_gst_nfl_epsg31287.geoparquet` (neuer Vorgabewert seit Paket W2.1, `pipeline/layers/hig.py` / `pipeline/prep/kataster/b_export_parquet.py`) | dieselben DKM-Nutzungsflächen, jetzt aus der Prep-Stufe (`pipeline/prep/kataster/`) statt aus der obigen Vorgängerprojekt-Datei – Flächensumme je Bundesland bis zur letzten Nachkommastelle deckungsgleich geprüft (Zeilenreihenfolge der Bundesländer unterscheidet sich) | dieselben Filter wie oben, unverändert | siehe `pipeline/prep/kataster/b_export_parquet.py` bzw. `build/prep/kataster/b_export_parquet/.fingerprint.json` für den aktuellen Stand |
 | `data/adressregister/ADRESSE.csv` (+ Parquet-Cache `adressen_31287.parquet`) | BEV-Adressregister, Stichtag 1.10.2025, 2,52 Mio Adressen | `RW, HW, EPSG` (3 GK-Streifen → 31287), `#`-Koordinaten verworfen (`bev_register.py:88-95`) | 326 MB / 42 MB |
 | `data/adressregister/…Stichtagsdaten_*.zip` → `GEBAEUDE.csv` (+ Cache `bev_gebaeude_31287.parquet`) | BEV-Gebäude mit `EIGENSCHAFT` | Wohnen = 01/02/03, Industrie = 08, Hotel 04 gilt **nicht** als Wohnen (`bev_register.py:55-60`) | 98 MB / 42 MB |
 | `output/noe/pdf_750m_{geb,gwr,gruenland_widmung}.geojson` | NÖ SekROP Teil C 3.2, Zonen **inkl. 750 m** (aus PDF georeferenziert, `scripts/noe/`) | Vereinigung der drei Klassen | 8,3 / 8,0 / 1,4 MB, 23.07. |
