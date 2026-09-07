@@ -58,20 +58,23 @@ OUT = ROOT / "out"
 RAW = {
     "admin": {
         # windkraft/calc/abschichtung_common.py:624 (cfg["paths"]["vgd"]);
-        # ebenso von scripts/preprocessing/create_noe_dkm_polygon_fill_map.py
-        # und scripts/noe/extract_noe_vector_layers.py gelesen.
+        # ebenso von pipeline/prep/kataster/diagnostics.py (Paket W1.P2 hat
+        # scripts/preprocessing/create_noe_dkm_polygon_fill_map.py dorthin
+        # verschoben) und scripts/noe/extract_noe_vector_layers.py gelesen.
         "vgd": DATA / "admin" / "VGD_Oesterreich_gen_50_20221002" / "VGD_50_generalisiert.shp",
     },
     "kataster": {
-        # scripts/preprocessing/create_noe_dkm_polygon_fill_map.py:51,
-        # scripts/preprocessing/export_at_dkm_geoparquet.py:68
+        # pipeline/prep/kataster/diagnostics.py:SYMBOL_CSV,
+        # pipeline/prep/kataster/a_noe_polygonize.py, b_export_parquet.py
+        # (Paket W1.P2 hat scripts/preprocessing/{create_noe_dkm_polygon_fill_map,
+        # export_at_dkm_geoparquet}.py hierher verschoben und aufgeteilt).
         "symbol_csv": DATA / "kataster" / "BEV_DKM_DXF_Symbole_V2.6.csv",
-        # scripts/preprocessing/create_noe_dkm_polygon_fill_map.py:50,
-        # scripts/preprocessing/export_at_dkm_geoparquet.py:69
+        # pipeline/prep/kataster/diagnostics.py:ZIP_PATH,
+        # pipeline/prep/kataster/a_noe_polygonize.py (Stufe a - siehe oben).
         "noe_dxf_zip": DATA / "kataster" / "KAT_DKM_Niederoesterreich_DXF_20230401.zip",
-        # Die übrigen acht Bundesländer: scripts/preprocessing/
-        # export_at_dkm_geoparquet.py:104-113 (DEFAULT_SHP_ARCHIVES), unter
-        # --data-dir (Default ROOT/"data/kataster") gejoint.
+        # Die übrigen acht Bundesländer: pipeline/prep/kataster/common.py
+        # (DEFAULT_SHP_ARCHIVES, je über ArchiveSpec.raw_key aufgelöst),
+        # gelesen von b_export_parquet.py (Stufe b).
         "burgenland_zip": DATA / "kataster" / "KAT_DKM_Burgenland_SHP_20210401.zip",
         "kaernten_zip": DATA / "kataster" / "KAT_DKM_Kaernten_SHP_20221001.zip",
         "oberoesterreich_zip": DATA / "kataster" / "KAT_DKM_Oberoesterreich_SHP_20221001.zip",
