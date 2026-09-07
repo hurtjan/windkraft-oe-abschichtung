@@ -2,16 +2,10 @@
   "_comment": "Konfiguration: Windkraft-Potentialberechnung Österreich – Energiewerkstatt/IG Windkraft 2023",
 
   "paths": {
+    "_comment_paths": "vgd/osm_dir/wind_pd_150/wind_pd_100/dgm/nsg_zip/powerlines_gpkg kommen seit W0.2 aus pipeline/contract.py (RAW, LEGACY_TOT oder LEGACY_ENTFAELLT) - windkraft/config.py:load_config() befuellt sie beim Laden, hier stehen sie bewusst nicht mehr als Literal (docs/rewrite/PLAN.md §8, Regel 2: der Vertrag wird gelesen, nicht kopiert).",
     "data_dir": "data",
-    "vgd": "data/admin/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp",
-    "osm_dir": "data/osm/austria-260328-free.shp",
-    "wind_pd_150": "data/gelaende/AUT_power-density_150m.tif",
-    "wind_pd_100": "data/gelaende/AUT_power-density_100m.tif",
-    "dgm": "data/gelaende/DGM_R25.tif",
-    "nsg_zip": "data/natur/SG_AT_2024_v_April_Stand_3_April_2024.zip",
     "nsg_gpkg": "SG_AT_2024_v_April.gpkg",
     "nsg_layers": ["NP_AT_2024", "NSG_AT_2024", "ESG_AT_2024", "RAMSAR_AT_2024"],
-    "powerlines_gpkg": "data/osm_power_lines.gpkg",
     "_comment_powerlines_gpkg": "Wird auch in der Widmung-v2-Kette gelesen (abschichtung_common.py ~934), das daraus gebaute Band power_380_400kv aber seit dem Clean-Schema nicht mehr gespeichert (build_widmung_v2_layers.py ~92-94 - Stromleitungen sind kein Ausschlusskriterium mehr). Für v2 wirkungslos; weiterhin aktiv für die OSM-Kette und Widmung v1.",
     "output_dir": "output"
   },
