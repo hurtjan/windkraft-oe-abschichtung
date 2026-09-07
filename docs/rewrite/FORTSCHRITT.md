@@ -12,12 +12,12 @@ W0.1 in dessen §11. Die Belege liegen unter
 
 | | |
 |---|---|
-| Abgeschlossen | **23 von 32** — Welle 0 und Welle 1 vollständig, beide Zusammenführungen, beide Nachzügler. Zwei Pakete sind neu dazugekommen (W2.P0, W2.4), eines ist entfallen (W2.2 → W2.1). |
-| Als Nächstes | **W2.P0**, dann Welle 2 zu dritt — die erste Welle, die Bänder verändern darf |
+| Abgeschlossen | **26 von 32** — Welle 0 und 1 vollständig, W2.P0, W2.3 und W2.4. Zwei Pakete kamen neu dazu (W2.P0, W2.4), eines entfiel (W2.2 → W2.1). |
+| Als Nächstes | W2.1, sobald der Kataster-Lauf durch ist |
+| Deckung der Welle 2 | 9 + 17 + 7 = **33 Layer**, nachrechenbar vollständig |
 | `data/` | **hardlinkfrei**, 48 echte Dateien, per Wächter als Invariante gesichert |
-| Zweig | `docs/audit-und-plan`, Kopf `0b61884`, kein Remote |
-| Worktrees | keine — alle neun abgebaut, alle Zweige mit `git branch -d` gelöscht |
-| Abweichungen bisher | **keine** — alle Pakete bitgleich, `sha256` an der Wellengrenze bestätigt |
+| Zweig | `docs/audit-und-plan`; offene Zweige `w2.3`, `w2.4` |
+| Abweichungen bisher | **eine, und sie ist eine Korrektur** — `geography_water_bodies`, 0,16 % zusätzliche Zellen, Ursache Bodensee-Relation. Punkt 33, deine Entscheidung. |
 
 ## Paketübersicht
 
@@ -57,8 +57,8 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | — | Prep-Stufe für die fünfte Zonenquelle (Punkt 22) | **fertig** | 20 min | 8 min | **0,0 m²** · 71/71 Geometrien gleich · 147+1 Tests |
 | W2.P0 | Vorfeld der Layer-Welle | **fertig** | 25 min | 9 min | `make -n` 12/12 gleich · **Kataster-Herkunft aufgedeckt** |
 | W2.1 | Layer: Widmung und Häuser im Grünen | offen | 60 min | | W2.2 hier aufgegangen |
-| W2.3 | Layer: OSM und Infrastruktur | offen | 45 min | | |
-| W2.4 | Layer: Natur, Gelände, Zonen und Puffer | offen | 50 min | | **17 herrenlose Checkpoints** |
+| W2.3 | Layer: OSM und Infrastruktur | **fertig** | 45 min | 19 min | **9/9 Layer bitgleich** · Skip belegt · 147+1 Tests |
+| W2.4 | Layer: Natur, Gelände, Zonen und Puffer | **fertig** | 50 min | 25 min | **16/17 pixelgleich** · 1 erklärte Abweichung · Punkt 20 beantwortet |
 | W3.1 | Finalisierung und Manifest-Vertrag | offen | 45 min | | |
 | W3.2 | Validierung | offen | 30 min | | schreibt `abweichungen.tsv` |
 | W4.1 | Dashboard neu | offen | 40 min | | |
@@ -116,14 +116,15 @@ Paket plus Puffer für meine eigene Abnahme, die seriell bleibt:
 | ~~Prep, gedrosselt~~ | 9 | ~~2 h 25~~ · **rund 60 min** |
 | ~~Zusammenführung Prep~~ | — | ~~25~~ · **7 min** |
 | ~~Zwei Nachzügler (Punkt 19, 22)~~ | 2 | ~~20~~ · **12 min** |
-| Vorfeld W2.P0, seriell | 1 | 25 min |
-| Welle 2, **drei** parallel | 3 | 60 min |
+| ~~Vorfeld W2.P0, seriell~~ | 1 | ~~25~~ · **9 min** |
+| ~~Kataster-Volllauf, einmalig~~ | — | ~~45–70~~ · **48 min** |
+| Welle 2: W2.3 und W2.4 fertig, **W2.1 läuft** | 3 | 19 + 25 gemessen, W2.1 offen |
 | Zusammenführung Welle 2 | — | 20 min |
 | Welle 3, seriell | 2 | 1 h 15 |
 | Welle 4, parallel | 3 | 40 min |
 | Zusammenführung Welle 4 | — | 15 min |
-| Welle 5, inklusive Kataster-Volllauf | 1 | 1 h 15 – 1 h 40 |
-| **Restdauer** | **11** | **5 ¼ – 5 ½ h roh · 3 ½ – 4 h korrigiert** |
+| Welle 5, inkl. Kataster **48 min gemessen** | 1 | 1 h 15 |
+| **Restdauer ab hier** | **7** | **rund 4 h roh · 3 – 3 ½ h korrigiert** |
 
 Die Korrektur wendet den gemessenen Faktor 0,55 nur auf die **Denkzeit**
 an. Welle 5 bleibt unkorrigiert: dort dominiert Maschinenzeit, die nicht
@@ -1318,6 +1319,213 @@ Punkt 30.
 Ob das falsch ist, entscheidet erst Welle 2: Für einen Erstlauf ist
 `rebuild=True` richtig, für eine wiederholte Layer-Stufe wäre es teuer.
 
+### W2.3 — Layer: OSM und Infrastruktur · fertig
+
+Commit `2fe2a44`, Zweig `w2.3`. Geschätzt 45 min, gebraucht 19. **Das
+erste Paket, das einen Checkpoint neu erzeugt** — und alle neun sind
+bitgleich:
+
+`cableway_buildings_source`, `general_buildings_source`,
+`road_motorway_trunk`, `road_federal_state`, `rail_main`,
+`cableway_people_150m`, `military_restricted_area`,
+`airport_area_major`, `airport_runway_corridor_5km` — jeder einzeln per
+`sha256` gegen den bestehenden Checkpoint, neunmal MATCH. Geschrieben
+wurde nach `build/layers/` im Worktree; das geteilte
+`distance_layers/` blieb unangetastet.
+
+Damit ist die Kernbehauptung des Umbaus zum ersten Mal belegt: **Die
+Prep-Stufe liefert dieselben Bänder wie die alte Direktextraktion.** Der
+Beweis setzt sich aus zwei Gliedern zusammen — W1.P5 hat gezeigt, dass
+die Prep-Ausgabe der Laufzeitfunktion entspricht, W2.3 zeigt jetzt, dass
+die Layer daraus den Checkpoints entsprechen. Keines der beiden allein
+hätte gereicht.
+
+**Das Wiederaufsetzen ist echt geprüft**, nicht behauptet: zweiter Lauf in
+0,0 s mit `[skip]` für alle drei Gruppen, mtimes und Prüfsummen aller
+neun Dateien vorher und nachher identisch.
+
+**Die Fingerabdruck-Konvention für die Layer-Stufe steht** — und sie
+beantwortet Punkt 30 für Welle 2. Die Stufe prüft den Fingerabdruck ihrer
+Prep-Eingaben, bevor sie einen Checkpoint als fertig akzeptiert; bei
+Abweichung baut sie neu, statt abzubrechen. Die Begründung überzeugt: Ein
+Mismatch bedeutet „das Prep ist seither neu gelaufen", und das ist kein
+Fehlerzustand. Ein abbrechender Wächter hier hätte dasselbe Problem wie
+die verworfene `gelaende`-Abbruchbedingung aus §13.5 — er müsste wissen,
+was richtig ist.
+
+Die Konvention liegt im Modul-Docstring, damit W2.4 sie findet:
+`build/layers/_fingerprints/<domäne>/`, lokal je Modul, **ohne**
+`pipeline/contract.py` anzufassen.
+
+**Drei bewusste Vereinfachungen, alle gemeldet:** die tote
+`powerlines_gpkg`-Fallback-Kette nicht nachgebaut (der Pfad existiert seit
+W1.2 nicht mehr), die CLI-Schalter `--osm-pbf`/`--osm-pbf-cache-dir`
+entfallen (die Quelle ist jetzt fest die Prep-Stufe), und die
+`OSM_PBF_COLUMNS`-Spaltenauswahl nicht übernommen (reine
+Speicheroptimierung ohne Ergebniswirkung, durch die Bitgleichheit
+bestätigt). Das dehnt Regel 4, ist aber vertretbar — und dass er es
+aufzählt statt es beiläufig zu tun, ist der Punkt. **Folge:** Das neue
+Modul ist kein Ersatz für jeden alten Aufruf, sondern für den einen, den
+die Kette macht.
+
+**Nicht abgedeckt, selbst benannt:** kein echter Fingerabdruck-Mismatch
+gegen reale Daten (das hätte mtimes im geteilten `build/prep/` antasten
+müssen — richtig, dass er es gelassen hat); kein `--bbox`-Smoketest; kein
+Lauf mit geänderter `config.json` oder anderem `--mode`.
+
+**Abnahme: 147 Tests plus 1 übersprungen, selbst gemessen. Wächter grün,
+`check_raw_only` jetzt gegen 43 statt 42 Dateien.**
+
+### W2.4 — Layer: Natur, Gelände, Zonen und Puffer · fertig
+
+Commit `6ff7a84`, Zweig `w2.4`. Geschätzt 50 min, gebraucht 25.
+
+**Mein Auftrag war falsch, und der Agent hat es zuerst gemerkt.** Die
+sechs Gruppen, die ich aufgezählt hatte, ergeben 13 Layer, nicht 17 —
+`HIG_FAMILY_SOURCE_BANDS` (vier Bänder) fehlte. Belegt an `contract.py`
+und `test_contract.py`, nicht an meiner Liste. Dass die Bänder
+`haeuser_im_gruenen_*` heißen, macht sie nicht zu W2.1s Gebiet: Die
+Zuständigkeit folgt dem Skript, und sie stehen in `04_create_distance_zones.py`.
+
+Damit schließt die Rechnung der Welle **exakt**: 9 (W2.3) + 17 (W2.4) +
+7 (W2.1) = 33 Layer. Die Lücke aus §13.8 ist nicht nur gefüllt, sondern
+nachrechenbar gefüllt — dieselbe Prüfrichtung, die sie gefunden hat.
+
+**16 von 17 pixelgleich. Einer weicht ab, und das ist der erste echte
+Befund dieser Art.**
+
+`geography_water_bodies`: 543 106 von 336 038 001 Zellen (**0,16 %**),
+**ausschließlich zusätzlich** — nie fehlt eine Zelle, es kommen nur welche
+dazu. Der Agent hat es bis zur einzelnen Ursache verfolgt: eine OSM-
+Relation `name=Bodensee, natural=water, water=lake`.
+
+Der alte Weg klippt per `osmium extract --bbox` (Strategie „simple")
+**vor** dem Tag-Filter. Bei einer großen grenzüberschreitenden Relation
+kappt das Mitglieder außerhalb der Box, und die Relation geht beim Export
+verloren: 128 025 Features statt 128 028. `pipeline/prep/osm.py` filtert
+gegen die **volle, ungeklippte** Rohquelle und findet den Bodensee.
+
+**Die neue Kette hat also recht und die alte unrecht.** Das ist keine
+Regression, sondern eine einseitige Korrektur — und sie widerlegt
+nebenbei den eigenen Docstring der Prep-Stufe, der „praktisch dieselbe
+Datei wie die Rohquelle" behauptet. Für genau diesen Fall stimmt das
+nicht, und der Agent sagt es.
+
+Damit hat das Projekt seinen ersten Eintrag für `abweichungen.tsv` und
+die Ampel aus §6 — nach 26 Paketen, in denen jede Abweichung ein Fehler
+gewesen wäre. Punkt 33.
+
+**Punkt 20 ist beantwortet, mit Fundstellen statt mit einer
+Einschätzung:** Im ganzen Block geht jede aus GPKG gelesene
+Polygon-Eingabe ausschließlich durch `rasterize`. Die einzige echte
+`geom_type`-Verzweigung (`build_wka_bestand_hulls`) prüft eine zur
+Laufzeit aus gepufferten OSM-**Punkten** vereinigte Geometrie, die nie
+durch ein GeoPackage gelaufen ist. Zwei weitere Typprüfungen sind
+**inklusiv** und laufen auf Parquet. Der GPKG-Promotionseffekt ist für
+Welle 2 damit folgenlos — belegt, nicht gehofft.
+
+**Punkt 18 ist ebenfalls beantwortet:** Die Annahme „die Rohdatei ist
+schon EPSG:31287" wird **nicht** geerbt. `pipeline/prep/admin.py`
+schreibt erst nach eigenem `to_crs()`, GPKG trägt sein CRS als
+Metadatenfeld statt als verlierbares `.prj`-Sidecar, und
+`_read_prep_vector()` ruft defensiv nochmals `to_crs()`. Nebenbei
+korrigiert er meine Auftragsformulierung: Sein Block ist nicht der
+einzige Konsument der Verwaltungsgrenzen, wohl aber der einzige, der
+bundeslandweise **puffert**.
+
+**Zwei Konventionen, die nicht zusammenpassen — genau das Erwartete.**
+W2.3 legt Fingerabdrücke als Dateien unter
+`build/layers/_fingerprints/<domäne>/` ab, W2.4 schreibt sie als Tag
+`PREP_FINGERPRINT` in die Rasterdatei selbst. Beide haben dieselbe Frage
+richtig beantwortet („prüfen, bei Abweichung neu bauen") und verschieden
+umgesetzt. Beim Zusammenführen anzugleichen. Punkt 32.
+
+Der Tag-Unterschied erklärt zugleich, warum die **Datei-`sha256` bei allen
+17 abweicht**, obwohl die Pixel gleich sind: Die neue Stufe schreibt
+`PREP_FINGERPRINT` statt `SOURCE_FINGERPRINT`. Deshalb ist der
+Pixel-Hash der richtige Vergleich, nicht der Datei-Hash — eine
+methodische Feinheit, die der Agent selbst gezogen hat.
+
+**Ein offengelegter Vorfall.** Beim Test der Fingerabdruck-Stabilität hat
+der Agent versehentlich `touch` auf `build/prep/admin/bundesland_masken.gpkg`
+ausgeführt — Schreibzugriff auf das geteilte Prep-Verzeichnis. Nur die
+mtime, nie der Inhalt; beim zweiten Versuch hat der Auto-Mode-Wächter es
+geblockt. Er hat sie über `os.utime()` auf den Wert der Schwesterdatei
+aus demselben Lauf zurückgesetzt und den Vorfall von sich aus gemeldet.
+
+Die Folge ist inert — `prep/admin.py`s eigener Fingerabdruck hängt an der
+VGD-Rohdatei, nicht an dieser Ausgabe. Aber die zurückgesetzte mtime ist
+ein *geschätzter*, nicht der ursprüngliche Wert; ein späterer Lauf kann
+deshalb neu bauen statt zu überspringen. Fail-safe, wie die Konvention es
+vorsieht. **Dass er es meldet, statt es zu glätten, ist mehr wert als der
+Schaden kostet** — das ist bereits das dritte Mal in dieser Sitzung.
+
+**Nicht abgedeckt, selbst benannt:** kein `--bbox`-Smoketest (bei voller
+Landesausdehnung bewiesen gleich, bei kleiner Test-Bbox nicht zwingend);
+kein echter Rebuild nach geänderter Prep-Eingabe (hätte einen
+Schreibzugriff auf `build/prep/` erfordert — richtig, dass er es
+unterlassen hat); und **nicht geprüft, ob dieselbe Bbox-Clip-Lücke noch
+weitere, kleinere Gewässer betrifft.** Der letzte Punkt gehört zu Punkt 33.
+
+**Abnahme: 147 Tests plus 1 übersprungen, Wächter grün, zweiter Lauf
+überspringt alle 17 in 0,5 s.**
+
+### Der Kataster-Volllauf — die letzte Unbekannte ist keine mehr
+
+Kein Paket, sondern die Messung, von der Punkt 29 abhing. Erster
+vollständiger Lauf der Kataster-Prep-Stufe aus den Rohdaten, ohne
+`--noe-limit-files`, ohne `--only-bundesland`, ohne `--skip-shp`.
+
+**Die Hochrechnung von W1.P2 hält:**
+
+| Stufe | Hochrechnung | gemessen |
+|---|---|---:|
+| a — NÖ-Rekonstruktion aus 3040 DXF | 30–50 min | **32,4 min** |
+| b — SHP-Export, acht Länder | 15–16 min | **15,6 min** |
+| zusammen | 45–70 min | **48,0 min** |
+
+Stufe b trifft praktisch punktgenau — sie war aus einem vollständigen
+Vorarlberg-Lauf hochgerechnet. Stufe a landet am unteren Rand, wie es die
+sublineare Stichprobe erwarten ließ. Damit ist die Schätzung, die einmal
+„fünf Stunden" hieß, zum zweiten Mal bestätigt worden.
+
+**Und die eigentliche Frage ist beantwortet: Unser Code reproduziert das
+Mai-Artefakt.**
+
+| Prüfung | Ergebnis |
+|---|---|
+| Zeilenzahl je Bundesland, alle neun | **identisch**, gesamt 24 115 278 |
+| Schema — Namen, Reihenfolge, Typen | **identisch**, keine abweichende Spalte |
+| CRS | identisch, EPSG:31287 auf Basis 4312 |
+| Fläche je Bundesland | identisch **bis zur letzten Nachkommastelle** |
+| WKB-Stichprobe, 5000 Zeilen | **5000/5000 bytegleich** |
+
+Die Teilsummen schließen an frühere Zählungen an: 20 623 871 für die acht
+Nicht-NÖ-Länder wie bei W1.P2, 3 491 407 für NÖ wie in `docs/rohdaten.md`.
+
+**Der einzige Unterschied ist die Zeilenreihenfolge der Bundesländer** —
+die Produktionsdatei beginnt mit Tirol, unser Build mit Burgenland. Das
+erklärt die abweichende `sha256` vollständig und ebenso die
+Flächendifferenz von 2 · 10⁻⁵ m², die reines Float64-Rauschen der
+Summierungsreihenfolge ist.
+
+**Damit ist Punkt 29 entschärft.** Die Kette hängt nicht an einem
+unreproduzierbaren Fremdartefakt; sie hat es bisher nur bequem gelesen.
+Sobald W2.1 auf `build/prep/kataster/` umstellt, ist die Abhängigkeit
+weg — und Welle 5 kann ein echter Beweislauf aus Rohdaten werden, ohne
+dass die Vergleichsbasis wackelt.
+
+**Grenzen, vom Agenten nachgereicht statt stehengelassen:** Die
+Attributspalten `ns`, `ns_category`, `kg`, `gnr` wurden **nur an der
+5000er-Stichprobe** verglichen (0,0207 % der Zeilen); flächendeckend
+geprüft sind nur `bundesland` als Häufigkeitsverteilung und `feature_id`
+auf Eindeutigkeit. Dass er diese Einschränkung nachträglich von sich aus
+ergänzt hat, ist mehr wert als ihre Kosten.
+
+**Plattenplatz, für Welle 5 vorzumerken:** `build/prep/kataster/` belegt
+**5,3 GB**; der Lauf hat den freien Platz von 32 auf 25 GiB gedrückt.
+Ein weiterer Volllauf neben dem bestehenden wäre eng.
+
 ## Offene Punkte
 
 | # | Punkt | Fällig |
@@ -1329,7 +1537,7 @@ Ob das falsch ist, entscheidet erst Welle 2: Für einen Erstlauf ist
 | 23 | Zwei Doku-Fehler zum Kataster. **Erste Hälfte erledigt:** Plan §4 nennt jetzt 9,1 GB statt 7,8, und die davon abhängige Gesamtgröße von `data/` ist an beiden Fundstellen von ~11 auf ~12 GB nachgezogen. **Offen:** `docs/rohdaten.md` beschreibt 338 674 verworfene NÖ-Polygone, die Produktionsdatei enthält aber die volle Zahl 3 491 407 — vermutlich aus einer Codefassung vor dem Filter. | mit Punkt 3 |
 | ~~25~~ | ~~Plan §4 nennt acht OSM-Layer, der Code liest zehn.~~ **Erledigt, nach Klärung eines scheinbaren Widerspruchs.** `OSM_PBF_FILTERS` deklariert **13** Schlüssel, gelesen werden **10**, tot sind **3**. Die acht im Plan waren zehn minus `buildings` und `powerlines` — die drei toten standen nie darin. Zwei Vergleichsachsen (Plan gegen Laufzeit; Deklaration gegen Laufzeit), die beide auf die Zahl zehn treffen. Die Zeile nennt jetzt alle zehn mit ihren Codeschlüsseln. | — |
 | 26 | Drei OSM-Objektgruppen sind toter Code: `landuse`, `places`, `addresses` — Reste des in v2 abgeschafften Adress-Cluster-Pfads. Stehen in den Filtern, niemand liest sie. | Aufräumwelle |
-| 27 | `powerlines` wird bei jedem OSM-Lauf extrahiert, obwohl die Maske `power_380_400kv` nirgends persistiert wird. Dieselbe Gruppe, deren Rohdatei W1.2 als toten Leser gelöscht hat. Reine Rechenverschwendung. | Welle 2 |
+| 27 | `powerlines` wird bei jedem OSM-Lauf extrahiert, obwohl die Maske `power_380_400kv` nirgends persistiert wird. **Von W2.3 vermessen: 6–8 s je Lauf, rund 30 % der Infrastruktur-Gruppe**, plus 378 976 extrahierte Objekte im Prep. Beseitigung nachweislich ohne Wirkung auf die neun Checkpoints. **Entschieden: nicht jetzt.** Sieben Sekunden rechtfertigen keine Verhaltensänderung mitten in der bandkritischen Welle; zusammen mit Punkt 26 in eine eigene Aufräumung, die ihren eigenen Nachweis führt. | Aufräumwelle, mit Punkt 26 |
 | 24 | **Dritter Fall desselben Cache-Musters:** `widmung_sources._ensure_ktn_gpkg()` prüft beim Wiederverwenden nur die Existenz der extrahierten Datei, nicht ob das Quell-ZIP sich geändert hat. Wie `layer_done()` und wie die W1.1-Weiche. Der Prep-Fingerabdruck erfasst das ZIP korrekt, der Extraktions-Cache daneben nicht. **Besitzer: W2.1** — `pipeline/prep/widmung.py:67` importiert `widmung_sources` und nutzt die Funktion weiter; ohne benannten Besitzer wäre auch das eine Lücke nach Regel 7. | W2.1 |
 | 5 | **`sys.path`-Präambeln.** W1.8 hat die Voraussetzung geschaffen (Paket ist jetzt installierbar), aber die Präambeln stehen noch in rund einem Dutzend Dateien unter `scripts/` und `tests/`. Zum Entfernen fehlt: `scripts/` ist kein Paket, Aufrufe müssten auf `python -m` umgestellt werden, und `tools/` bräuchte womöglich ebenfalls Paketstatus. Eigenes Paket wert, gehört nicht in W1.8. | Welle 4 oder später |
 | 3 | `docs/widmung_v2_provenance.md` nennt Quellpfade, die es nicht mehr gibt. **Entschieden: lebende Doku.** Sie behauptet, wo die Daten herkommen — ein veralteter Pfad darin führt aktiv in die Irre, anders als ein Laufbericht mit Datum. Von W2.1 mitzuziehen. Dieselbe Regel für `docs/FOLLOWUPS.md` (Punkt 11). **Eingefroren** bleibt allein `docs/RUN1_VERGLEICH.md`: ein datierter Messbericht, dessen Wert gerade darin liegt, dass er nicht nachgeführt wird. Meine Entscheidung, überstimmbar. | W2.1 |
@@ -1344,12 +1552,14 @@ Ob das falsch ist, entscheidet erst Welle 2: Für einen Erstlauf ist
 | 13 | Der `Run:`-Hinweis im Docstring von `scripts/widmung_v2/02_build_hig_sources.py:26-27` nennt den alten Pfad `scripts/main/build_hig_sources.py`. Vorbestehend. | Sammelposten |
 | 17 | `windkraft/util/admin.py` (`load_vgd`, `load_laender`, `load_bezirke`, `load_austria`) ist tot — nirgends importiert außer in einem Kommentar, der es ausdrücklich als „bewusst nicht mitgenommen" bezeichnet. | Aufräumwelle |
 | 18 | Drei Skripte lesen die VGD-Rohdatei direkt und unabhängig von `admin_boundaries()`: `create_noe_dkm_polygon_fill_map.py`, `extract_noe_vector_layers.py`, `align_pdf_shapefile.py` — teils **ohne `to_crs`**. Die Annahme, die Rohdatei sei bereits EPSG:31287, stimmt hier zufällig. Bei der Umstellung auf `build/prep/admin/` zu prüfen. **Besitzer: W2.4** — dessen Block enthält `province_buffer_mask`, den einzigen Layer-Konsumenten der Verwaltungsgrenzen. | W2.4 |
-| 20 | **GeoPackage promoviert Polygone zu MultiPolygonen.** Beim Schreiben nach GPKG werden gemischte Geometrietypen vereinheitlicht. **Zweimal unabhängig belegt:** 383 von 920 bei `natur` (W1.P7), 49 von 71 bei der NÖ-Zonenquelle (Punkt 22). Damit kein Einzelfall einer Domäne, sondern Eigenschaft **jeder** Prep-Stufe, die GPKG schreibt. Für `rasterize` folgenlos; für eine geometrietyp-sensitive Layer-Stufe nicht. | Welle 2 |
+| ~~20~~ | ~~GeoPackage promoviert Polygone zu MultiPolygonen.~~ Der Effekt ist real (383 von 920 bei `natur`, 49 von 71 bei den NÖ-Zonen), aber **von W2.4 mit Fundstellen als folgenlos belegt**: Im ganzen Layer-Block geht jede GPKG-Eingabe ausschließlich durch `rasterize`; die einzige echte `geom_type`-Verzweigung prüft eine zur Laufzeit aus OSM-Punkten vereinigte Geometrie, zwei weitere Typprüfungen sind inklusiv und laufen auf Parquet. Für eine künftige geometrietyp-sensitive Stufe bleibt es zu beachten. | — |
 | 21 | 33 von 920 Schutzgebietsgeometrien sind laut GEOS ungültig. Der heutige Konsument prüft und repariert das ebenfalls nicht — deshalb nach Regel 4 unverändert. | fachlich, Nutzer |
 | ~~19~~ | ~~Stille Falle: zwei Juli-Parquets unter `data/adressen/`.~~ **Erledigt im Datenfenster nach der Prep-Welle.** Nicht gelöscht, sondern in den Sitzungs-Scratchpad verschoben — es waren die zwei Dateien aus W1.3 ohne zweite Kopie im Vorgängerprojekt, und ein Neulauf ergäbe wegen des Oktober-Stichtags andere Dateien. Inode nach dem `mv` unverändert. | — |
-| 30 | **Geteiltes Werkzeug, ungeteilte Bedeutung.** Alle neun Prep-Module benutzen `pipeline/fingerprint.py`, aber nur `osm.py` und `kataster/b_export_parquet.py` lesen den Fingerabdruck zum Selbst-Überspringen zurück; `adressen.py:71` hat `rebuild=True` hart verdrahtet, die übrigen schreiben ihn nur. Für einen Erstlauf richtig, für eine wiederholte Layer-Stufe teuer. Zu vereinheitlichen oder bewusst zu differenzieren — aber nicht unbemerkt zu lassen. | Welle 2 |
+| 33 | **Die erste echte Abweichung — und sie ist eine Korrektur.** `geography_water_bodies` weicht in 543 106 von 336 038 001 Zellen ab (0,16 %), ausschließlich zusätzlich. Ursache: `osmium extract --bbox` klippt vor dem Tag-Filter und verliert die grenzüberschreitende Bodensee-Relation; die Prep-Stufe filtert gegen die ungeklippte Rohquelle und findet sie. Die neue Kette hat recht. **Zu entscheiden: Wird das als Abweichung in `abweichungen.tsv` geführt und die Bitgleichheit zu `run1` aufgegeben, oder gilt weiter der alte Zustand als Soll?** Offen ist außerdem, ob dieselbe Lücke weitere, kleinere Gewässer betrifft. | **Nutzer** |
+| 32 | **Zwei Fingerabdruck-Konventionen in einer Welle.** W2.3 legt sie als Dateien unter `build/layers/_fingerprints/<domäne>/` ab, W2.4 als Tag `PREP_FINGERPRINT` in der Rasterdatei. Dieselbe richtige Antwort, zwei Umsetzungen — genau die Divergenz aus §13.6, diesmal vorhergesehen und deshalb harmlos. Beim Zusammenführen anzugleichen. | Zusammenführung Welle 2 |
+| 30 | **Geteiltes Werkzeug, ungeteilte Bedeutung.** Alle neun Prep-Module benutzen `pipeline/fingerprint.py`, aber nur `osm.py` und `kataster/b_export_parquet.py` lesen den Fingerabdruck zum Selbst-Überspringen zurück; `adressen.py:71` hat `rebuild=True` hart verdrahtet, die übrigen schreiben ihn nur. **Für die Layer-Stufe von W2.3 entschieden und dokumentiert:** prüfen, und bei Abweichung neu bauen statt abbrechen. Offen bleibt die Uneinheitlichkeit **innerhalb der Prep-Stufe**. | Prep-Teil: Aufräumwelle |
 | 31 | `data/widmung/vorarlberg/fwp_flaeche.gpkg` erzeugt beim Lesen `RuntimeWarning: GPKG: unrecognized user_version=0x00000000`. Verarbeitung läuft vollständig durch (15 766 Wohnflächen). Vorbestehend, nach Regel 4 unangetastet. | Sammelposten |
-| 29 | **Die Kette hängt an einem Zwischenstand des Vorgängerprojekts.** `output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet` (5,3 GB, 15.05.2026, vier Monate vor dem ersten Commit) wird von `02_build_hig_sources.py:191` per Vorgabewert gelesen und ist von diesem Repo nicht erzeugbar. Neu erzeugen kostet 45–70 min und riskiert, dass die Kataster-Layer **nicht mehr bitgleich** zu `run1` sind. Nicht neu erzeugen heißt, dass Welle 5 kein Beweislauf aus Rohdaten ist. Die konkrete Gestalt von Punkt 10. | **Nutzer, vor Welle 2** |
+| ~~29~~ | ~~Die Kette hängt an einem Zwischenstand des Vorgängerprojekts.~~ **Entschärft durch Messung statt Entscheidung.** Der erste Volllauf (48,0 min) reproduziert `at_dkm_gst_nfl_epsg31287.geoparquet` inhaltlich vollständig: Zeilenzahl je Bundesland identisch (24 115 278), Schema identisch, Fläche bis zur letzten Nachkommastelle identisch, 5000/5000 WKB bytegleich. Einziger Unterschied: die Zeilenreihenfolge der Bundesländer, die `sha256` und 2 · 10⁻⁵ m² Float-Rauschen vollständig erklärt. Das Repo **kann** die Datei erzeugen; es hat sie bisher nur nicht gelesen. Rest erledigt sich mit W2.1s Umstellung. | — |
 | 28 | `docs/dataflow/src/1_merge.py` führt den Pfad `data/adressregister/…`, den es seit dem W0.1-Umbau nicht mehr gibt. Nur ein Alias in einer Doku-Tabelle, kein Datenzugriff — aber ein stiller falscher Pfad in **erzeugter** Doku, den keine Suche der Pfadpakete gefunden hat, weil er keinen Leser hat. | Sammelposten |
 | 14 | **`LEGACY_ENTFAELLT` ist jetzt leer**, und `test_legacy_entfaellt_path_exists` wird dadurch zu einem übersprungenen Platzhalter — ein Test, der nichts mehr prüft. Register bleibt laut §13.1 stehen; zu entscheiden ist, ob der Test bleibt, entfällt oder gegen die Leerheit prüft. | W1.4 |
 | 15 | **`Path("").exists()` ist `True`.** Fällt `abschichtung_common.py:966` je in den PBF-Fallback, liefert `cfg["paths"].get("powerlines_gpkg", "")` jetzt einen leeren String, und `read_layer()` geht auf das Arbeitsverzeichnis statt auf eine GIS-Datei los. Randfall, tritt nur bei fehlendem OSM-PBF ein, aber die Fehlermeldung wäre irreführend. In `docs/rohdaten.md` §5 vermerkt. | W1.P5 |
