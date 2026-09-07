@@ -21,38 +21,72 @@ W0.1 in dessen §11. Die Belege liegen unter
 
 Status: `offen` · `läuft` · `fertig` · `blockiert`
 
-| Paket | Welle | Titel | Status | Commit | Abnahme |
-|---|---|---|---|---|---|
-| W0.1 | 0 | Rohdaten nach Thema sortieren | **fertig** | `5aab405`, `3fd54a8` | bitgleich + Inode-Abgleich |
-| W0.2 | 0 | Pfadvertrag anlegen | **fertig** | `84585cb` | 131/131 Tests, bitgleich |
-| W0.3 | 0 | Verzeichnisgerüst und Make-Ziele | **fertig** | s. Protokoll | 131/131 Tests, Ziele belegt gleich |
-| W1.1 | 1 | Adress-Cache-Weiche entfernen | offen | — | — |
-| W1.2 | 1 | Tote Daten löschen, Provenienz retten | offen | — | — |
-| W1.3 | 1 | Hardlinks auflösen | offen | — | — |
-| W1.4 | 1 | Wächter für Rohdaten | offen | — | — |
-| W1.5 | 1 | Tote Skripte löschen | offen | — | — |
-| W1.6 | 1 | NÖ-PDF-HiG-Sackgasse entfernen | offen | — | — |
-| W1.7 | 1 | Ausschlusszonen entfernen | offen | — | — |
-| W1.8 | 1 | Paketmetadaten bereinigen | offen | — | — |
-| W1.9 | 1 | Doku-Widersprüche korrigieren | offen | — | — |
-| W1.P1 | 1 | Prep: Verwaltungsgrenzen | offen | — | — |
-| W1.P2 | 1 | Prep: Kataster | offen | — | — |
-| W1.P3 | 1 | Prep: Adressregister | offen | — | — |
-| W1.P4 | 1 | Prep: Flächenwidmung | offen | — | — |
-| W1.P5 | 1 | Prep: OSM, zwei Stufen | offen | — | — |
-| W1.P6 | 1 | Prep: Gelände und Wind | offen | — | — |
-| W1.P7 | 1 | Prep: Naturschutz | offen | — | — |
-| W1.P8 | 1 | Prep: Windzonen | offen | — | — |
-| W1.P9 | 1 | Prep: NÖ-SekROP-PDF, zwei Stufen | offen | — | — |
-| W2.1 | 2 | Layer: Widmung | offen | — | — |
-| W2.2 | 2 | Layer: Häuser im Grünen | offen | — | — |
-| W2.3 | 2 | Layer: OSM und Infrastruktur | offen | — | — |
-| W3.1 | 3 | Finalisierung und Manifest-Vertrag | offen | — | — |
-| W3.2 | 3 | Validierung | offen | — | — |
-| W4.1 | 4 | Dashboard neu | offen | — | — |
-| W4.2 | 4 | Gemeindegrenzen-Export | offen | — | — |
-| W4.3 | 4 | Tests verdrahten | offen | — | — |
-| W5.1 | 5 | Beweislauf aus Rohdaten | offen | — | — |
+Die Schätzung wird **vor** dem Paket eingetragen und danach nicht mehr
+geändert — nur so wird sichtbar, wo ich mich verschätze. „Gebraucht" ist
+Wanduhrzeit von der Beauftragung bis zum Commit.
+
+| Paket | Titel | Status | geschätzt | gebraucht | Abnahme |
+|---|---|---|---:|---:|---|
+| W0.1 | Rohdaten nach Thema sortieren | **fertig** | — | 49 min | bitgleich · 30/30 Inodes |
+| W0.2 | Pfadvertrag anlegen | **fertig** | — | 28 min | bitgleich · 131 Tests |
+| W0.3 | Verzeichnisgerüst und Make-Ziele | **fertig** | — | 12 min | 131 Tests · `make -n` gleich |
+| W1.7 | Ausschlusszonen entfernen | **fertig** | 25 min | 15 min | bitgleich — *keine* Bandänderung |
+| W1.1 | Adress-Cache-Weiche entfernen | offen | 20 min | | |
+| W1.5 | Tote Skripte löschen | offen | 15 min | | |
+| W1.6 | NÖ-PDF-HiG-Sackgasse entfernen | offen | 25 min | | |
+| W1.8 | Paketmetadaten bereinigen | offen | 15 min | | |
+| W1.9 | Doku-Widersprüche korrigieren | offen | 15 min | | |
+| W1.2 | Tote Daten löschen, Provenienz retten | offen | 20 min | | Datenfenster |
+| W1.3 | Hardlinks auflösen | offen | 20 min | | Datenfenster · 13 GB |
+| W1.4 | Wächter für Rohdaten | offen | 25 min | | braucht W1.1, W1.2 |
+| W1.P1 | Prep: Verwaltungsgrenzen | offen | 25 min | | |
+| W1.P2 | Prep: Kataster | offen | 60 min | | **+ unbekannter Volllauf** |
+| W1.P3 | Prep: Adressregister | offen | 40 min | | |
+| W1.P4 | Prep: Flächenwidmung | offen | 45 min | | |
+| W1.P5 | Prep: OSM, zwei Stufen | offen | 45 min | | |
+| W1.P6 | Prep: Gelände und Wind | offen | 20 min | | |
+| W1.P7 | Prep: Naturschutz | offen | 25 min | | |
+| W1.P8 | Prep: Windzonen | offen | 30 min | | braucht W1.7 |
+| W1.P9 | Prep: NÖ-SekROP-PDF, zwei Stufen | offen | 45 min | | |
+| W2.1 | Layer: Widmung | offen | 40 min | | |
+| W2.2 | Layer: Häuser im Grünen | offen | 40 min | | |
+| W2.3 | Layer: OSM und Infrastruktur | offen | 45 min | | |
+| W3.1 | Finalisierung und Manifest-Vertrag | offen | 45 min | | |
+| W3.2 | Validierung | offen | 30 min | | schreibt `abweichungen.tsv` |
+| W4.1 | Dashboard neu | offen | 40 min | | |
+| W4.2 | Gemeindegrenzen-Export | offen | 30 min | | |
+| W4.3 | Tests verdrahten | offen | 30 min | | |
+| W5.1 | Beweislauf aus Rohdaten | offen | 15 min | | **+ Vorverarbeitung** |
+
+## Zeitbilanz
+
+| | |
+|---|---|
+| Gebraucht bisher | **1 h 30** für drei Pakete (49 + 28 + 12 min) |
+| Verbleibend, geschätzt | **rund 6 h** Wanduhrzeit |
+| Davon unbekannt | die Kataster-Vorverarbeitung — keine Messung existiert |
+
+Die 6 Stunden sind **nicht** die Summe der Einzelschätzungen (die ergäbe
+gut 13 h), weil Pakete parallel laufen. Gerechnet ist je Stufe das längste
+Paket plus Puffer für meine eigene Abnahme, die seriell bleibt:
+
+| Stufe | Pakete | Dauer |
+|---|---|---:|
+| W1.7 allein | 1 | 25 min |
+| Aufräumen, parallel | 5 | 25 min |
+| Datenfenster, seriell | 2 | 40 min |
+| Wächter | 1 | 25 min |
+| Prep, gedrosselt auf drei gleichzeitig | 9 | 2 h 25 |
+| Welle 2, parallel | 3 | 45 min |
+| Welle 3, seriell | 2 | 1 h 15 |
+| Welle 4, parallel | 3 | 40 min |
+| Welle 5 | 1 | 15 min + ? |
+
+**Warum nicht alle achtzehn gleichzeitig:** Innerhalb eines Pakets ist
+nichts parallel — schreiben, prüfen, beweisen bauen aufeinander auf. Die
+schweren Prep-Läufe konkurrieren um Platte und Kerne; neun gleichzeitig
+werden nicht neunmal schneller, sondern verdrängen einander. Und jede
+Abnahme braucht eine Entscheidung, die seriell fällt.
 
 ## Gemessene Laufzeiten
 
@@ -199,6 +233,40 @@ Beim Test aufgefallen: `data/README.md` ist die einzige versionierte Datei
 unter `data/`, also legt `git worktree add` das Verzeichnis bereits an — und
 `ln -s` hängt sich dann *hinein* statt es zu ersetzen. Ergebnis wäre
 `data/data` gewesen. Behoben und mit einem Wegwerf-Worktree verifiziert.
+
+### W1.7 — Ausschlusszonen entfernen · fertig
+
+Entfernt: die Registrierung `Stmk2026Aus` (las eine SAPRO-2026-GeoJSON, für
+die es in diesem Repo keinen Erzeuger gibt) und `OOe` (las
+`WINDKRAFT_AUSSCHLUSSZONE.zip`). Dazu die Folgeaufräumung: die nur davon
+benutzte Konstante `REGIME_ADVISORY` und der Kommentarblock, der
+ausschließlich die SAPRO-Farbextraktion erklärte. Im Pfadvertrag ist der
+Eintrag `ausschlusszone_zip` weg — die Datei bleibt, bis W1.2 sie löscht.
+
+**Abnahme: bitgleich, 130 Tests grün.** Der Testzähler sinkt von 131 auf
+130, weil eine parametrisierte Prüfung mit dem entfernten Vertragseintrag
+wegfällt.
+
+**Der eigentliche Befund ist ein anderer: die Änderung ist folgenlos.**
+`load_wind_exclusion_zones()` wird im ganzen Repo **nirgends aufgerufen**,
+und ein Band `official_wind_exclusion_zoning` existiert im 38-Band-Schema
+nicht. Band 37 wird allein aus `load_wind_zones()` gebaut. Die
+Ausschlusszonen erreichten also nie ein Band — `run2.tif` ist bitgleich zu
+`run1.tif`, dieselbe `sha256`, alle 38 Bänder.
+
+Damit sind zwei Annahmen im Plan widerlegt und dort korrigiert: Entscheidung
+(a) behauptete, Band 37 verliere die SAPRO-Zonen, und §12.1 sah deshalb
+einen Wechsel der Vergleichsbasis vor. **Beides entfällt: `run1` bleibt für
+das gesamte Projekt die Basis, und alle 38 Bänder müssen bitgleich sein,
+ohne Sonderfall.** Eine Fehlerquelle weniger für 26 verbleibende Pakete.
+
+**Nachtrag für W1.5:** Was von der Ausschlusszonen-Mechanik übrig ist —
+`load_wind_exclusion_zones()`, `WIND_EXCLUSION_ZONE_SOURCES` mit dem
+verbliebenen Eintrag `BgldAus` — ist ebenfalls toter Code ohne Aufrufer.
+`BgldAus` liest zwar eine bleibende Datei (`WK_Eignungszonen.zip`, dieselbe
+wie die Positivzone `Bgld`, per Attributfilter getrennt), aber niemand ruft
+die Funktion. Das gehört in W1.5 mit entfernt, nicht in dieses Paket — es
+fällt nicht unter Entscheidung (a).
 
 ## Offene Punkte
 
