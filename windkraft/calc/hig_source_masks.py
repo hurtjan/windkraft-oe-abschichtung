@@ -89,7 +89,8 @@ def noe_pdf_source_mask(noe_dir: Path, grid: dict) -> np.ndarray:
         if not path.exists():
             raise FileNotFoundError(
                 f"NÖ-PDF-Quellobjekte fehlen: {path}. Erst "
-                "`uv run python scripts/noe/derive_pdf_hig_sources.py` ausführen."
+                "`uv run --extra pdf python scripts/noe/extract_noe_vector_layers.py` ausführen "
+                "(ruft derive_layer_files() selbst auf)."
             )
         sources = read_layer(path, bounds=grid["bounds"])
         mask |= raster_mask(sources, 0.0, grid, name)
