@@ -12,10 +12,10 @@ W0.1 in dessen §11. Die Belege liegen unter
 
 | | |
 |---|---|
-| Abgeschlossen | **23 von 30** — Welle 0 und Welle 1 vollständig, beide Zusammenführungen, beide Nachzügler |
-| Als Nächstes | `w1.p8b` einhängen, dann **Welle 2** — die erste Welle, die Bänder verändern darf |
+| Abgeschlossen | **23 von 32** — Welle 0 und Welle 1 vollständig, beide Zusammenführungen, beide Nachzügler. Zwei Pakete sind neu dazugekommen (W2.P0, W2.4), eines ist entfallen (W2.2 → W2.1). |
+| Als Nächstes | **W2.P0**, dann Welle 2 zu dritt — die erste Welle, die Bänder verändern darf |
 | `data/` | **hardlinkfrei**, 48 echte Dateien, per Wächter als Invariante gesichert |
-| Zweig | `docs/audit-und-plan`, Kopf `ca386b1`, kein Remote |
+| Zweig | `docs/audit-und-plan`, Kopf `0b61884`, kein Remote |
 | Worktrees | keine — alle neun abgebaut, alle Zweige mit `git branch -d` gelöscht |
 | Abweichungen bisher | **keine** — alle Pakete bitgleich, `sha256` an der Wellengrenze bestätigt |
 
@@ -55,9 +55,10 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | — | Zusammenführung der Prep-Welle | **fertig** | 25 min | 7 min | **9 Merges konfliktfrei** · `sha256` bitgleich · 147+1 Tests |
 | — | Datenfenster: alte Adress-Parquets (Punkt 19) | **fertig** | 15 min | 4 min | Inode belegt `mv` · 147+1 Tests · Wächter 129 → 127 |
 | — | Prep-Stufe für die fünfte Zonenquelle (Punkt 22) | **fertig** | 20 min | 8 min | **0,0 m²** · 71/71 Geometrien gleich · 147+1 Tests |
-| W2.1 | Layer: Widmung | offen | 40 min | | |
-| W2.2 | Layer: Häuser im Grünen | offen | 40 min | | |
+| W2.P0 | Vorfeld der Layer-Welle | offen | 25 min | | `build/prep/` ins Worktree |
+| W2.1 | Layer: Widmung und Häuser im Grünen | offen | 60 min | | W2.2 hier aufgegangen |
 | W2.3 | Layer: OSM und Infrastruktur | offen | 45 min | | |
+| W2.4 | Layer: Natur, Gelände, Zonen und Puffer | offen | 50 min | | **17 herrenlose Checkpoints** |
 | W3.1 | Finalisierung und Manifest-Vertrag | offen | 45 min | | |
 | W3.2 | Validierung | offen | 30 min | | schreibt `abweichungen.tsv` |
 | W4.1 | Dashboard neu | offen | 40 min | | |
@@ -114,14 +115,15 @@ Paket plus Puffer für meine eigene Abnahme, die seriell bleibt:
 | ~~Wächter und Vorfeld~~ | 2 | ~~25~~ · **26 min** |
 | ~~Prep, gedrosselt~~ | 9 | ~~2 h 25~~ · **rund 60 min** |
 | ~~Zusammenführung Prep~~ | — | ~~25~~ · **7 min** |
-| Zwei Nachzügler (Punkt 19, 22) | 2 | 20 min |
-| Welle 2, parallel | 3 | 45 min |
+| ~~Zwei Nachzügler (Punkt 19, 22)~~ | 2 | ~~20~~ · **12 min** |
+| Vorfeld W2.P0, seriell | 1 | 25 min |
+| Welle 2, **drei** parallel | 3 | 60 min |
 | Zusammenführung Welle 2 | — | 20 min |
 | Welle 3, seriell | 2 | 1 h 15 |
 | Welle 4, parallel | 3 | 40 min |
 | Zusammenführung Welle 4 | — | 15 min |
 | Welle 5, inklusive Kataster-Volllauf | 1 | 1 h 15 – 1 h 40 |
-| **Restdauer** | **11** | **5 ¼ – 5 ¾ h roh · 4 – 4 ½ h korrigiert** |
+| **Restdauer** | **11** | **5 ¼ – 5 ½ h roh · 3 ½ – 4 h korrigiert** |
 
 Die Korrektur wendet den gemessenen Faktor 0,55 nur auf die **Denkzeit**
 an. Welle 5 bleibt unkorrigiert: dort dominiert Maschinenzeit, die nicht
@@ -1096,8 +1098,15 @@ gegrept — ohne weitere Fundstellen.
 
 ### Prep-Stufe für die fünfte Zonenquelle · fertig
 
-Commit `ba6f3a6`, Zweig `w1.p8b`. Geschätzt 20 min, gebraucht 8. Der
-Nachtrag zu meinem eigenen Zuschnittfehler aus W1.P8.
+Commit `ba6f3a6`, Zweig `w1.p8b`, eingehängt als `0b61884`. Geschätzt
+20 min, gebraucht 8. Der Nachtrag zu meinem eigenen Zuschnittfehler aus
+W1.P8.
+
+Die Basisprüfung vor dem Merge hat die Angabe des Agenten bestätigt statt
+sie zu glauben: Merge-Basis `d1a7d3d`, nachweislich Vorfahre von
+`docs/audit-und-plan` und **nach** allen neun Prep-Merges. Der Zweig fasst
+ausschließlich `pipeline/prep/zonen.py` an (+89/−30) — `contract.py` und
+`make/prep/zonen.mk` wirklich nicht, wie berichtet.
 
 `pipeline/prep/zonen.py` hat einen fünften Loader `_load_noe()` bekommen —
 **erweitert, nicht danebengebaut**. Er schreibt `NOE.gpkg` in denselben
@@ -1147,6 +1156,53 @@ der Rohquelle.
 grün vor und nach, `find -newer` gegenkontrolliert. Keine neuen Tests** —
 das Verdrahten der Tests ist W4.3, nicht Sache dieses Nachtrags.
 
+### Konfliktprüfung vor Welle 2 — und was sie nicht finden konnte
+
+Kein Paket, sondern die Vorbereitung der Welle. Sie hat meinen Zuschnitt
+an drei Stellen widerlegt und den Plan verändert; die Regel daraus steht
+als §13.8 im Plan.
+
+**Mein Verdacht war falsch, und das war die kleinere Nachricht.** Ich
+hatte einen Dreifachkonflikt in `windkraft/calc/abschichtung_common.py`
+erwartet. Die Funktionsblöcke sind aber disjunkt — HiG 769–958, OSM
+958–1154 — und `pipeline/contract.py` führt alle 33 Layernamen bereits
+vollständig. Zwei befürchtete Konfliktherde existieren nicht.
+
+**Gefunden wurde eine Lücke, und die ist gefährlicher als jeder
+Konflikt.** `tests/test_contract.py:280-302` setzt die Sollmenge der
+Checkpoints aus **vier** Skripten zusammen; mein §7 beauftragte drei. Die
+17 Layer aus `04_create_distance_zones.py` — Puffer, Naturschutz,
+Gelände, offizielle Windzonen, WKA-Bestand — hatten keinen Besitzer. Wäre
+Welle 2 wie geplant gelaufen, hätte danach ein Viertel der Kette gefehlt,
+**und niemand hätte es gemeldet, weil kein Paket dafür zuständig gewesen
+wäre, es zu melden.**
+
+Das ist der Grund für Regel 7 im Plan: Eine Konfliktprüfung sucht
+Überschneidungen, und eine Lücke ist keine. Die Sollmenge muss aus
+Vertrag und Tests kommen, nicht aus meiner eigenen Tabelle — sonst prüfe
+ich die Quelle des Fehlers gegen sich selbst.
+
+**Drei Änderungen am Zuschnitt:**
+
+| | |
+|---|---|
+| W2.2 geht in W2.1 auf | `widmung_seed()` (`hig_source_masks.py:70-75`) verundet die drei Widmungs-Layer und gibt das Ergebnis als Filter in die Hüllenerkennung. Getrennt hieße verdoppeln (§13.6) oder eine Datei zu zweit besitzen (Regel 1). |
+| W2.4 neu | Die 17 herrenlosen Checkpoints. §3 sagt, Stufe 4 gelte für jede Domäne — dann muss sie für jede beauftragt sein. |
+| W2.P0 neu | `pipeline/layers/__init__.py`, `-include make/layers/*.mk`, und **`build/prep/` ins `worktree`-Ziel**. |
+
+Der dritte Punkt von W2.P0 ist der teuerste: `Makefile:163-174` verlinkt
+heute nur `data/` und `distance_layers/`. Drei Layer-Worktrees hätten die
+Prep-Stufe je einzeln neu gerechnet — Kataster allein 45 bis 70 Minuten,
+dreifach. Eine Kopie von Hand wäre schlimmer: sie zerrisse die
+mtime-basierten Fingerabdrücke und löste stille Neuberechnungen aus.
+
+**Die gefährlichste Stelle der Welle** liegt ausgerechnet im bislang
+herrenlosen Block: `layer_done()` prüft Form, CRS, Transform und
+Bandname, nicht die Eingabe. Zusammen mit dem GPKG-Promotionseffekt aus
+Punkt 20 schriebe sich ein falscher Wert ins Band und würde beim nächsten
+Lauf als „fertig" akzeptiert. Deshalb steht die Geometrietyp-Prüfung
+ausdrücklich in der Abnahme von W2.4.
+
 ## Offene Punkte
 
 | # | Punkt | Fällig |
@@ -1159,20 +1215,20 @@ das Verdrahten der Tests ist W4.3, nicht Sache dieses Nachtrags.
 | ~~25~~ | ~~Plan §4 nennt acht OSM-Layer, der Code liest zehn.~~ **Erledigt, nach Klärung eines scheinbaren Widerspruchs.** `OSM_PBF_FILTERS` deklariert **13** Schlüssel, gelesen werden **10**, tot sind **3**. Die acht im Plan waren zehn minus `buildings` und `powerlines` — die drei toten standen nie darin. Zwei Vergleichsachsen (Plan gegen Laufzeit; Deklaration gegen Laufzeit), die beide auf die Zahl zehn treffen. Die Zeile nennt jetzt alle zehn mit ihren Codeschlüsseln. | — |
 | 26 | Drei OSM-Objektgruppen sind toter Code: `landuse`, `places`, `addresses` — Reste des in v2 abgeschafften Adress-Cluster-Pfads. Stehen in den Filtern, niemand liest sie. | Aufräumwelle |
 | 27 | `powerlines` wird bei jedem OSM-Lauf extrahiert, obwohl die Maske `power_380_400kv` nirgends persistiert wird. Dieselbe Gruppe, deren Rohdatei W1.2 als toten Leser gelöscht hat. Reine Rechenverschwendung. | Welle 2 |
-| 24 | **Dritter Fall desselben Cache-Musters:** `widmung_sources._ensure_ktn_gpkg()` prüft beim Wiederverwenden nur die Existenz der extrahierten Datei, nicht ob das Quell-ZIP sich geändert hat. Wie `layer_done()` und wie die W1.1-Weiche. Der Prep-Fingerabdruck erfasst das ZIP korrekt, der Extraktions-Cache daneben nicht. | Welle 2 |
+| 24 | **Dritter Fall desselben Cache-Musters:** `widmung_sources._ensure_ktn_gpkg()` prüft beim Wiederverwenden nur die Existenz der extrahierten Datei, nicht ob das Quell-ZIP sich geändert hat. Wie `layer_done()` und wie die W1.1-Weiche. Der Prep-Fingerabdruck erfasst das ZIP korrekt, der Extraktions-Cache daneben nicht. **Besitzer: W2.1** — `pipeline/prep/widmung.py:67` importiert `widmung_sources` und nutzt die Funktion weiter; ohne benannten Besitzer wäre auch das eine Lücke nach Regel 7. | W2.1 |
 | 5 | **`sys.path`-Präambeln.** W1.8 hat die Voraussetzung geschaffen (Paket ist jetzt installierbar), aber die Präambeln stehen noch in rund einem Dutzend Dateien unter `scripts/` und `tests/`. Zum Entfernen fehlt: `scripts/` ist kein Paket, Aufrufe müssten auf `python -m` umgestellt werden, und `tools/` bräuchte womöglich ebenfalls Paketstatus. Eigenes Paket wert, gehört nicht in W1.8. | Welle 4 oder später |
-| 3 | `docs/widmung_v2_provenance.md` nennt Quellpfade, die es nicht mehr gibt. Unklar, ob eingefrorene Momentaufnahme wie `RUN1_VERGLEICH.md` oder lebende Doku. | Welle 1, Widmungspakete |
+| 3 | `docs/widmung_v2_provenance.md` nennt Quellpfade, die es nicht mehr gibt. **Entschieden: lebende Doku.** Sie behauptet, wo die Daten herkommen — ein veralteter Pfad darin führt aktiv in die Irre, anders als ein Laufbericht mit Datum. Von W2.1 mitzuziehen. Dieselbe Regel für `docs/FOLLOWUPS.md` (Punkt 11). **Eingefroren** bleibt allein `docs/RUN1_VERGLEICH.md`: ein datierter Messbericht, dessen Wert gerade darin liegt, dass er nicht nachgeführt wird. Meine Entscheidung, überstimmbar. | W2.1 |
 | 4 | `config.json:osm_dir` und `wind_pd_100` zeigen auf Dateien, die es nie gab. Mitgezogen, aber weiterhin tot. | W1.x |
 | 6 | `describe_sources()` in `windkraft/calc/wind_zones.py` hat keinen Aufrufer. Von W1.5 bewusst nicht angetastet, weil außerhalb des Auftrags. | W1.x |
 | ~~7~~ | ~~`streusiedlung.py` hat eine verdeckte Cache-Weiche.~~ **Von W1.6 untersucht, Entwarnung:** `cache_dir` ist Pflicht-Keyword (`streusiedlung.py:82`), wird an `bev_register.py` durchgereicht und dort seit W1.1 sauber aufgelöst. Keine zweite Weiche. Einziger Aufrufer ist `docs/analysis/streusiedlung_knee.py:217`, außerhalb der v2-Kette, Ziel nicht unter `data/`. | — |
 | ~~8~~ | ~~Ungenutzter Import `admin_boundaries`.~~ **In W1.6 entfernt**, `ruff` sauber. | — |
 | 9 | `docs/HANDOFF.md` trägt ein veraltetes Referenz-Manifest. Das README verweist nur darauf, dass es veraltet ist. Wer es aktualisiert, ist nicht festgelegt. | Welle 4 |
 | 10 | Die 18 von 38 Bändern, die zwischen `run1` und der Referenz-TIF um < 0,004 % abweichen, sind laut `RUN1_VERGLEICH.md` **ungeklärt**. Das berührt die Projektfrage, ob `run1` das Vorgängerprojekt als Quelle der Wahrheit ablösen darf. Keine Textkorrektur, sondern eine Entscheidung. | Nutzer, vor Welle 5 |
-| 11 | `docs/FOLLOWUPS.md` führt die veraltete `EXCLUSION_LAYERS`-Liste weiterhin als offenen Punkt, obwohl W1.5 das ganze Skript gelöscht hat. Im README nachgezogen, dort nicht — die Datei galt als eingefroren. Zu klären: eingefrorene Momentaufnahme oder lebende Liste? Dieselbe Frage wie Punkt 3. | mit Punkt 3 |
+| 11 | `docs/FOLLOWUPS.md` führt die veraltete `EXCLUSION_LAYERS`-Liste weiterhin als offenen Punkt, obwohl W1.5 das ganze Skript gelöscht hat. **Mit Punkt 3 entschieden: lebende Liste.** Eine Liste offener Punkte, die geschlossene Punkte weiterführt, kostet jeden Leser die Prüfung, ob der Punkt noch existiert — das ist der Zweck der Liste, ins Gegenteil verkehrt. Wer einen Punkt schließt, streicht ihn dort. | W2.1 |
 | ~~12~~ | ~~Sackgasse eine Ebene höher: `pdf_hig_sources.py` erzeugt GeoJSON, die niemand liest.~~ **Erledigt in W1.P9** — das Modul `windkraft/noe/pdf_hig_sources.py` ist als ganzes weg, die Sackgasse an `e3d3655` belegt statt geglaubt. | — |
 | 13 | Der `Run:`-Hinweis im Docstring von `scripts/widmung_v2/02_build_hig_sources.py:26-27` nennt den alten Pfad `scripts/main/build_hig_sources.py`. Vorbestehend. | Sammelposten |
 | 17 | `windkraft/util/admin.py` (`load_vgd`, `load_laender`, `load_bezirke`, `load_austria`) ist tot — nirgends importiert außer in einem Kommentar, der es ausdrücklich als „bewusst nicht mitgenommen" bezeichnet. | Aufräumwelle |
-| 18 | Drei Skripte lesen die VGD-Rohdatei direkt und unabhängig von `admin_boundaries()`: `create_noe_dkm_polygon_fill_map.py`, `extract_noe_vector_layers.py`, `align_pdf_shapefile.py` — teils **ohne `to_crs`**. Die Annahme, die Rohdatei sei bereits EPSG:31287, stimmt hier zufällig. Bei der Umstellung auf `build/prep/admin/` zu prüfen. | Welle 2 |
+| 18 | Drei Skripte lesen die VGD-Rohdatei direkt und unabhängig von `admin_boundaries()`: `create_noe_dkm_polygon_fill_map.py`, `extract_noe_vector_layers.py`, `align_pdf_shapefile.py` — teils **ohne `to_crs`**. Die Annahme, die Rohdatei sei bereits EPSG:31287, stimmt hier zufällig. Bei der Umstellung auf `build/prep/admin/` zu prüfen. **Besitzer: W2.4** — dessen Block enthält `province_buffer_mask`, den einzigen Layer-Konsumenten der Verwaltungsgrenzen. | W2.4 |
 | 20 | **GeoPackage promoviert Polygone zu MultiPolygonen.** Beim Schreiben nach GPKG werden gemischte Geometrietypen vereinheitlicht. **Zweimal unabhängig belegt:** 383 von 920 bei `natur` (W1.P7), 49 von 71 bei der NÖ-Zonenquelle (Punkt 22). Damit kein Einzelfall einer Domäne, sondern Eigenschaft **jeder** Prep-Stufe, die GPKG schreibt. Für `rasterize` folgenlos; für eine geometrietyp-sensitive Layer-Stufe nicht. | Welle 2 |
 | 21 | 33 von 920 Schutzgebietsgeometrien sind laut GEOS ungültig. Der heutige Konsument prüft und repariert das ebenfalls nicht — deshalb nach Regel 4 unverändert. | fachlich, Nutzer |
 | ~~19~~ | ~~Stille Falle: zwei Juli-Parquets unter `data/adressen/`.~~ **Erledigt im Datenfenster nach der Prep-Welle.** Nicht gelöscht, sondern in den Sitzungs-Scratchpad verschoben — es waren die zwei Dateien aus W1.3 ohne zweite Kopie im Vorgängerprojekt, und ein Neulauf ergäbe wegen des Oktober-Stichtags andere Dateien. Inode nach dem `mv` unverändert. | — |
