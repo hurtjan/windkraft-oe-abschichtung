@@ -12,9 +12,9 @@ W0.1 in dessen §11. Die Belege liegen unter
 
 | | |
 |---|---|
-| Abgeschlossen | **21 von 30** — Welle 0 vollständig, Welle 1 vollständig **inklusive aller neun Prep-Pakete**, beide Zusammenführungen |
-| Als Nächstes | zwei Nachzügler (Punkt 19, Punkt 22), dann Welle 2 |
-| `data/` | **hardlinkfrei**, 50 echte Dateien, per Wächter als Invariante gesichert |
+| Abgeschlossen | **23 von 30** — Welle 0 und Welle 1 vollständig, beide Zusammenführungen, beide Nachzügler |
+| Als Nächstes | `w1.p8b` einhängen, dann **Welle 2** — die erste Welle, die Bänder verändern darf |
+| `data/` | **hardlinkfrei**, 48 echte Dateien, per Wächter als Invariante gesichert |
 | Zweig | `docs/audit-und-plan`, Kopf `ca386b1`, kein Remote |
 | Worktrees | keine — alle neun abgebaut, alle Zweige mit `git branch -d` gelöscht |
 | Abweichungen bisher | **keine** — alle Pakete bitgleich, `sha256` an der Wellengrenze bestätigt |
@@ -53,8 +53,8 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | W1.P8 | Prep: Windzonen | **fertig** | 30 min | 7 min | **0,0 m²** bei allen vier Quellen · 147 Tests |
 | W1.P9 | Prep: NÖ-SekROP-PDF, zwei Stufen | **fertig** | 45 min | 20 min | **12/12 GeoJSON bytegleich** · Laufzeit halbiert |
 | — | Zusammenführung der Prep-Welle | **fertig** | 25 min | 7 min | **9 Merges konfliktfrei** · `sha256` bitgleich · 147+1 Tests |
-| — | Datenfenster: alte Adress-Parquets (Punkt 19) | offen | 15 min | | |
-| — | Prep-Stufe für die fünfte Zonenquelle (Punkt 22) | offen | 20 min | | |
+| — | Datenfenster: alte Adress-Parquets (Punkt 19) | **fertig** | 15 min | 4 min | Inode belegt `mv` · 147+1 Tests · Wächter 129 → 127 |
+| — | Prep-Stufe für die fünfte Zonenquelle (Punkt 22) | **fertig** | 20 min | 8 min | **0,0 m²** · 71/71 Geometrien gleich · 147+1 Tests |
 | W2.1 | Layer: Widmung | offen | 40 min | | |
 | W2.2 | Layer: Häuser im Grünen | offen | 40 min | | |
 | W2.3 | Layer: OSM und Infrastruktur | offen | 45 min | | |
@@ -1043,6 +1043,110 @@ Zweige mit `git branch -d`. Kein `--force`, kein `-D`. Beim letzten Mal
 ging das noch nicht — die Symlink-Nebenwirkung ist seit `81849de`
 behoben.
 
+### Datenfenster: verwaiste Adress-Parquets · fertig
+
+Kein Commit — `data/` und `build/` sind vollständig gitignored, der
+Arbeitsbaum blieb sauber. Der Agent hat das erkannt und **keinen leeren
+Commit erzwungen**. Davor `d1a7d3d` mit meinen Plan-Korrekturen.
+Geschätzt 15 min, gebraucht 4.
+
+Die beiden Juli-Artefakte des W1.1-Weichenfehlers sind aus `data/` heraus:
+
+| Datei | Größe | mtime | Inode |
+|---|---:|---|---:|
+| `adressen_31287.parquet` | 41 855 569 B | 23.07.2026 20:18 | 139716806 |
+| `bev_gebaeude_31287.parquet` | 42 495 492 B | 24.07.2026 00:11 | 139716807 |
+
+**Nicht gelöscht, sondern verschoben** — und die Inodes sind nach dem `mv`
+unverändert, was belegt, dass es wirklich eine Verschiebung war und keine
+Kopie. Das war nötig, weil diese beiden Dateien die **zwei Ausnahmen aus
+W1.3** waren: die einzigen unter `data/`, die schon Linkanzahl 1 hatten,
+weil sie per `to_parquet()` entstanden und nie im Vorgängerprojekt lagen.
+Es gibt keine zweite Kopie, und ein Neulauf zöge die Oktober-Rohquelle und
+ergäbe andere Dateien. Eine Löschung wäre die zweite unumkehrbare Handlung
+des Projekts gewesen — für einen Aufräumschritt ist das zu viel Risiko.
+
+**Der Beweis kam vor der Bewegung.** Alle vier Aufrufer von
+`load_address_points`/`load_building_points` lösen `cache_dir` auf
+`build/prep/adressen` oder `output/` auf, keiner auf `data/adressen`. Drei
+Scheintreffer hat der Agent als solche entlarvt statt sie mitzuzählen: zwei
+synthetische Test-Fixtures in Tempverzeichnissen und ein String-Alias in
+einem Doku-Graphen.
+
+**Danach der Gegenbeweis:** `load_address_points()` und
+`load_building_points()` per echtem Vorgabewert aufgerufen, **ohne** die
+verschobenen Dateien — 2 516 345 und 2 524 624 Punkte, frisch unter
+`build/prep/adressen/` angelegt. Damit ist nicht nur behauptet, dass
+niemand liest, sondern gezeigt, dass es ohne sie funktioniert.
+
+Der Lauf dauerte 9,5 s statt der 6 s aus W1.1. Der Agent nennt eine
+Erklärung (`GEBAEUDE.csv` wird aus dem ZIP statt aus Klartext gelesen) und
+sagt im selben Atemzug, dass es eine Vermutung ist, kein Beweis. Genau
+richtig — Sekunden statt Minuten sind kein Alarm, eine unbelegte Erklärung
+als belegt auszugeben schon.
+
+**Abnahme: 147 Tests plus 1 übersprungen, unverändert. Wächter grün, jetzt
+gegen 127 statt 129 Dateien** — die erwartete Differenz von genau zwei.
+
+**Grenze, vom Agenten selbst benannt:** reine Textsuche, keine Analyse
+dynamischer Importe, und kein Blick in nicht versionierte Notebooks
+außerhalb des Repos. Für ein `importlib`-Konstrukt gäbe es keinen Beleg.
+Die Konstanten `ADDRESS_CACHE_NAME`/`BUILDING_CACHE_NAME` hat er zusätzlich
+gegrept — ohne weitere Fundstellen.
+
+### Prep-Stufe für die fünfte Zonenquelle · fertig
+
+Commit `ba6f3a6`, Zweig `w1.p8b`. Geschätzt 20 min, gebraucht 8. Der
+Nachtrag zu meinem eigenen Zuschnittfehler aus W1.P8.
+
+`pipeline/prep/zonen.py` hat einen fünften Loader `_load_noe()` bekommen —
+**erweitert, nicht danebengebaut**. Er schreibt `NOE.gpkg` in denselben
+`build/prep/zonen/`-Ordner wie die vier anderen Quellen und nimmt die
+NÖ-Datei in den gemeinsamen Fingerabdruck auf.
+
+**Weder `contract.py` noch `make/prep/zonen.mk` mussten angefasst werden** —
+`PREP["zonen"]` war schon ein Verzeichnis, und das Make-Ziel ruft ohnehin
+nur das Modul auf. Der Zuschnitt von W1.P0 trägt also auch für einen Fall,
+den er nicht vorhergesehen hat.
+
+**Der stärkere Nachweisweg war hier möglich, und der Agent hat ihn
+genommen.** Die vier Quellen aus W1.P8 mussten gegen einen Nachbau
+verglichen werden, weil ihre Loader privat sind. Die NÖ-Quelle läuft aber
+über `read_layer()` aus `abschichtung_common.py` — öffentlich und einzeln
+aufrufbar, genau wie `admin_boundaries()` bei W1.P1. Direkt importiert und
+mit dem echten Pfad aufgerufen:
+
+| Prüfung | Ergebnis |
+|---|---|
+| Anzahl | **71**, in Rohquelle, nach `read_layer()` und im Prep-Ergebnis |
+| CRS | EPSG:4326 → 31287, beidseitig identisch |
+| Symmetrische Differenz der Vereinigung | **0,0 m²** |
+| Je Einzelgeometrie, über das Verlangte hinaus | **71/71 topologisch gleich** |
+
+Die Einzelgeometrieprüfung war nicht beauftragt. Sie hat dabei den
+GPKG-Promotionseffekt aus Punkt 20 ein zweites Mal sichtbar gemacht: 49 von
+71 Polygonen werden beim Schreiben zu MultiPolygonen. Damit ist das kein
+Einzelfall der Naturschutz-Domäne mehr, sondern eine Eigenschaft jeder
+Prep-Stufe, die GPKG schreibt.
+
+**Ein fachlicher Unterschied, sauber benannt und nach Regel 4 nicht
+angetastet:** `read_layer()` bereinigt **keine** ungültigen, leeren oder
+Null-Geometrien — anders als die vier `WIND_ZONE_SOURCES`-Loader. Auf den
+heutigen Rohdaten macht das keinen Unterschied (0 gemessen), aber der Agent
+hat bewusst keinen Bereinigungsschritt ergänzt, den die laufende Funktion
+nicht hat. Das wäre eine Verbesserung gewesen, keine Überführung — und
+hätte die Gleichheit zerstört, die er gerade beweisen sollte.
+
+**Vier Grenzen, selbst benannt:** kein Fließkommarauschen über mehrere
+GPKG-Rundtrips; die Sachattribute werden verworfen wie bei den anderen vier
+(Problem nur, falls ein Welle-2-Konsument sie braucht); kein
+bounds-gefilterter Lauf; keine Absicherung gegen künftige Schemaänderungen
+der Rohquelle.
+
+**Abnahme: 147 Tests plus 1 übersprungen, Baseline selbst gemessen. Wächter
+grün vor und nach, `find -newer` gegenkontrolliert. Keine neuen Tests** —
+das Verdrahten der Tests ist W4.3, nicht Sache dieses Nachtrags.
+
 ## Offene Punkte
 
 | # | Punkt | Fällig |
@@ -1050,7 +1154,7 @@ behoben.
 | ~~1~~ | ~~Worktrees haben kein `data/`.~~ **Erledigt in W0.3**: `make worktree` verlinkt `data/` und die geteilten `distance_layers/` hinein. Im Parallelbatch bewährt. | — |
 | ~~1b~~ | ~~Jedes Worktree ist von Geburt an schmutzig.~~ **Erledigt in `81849de`** — aber anders als hier vermutet: `--skip-worktree` allein reichte nicht, weil der Symlink `data` nie getrackt war und als `??` stehenblieb. Nötig war zusätzlich `/data` in `.git/info/exclude`. | — |
 | ~~2~~ | ~~Laufzeit der Kataster-Vorverarbeitung ist unbekannt.~~ **Von W1.P2 vermessen: 45–70 min**, nicht 5 h. Stufe b belastbar, Stufe a mit Stichprobenunsicherheit. | — |
-| 22 | **Fünfte Zonenquelle ohne Prep-Stufe.** `data/zonen/zonierung_noe.json` (71 NÖ-Zonen) wird nicht über `WIND_ZONE_SOURCES` gelesen, sondern per `--official-zoning-geojson` direkt in `abschichtung_common.py`. Weder Domänentabelle noch W1.P8-Zuschnitt erfassen sie. Zuschnittfehler von mir. | vor Welle 2 |
+| ~~22~~ | ~~Fünfte Zonenquelle ohne Prep-Stufe.~~ **Erledigt in `ba6f3a6`** — `_load_noe()` in `pipeline/prep/zonen.py`, 0,0 m² symmetrische Differenz, 71/71 Geometrien topologisch gleich. Vertrag und Make-Ziel blieben unberührt. | — |
 | 23 | Zwei Doku-Fehler zum Kataster. **Erste Hälfte erledigt:** Plan §4 nennt jetzt 9,1 GB statt 7,8, und die davon abhängige Gesamtgröße von `data/` ist an beiden Fundstellen von ~11 auf ~12 GB nachgezogen. **Offen:** `docs/rohdaten.md` beschreibt 338 674 verworfene NÖ-Polygone, die Produktionsdatei enthält aber die volle Zahl 3 491 407 — vermutlich aus einer Codefassung vor dem Filter. | mit Punkt 3 |
 | ~~25~~ | ~~Plan §4 nennt acht OSM-Layer, der Code liest zehn.~~ **Erledigt, nach Klärung eines scheinbaren Widerspruchs.** `OSM_PBF_FILTERS` deklariert **13** Schlüssel, gelesen werden **10**, tot sind **3**. Die acht im Plan waren zehn minus `buildings` und `powerlines` — die drei toten standen nie darin. Zwei Vergleichsachsen (Plan gegen Laufzeit; Deklaration gegen Laufzeit), die beide auf die Zahl zehn treffen. Die Zeile nennt jetzt alle zehn mit ihren Codeschlüsseln. | — |
 | 26 | Drei OSM-Objektgruppen sind toter Code: `landuse`, `places`, `addresses` — Reste des in v2 abgeschafften Adress-Cluster-Pfads. Stehen in den Filtern, niemand liest sie. | Aufräumwelle |
@@ -1069,9 +1173,10 @@ behoben.
 | 13 | Der `Run:`-Hinweis im Docstring von `scripts/widmung_v2/02_build_hig_sources.py:26-27` nennt den alten Pfad `scripts/main/build_hig_sources.py`. Vorbestehend. | Sammelposten |
 | 17 | `windkraft/util/admin.py` (`load_vgd`, `load_laender`, `load_bezirke`, `load_austria`) ist tot — nirgends importiert außer in einem Kommentar, der es ausdrücklich als „bewusst nicht mitgenommen" bezeichnet. | Aufräumwelle |
 | 18 | Drei Skripte lesen die VGD-Rohdatei direkt und unabhängig von `admin_boundaries()`: `create_noe_dkm_polygon_fill_map.py`, `extract_noe_vector_layers.py`, `align_pdf_shapefile.py` — teils **ohne `to_crs`**. Die Annahme, die Rohdatei sei bereits EPSG:31287, stimmt hier zufällig. Bei der Umstellung auf `build/prep/admin/` zu prüfen. | Welle 2 |
-| 20 | **GeoPackage promoviert Polygone zu MultiPolygonen.** Beim Schreiben nach GPKG werden gemischte Geometrietypen vereinheitlicht — bei `natur` betraf das 383 von 920. Für `rasterize` folgenlos; für eine geometrietyp-sensitive Layer-Stufe nicht. Betrifft potenziell **alle** Prep-Stufen, die GPKG schreiben. | Welle 2 |
+| 20 | **GeoPackage promoviert Polygone zu MultiPolygonen.** Beim Schreiben nach GPKG werden gemischte Geometrietypen vereinheitlicht. **Zweimal unabhängig belegt:** 383 von 920 bei `natur` (W1.P7), 49 von 71 bei der NÖ-Zonenquelle (Punkt 22). Damit kein Einzelfall einer Domäne, sondern Eigenschaft **jeder** Prep-Stufe, die GPKG schreibt. Für `rasterize` folgenlos; für eine geometrietyp-sensitive Layer-Stufe nicht. | Welle 2 |
 | 21 | 33 von 920 Schutzgebietsgeometrien sind laut GEOS ungültig. Der heutige Konsument prüft und repariert das ebenfalls nicht — deshalb nach Regel 4 unverändert. | fachlich, Nutzer |
-| 19 | **Stille Falle:** `data/adressen/{adressen_31287,bev_gebaeude_31287}.parquet` vom 23./24. Juli sind Artefakte des von W1.1 behobenen Cache-Weichen-Fehlers. Niemand liest sie — aber die Rohquelle daneben hat Stichtag 1.10.2025. Wer je wieder von ihnen läse, bekäme **ohne Fehlermeldung veraltete Daten**. Der Wächter verhindert neue Schreibzugriffe, nicht alte Überbleibsel. | eigenes Datenfenster nach der Prep-Welle |
+| ~~19~~ | ~~Stille Falle: zwei Juli-Parquets unter `data/adressen/`.~~ **Erledigt im Datenfenster nach der Prep-Welle.** Nicht gelöscht, sondern in den Sitzungs-Scratchpad verschoben — es waren die zwei Dateien aus W1.3 ohne zweite Kopie im Vorgängerprojekt, und ein Neulauf ergäbe wegen des Oktober-Stichtags andere Dateien. Inode nach dem `mv` unverändert. | — |
+| 28 | `docs/dataflow/src/1_merge.py` führt den Pfad `data/adressregister/…`, den es seit dem W0.1-Umbau nicht mehr gibt. Nur ein Alias in einer Doku-Tabelle, kein Datenzugriff — aber ein stiller falscher Pfad in **erzeugter** Doku, den keine Suche der Pfadpakete gefunden hat, weil er keinen Leser hat. | Sammelposten |
 | 14 | **`LEGACY_ENTFAELLT` ist jetzt leer**, und `test_legacy_entfaellt_path_exists` wird dadurch zu einem übersprungenen Platzhalter — ein Test, der nichts mehr prüft. Register bleibt laut §13.1 stehen; zu entscheiden ist, ob der Test bleibt, entfällt oder gegen die Leerheit prüft. | W1.4 |
 | 15 | **`Path("").exists()` ist `True`.** Fällt `abschichtung_common.py:966` je in den PBF-Fallback, liefert `cfg["paths"].get("powerlines_gpkg", "")` jetzt einen leeren String, und `read_layer()` geht auf das Arbeitsverzeichnis statt auf eine GIS-Datei los. Randfall, tritt nur bei fehlendem OSM-PBF ein, aber die Fehlermeldung wäre irreführend. In `docs/rohdaten.md` §5 vermerkt. | W1.P5 |
 | 16 | `docs/rewrite/UMSETZUNG.md` und `packages.json` beschreiben W1.2 anders als `PLAN.md` (sechs Pfade weg, inklusive `Aktualitaetsstand.txt`, das bleiben soll). Veraltete Planungsartefakte, die dem Plan widersprechen. Meine Dateien, nicht die der Pakete. | vor Welle 2 |
