@@ -10,12 +10,17 @@ gemessene Laufzeiten, offene Punkte. Belege unter `nachweise/`.
 
 ## 1. Stand
 
-**W0.1 abgeschlossen und nachgewiesen** (§11.5). Nächstes Paket: W0.2,
-Pfadvertrag. Die übrigen 28 Pakete sind unberührt.
+**Welle 0 vollständig, der Aufräumteil der Welle 1 ebenfalls.** Neun von
+30 Paketen sind abgeschlossen und zusammengeführt: W0.1, W0.2, W0.3, W1.7,
+W1.1, W1.5, W1.8, W1.9, W1.6. Alle bitgleich zu `run1`, 130 Tests grün.
 
-Sicherungspunkte auf Zweig `docs/audit-und-plan`: `e98530a`, `ab2db12`
-(Planung), `5aab405` (W0.1). **`data/` ist gitignoriert** — dort ersetzt ein
-Inventar aus Größe, Inode und Prüfsumme das fehlende Netz (§11.3).
+**Nächstes Paket: W1.2** — das Datenfenster (§12.2), danach W1.3 und W1.4.
+Was davon getan ist, steht in [`FORTSCHRITT.md`](FORTSCHRITT.md); die im
+Betrieb korrigierten Regeln in §13.
+
+Zweig `docs/audit-und-plan`, kein Remote. **`data/` ist gitignoriert** —
+dort ersetzt ein Inventar aus Größe, Inode und Prüfsumme das fehlende Netz
+(§11.3).
 
 ## 2. Ausgangslage
 
@@ -264,10 +269,12 @@ derselben Welle teilen sich niemals eine Datei.
 
 ## 8. Regeln der Parallelität
 
-1. **Ein Pfad, ein Besitzer.** Jeder Pfad im Repo steht in genau einem
-   Paket. Wer eine Datei anfassen will, die ihm nicht gehört, meldet das,
-   statt sie zu ändern — sonst entstehen genau die stillen
-   Überschreibungen, die dieses Repo ohnehin plagen.
+1. **Ein Pfad, ein Besitzer — für Code.** Jeder Pfad im Repo steht in genau
+   einem Paket. Wer eine Datei anfassen will, die ihm nicht gehört, meldet
+   das, statt sie zu ändern — sonst entstehen genau die stillen
+   Überschreibungen, die dieses Repo ohnehin plagen. **Ausgenommen:
+   `pipeline/contract.py`**, das ein Register ist und von jedem Paket für
+   seine eigenen Einträge fortgeschrieben wird — siehe §13.1.
 2. **Der Vertrag wird gelesen, nicht kopiert.** Nach Welle 0 kommt kein
    Pfad und kein Layername mehr als Literal in ein Skript. Wer einen
    braucht, importiert ihn. Damit ändert eine Umbenennung genau eine Datei
@@ -281,6 +288,13 @@ derselben Welle teilen sich niemals eine Datei.
    eine fachliche Auffälligkeit findet, schreibt sie auf und ändert sie
    nicht. Sonst ist am Ende nicht mehr unterscheidbar, ob eine Abweichung
    Umbau oder Absicht war.
+5. **Der geteilte Checkpoint-Ordner wird nur allein verändert.** Lesen ist
+   jederzeit frei, Löschen und Ersetzen nur, wenn kein anderes Paket
+   gleichzeitig rechnet — siehe §13.2.
+6. **Die Fortschrittsdatei schreibt niemand außer mir.**
+   `docs/rewrite/FORTSCHRITT.md` und `docs/rewrite/PLAN.md` sind für Pakete
+   tabu; sie berichten stattdessen. Zwei parallele Pakete, die beide ins
+   Protokoll schreiben, kollidieren an der Wellengrenze garantiert.
 
 ## 9. Bekannte Grenzen
 
@@ -305,9 +319,17 @@ derselben Welle teilen sich niemals eine Datei.
 
 ## 10. Nächster Schritt
 
-**W0.2** — Pfadvertrag anlegen. W0.1 ist abgeschlossen (§11.5); der
-Zielbaum aus §11.2 steht und ist die Grundlage, gegen die der Vertrag
-geschrieben wird.
+**W1.2** — tote Daten löschen und die Provenienz retten. Der gesamte
+Aufräumteil der Welle 1 ist zusammengeführt; als Nächstes kommt das
+Datenfenster aus §12.2, in dem nichts anderes rechnen darf.
+
+**Eine Abweichung vom Plan, bewusst:** W1.2 und W1.3 bekommen **kein
+eigenes Worktree**. Regel 3 verlangt eines je Paket, aber `data/` ist in
+jedes Worktree nur hineinverlinkt — eine Löschung dort wirkt ohnehin
+global. Ein Worktree gäbe hier also **falsche Sicherheit** statt echter
+Isolation und würde die Handlung zusätzlich schwerer nachvollziehbar
+machen. Beide Pakete laufen deshalb direkt im Hauptrepo, seriell, mit
+Inventar vorher und nachher als Netz.
 
 ## 11. Nachträge aus der Aufklärung zu W0.1
 
@@ -496,6 +518,76 @@ Abnahme verfälschen.
 | 3 | W1.2, dann W1.3 | allein, nichts sonst rechnet |
 | 4 | W1.4 (Wächter) | allein — braucht W1.1 und W1.2 |
 | 5 | W1.P1 – W1.P9 | ja, aber gedrosselt: schwere Läufe konkurrieren um Platte und Kerne |
+
+## 13. Nachträge aus der Welle 1
+
+Drei Regeln haben sich im Betrieb als unvollständig erwiesen. Alle drei
+Korrekturen stammen aus Befunden der Pakete selbst, nicht aus Theorie.
+
+### 13.1 Regel 1 gilt für Code, nicht für das Register
+
+**Beobachtung:** `pipeline/contract.py` gehört laut §7 dem Paket W0.2. Zwei
+Pakete haben es trotzdem geändert — W1.7 (`9475f6c`) und W1.6 (`e3d3655`),
+beide, weil sie einen Layer entfernt haben, der dort eingetragen war. Beide
+haben es gemeldet. Regel 1 ist damit faktisch zweimal gebrochen, und beim
+dritten Mal wäre es Gewohnheit.
+
+**Die Regel war falsch formuliert, nicht die Pakete.** Der Vertrag ist ein
+*Register*, kein Modul: jedes Paket, das eine Quelle oder einen Layer
+hinzufügt oder entfernt, **muss** dort eintragen oder austragen. Ein
+Register mit einem Alleinbesitzer wäre nach Welle 0 sofort veraltet.
+
+**Neue Fassung von Regel 1:**
+
+> Ein Pfad, ein Besitzer — **für Code**. `pipeline/contract.py` ist davon
+> ausgenommen: es ist ein Register, das jedes Paket für **seine eigenen**
+> Einträge fortschreibt. Wer dort etwas ändert, ändert ausschließlich die
+> Einträge, die zu seinem Paket gehören, zieht die Zählzusicherungen in
+> `tests/test_contract.py` mit und nennt beides im Bericht. Alles andere in
+> der Datei bleibt unangetastet.
+
+Die Alternative — ein „Contract-Pflege"-Paket je Welle — wäre teurer und
+langsamer: sie würde jedes Paket auf einen Sammeltermin warten lassen, für
+eine Änderung von zwei Zeilen.
+
+### 13.2 Der geteilte Checkpoint-Ordner ist beschreibbar, und das ist gefährlich
+
+**Beobachtung:** W1.6 hat `distance_layers/noe_pdf_hig_source.tif` gelöscht
+— zu Recht, denn der Layer existiert nicht mehr und ein Test hätte ihn
+sonst weiter erwartet. Aber dieser Ordner ist per Symlink in **jedes**
+Worktree eingehängt und wird von jedem Nachweislauf gelesen. Eine Löschung
+dort wirkt sofort auf alle.
+
+Im konkreten Fall war es harmlos, weil W1.6 allein lief. In einem
+Parallelbatch hätte es die Nachweisgrundlage der anderen Pakete unter ihnen
+weggezogen — und zwar lautlos, weil ein fehlender Checkpoint nicht als
+Fehler auffällt, sondern als „muss neu gerechnet werden".
+
+**Neue Regel 5:**
+
+> **Der geteilte Checkpoint-Ordner wird nur allein verändert.** Löschen oder
+> Ersetzen einer Datei in
+> `output/abschichtung_widmung_v2/distance_layers/` ist eine
+> Datenfenster-Handlung wie W1.2 und W1.3: erlaubt nur, wenn kein anderes
+> Paket gleichzeitig rechnet. Lesen bleibt jederzeit frei. Wer dort löscht,
+> nennt im Bericht die Datei, den Grund und die Zahl der verbliebenen
+> Checkpoints.
+
+### 13.3 Zusammenführen ist ein Arbeitsschritt, kein Nebenprodukt
+
+**Beobachtung:** Beim Zusammenführen der vier parallelen Welle-1-Zweige hat
+Git ohne einen einzigen Konfliktmarker drei falsche README-Aussagen
+erzeugt. Jede Einzeländerung war korrekt; erst gemeinsam wurden sie falsch,
+weil ein Paket eine Datei löschte, über die ein anderes eine Aussage
+korrigiert hatte.
+
+**Konsequenz für jede künftige Wellengrenze:**
+
+> Überschneiden sich die Dateimengen zweier zusammengeführter Pakete, wird
+> die zusammengeführte Fassung danach **inhaltlich gegen den Code geprüft**
+> — nicht nur auf Konfliktfreiheit. Für Prosa leistet das kein Werkzeug.
+> Kalkuliert wird dafür rund die Hälfte der durch Parallelität gesparten
+> Zeit.
 
 ## Maschinensichten
 

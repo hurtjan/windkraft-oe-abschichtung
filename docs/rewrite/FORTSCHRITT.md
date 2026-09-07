@@ -12,9 +12,9 @@ W0.1 in dessen §11. Die Belege liegen unter
 
 | | |
 |---|---|
-| Abgeschlossen | 8 von 30 — **Welle 0 vollständig**, Aufräumteil der Welle 1 zusammengeführt |
-| In Arbeit | Welle 1, 13 Pakete offen |
-| Zweig | `docs/audit-und-plan`, Kopf `81849de`, kein Remote |
+| Abgeschlossen | 9 von 30 — **Welle 0 und der gesamte Aufräumteil der Welle 1** |
+| Als Nächstes | W1.2, das Datenfenster — nichts anderes darf dabei rechnen |
+| Zweig | `docs/audit-und-plan`, kein Remote |
 | Abweichungen bisher | keine — alle Pakete bitgleich |
 
 ## Paketübersicht
@@ -33,7 +33,7 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | W1.7 | Ausschlusszonen entfernen | **fertig** | 25 min | 15 min | bitgleich — *keine* Bandänderung |
 | W1.1 | Adress-Cache-Weiche entfernen | **fertig** | 20 min | 8 min | bitgleich · 130 Tests · Cache echt geprüft |
 | W1.5 | Tote Skripte löschen | **fertig** | 15 min | 14 min | bitgleich · 130 Tests |
-| W1.6 | NÖ-PDF-HiG-Sackgasse entfernen | offen | 25 min | | |
+| W1.6 | NÖ-PDF-HiG-Sackgasse entfernen | **fertig** | 25 min | 14 min | bitgleich · 130 Tests · Sackgasse belegt |
 | W1.8 | Paketmetadaten bereinigen | **fertig** | 15 min | 8 min | bitgleich · 130 Tests |
 | W1.9 | Doku-Widersprüche korrigieren | **fertig** | 15 min | 13 min | nur Doku · 130 Tests |
 | — | Zusammenführung der vier Zweige | **fertig** | 15 min | 30 min | bitgleich · 130 Tests · 3 stille Fehler gefunden |
@@ -63,7 +63,7 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 
 | | |
 |---|---|
-| Gebraucht bisher | **2 h 29** für acht Pakete plus die Zusammenführung |
+| Gebraucht bisher | **2 h 43** für neun Pakete plus die Zusammenführung |
 | davon Welle 0 | 1 h 30, seriell (49 + 28 + 12 min) |
 | davon Welle 1, Aufräumen | 29 min (W1.7 seriell 15 min, dann vier parallel in 14 min) |
 | davon Zusammenführung | 30 min — doppelt so lang wie geschätzt |
@@ -419,6 +419,37 @@ mit `git branch -d`, keiner mit `-D`.
 
 **Abnahme: bitgleich, 130 Tests grün, Arbeitsbaum sauber.**
 
+### W1.6 — NÖ-PDF-HiG-Sackgasse entfernen · fertig
+
+Commit `e3d3655`, Zweig `w1.6`. Geschätzt 25 min, gebraucht 14.
+
+Der Checkpoint `noe_pdf_hig_source` (rekonstruierte SekROP-Quellobjekte,
+Erosion 750 − 50 m) wurde erzeugt und von niemandem gelesen. Belegt auf drei
+unabhängigen Wegen: repoweite Suche findet ihn nur noch in Doku, die
+Layerlisten von Stufe 3 und 4 verwenden ausschließlich `noe_pdf_750m_zones`,
+und der Datenflussgraph aus einer früheren Sitzung führt ihn bereits als
+`verified_dead`. `LAYER_NAMES` schrumpft von 34 auf 33.
+
+Mitentfernt: `noe_pdf_source_mask()` und `NOE_PDF_SOURCE_LAYER_NAMES` in
+`hig_source_masks.py`, deren einziger Aufrufer die gestrichene Zeile war,
+samt der harten `FileNotFoundError`-Vorbedingung.
+
+**Was der Agent bewusst *nicht* gelöscht hat**, ist die wertvollere Hälfte
+des Ergebnisses: `noe_pdf_750m_zones` und `noe_pdf_mask()` sehen genauso
+nach Sackgasse aus, haben aber einen echten Abnehmer — Band
+`haeuser_im_gruenen_noe_pdf` speist `haeuser_im_gruenen`. Wer die Namen nur
+überflogen hätte, hätte hier ein Band zerstört.
+
+**Zur Abnahme sagt der Agent selbst das Richtige:** Bitgleichheit war
+garantiert, weil der entfernte Pfad nie in der Bandkette lag. Sie zeigt
+nur, dass nichts *anderes* kaputtging. Der eigentliche Beweis ist die
+Aufrufer-Analyse.
+
+**Drei Befunde über das Paket hinaus** — behandelt in `PLAN.md` §13:
+Register-Besitz (§13.1), Schreibzugriff auf den geteilten
+Checkpoint-Ordner (§13.2), und eine Sackgasse eine Ebene höher
+(`pdf_hig_sources.py` erzeugt jetzt GeoJSON, die niemand liest → Punkt 12).
+
 ## Offene Punkte
 
 | # | Punkt | Fällig |
@@ -430,8 +461,10 @@ mit `git branch -d`, keiner mit `-D`.
 | 3 | `docs/widmung_v2_provenance.md` nennt Quellpfade, die es nicht mehr gibt. Unklar, ob eingefrorene Momentaufnahme wie `RUN1_VERGLEICH.md` oder lebende Doku. | Welle 1, Widmungspakete |
 | 4 | `config.json:osm_dir` und `wind_pd_100` zeigen auf Dateien, die es nie gab. Mitgezogen, aber weiterhin tot. | W1.x |
 | 6 | `describe_sources()` in `windkraft/calc/wind_zones.py` hat keinen Aufrufer. Von W1.5 bewusst nicht angetastet, weil außerhalb des Auftrags. | W1.x |
-| 7 | `windkraft/calc/streusiedlung.py` nimmt ein `cache_dir` entgegen, aber W1.1 fand keinen Aufrufer mit hartem Vorgabewert. Entweder toter Parameter oder ein übersehener Pfad nach `data/`. | W1.6 oder W1.4 |
-| 8 | Ungenutzter Import `admin_boundaries` in `windkraft/calc/hig_source_masks.py`, vorbestehend, von `ruff` gefunden. | Sammelposten |
+| ~~7~~ | ~~`streusiedlung.py` hat eine verdeckte Cache-Weiche.~~ **Von W1.6 untersucht, Entwarnung:** `cache_dir` ist Pflicht-Keyword (`streusiedlung.py:82`), wird an `bev_register.py` durchgereicht und dort seit W1.1 sauber aufgelöst. Keine zweite Weiche. Einziger Aufrufer ist `docs/analysis/streusiedlung_knee.py:217`, außerhalb der v2-Kette, Ziel nicht unter `data/`. | — |
+| ~~8~~ | ~~Ungenutzter Import `admin_boundaries`.~~ **In W1.6 entfernt**, `ruff` sauber. | — |
 | 9 | `docs/HANDOFF.md` trägt ein veraltetes Referenz-Manifest. Das README verweist nur darauf, dass es veraltet ist. Wer es aktualisiert, ist nicht festgelegt. | Welle 4 |
 | 10 | Die 18 von 38 Bändern, die zwischen `run1` und der Referenz-TIF um < 0,004 % abweichen, sind laut `RUN1_VERGLEICH.md` **ungeklärt**. Das berührt die Projektfrage, ob `run1` das Vorgängerprojekt als Quelle der Wahrheit ablösen darf. Keine Textkorrektur, sondern eine Entscheidung. | Nutzer, vor Welle 5 |
 | 11 | `docs/FOLLOWUPS.md` führt die veraltete `EXCLUSION_LAYERS`-Liste weiterhin als offenen Punkt, obwohl W1.5 das ganze Skript gelöscht hat. Im README nachgezogen, dort nicht — die Datei galt als eingefroren. Zu klären: eingefrorene Momentaufnahme oder lebende Liste? Dieselbe Frage wie Punkt 3. | mit Punkt 3 |
+| 12 | **Sackgasse eine Ebene höher.** Nachdem W1.6 `noe_pdf_source_mask()` entfernt hat, erzeugt `windkraft/noe/pdf_hig_sources.py:derive_layer_files()` (aufgerufen in `scripts/noe/extract_noe_vector_layers.py:286`) `output/noe/pdf_hig_source_*.geojson`, die niemand mehr liest. Fremder Besitz, deshalb von W1.6 korrekt liegengelassen. | W1.P9 |
+| 13 | Der `Run:`-Hinweis im Docstring von `scripts/widmung_v2/02_build_hig_sources.py:26-27` nennt den alten Pfad `scripts/main/build_hig_sources.py`. Vorbestehend. | Sammelposten |
