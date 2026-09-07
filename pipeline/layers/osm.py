@@ -68,61 +68,65 @@ dafür, sich selbst zu überspringen. Diese Stufe wendet denselben
 Mechanismus eine Ebene höher an, statt eine eigene, leicht andere Prüfung
 zu erfinden.
 
-Verworfen: ein harter Abbruch bei Fingerabdruck-Mismatch (den
-``pipeline/fingerprint.py`` als Möglichkeit nennt - "kann dann hart
-abbrechen"). Diese Stufe rechnet stattdessen automatisch neu (wie die
-beiden selbstprüfenden Prep-Module es bei sich selbst tun): ein Mismatch
-bedeutet praktisch "die Prep-Stufe ist seit dem letzten Layer-Lauf erneut
-gelaufen", was routinemäßig vorkommt (z. B. neue PBF-Stichtagsversion) und
-keinen Abbruch rechtfertigt - anders als etwa ein fehlendes Werkzeug
-(``osmium``), das die Prep-Stufe selbst schon hart abbrechen lässt.
+Ablage: EIN Tag ``PREP_FINGERPRINT`` (SHA-256 über
+``pipeline.fingerprint.compute()`` der acht Parquets, siehe
+``_fingerprint_tag()`` unten) in jedem der neun Checkpoints dieser Stufe,
+geprüft über den ``extra_ok``/``extra_tags``-Mechanismus von
+``layer_done()`` - **nicht** eine separate Fingerabdruck-Datei. So ursprünglich
+(vor dem Zusammenführen von W2.1/W2.3/W2.4) in diesem Modul umgesetzt:
+``FP_DIR = contract.BUILD_LAYERS / "_fingerprints" / "osm"`` plus
+``fingerprint.matches()``/``.write()`` gegen eine
+``.fingerprint.json``-Datei, entkoppelt vom eigentlichen Ausgabe-Raster.
+W2.1 (``pipeline/layers/hig.py``) und W2.4 (``pipeline/layers/geo.py``)
+lösten dieselbe Frage stattdessen mit einem Tag - der Kommentar bei
+``04_create_distance_zones.py:446-447`` benennt für genau diesen Zweck
+schon eine Tag-Lücke im Ausgabeformat. Diese Stufe wurde beim
+Zusammenführen auf die Tag-Variante umgestellt: ein Tag wandert mit der
+Datei, eine Nebendatei kann von ihr getrennt gelöscht, verschoben oder
+vergessen werden, ohne dass das auffällt.
 
-Granularität: EIN Fingerabdruck für alle drei Checkpoint-Gruppen dieser
+Verworfen bleibt (unabhängig von Tag vs. Datei): ein harter Abbruch bei
+Fingerabdruck-Mismatch (den ``pipeline/fingerprint.py`` als Möglichkeit
+nennt - "kann dann hart abbrechen"). Diese Stufe rechnet stattdessen
+automatisch neu, weil ihr ``layer_done()``-Aufruf beim Mismatch
+``extra_ok`` fehlschlagen lässt und der Checkpoint dadurch in
+``missing`` landet: ein Mismatch bedeutet praktisch "die Prep-Stufe ist
+seit dem letzten Layer-Lauf erneut gelaufen", was routinemäßig vorkommt
+(z. B. neue PBF-Stichtagsversion) und keinen Abbruch rechtfertigt - anders
+als etwa ein fehlendes Werkzeug (``osmium``), das die Prep-Stufe selbst
+schon hart abbrechen lässt.
+
+Granularität: EIN Fingerabdruck-Tag für alle drei Checkpoint-Gruppen dieser
 Stufe (``OSM_LAYER_NAMES``, ``INFRA_LAYER_NAMES``, ``AIRPORT_LAYER_NAMES``),
 nicht drei getrennte - dieselbe Prep-Ausgabe (``b_layers/``) speist alle
 drei, eine Trennung nach einzelnen Parquet-Dateien wäre genauer (z. B.
 würde eine reine ``transport.parquet``-Änderung nur ``AIRPORT_LAYER_NAMES``
 betreffen), aber unnötig komplex für den Nutzen - ein Fingerabdruck-Mismatch
-löst ohnehin nur einen erneuten Rechenlauf aus, keinen Datenverlust.
+löst ohnehin nur einen erneuten Rechenlauf der betroffenen Checkpoints aus
+(``ensure_group_layers()`` baut pro Gruppe nur ``missing`` neu), keinen
+Datenverlust.
 
 Was NICHT geprüft wird: die HIG-Vorbedingungs-Checkpoints
 (``OFFICIAL_COVER_LAYERS``, aus dem HIG-Paket W2.1) haben ihren EIGENEN,
 schon im Original vorhandenen Mechanismus (``HIG_SOURCE_FINGERPRINT``-Tag,
 mtime-basiert, siehe ``_cover_fingerprint()`` unten, unverändert
-portiert) - der bleibt parallel bestehen, unberührt von der hier
-beschriebenen Prep-Fingerabdruck-Prüfung. Ebenfalls nicht geprüft: der
-Inhalt der Prep-Parquet-Dateien (nur Größe/Änderungszeit, siehe
+portiert) - der bleibt parallel bestehen, als eigener Tag neben
+``PREP_FINGERPRINT``, unberührt von der hier beschriebenen
+Prep-Fingerabdruck-Prüfung. Ebenfalls nicht geprüft: der Inhalt der
+Prep-Parquet-Dateien (nur Größe/Änderungszeit, siehe
 ``pipeline/fingerprint.py``-Docstring - ein Hash über die bis zu 900 MB
 große ``buildings.parquet`` bei jedem Lauf wäre selbst der Aufwand, den
 die Prep-Stufe vermeiden soll) und nicht die Konfiguration
 (``config.json``, ``--mode``/``--total-height-m`` usw.) - eine geänderte
 Regel-Distanz erkennt nach wie vor nur ``--force-layers`` von Hand, wie im
 Original.
-
-## Konvention für Schwesterpakete (W2.4 usw.)
-
-Der Fingerabdruck dieser Stufe liegt unter
-``build/layers/_fingerprints/osm/.fingerprint.json`` - EIN eigenes
-Unterverzeichnis je Domäne unter ``build/layers/_fingerprints/``, nicht
-eine gemeinsame Datei in ``build/layers/`` selbst (dort liegen die 33
-Checkpoint-``.tif``s aller drei Layer-Pakete gemischt - eine gemeinsame
-``build/layers/.fingerprint.json`` würde sich zwischen W2.1/W2.3/W2.4
-gegenseitig überschreiben). ``pipeline/contract.py`` wird dafür bewusst
-NICHT geändert (kein neuer Eintrag dort) - genau wie
-``pipeline/contract.py:BUILD_LAYERS`` selbst beschreibt, prüft der Vertrag
-nicht, ob ein Unterverzeichnis existiert; das gehört der jeweiligen Stufe.
-Ein Eintrag in ``contract.py`` hätte zudem denselben Konflikt erzeugt, den
-``make/layers/*.mk`` gerade vermeiden soll (drei Pakete, eine gemeinsame
-Datei). Ein Schwesterpaket kann dieselbe Konvention übernehmen, indem es
-lokal in seinem eigenen Modul ``FP_DIR = contract.BUILD_LAYERS /
-"_fingerprints" / "<eigene-domäne>"`` definiert und mit den Parquet-Dateien
-seiner eigenen Prep-Domäne füttert (``pipeline.fingerprint.matches()``/
-``.write()``) - keine gemeinsame Infrastruktur nötig, kein Konfliktpunkt.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
 import math
 import sys
 from pathlib import Path
@@ -205,14 +209,24 @@ PREP_INPUT_KEYS = [
     "roads", "railways", "military", "transport",
 ]
 
-# Eigenes Fingerabdruck-Unterverzeichnis dieser Domäne, siehe Moduldocstring
-# "Konvention für Schwesterpakete".
-FP_DIR = contract.BUILD_LAYERS / "_fingerprints" / "osm"
-
-
 def _prep_inputs() -> list[Path]:
     b_dir = contract.PREP["osm"]["b_layers"]
     return [b_dir / f"{key}.parquet" for key in PREP_INPUT_KEYS]
+
+
+def _fingerprint_tag() -> str:
+    """SHA-256 über ``pipeline.fingerprint.compute()`` der acht tatsächlich
+    gelesenen ``b_layers``-Parquets, als ``PREP_FINGERPRINT``-Tag in jedem
+    Checkpoint dieser Stufe abgelegt - dieselbe Konvention wie
+    ``pipeline/layers/hig.py``/``pipeline/layers/geo.py`` (siehe
+    Moduldocstring "Fingerabdruck-Konvention"), an die diese Stufe beim
+    Zusammenführen von W2.1/W2.3/W2.4 angeglichen wurde. Ersetzt die
+    ursprüngliche, hier verworfene Variante mit einer separaten
+    ``.fingerprint.json`` unter ``build/layers/_fingerprints/osm/``: ein Tag
+    wandert mit der Rasterdatei, eine Nebendatei kann von ihr getrennt
+    verlorengehen."""
+    data = fingerprint.compute(_prep_inputs())
+    return hashlib.sha256(json.dumps(data, sort_keys=True).encode("utf-8")).hexdigest()
 
 
 def _read_prep_layer(key: str, bounds: tuple[float, float, float, float] | None) -> gpd.GeoDataFrame:
@@ -531,47 +545,44 @@ def main(argv: list[str] | None = None) -> None:
     legacy_cover_dir = Path(args.legacy_cover_dir)
     _require_hig_layers(legacy_cover_dir)
 
-    prep_inputs = _prep_inputs()
-    prep_fp_ok = fingerprint.matches(FP_DIR, prep_inputs)
-    force = args.force_layers or not prep_fp_ok
-    if not prep_fp_ok:
-        reason = "kein gespeicherter Fingerabdruck" if not (FP_DIR / fingerprint.FINGERPRINT_FILENAME).exists() else "Prep-Eingaben haben sich geändert"
-        print(
-            f"[info]  layer-osm: Fingerabdruck der Prep-Eingaben ({reason}) - "
-            f"alle Checkpoints dieses Laufs werden neu gebaut, siehe Moduldocstring "
-            "'Fingerabdruck-Konvention'.",
-            flush=True,
-        )
+    # PREP_FINGERPRINT-Tag statt separater Fingerabdruck-Datei (siehe
+    # Moduldocstring "Fingerabdruck-Konvention") - dieselbe Konvention wie
+    # pipeline/layers/hig.py/geo.py: EIN Tag für alle drei Checkpoint-Gruppen
+    # dieser Stufe, weil dieselbe Prep-Ausgabe (b_layers/) alle drei speist.
+    derived_tags = {"PREP_FINGERPRINT": _fingerprint_tag()}
+
+    def _tags_ok(expected: dict):
+        return lambda tags: all(tags.get(k) == v for k, v in expected.items())
 
     # Die Revision muss mit in die Checkpoint-Tags: sonst gelten vorhandene
     # build/layers/*.tif weiter als gültig und eine geänderte Klassifikation
-    # würde stillschweigend nicht wirksam. Unverändert aus dem Original.
-    extra_tags = {
+    # würde stillschweigend nicht wirksam. Unverändert aus dem Original,
+    # jetzt zusätzlich zu PREP_FINGERPRINT statt an dessen Stelle.
+    osm_tags = {
+        **derived_tags,
         "HIG_SOURCE_FINGERPRINT": _cover_fingerprint(legacy_cover_dir),
         "BUILDING_CLASSIFICATION_REVISION": BUILDING_CLASSIFICATION_REVISION,
     }
-
-    def _tags_ok(tags: dict) -> bool:
-        return all(tags.get(k) == v for k, v in extra_tags.items())
 
     runtime.ensure_dir(contract.BUILD_LAYERS)
     with timed("build/update checkpoint layers"):
         ensure_group_layers(
             contract.BUILD_LAYERS, OSM_LAYER_NAMES, "v2 OSM building classification",
-            lambda: build_osm_building_sources(cfg, grid, args), grid, force,
-            extra_ok=_tags_ok, extra_tags=extra_tags,
+            lambda: build_osm_building_sources(cfg, grid, args), grid, args.force_layers,
+            extra_ok=_tags_ok(osm_tags), extra_tags=osm_tags,
         )
         if not args.skip_infra:
             ensure_group_layers(
                 contract.BUILD_LAYERS, INFRA_LAYER_NAMES, "infrastructure masks",
-                lambda: build_infrastructure_masks(cfg, grid, args), grid, force,
+                lambda: build_infrastructure_masks(cfg, grid, args), grid, args.force_layers,
+                extra_ok=_tags_ok(derived_tags), extra_tags=derived_tags,
             )
             ensure_group_layers(
                 contract.BUILD_LAYERS, AIRPORT_LAYER_NAMES, "airport corridor masks",
-                lambda: build_airport_corridor_masks(cfg, grid, args), grid, force,
+                lambda: build_airport_corridor_masks(cfg, grid, args), grid, args.force_layers,
+                extra_ok=_tags_ok(derived_tags), extra_tags=derived_tags,
             )
 
-    fingerprint.write(FP_DIR, prep_inputs)
     print(f"Checkpoint layers updated in {contract.BUILD_LAYERS}.")
 
 
