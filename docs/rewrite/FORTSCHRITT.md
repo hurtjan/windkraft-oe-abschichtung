@@ -268,6 +268,53 @@ wie die Positivzone `Bgld`, per Attributfilter getrennt), aber niemand ruft
 die Funktion. Das gehört in W1.5 mit entfernt, nicht in dieses Paket — es
 fällt nicht unter Entscheidung (a).
 
+### W1.5 — Tote Skripte und tote Ausschlusszonen-Mechanik löschen · fertig
+
+Drei Skripte gelöscht, jede Begründung selbst am Code verifiziert:
+`scripts/webmap/build_layer_viewer.py` (nutzt `SIMPLIFIED_DEFAULT_VISIBLE`
+und `FINAL_LAYER_NAMES`, beide im ganzen Repo nirgends definiert — jeder
+Aufruf endet mit `NameError`), `scripts/analysis/build_v2_dashboard_data.py`
+(`EXCLUSION_LAYERS` nennt acht Bandnamen, die im 38-Band-Schema nicht
+existieren — gegen `pipeline/contract.py:LAYER_NAMES` geprüft) und
+`scripts/noe/derive_pdf_hig_sources.py` (vollständig redundant:
+`scripts/noe/extract_noe_vector_layers.py` ruft `derive_layer_files(OUT_DIR)`
+bereits selbst auf, die Funktion hat nur diesen einen Parameter).
+
+Dazu die von W1.7 aufgeschobene Restaufräumung in `windkraft/calc/wind_zones.py`:
+`load_wind_exclusion_zones()`, `WIND_EXCLUSION_ZONE_SOURCES` (einziger
+Eintrag `BgldAus`) und die dadurch verwaiste Konstante `REGIME_FORBIDDEN`
+entfernt, Moduldocstring auf die verbliebene Positivzonen-Registrierung
+zurückgeschnitten. `BgldAus` und die Positivzone `Bgld` lasen dieselbe Datei
+(`data/zonen/WK_Eignungszonen.zip`), per `filter_field="Status"` auf
+verschiedene `keep_prefixes` getrennt — die Datei und die Positivzone sind
+unverändert, es geht nur der Ausschluss-Zweig.
+
+Mitgezogene Verweise (drei echte, alle korrigiert statt nur gelöscht):
+`windkraft/calc/hig_source_masks.py:90-93` — die `FileNotFoundError` beim
+Fehlen der NÖ-PDF-Quellobjekte verwies auf das gelöschte
+`derive_pdf_hig_sources.py`, zeigt jetzt auf `extract_noe_vector_layers.py`,
+das dieselbe Funktion selbst aufruft. `windkraft/calc/band_manifest.py`
+(zwei Kommentare) — verwiesen auf `build_v2_dashboard_data.py` als Herkunft
+von `clipped_to_austria`-Wissen bzw. der `LABELS_DE`-Kurzlabels; auf
+"inzwischen gelöschter toter Code" umformuliert, ohne den Pfad eines nicht
+mehr existierenden Skripts zu nennen. `README.md` (zwei Stellen) — nannte
+den Dashboard-Absturz als "sichtbarste Konsequenz" im Präsens und listete
+den Layer-Viewer unter "Erledigt"; beides auf Vergangenheit/Löschung
+umgestellt. Rein narrative Erwähnungen (bereits abgeschlossene
+Entscheidungen in `PLAN.md`, die Pakettabellen in
+`PLAN.md`/`UMSETZUNG.md`/`packages.tsv`/`packages.json`, die generierten
+`zielbild.html`/`umsetzung.html`) blieben unverändert stehen — sie
+beschreiben Vergangenes bzw. genau diese Paketaufgabe, zeigen also nicht ins
+Leere.
+
+**Abnahme: 130 Tests grün (unverändert gegenüber W1.7 — keine der drei
+Skript-Löschungen und keine der Wind-Zonen-Änderungen hatte einen Test).**
+Nachweislauf `04_create_distance_zones.py` gegen die geteilten Checkpoint-
+Layer: bitgleich, `sha256`
+`dc58b011af1b461aa21f6416d378bce2a4187e18d674c65060506df5939e3df1` —
+erwartungsgemäß, da keiner der drei Skript- oder der wind_zones.py-Pfade in
+der Bandkette lag.
+
 ## Offene Punkte
 
 | # | Punkt | Fällig |
