@@ -39,10 +39,10 @@ konsumiert, findet den Vertrag dafür in [`docs/HANDOFF.md`](docs/HANDOFF.md).
   dem Pfadvertrag `pipeline/contract.py` (`windkraft/config.py:8, 35-45`);
   alles andere (Schwellwerte, Bundesland-Puffer, Windparameter usw.) bleibt
   Literal in `config.json`.
-- `data/` und `output/` — beide gitignored (siehe `.gitignore`). Die einzige
-  Ausnahme ist `data/README.md`: sie ist die Provenienz-Dokumentation für
-  jede Datei unter `data/` und wird deshalb versioniert, obwohl der Ordner
-  selbst es nicht ist.
+- `data/` und `output/` — beide gitignored (siehe `.gitignore`), seit W1.2
+  ohne jede Ausnahme: die Provenienz-Dokumentation für `data/` lag früher
+  als `data/README.md` selbst im Ordner und war deshalb versioniert; sie
+  liegt jetzt als [`docs/rohdaten.md`](docs/rohdaten.md) außerhalb davon.
 
 ## Voraussetzungen
 
@@ -79,21 +79,21 @@ konsumiert, findet den Vertrag dafür in [`docs/HANDOFF.md`](docs/HANDOFF.md).
   gemessenen 5,1 GB gewachsen: `output/kataster` (5,0 GB, aus
   `scripts/preprocessing/export_at_dkm_geoparquet.py`) und der erste
   vollständige Kettenlauf (`docs/RUN1_VERGLEICH.md`) sind dazugekommen.
-  Beide Ordner sind gitignored; nur `data/README.md` ist versioniert.
+  Beide Ordner sind gitignored, keiner enthält eine versionierte Datei.
 
 ## Daten besorgen
 
 `data/` ist gitignored und wird nicht mit diesem Repo mitgeliefert.
 Provenienz und Bezugsquelle jeder einzelnen Datei stehen in
-[`data/README.md`](data/README.md) — vor dem ersten Lauf lesen, insbesondere
-Abschnitt „Warnung: stille Fallbacks bei fehlenden Rohdaten“:
+[`docs/rohdaten.md`](docs/rohdaten.md) — vor dem ersten Lauf lesen,
+insbesondere Abschnitt „Warnung: stille Fallbacks bei fehlenden Rohdaten“:
 
 > Eine unvollständige `data/`-Kopie erzeugt ein plausibel aussehendes, aber
 > falsches TIF, ohne dass irgendwo ein Fehler erscheint.
 
 Die Kette bricht bei fehlenden Rohdaten in den meisten Fällen **nicht** ab,
 sondern rechnet mit leeren oder degenerierten Eingaben weiter — siehe die
-Fallback-Tabelle in `data/README.md` für die einzelnen Mechanismen.
+Fallback-Tabelle in `docs/rohdaten.md` für die einzelnen Mechanismen.
 
 ## Die Kette
 
@@ -221,12 +221,15 @@ Für all das ist `windkraft_ö_karten` weiterhin die Quelle der Wahrheit.
 
 ## Hardlink-Sicherheit prüfen
 
-`data/` ist überwiegend echtes, per Hardlink aus `windkraft_ö_karten`
-übernommenes Quellmaterial — rein lesend, das kostet keinen Speicher und
-ist korrekt so. Für jede Datei, die irgendein Codepfad **schreibt**, gilt
-das Gegenteil: sie muss eine echte Kopie sein, nie ein Hardlink. Ein
-Schreibvorgang auf eine hardgelinkte Datei kürzt den geteilten Inode und
-zerstört dieselbe Datei im Alt-Repo im selben Moment, ohne Fehlermeldung.
+Bis W1.3 war `data/` überwiegend echtes, per Hardlink aus
+`windkraft_ö_karten` übernommenes Quellmaterial. Seit W1.3 (07.09.2026)
+gilt das nicht mehr: alle 48 verbliebenen Hardlinks unter `data/` sind
+aufgelöst, der Ordner besteht komplett aus echten Kopien — auch dort, wo
+die Kette nur liest. Für jede Datei, die irgendein Codepfad **schreibt**,
+galt ohnehin schon vorher: sie muss eine echte Kopie sein, nie ein
+Hardlink. Ein Schreibvorgang auf eine hardgelinkte Datei kürzt den
+geteilten Inode und zerstört dieselbe Datei im Alt-Repo im selben Moment,
+ohne Fehlermeldung.
 
 ```
 make check-hardlinks
@@ -235,16 +238,19 @@ make check-hardlinks
 **Nach dem Hinzufügen jedes neuen Datensatzes ausführen.** Das Werkzeug
 (`tools/check_hardlink_safety.py`) prüft mechanisch, ohne Abhängigkeiten
 und in Sekunden: kein File unter `output/` darf einen Link-Count > 1 haben
-(ausnahmslos), und eine explizit deklarierte Liste bekannter Schreibziele
-unter `data/` (aktuell die beiden Adressregister-Parquet-Caches) muss
-Link-Count 1 haben. Details, Begründung und die Historie des behobenen
-Verstoßes: [`data/README.md`](data/README.md), Abschnitt 9, und
+(ausnahmslos), und seit W1.3 gilt dieselbe Ausnahmslosigkeit für `data/` —
+*jede* Datei dort muss Link-Count 1 haben, nicht mehr nur eine deklarierte
+Liste bekannter Schreibziele. Ergänzend prüft `make check-raw-only`
+(`tools/check_raw_only.py`, seit W1.4) statisch, dass kein Codepfad
+überhaupt erst nach `data/` schreiben *kann* — beide zusammen über
+`make check-guards`. Details, Begründung und die Historie des behobenen
+Verstoßes: [`docs/rohdaten.md`](docs/rohdaten.md), Abschnitt 9, und
 [`docs/FOLLOWUPS.md`](docs/FOLLOWUPS.md), Abschnitt „Regel: die
 Hardlink-Invariante".
 
 ## Verweise
 
-- [`data/README.md`](data/README.md) — Provenienz jeder Datei unter `data/`.
+- [`docs/rohdaten.md`](docs/rohdaten.md) — Provenienz jeder Datei unter `data/`.
 - [`docs/FOLLOWUPS.md`](docs/FOLLOWUPS.md) — bei der Übernahme beobachtete,
   bewusst nicht behobene Bugs und Altlasten.
 - [`docs/MIGRATION_MAP.tsv`](docs/MIGRATION_MAP.tsv) — alte Pfade in

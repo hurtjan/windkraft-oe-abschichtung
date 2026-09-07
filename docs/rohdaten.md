@@ -749,12 +749,22 @@ im neuen Baum modifiziert wird (Hardlinks teilen sich die Inode, ein Schreib-
 zugriff auf eine Kopie würde — je nach Dateisystem — die andere mit
 verändern oder Copy-on-Write auslösen; beides ist nicht getestet).
 
-**Die Invariante:** Jede Datei, die irgendein Codepfad schreiben kann, ist
-eine echte Kopie — nie ein Hardlink. Unabhängig von Größe, Verzeichnis und
-davon, ob im Code ein Guard (Overwrite-Schutz) existiert. Quelldaten unter
-`data/`, die die Kette ausschließlich liest, bleiben davon unberührt: per
-Hardlink mit `windkraft_ö_karten` verbunden ist für sie richtig, kostet
+**Die Invariante (Stand zum Zeitpunkt der Migration, W0.1):** Jede Datei,
+die irgendein Codepfad schreiben kann, ist eine echte Kopie — nie ein
+Hardlink. Unabhängig von Größe, Verzeichnis und davon, ob im Code ein Guard
+(Overwrite-Schutz) existiert. Quelldaten unter `data/`, die die Kette
+ausschließlich liest, blieben davon zu diesem Zeitpunkt unberührt: per
+Hardlink mit `windkraft_ö_karten` verbunden war für sie richtig, kostete
 keinen Speicher.
+
+**Überholt seit W1.3 (07.09.2026):** Diese Unterscheidung — Schreibziele
+als echte Kopie, reine Leseware als Hardlink — gilt nicht mehr. Paket W1.3
+hat alle verbliebenen 48 Hardlinks unter `data/` aufgelöst; der Ordner
+besteht seither komplett aus echten Kopien, auch dort, wo die Kette nur
+liest. `tools/check_hardlink_safety.py` prüft das seither als Invariante
+für *jede* Datei unter `data/` (Regel B), nicht mehr nur für eine
+deklarierte Teilmenge bekannter Schreibziele. Details: Bericht zu W1.3 in
+`docs/rewrite/FORTSCHRITT.md`.
 
 Die Vorgängerformulierung dieser Regel lautete „Eingaben hardlinken,
 Ausgaben kopieren" — schwächer, und zwar auf eine Art, die den eigentlichen

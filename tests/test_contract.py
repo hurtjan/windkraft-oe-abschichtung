@@ -111,6 +111,31 @@ def test_legacy_entfaellt_path_exists(path):
     assert path.exists(), f"LEGACY_ENTFAELLT-Pfad existiert nicht: {path}"
 
 
+def test_legacy_entfaellt_is_currently_empty():
+    """Companion zu test_legacy_entfaellt_path_exists (W1.4): Seit W1.2 ist
+    LEGACY_ENTFAELLT leer (der einzige Eintrag, "powerlines_gpkg", ist mit
+    der gelöschten Datei entfallen - siehe Kommentar in contract.py und
+    Bericht zu W1.2). Ein leeres parametrize(...) erzeugt in pytest keinen
+    bestandenen, sondern einen einzigen übersprungenen Testfall ("NOTSET")
+    - der prüft dann nichts mehr, er dokumentiert nur die leere Liste.
+
+    contract.py hält LEGACY_ENTFAELLT bewusst als Register für künftige
+    Welle-1-Funde offen (§13.1), statt die Sektion ganz zu entfernen - die
+    Parametrisierung oben deckt solche künftigen Einträge automatisch ab,
+    ohne dass dieser Testcode sich ändern müsste. Aber "bleibt als
+    Vorbereitung stehen" darf nicht heißen "prüft bis dahin gar nichts":
+    dieser Test läuft immer (keine Parametrisierung) und hält aktiv fest,
+    dass die Liste leer ist. Wird sie befüllt, schlägt genau diese Zeile
+    fehl - ein bewusster Anstoß, das neu Gefundene zu sichten, statt dass
+    es beiläufig durchrutscht.
+    """
+    assert contract.LEGACY_ENTFAELLT == {}, (
+        "LEGACY_ENTFAELLT ist nicht mehr leer - test_legacy_entfaellt_path_exists "
+        "deckt die neuen Einträge automatisch ab (Parametrisierung), aber diese "
+        "Zusicherung hier ist jetzt überholt und muss bewusst aktualisiert werden."
+    )
+
+
 @pytest.mark.parametrize(
     "path",
     list(contract.LEGACY_TOT.values()),
