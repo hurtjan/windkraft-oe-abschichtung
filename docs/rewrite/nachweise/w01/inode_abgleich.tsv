@@ -1,0 +1,33 @@
+codestelle · alter_pfad · neuer_pfad · inode_alt · inode_neu · gleich
+config.json:paths.vgd · data/admin_boundaries/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp · data/admin/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp · 102354980 · 102354980 · ja
+config.json:paths.osm_dir · data/austria-260328-free.shp · data/osm/austria-260328-free.shp · NICHT_VORHANDEN · NICHT_VORHANDEN · nicht_abbildbar
+config.json:paths.wind_pd_150 · data/AUT_power-density_150m.tif · data/gelaende/AUT_power-density_150m.tif · 102395667 · 102395667 · ja
+config.json:paths.wind_pd_100 · data/AUT_power-density_100m.tif · data/gelaende/AUT_power-density_100m.tif · NICHT_VORHANDEN · NICHT_VORHANDEN · nicht_abbildbar
+config.json:paths.dgm · data/DGM_R25.tif · data/gelaende/DGM_R25.tif · 102459923 · 102459923 · ja
+config.json:paths.nsg_zip · data/naturschutzgebiete/SG_AT_2024_v_April_Stand_3_April_2024.zip · data/natur/SG_AT_2024_v_April_Stand_3_April_2024.zip · 102388965 · 102388965 · ja
+scripts/noe/align_pdf_shapefile.py:VGD · data/admin_boundaries/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp · data/admin/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp · 102354980 · 102354980 · ja
+scripts/noe/align_pdf_shapefile.py:PDF_PATH · data/nö_zonierung/TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf · data/noe_sekrop/TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf · 102331802 · 102331802 · ja
+scripts/noe/extract_noe_vector_layers.py:PDF_PATH · data/nö_zonierung/TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf · data/noe_sekrop/TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf · 102331802 · 102331802 · ja
+scripts/noe/extract_noe_vector_layers.py:VGD_PATH · data/admin_boundaries/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp · data/admin/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp · 102354980 · 102354980 · ja
+scripts/preprocessing/create_noe_dkm_polygon_fill_map.py:ADMIN_BOUNDARY_PATH · data/admin_boundaries/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp · data/admin/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp · 102354980 · 102354980 · ja
+scripts/widmung_v2/02_build_hig_sources.py:--address-dir (Verzeichnis, 5 Dateien) · data/adressregister · data/adressen · MENGE(5) · MENGE(5) · ja
+scripts/widmung_v2/03_build_osm_layers.py:--osm-pbf · data/austria-260330.osm.pbf · data/osm/austria-260330.osm.pbf · 102986038 · 102986038 · ja
+scripts/widmung_v2/04_create_distance_zones.py:--official-zoning-geojson · data/zonierung_noe.json · data/zonen/zonierung_noe.json · 111545224 · 111545224 · ja
+scripts/widmung_v2/04_create_distance_zones.py:--vorrangzonen-dir (Verzeichnis, 12 Dateien) · data/luca_zonen · data/zonen/luca_zonen · MENGE(12) · MENGE(12) · ja
+scripts/widmung_v2/04_create_distance_zones.py:--osm-pbf · data/austria-260330.osm.pbf · data/osm/austria-260330.osm.pbf · 102986038 · 102986038 · ja
+tools/check_hardlink_safety.py:DECLARED_DATA_WRITE_TARGETS[0] · data/adressregister/adressen_31287.parquet · data/adressen/adressen_31287.parquet · 139716806 · 139716806 · ja
+tools/check_hardlink_safety.py:DECLARED_DATA_WRITE_TARGETS[1] · data/adressregister/bev_gebaeude_31287.parquet · data/adressen/bev_gebaeude_31287.parquet · 139716807 · 139716807 · ja
+windkraft/calc/wind_zones.py:WIND_ZONE_SOURCES[bgld].source_path · data/WK_Eignungszonen.zip · data/zonen/WK_Eignungszonen.zip · 126578703 · 126578703 · ja
+windkraft/calc/wind_zones.py:WIND_ZONE_SOURCES[ktn].source_path · data/RED_III_Windkraftbeschleunigungszone.zip · data/zonen/RED_III_Windkraftbeschleunigungszone.zip · 126578704 · 126578704 · ja
+windkraft/calc/wind_zones.py:WIND_EXCLUSION_ZONE_SOURCES[bgld].source_path · data/WK_Eignungszonen.zip · data/zonen/WK_Eignungszonen.zip · 126578703 · 126578703 · ja
+windkraft/noe/pdf_align.py:_PDF_PATH_MINDESTABSTAND_DEFAULT · data/nö_zonierung/TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf · data/noe_sekrop/TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf · 102331802 · 102331802 · ja
+windkraft/calc/widmung_sources.py:_read_raw[bgld] · data/flächenwidmungen/WIDMUNGSFLAECHEN.zip · data/widmung/burgenland/WIDMUNGSFLAECHEN.zip · 122176961 · 122176961 · ja
+windkraft/calc/widmung_sources.py:_read_raw[ktn]/_ensure_ktn_gpkg zip_path · data/new_widmungs_data/kaernten/flawi_ktn_gpkg.zip · data/widmung/kaernten/flawi_ktn_gpkg.zip · 124149372 · 124149372 · ja
+windkraft/calc/widmung_sources.py:_read_raw[noe] · data/new_widmungs_data/niederoesterreich/RRU_WI_HUELLE.gpkg · data/widmung/niederoesterreich/RRU_WI_HUELLE.gpkg · 124021685 · 124021685 · ja
+windkraft/calc/widmung_sources.py:_read_raw[ooe] · data/new_widmungs_data/oberoesterreich/FLWI_WIDMUNGEN_F.zip · data/widmung/oberoesterreich/FLWI_WIDMUNGEN_F.zip · 124021684 · 124021684 · ja
+windkraft/calc/widmung_sources.py:_read_raw[sbg] · data/new_widmungs_data/salzburg/Flaechenwidmung_Shapefile.zip · data/widmung/salzburg/Flaechenwidmung_Shapefile.zip · 124149366 · 124149366 · ja
+windkraft/calc/widmung_sources.py:_read_raw[stmk_bauland] · data/new_widmungs_data/steiermark/Bauland.zip · data/widmung/steiermark/Bauland.zip · 124021680 · 124021680 · ja
+windkraft/calc/widmung_sources.py:_read_raw[stmk_flaewi] · data/flächenwidmungen/Flaewi.shp.zip · data/widmung/steiermark/Flaewi.shp.zip · 122176965 · 122176965 · ja
+windkraft/calc/widmung_sources.py:_read_raw[tir]/_tirol_gpkg glob · data/new_widmungs_data/tirol/FLW_Flaechenwidmung_270349538825189369.gpkg · data/widmung/tirol/FLW_Flaechenwidmung_270349538825189369.gpkg · 124149368 · 124149368 · ja
+windkraft/calc/widmung_sources.py:_read_raw[vbg] · data/new_widmungs_data/vorarlberg/fwp_flaeche.gpkg · data/widmung/vorarlberg/fwp_flaeche.gpkg · 124149371 · 124149371 · ja
+windkraft/calc/widmung_sources.py:_read_raw[wien] · data/new_widmungs_data/wien/genflwidmung_wien.geojson · data/widmung/wien/genflwidmung_wien.geojson · 128924081 · 128924081 · ja

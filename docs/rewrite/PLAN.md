@@ -4,6 +4,10 @@ Diese Datei ist in sich geschlossen — wer nur sie liest, braucht keine
 andere Quelle im Repo, um den Plan zu verstehen. Maschinenlesbare Details
 und interaktive Ansichten sind am Ende verlinkt.
 
+**Der Plan sagt, was zu tun ist. Was davon getan ist, steht in
+[`FORTSCHRITT.md`](FORTSCHRITT.md)** — Status je Paket, Abnahmen,
+gemessene Laufzeiten, offene Punkte. Belege unter `nachweise/`.
+
 ## 1. Stand
 
 **W0.1 abgeschlossen und nachgewiesen** (§11.5). Nächstes Paket: W0.2,

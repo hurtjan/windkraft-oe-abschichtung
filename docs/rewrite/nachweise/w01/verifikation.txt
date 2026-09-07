@@ -1,0 +1,16 @@
+=== Verifikation W0.1a ===
+
+1. Dateizahl: vorher=56 nachher=56
+   -> bestanden (56 == 56)
+
+2. Inode-Erhaltung:
+   -> bestanden (alle 56 Inodes identisch, je genau einmal)
+
+3. Linkcounts unveraendert:
+   -> bestanden (Inode->Linkcount-Zuordnung identisch)
+
+4. sha256 (Dateien <50MB) unveraendert:
+   -> bestanden (36 sha256-Werte identisch, je Inode verglichen)
+
+5. Gesamtgroesse: vorher=13777470721 nachher=13777470721
+   -> bestanden
