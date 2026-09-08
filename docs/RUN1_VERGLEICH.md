@@ -108,6 +108,14 @@ beiden, keine Abweichung.
 
 ## 5. Pixelzählung pro Band (Set-Pixel, ungleich Null)
 
+**Nachtrag (08.09.2026):** Die Methode in diesem Abschnitt vergleicht
+ausschließlich die Anzahl gesetzter Pixel je Band, nicht die Zellwerte
+bzw. deren Lage im Raster. Zwei Bänder mit identischer Pixelanzahl können
+an unterschiedlichen Zellen gesetzt sein, ohne dass diese Methode das
+anzeigt. Dieser Bericht bleibt ein eingefrorener, datierter Messbericht
+vom 06.09.2026 und wird nicht nachgeführt — dieser Nachtrag beschreibt
+nur die Grenze der Methode, nicht ein neues Messergebnis.
+
 | # | Band | Referenz | run1 | Diff (abs) | Diff (%) |
 | - | --- | ---: | ---: | ---: | ---: |
 | 1 | official_settlement_source | 6.071.385 | 6.071.380 | −5 | −0,0001 % |

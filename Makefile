@@ -60,10 +60,13 @@ check-guards: check-hardlinks check-raw-only
 
 ## --- Neues Gerüst (docs/rewrite/PLAN.md §3, §7 Paket W0.3) ---------------
 ## Fünf-Stufen-Modell: Roh -> Prep -> Layer -> Finalize -> verify. `make`
-## (Standard, siehe .DEFAULT_GOAL oben) ist Layer+Finalize, unverändert die
-## heutige Kette. `prep` existiert als Ziel; solange keine make/prep/*.mk
-## vorliegt, tut es noch nichts. `all` hängt beides zusammen; solange prep
-## leer ist, ist das dasselbe wie `make`.
+## (Standard, siehe .DEFAULT_GOAL oben) bleibt weiterhin `widmung-v2`, die
+## alte Kette (scripts/widmung_v2/01…05_*.py) - unverändert seit W0.3.
+## `all` ist seit W5.P0 (docs/rewrite/PLAN.md §13.10, Regel 9) die neue
+## Kette selbst: prep -> layers -> finalize -> verify, siehe deren
+## Definition weiter unten. Die beiden Ziele sind seither verschieden:
+## `make` (ohne Argument) lässt weiterhin nur die alte Kette laufen,
+## `make all` nur die neue - keines ruft mehr das andere auf.
 
 ## Vorpaket W1.P0 (docs/rewrite/PLAN.md §13.4): statt dass jedes der neun
 ## parallelen Prep-Pakete (W1.P1-W1.P9) ein eigenes Ziel HIER anhängt - ein
@@ -156,8 +159,32 @@ ifeq ($(strip $(VERIFY_TARGETS)),)
 	@echo "verify: noch keine Verify-Pakete vorhanden - die entstehen erst in Welle 4 (docs/rewrite/PLAN.md §7, W4.1/W4.2)."
 endif
 
-## Prep und Kette zusammen - der Beweislauf aus Rohdaten (Welle 5: W5.1).
-all: prep widmung-v2
+## Der Beweislauf aus Rohdaten (Welle 5: W5.1, Vorfeld W5.P0,
+## docs/rewrite/PLAN.md §13.10 Regel 9 - "wem gehört die Zeile, die alles
+## zusammenhält"). Bis W5.P0 rief `all` `prep` und danach `widmung-v2`
+## auf - die ALTE Kette, die nichts unter out/ schreibt (Punkt: die vier
+## Endprodukte aus §3 liegen ausschließlich dort). Damit hätte der
+## Beweislauf der Welle 5 die alte Kette bewiesen, nicht die vier Wellen
+## Umbau. Jetzt die fünf Stufen aus §3 in ihrer vorgeschriebenen
+## Reihenfolge ("Jede Stufe darf nur aus der vorigen lesen"): Roh (data/,
+## keine eigene Stufe - dafür steht `rm -rf build` vor diesem Ziel im
+## Beweislauf selbst, nicht hier), Prep (inkl. Prep II - Kataster/OSM/
+## NÖ-SekROP sind innerhalb ihres eigenen prep-<domäne>-Ziels bereits
+## zweistufig, siehe make/prep/README.md), Layer, Finalize, danach
+## verify (Dashboard + Gemeindegrenzen, §3 Stufe 5 wörtlich: "Danach
+## verify"). `validate` ABSICHTLICH NICHT Teil dieser Kette: es prüft
+## (Abweichung gegen run1 nach der Ampel aus §6), erzeugt aber kein
+## Produkt aus §3 und ist keine der fünf Stufen dort; es verlangt ein
+## Pflichtargument PAKET ohne sinnvollen Default für einen Kettenlauf und
+## schriebe bei jedem `make all` eine weitere Zeile in
+## docs/rewrite/abweichungen.tsv - das Register ist eine Zeile je
+## (Paket, Band), nicht je Lauf (§6: "Nur so ist jede Abweichung genau
+## einem Paket zuzuordnen"). Für den Beweislauf selbst gehört die Prüfung
+## trotzdem dazu, nur als eigener, bewusster Schritt danach: von Hand
+## `make validate PAKET=W5.1` (siehe make/validate/README.md). Die alte
+## Kette bleibt unter `widmung-v2` erreichbar (unser run1, siehe
+## docs/RUN1_VERGLEICH.md) - nur nicht mehr unter `all`.
+all: prep layers finalize verify
 
 ## Verdrahtet die 131 heute unerreichbaren Tests (kein `make test` bisher,
 ## siehe PLAN.md Ausgangslage: "12 unerreichbare Skripte, davon 8 Tests
