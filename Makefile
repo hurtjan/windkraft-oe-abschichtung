@@ -246,6 +246,16 @@ worktree:
 		ln -s $(CURDIR)/output/abschichtung_widmung_v2/distance_layers \
 			"$$WT_DIR/output/abschichtung_widmung_v2/distance_layers"; \
 	fi; \
+	if [ -L "$$WT_DIR/output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2_run1.tif" ]; then \
+		: schon ein Symlink - unveraendert uebernehmen; \
+	elif [ -e "$$WT_DIR/output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2_run1.tif" ]; then \
+		echo "Abbruch: $$WT_DIR/output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2_run1.tif existiert bereits, ist aber kein Symlink - unerwarteter Zustand, nichts geloescht."; \
+		echo "$$CLEANUP"; \
+		exit 1; \
+	elif [ -e "$(CURDIR)/output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2_run1.tif" ]; then \
+		ln -s $(CURDIR)/output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2_run1.tif \
+			"$$WT_DIR/output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2_run1.tif"; \
+	fi; \
 	mkdir -p "$$WT_DIR/build"; \
 	if [ -L "$$WT_DIR/build/prep" ]; then \
 		: schon ein Symlink - unveraendert uebernehmen; \
@@ -277,7 +287,7 @@ worktree:
 			ln -s $(CURDIR)/out/$$f "$$WT_DIR/out/$$f"; \
 		fi; \
 	done; \
-	echo "Angelegt: $$WT_DIR auf Zweig $(PAKET). data/ und distance_layers/ sind Symlinks auf dieses Repo (read-only, kein Kopieraufwand)."; \
+	echo "Angelegt: $$WT_DIR auf Zweig $(PAKET). data/, distance_layers/ und die run1-Vergleichsbasis (osm_wka_distance_zones_widmung_v2_run1.tif) sind Symlinks auf dieses Repo (read-only, kein Kopieraufwand)."; \
 	echo "WARNUNG: ein Lauf mit --force-layers dort schreibt in das GETEILTE distance_layers/ und zerstört die Arbeit aller anderen Worktrees - nicht verwenden."; \
 	echo "Zusaetzlich (W2.P0, docs/rewrite/PLAN.md §13.8): build/prep/ ist ebenfalls ein Symlink auf dieses Repo (read-only, kein Kopieraufwand - die Prep-Ausgaben muessten sonst je Worktree neu gerechnet werden, allein Kataster 45-70 Minuten)."; \
 	echo "WARNUNG: build/prep/ ist GETEILT und nur zum Lesen gedacht - ein Schreibzugriff (z.B. ein erneutes 'make prep' aus diesem Worktree) trifft alle Layer-Worktrees gleichzeitig; nur die Prep-Stufe im Hauptrepo darf dort schreiben."; \
