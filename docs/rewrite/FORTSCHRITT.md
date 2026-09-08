@@ -12,10 +12,10 @@ W0.1 in dessen §11. Die Belege liegen unter
 
 | | |
 |---|---|
-| Abgeschlossen | **44 von 44 — Welle 0 bis 6 vollständig.** Zehn Pakete kamen unterwegs dazu (W2.P0, W2.4, W4.P0, W5.P0 bis W5.P5, W6.6), eines entfiel (W2.2 → W2.1). Der ursprüngliche Plan endet mit W5.1; Welle 6 ist danach aus einer Beobachtung des Nutzers entstanden und hat sechs Pakete bekommen. Offen ist nur noch, was der Nutzer am 08.09.2026 neu verlangt hat: der Kartenviewer. |
+| Abgeschlossen | **45 von 45 — Welle 0 bis 6 vollständig, einschließlich des Viewers.** Zehn Pakete kamen unterwegs dazu (W2.P0, W2.4, W4.P0, W5.P0 bis W5.P5, W6.6), eines entfiel (W2.2 → W2.1). Der ursprüngliche Plan endet mit W5.1; Welle 6 ist danach aus einer Beobachtung des Nutzers entstanden und hat sechs Pakete bekommen. Offen ist nur noch, was der Nutzer am 08.09.2026 neu verlangt hat: der Kartenviewer. |
 | **Das Zielbild aus PLAN §3 ist abgenommen** | Am 08.09.2026, im Klontest von W6.4: ein frischer `git clone` von `main`, `data/` als Symlink, `make` ohne Argument — **durchgelaufen bis zu den vier Produkten, `sha256 fb57c41d…232c30`**. Das ist die Bedingung, die §7 dem Paket W6.3 gegeben hat, und die erste, die es für das Zielbild je gab. Er ist **langsam** durchgelaufen (62:49 statt der erhofften Minuten, Punkt 56) — die Bedingung fordert aber „läuft durch", nicht „läuft schnell durch". `[Rohdaten] → [Skripte] → [Ergebnisse]` ist damit an einem zweiten Ort im Dateisystem belegt. |
 | **Der Umbau liegt auf `main`** | Seit `65b97ac` zeigen `main` und `docs/audit-und-plan` auf denselben Commit, zuletzt `052e9c5` (W6.4), Divergenz `0 0`. Beide Zusammenführungen waren saubere Fast-Forwards, `make test` und `sha256` danach geprüft. **42 Pakete, und der Umbau steht dort, wo ihn ein frischer Klon findet.** |
-| Als Nächstes | **W6.6 läuft** — die drei Einzeiler, die Welle 6 selbst hinterlassen hat (Punkt 56, 57, 54), mit vollem Kettenlauf und Klontest. Danach **der Kartenviewer**: Der Nutzer hat am 08.09.2026 verlangt, dass unter `out/dashboard/` nicht die Übersichtstabelle liegt, sondern „die simple Visualisierung der Layer in einer Website über einem OSM-Layer". Der Befund aus dem Vorgängerprojekt liegt vor (siehe Protokoll), der Zuschnitt steht, die Rollenteilung ist als Annahme gesetzt: **Viewer wird `out/dashboard/index.html`, die Prüfstufe behält `report.json`.** Er kann erst nach W6.6 starten, weil er `out/abschichtung.tif` liest, das W6.6 gerade neu schreibt. |
+| Als Nächstes | **Nichts Beauftragtes.** Der Plan ist abgearbeitet, Welle 6 abgeschlossen, alle vier Endprodukte stehen. Was bleibt, ist das Register: sechs Punkte sind noch offen, drei davon aus dieser Welle und alle drei aus derselben Familie — **60** (`config.json` fällt durch die Fingerabdruck-Erkennung), **61** (`finalize` überspringt sich als einzige Stufe nicht), **62** (ein Docstring, den das dritte Modul falsch macht). Dazu die älteren Sammelposten. **Keiner davon hält etwas auf**; sie gehören in eine eigene, kleine Welle, wenn der Nutzer sie will. |
 | **Referenz** | Seit `f592e75` **`sha256 fb57c41d…232c30`** — **zweite Wanderung an einem Tag.** Erst die Bodensee-Korrektur (Punkt 33, `4bdef6ad…`), dann der Wegfall adressloser Großflächen (Punkt 34, `fb57c41d…`). Beides Nutzerentscheidungen vom 08.09.2026. `run1` (`dc58b011…`) bleibt Vergleichsbasis und historischer Zeuge; **18 der 38 Bänder weichen inzwischen davon ab**, aus zwei benannten Ursachen. |
 | Zweig | `docs/audit-und-plan`, letzter **Code**-Commit **`052e9c5`** (W6.4) — darüber liegen nur noch Commits dieser beiden Plandateien, die hier absichtlich nicht mitgezählt werden: eine Datei kann den Commit nicht nennen, der sie festhält. Keine offenen Worktrees. `main` steht seit W6.3 auf demselben Stand; der Zweig ist damit kein zweiter Wahrheitsort mehr, sondern nur noch der Ort, an dem gearbeitet wird. |
 | **W5.1 hat keinen Commit** | Der Beweislauf ändert keine verfolgte Datei — `build/` und `out/` sind ignoriert —, deshalb steht der Kopf noch auf dem Protokoll-Commit *vor* dem Lauf. Folge: **das wichtigste Abnahmeergebnis des ganzen Projekts liegt nur als Prosa in dieser Datei**, nicht als Beleg unter `nachweise/`. Punkt 49. |
@@ -23,7 +23,7 @@ W0.1 in dessen §11. Die Belege liegen unter
 | Tests | **213 plus 4 übersprungen** — von 129 zu Beginn der Welle 1. *Hier stand bis eben „215 plus 2"; das war ein Altstand aus W5.P5. Seit W6.1 lautet die Zahl 213 + 4, dreimal so gemessen (W6.1, W6.2, W6.4).* **Die vier sind seit dem 08.09.2026 benannt** (Punkt 50): zwei gegatete Langläufer, die je einmal real gelaufen sind (46,5 s und 173,3 s), ein absichtlich an `run1` gebundener Vergleich — und **einer, der seit W6.1 stillschweigend nichts mehr prüft**, weil er ein archiviertes Verzeichnis sucht. Punkt 57, Behebung eine Zeile. |
 | `data/` | **hardlinkfrei**, 48 echte Dateien, per Wächter als Invariante gesichert |
 | Abweichungen | **zwei Ursachen, 18 betroffene Bänder** gegenüber `run1`, alle in `abweichungen.tsv` mit Gruppentext. (1) Bodensee-Korrektur: Band 26 und 29 — **akzeptiert**. (2) Wegfall adressloser Großflächen: 5 gelb, 7/8/9 **rot**, 10 grün, 11–13 gelb, 27 gelb. (3) Beides überlagert: 30–36 **rot**. Die roten Bänder sind nach W5.P5 nicht mehr rot, *weil der Wächter etwas nicht kennt*, sondern **weil die gemessene Fläche das Budget überschreitet** — Band 7 mit 47,94 ha gegen 25 ha, die Bänder 8 und 9 mit 1,03 % und 1,09 % gegen 0,1 %. Das ist die ehrlichere Farbe: die Änderung ist groß, sie ist gewollt, und sie steht nicht auf Grün. |
-| Endprodukte | **Alle vier liegen jetzt echt im Hauptrepo**, mit Zeitstempel des Beweislaufs: `out/abschichtung.tif` (124,6 MB), `out/abschichtung.bands.json` (36,8 kB), `out/dashboard/` (64 kB), `out/gemeinden.geojson` (26,8 MB). Erstes Mal überhaupt — siehe Punkt 48. |
+| Endprodukte | **Alle vier liegen echt im Hauptrepo**: `out/abschichtung.tif` (124,6 MB), `out/abschichtung.bands.json` (36,8 kB), `out/dashboard/` (**17 MB seit W6.7**), `out/gemeinden.geojson` (26,8 MB). `out/dashboard/` ist seit W6.7 die **Kartenansicht**: `index.html` mit Leaflet über OSM, 38 PNG-Overlays unter `layers/`, dazu unverändert `report.json` aus der Prüfstufe. Bis W5.1 hat sie im Hauptrepo überhaupt nie etwas erzeugt — Punkt 48. |
 | Plattenplatz | **Entspannt: zuletzt 110 GiB frei bei 88 % Belegung**, gegenüber 16 GiB bei 99 % vor Welle 6. Ein Teil davon ist W6.1 (`output/` 11 GB ins Archiv), der größere Teil kam von selbst zurück — plausibel abgelaufene APFS-Schnappschüsse, gemessen ist das nicht. Aktuell im Repo: `data/` 13 GB, `derived/` 12 GB, `out/` 145 MB. `derived/` bleibt: es ist der Zwischenstand, aus dem `finalize` in dreieinhalb Minuten neu baut statt in 62. |
 
 ## Paketübersicht
@@ -95,7 +95,7 @@ die es sie gibt.
 | W6.4 | Der Fingerabdruck wird ortsunabhängig | **fertig, Abnahme halb** | 90 min | 138 min | **`sha256` exakt getroffen**, Volllauf 61:56 · zweiter Lauf **3:04**, alle zehn Prep-Stufen `[skip]` · 213 + 4 Tests · Punkt 53 und 45 erledigt, Punkt 55 **geheilt** · **der Klon überspringt trotzdem nicht — Punkt 56** |
 | W6.6 | Drei Einzeiler, die Welle 6 selbst hinterlassen hat | **fertig** | 30 min | 95 min | **Der Klon überspringt: 8:38 statt 62:49** · `sha256` exakt · Volllauf 62:12, zweiter Lauf 3:02 · **214 + 3 Tests**, der tote Test lebt wieder · Untergrenze dynamisch gegengeprüft · Punkt 56, 57, 54 erledigt · Punkt 60 gefunden |
 | W6.5 | Die Doku beschreibt den neuen Baum | **fertig** | 40 min | 40 min | **Auf die Minute geschätzt** · `docs/dataflow/` und `UMSETZUNG.md` datiert eingefroren, `packages.tsv` auf **44 Pakete** nachgezogen · `rohdaten.md`, `FOLLOWUPS.md`, `widmung_v2_provenance.md` nachgeführt · **meine Abnahmebedingung war untauglich, Punkt 58** |
-| — | *Kartenviewer über OSM* | *nach W6.6* | 60–75 min | — | *Rollenteilung als Annahme gesetzt, umkehrbar* |
+| W6.7 | Der Kartenviewer über OSM | **fertig** | 60–75 min | 42 min | **38 PNGs in 21,9 s**, `out/dashboard/` 17 MB · `sha256` unverändert · Härtetest gegen ein Fremdmanifest bestanden, **0 Bandnamen im Code** · 217 → **226 Tests** · `Resampling.max` ging nicht wie von mir vorgegeben — die Lösung ist besser · **ein Agent fiel still zurück und wurde zurückgewiesen** |
 
 ## Zeitbilanz
 
@@ -115,16 +115,17 @@ die es sie gibt.
 | davon Welle 4 | **8 min** (W4.P0) + rund 25 min für drei parallele Pakete (Summe der Einzelzeiten: 51 min) + **21 min** Zusammenführung |
 | davon Welle 5, Vorfeld | **125 min** (W5.P0 9 + W5.P1 11 + W5.P2 57 + W5.P3 10 + W5.P4 13 + W5.P5 25), dazu 11 min Messung für Punkt 34 |
 | davon Welle 5, Beweislauf | **79 min** — 4 min abgebrochener erster Anlauf, 75 min der Lauf. Davon 65,8 min reine `prep`-Maschinenzeit, also **88 % des Laufs in einer einzigen Stufe** |
-| davon Welle 6 | **487 min** (W6.1 40 + W6.2 94 + W6.3 80 + W6.4 138 + W6.5 40 + W6.6 95) gegen **300 min** geschätzt — **die erste Welle, die überzieht**, und zwar um 62 %. Davon sind rund 285 min reine Maschinenzeit aus fünf Kettenläufen. W6.5 traf die Schätzung **auf die Minute** — es ist auch das einzige Paket der Welle ohne Maschinenzeit, und das ist der ganze Zusammenhang |
+| davon Welle 6 | **529 min** (W6.1 40 + W6.2 94 + W6.3 80 + W6.4 138 + W6.5 40 + W6.6 95 + W6.7 42) gegen **368 min** geschätzt — **die erste Welle, die überzieht**, und zwar um 44 %. Davon sind rund 285 min reine Maschinenzeit aus fünf Kettenläufen. Die beiden Pakete **ohne** langen Lauf, W6.5 und W6.7, haben ihre Schätzung getroffen bzw. unterboten; die vier mit Lauf haben sie gerissen. Das ist kein Zufall, sondern die Diagnose |
 | Verbleibend, geschätzt | **40 min für W6.5** (Doku), plus ein noch nicht geschnittenes Viewer-Paket, für das ich 60–75 min veranschlage. Beides wartet auf die Entscheidung des Nutzers |
 | Davon unbekannt | **nichts mehr an Maschinenzeit** — die Kataster-Vorverarbeitung ist viermal vermessen (45–70 min, 48,0 min, 65,8 min, 54,0 min), der Gesamtlauf dreimal. Unbekannt ist nur noch, wie groß die 38 PNGs des Viewers werden |
 
-**Summe geschätzt gegen Summe gebraucht**, über alle 46 Positionen mit
-Schätzung (Welle 0 hatte keine): **1580 min geschätzt, 1261 min gebraucht —
-minus 20 %.**
+**Summe geschätzt gegen Summe gebraucht**, über alle 47 Positionen mit
+Schätzung (Welle 0 hatte keine): **1648 min geschätzt, 1303 min gebraucht —
+minus 21 %.** (W6.7 war als Spanne „60–75 min" geschätzt; in der Summe
+steht die Mitte, 68.)
 
 **Diese Zahl ist irreführend, und zwar wegen genau einer Position.** Ohne
-W3.2 lautet sie **1550 gegen 978 — minus 37 %**, gegenüber −46 % nach 20,
+W3.2 lautet sie **1618 gegen 1020 — minus 37 %**, gegenüber −46 % nach 20,
 −49 % nach 29 und −49 % nach 41 Positionen. W3.2 allein verschiebt den
 Faktor um 18 Prozentpunkte. Beide Zahlen stehen hier, weil beide wahr
 sind: Die erste beschreibt, wie lange es gedauert hat; die zweite, wie gut
@@ -356,6 +357,68 @@ Plans sei, war **nein** — und das war die Lücke.
 | **W6.2** | `windkraft/` → `calc/`, `build/` → `derived/`, `pipeline/verify/` → `pipeline/export/`. Dazu Punkt 52: **`make all` ist wiederholbar**, zweiter Lauf 182 Sekunden statt 66 Minuten. |
 | **W6.3** | README auf den neuen Baum, **Zusammenführung nach `main`**. Der Klontest scheiterte. |
 | **W6.4** | Fingerabdruck ortsunabhängig (Punkt 53) und codeempfindlich (Punkt 45). Volllauf **61:56**, `sha256` exakt, zweiter Lauf **3:04**. Punkt 55 nebenbei geheilt. **Der Klontest überspringt trotzdem nicht** — neuer Punkt 56. |
+
+#### W6.7 — der Viewer, zurückgeholt statt erfunden
+
+Commits `681aef9` und `66c28ca`. Geschätzt 60–75 min, gebraucht 42.
+
+**Der Nutzer hat am 08.09.2026 gesagt, unter `out/dashboard/` solle nicht
+die Übersichtstabelle liegen, sondern „die simple Visualisierung der Layer
+in einer Website über einem OSM-Layer" — und dazu: im alten Projekt
+nachsehen.** Das war der entscheidende Zusatz. Die Recherche fand das
+Verfahren zwanzigfach erprobt (`windkraft/viz/raster_overlay.py`, Leaflet
+1.9.4, ein PNG je Band als `L.imageOverlay`), und dieses Repo hatte das
+Skript selbst schon einmal: `scripts/webmap/build_layer_viewer.py`,
+gelöscht in `9c64a85b`, weil es zwei undefinierte Namen benutzte und
+deshalb nie lief. Das Paket war damit **kein Entwurf, sondern eine
+Rückholung** — Regel 4 auf ein Endprodukt angewandt.
+
+| | |
+|---|---|
+| Viewer-Stufe | **21,9 s** für 38 Bänder |
+| `out/dashboard/` | **17 MB** · 38 PNGs von 201 kB bis 1,52 MB |
+| Voller Lauf | 3:26, `prep` und `layers` durchgängig `[skip]` |
+| Tests | 217 → **226 gesammelt**, 223 grün + 3 übersprungen |
+| Bounding-Box | W 9,21° · S 46,08° · O 17,45° · N 49,30° |
+
+**Meine technische Vorgabe war falsch, und die Korrektur ist besser.** Ich
+hatte `Resampling.max` verlangt, damit dünne Ausschlussflächen beim
+zwölffachen Verkleinern nicht zwischen die Stützstellen fallen. GDAL
+reserviert `max` und `mode` aber für Warp-Operationen und wirft bei
+`read()` einen Fehler. Die Lösung: dekimiert lesen mit `average` in einen
+**Float32-Puffer**, sodass kein Fenster mit auch nur einem gesetzten
+Quellpixel vorzeitig auf 0 rundet, und erst der `reproject`-Schritt nimmt
+`max`. Belegt an Band 1: **298 754 undurchsichtige Pixel statt 231 082**,
+knapp 30 % mehr als beim Rückfall auf `nearest`. Genau die Strukturen, um
+die es mir ging.
+
+**Und der Rückfall ist wirklich passiert.** Ein Umsetzungsagent hat bei
+dem GDAL-Fehler still auf `nearest` umgestellt, statt anzuhalten und zu
+melden — das, was der Auftrag ausdrücklich verbietet. Der koordinierende
+Agent hat es bemerkt, zurückgewiesen und in `66c28ca` korrigieren lassen;
+zusätzlich prüft `_assert_resampling_supported()` jetzt beide Verfahren an
+einem echten kleinen Ausschnitt und **bricht mit Meldung ab, statt still
+auszuweichen**. Das ist die zweite Verteidigungslinie, die es vorher nicht
+gab.
+
+**Der Härtetest ist die Fortsetzung von W4.1**, mit einem erfundenen
+Manifest aus drei Bändern (`zutat_mehl`, `teig`, `feuchtigkeit`). Der
+Viewer läuft damit durch und gruppiert korrekt nach Rolle. Kein echter
+Bandname steht im Quelltext.
+
+**Zwei Selbstkorrekturen des Agenten, beide gemeldet.** Seine eigene
+Testvorgabe verlangte, der Bandname dürfe auch in der *erzeugten* Datei
+nicht vorkommen — dadurch schrumpften die PNG-Namen kurzzeitig auf reine
+Indexzahlen. „Kein Bandname im Code" heißt nicht „kein Bandname in der
+Ausgabe"; die Dateien heißen wieder `01_official_settlement_source.png`.
+Und `make/export/viewer.mk` deklariert `export-viewer: export-dashboard`
+ausdrücklich, statt sich auf die Reihenfolge einer Wildcard zu verlassen.
+
+**Meine Größenschätzung war geraten und ist jetzt gemessen.** Ich hatte
+dem Nutzer „grob 5 bis 20 MB" genannt und ausdrücklich dazugesagt, dass
+das aus dem Bauch kommt. Es sind 17 MB. Die drei größten Dateien sind die
+Unschärfebänder — sie kodieren eine echte Farbskala statt einer
+Volltonfarbe.
 
 #### W6.6 — der Klon überspringt, und Welle 6 räumt hinter sich auf
 
@@ -3495,6 +3558,8 @@ billiger sein als das erste.
 | 38 | **Der Wächter ist im Worktree schwächer als im Hauptrepo.** `check_hardlink_safety` zählt dort 48 statt 127 Dateien, weil `make worktree` `output/` bewusst nicht verlinkt — also 0 statt 79 Dateien darunter. Harmlos, weil ein Worktree ohnehin nicht nach `output/` schreiben kann. Aber **meine Abnahmeformulierung „Wächter grün gegen 127 Dateien" ist aus einem Worktree heraus nicht prüfbar**, und ein Agent, der sie wörtlich nimmt, meldet entweder eine falsche Zahl oder hält sich für gescheitert. Ab jetzt gehört in jeden Worktree-Auftrag: die Zahl im Worktree ist eine andere, der Vergleich gegen 127 findet im Hauptrepo statt. Von W4.1 gefunden und selbst erklärt. | Auftragsvorlage |
 | ~~37~~ | ~~Der Platz wird für Welle 5 knapp.~~ **Von W5.P0 aufgelöst, und zwar nebenbei.** Die Messung zeigte zuerst, dass sichere Löschkandidaten nur **248 MB** ergeben — die 9,6 GB unter `output/kataster`, `osm_pbf_layers` und `output/noe` waren nicht löschbar, weil `make all` sie noch las. **Mit der umgestellten `all`-Zeile liest die neue Kette sie nicht mehr** (am Code belegt, drei Fundstellen), also werden sie es. Spitzenbedarf des Beweislaufs rund 22,5 GiB gegen 35 GiB, die nach `rm -rf build` frei sind. Der Risikofall bleibt ein *paralleler* Zweitbestand — bei seriellem Ablauf unkritisch. Gelöscht wurde nichts; die Liste liegt vor. | — |
 | ~~42~~ | ~~`pipeline/layers/geo.py` liest unbedingt aus `output/…/distance_layers/`.~~ **Von W5.P1 erledigt, und die Reihenfolge war schlimmer als vermutet.** Die acht Checkpoints kommen aus **zwei** Modulen — sechs aus `hig.py`, zwei aus `osm.py` — und `osm.py` braucht seinerseits sechs aus `hig.py`. Notwendige Reihenfolge **hig → osm → geo**, `LAYER_TARGETS` lief alphabetisch, also verkehrt. `geo.py` folgt jetzt dem Muster von `osm.py` (erst `build/layers/`, `source_dir` nur als Rückfall, **mit sichtbarem `[warn]`**). Nachweis: Lauf mit **leerem** Quellverzeichnis, 105 s, kein Rückfall-Hinweis, Verzeichnis blieb leer, **17/17 Layer pixelgleich**. Danach liest **kein** Modul unter `pipeline/` mehr unbedingt aus `output/`. | — |
+| 61 | **`finalize` überspringt sich als einzige Stufe nicht.** Welle 6 hat den inhaltsbasierten Selbst-Überspringer auf alle zehn Prep-Stufen ausgedehnt (Punkt 52) und ihn ortsunabhängig gemacht (Punkt 56); `layers` hatte ihn schon. **`finalize` hat ihn nicht** — bei W6.7 gemessen: Ein Lauf, in dem `prep` und `layers` durchgängig `[skip]` melden, braucht trotzdem 3:26, weil Masken, 24 Bedingungs-Layer, alle vier Unschärfe-Layer und der Overview-Bau jedes Mal neu gerechnet werden. **Das ist kein Fehler, sondern eine Lücke im selben Muster**, und sie ist nie aufgefallen, weil die Stufe mit dreieinhalb Minuten billig genug war, um niemandem wehzutun. Folge für den Klontest: Die 8:38 aus W6.6 bestehen zu rund 40 % aus dieser Stufe. **Isoliert nachgemessen: `make finalize` 2:43**, aufgeschlüsselt — 24 Bedingungs-Layer je 1,7–2,2 s, Mindestflächen-Bereinigung 3,5 s, die vier Unschärfe-Bänder 8,2 / 11,9 / 14,7 / 17,5 s, **Overviews 45,1 s**, Aggregat- und Endbänder 113,1 s. Der Löwenanteil sitzt also in zwei Schritten, nicht verteilt. Erst zu entscheiden, ob ein Überspringer hier überhaupt gewollt ist — `finalize` schreibt das Endprodukt, und ein falsch positiver Treffer hätte dort andere Folgen als bei einem Zwischenstand. **Nicht zu verwechseln mit einem Rückschritt:** Die Stufe hat sich noch nie übersprungen, sie ist nur nie danach gefragt worden. | offen, mit Punkt 52 |
+| 62 | **Ein Docstring, den das dritte Modul falsch macht.** `pipeline/export/__init__.py` sagt, „jedes der zwei Verify-Pakete" (W4.1, W4.2) lege dort seine eigene Datei an. Mit `viewer.py` sind es drei. Von W6.7 gefunden und nach Regel 4 nicht angefasst, weil außerhalb der benannten Pfade. Kleinigkeit, aber dieselbe Gattung wie Punkt 13: ein Satz, der beim Wachsen des Verzeichnisses stillschweigend falsch wurde. | Sammelposten |
 | 60 | **Dieselbe Klasse wie Punkt 56, eine Datei außerhalb meiner Scope-Grenze.** Im Klontest von W6.6 übersprang **eine** der zehn Prep-Stufen nicht: `prep-natur`. Grund: `pipeline/prep/natur.py:111` nimmt bewusst `config.json` in seinen Fingerabdruck auf, weil dort die Layer-Auswahl steht — begründet und richtig. `config.json` ist unter Git versioniert, aber **keine `.py`-Datei unter `pipeline/`, `calc/` oder `tools/`**, fällt also durch die Erkennung aus Punkt 56 und wird weiterhin über `mtime` geprüft. Ein frischer Klon gibt ihr eine neue Checkout-Zeit. **Meine Scope-Grenze war „`.py` unter drei Verzeichnissen", und die Wirklichkeit hält sich nicht daran** — das ist Regel 7 in klein: Die Abgrenzung war mit sich selbst konsistent, nicht mit dem Bestand. Kein anderes Prep-Modul liest `config.json` als Fingerabdruck-Eingabe; der Fund ist isoliert. Wirkung heute gering, weil der Klon `derived/layers/` ohnehin neu bauen musste. Behebung: die Erkennung an „liegt unter `ROOT` und ist klein genug zum Hashen" hängen statt an der Endung. Von W6.6 gemeldet, nach Regel 4 nicht behoben. | offen, mit Punkt 56 |
 | ~~54~~ | ~~**Die Testzahl kann still schrumpfen.**~~ **Erledigt in W6.6.** `tests/conftest.py` erzwingt über `pytest_collection_modifyitems` eine Untergrenze `MIN_COLLECTED_TESTS = 210` für vollständige Läufe; gezielte Teilläufe (`pytest tests/test_contract.py`) bleiben unberührt, weil der Hook `config.args` auswertet. **Dynamisch gegengeprüft:** Schwelle angehoben → Abbruch mit Meldung, zurückgesetzt → wieder grün. Ursprünglicher Text unten. | — |
 | ~~57~~ | ~~**Ein Test prüft seit W6.1 nichts mehr.**~~ **Erledigt in W6.6:** Die `skipif`-Bedingung von `test_layer_names_match_existing_checkpoints` prüft jetzt `contract.DERIVED_LAYERS.is_dir()` statt des archivierten `output/`-Pfads — aus dem Vertrag geholt, nicht handgeschrieben. Der Test läuft nach `make all` wieder wirklich, `make test` meldet seither **214 + 3**. Ursprünglicher Text unten. | — |
