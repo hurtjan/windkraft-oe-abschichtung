@@ -188,8 +188,13 @@ Detailabweichungen (Caveat-Texte, 18 von 38 Bändern mit Pixelabweichungen
 < 0,004 %, siehe Abschnitt „Status” und `docs/RUN1_VERGLEICH.md`, Abschnitt
 10). `docs/HANDOFF.md` ist seit W4.3 aktuell: es zieht die neue Referenz
 (`sha256 fb57c41d…232c30`, `schema_version` `2.0.0`) und dokumentiert die
-neun von `run1` abweichenden Bänder aus der am 08.09.2026 angenommenen
-Bodensee-Korrektur (Punkt 33).
+18 von `run1` abweichenden Bänder aus zwei am 08.09.2026 vom Nutzer
+entschiedenen Ursachen: der Bodensee-Korrektur (Punkt 33, Bänder 26 und
+29) und dem Wegfall adressloser DKM-Großflächen (Punkt 34, Bänder 5,
+7–13 und 27); die Bänder 30–36 tragen beide Ursachen überlagert. Am
+Endergebnis wirken sie gegeneinander: Band 32
+(`available_cleaned_min_10ha`) liegt netto 847,6 ha (8,48 km²) unter
+`run1`.
 
 ## Was dieses Repo nicht ist
 
