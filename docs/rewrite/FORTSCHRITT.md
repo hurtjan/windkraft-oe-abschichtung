@@ -12,12 +12,12 @@ W0.1 in dessen §11. Die Belege liegen unter
 
 | | |
 |---|---|
-| Abgeschlossen | **27 von 32** — Welle 0, 1 und **2 vollständig**. Zwei Pakete kamen neu dazu (W2.P0, W2.4), eines entfiel (W2.2 → W2.1). |
-| Als Nächstes | **W3.1** — dort wird die Kette auf die neuen Module verdrahtet, und dort erreicht die Bodensee-Korrektur zum ersten Mal ein Band |
-| Zweig | `docs/audit-und-plan`, Kopf `c18f82d`, keine offenen Worktrees |
-| Deckung der Welle 2 | 9 + 17 + 7 = **33 Layer**, davon **32 pixelgleich**, 1 erklärte Abweichung |
+| Abgeschlossen | **28 von 33** — Welle 0, 1 und 2 vollständig, aus Welle 3 das erste Paket. Drei Pakete kamen neu dazu (W2.P0, W2.4, W4.P0), eines entfiel (W2.2 → W2.1). |
+| Als Nächstes | **W3.2 Validierung** — bewertet das neue TIF nach der Ampel aus PLAN §6 und schreibt `abweichungen.tsv`. Schritt 0 ist der Merge von `w3.1` samt der fehlenden `Makefile`-Zeile (Punkt 36). |
+| Zweig | `docs/audit-und-plan`, Kopf `0223562`; **`w3.1` mit Commit `782a0e0` steht unmerged**, Worktree `../abschichtung-w3.1` offen |
+| Die Kette läuft neu | 33 Layer aus `pipeline/layers/`, zusammengesetzt von `pipeline/finalize.py` in 164 s. **Kein Skript aus `scripts/widmung_v2/` mehr im Weg.** |
 | `data/` | **hardlinkfrei**, 48 echte Dateien, per Wächter als Invariante gesichert |
-| Abweichungen bisher | **eine, und sie ist eine Korrektur** — `geography_water_bodies`, 0,16 % zusätzliche Zellen, Ursache Bodensee-Relation. Punkt 33, deine Entscheidung. |
+| Abweichungen bisher | **eine Ursache, neun betroffene Bänder** — `geography_water_bodies` (+543 106 Zellen, Bodensee-Relation) und die acht Bänder, die daraus abgeleitet sind. Alle neun **vorher benannt, dann gemessen**; die übrigen 29 sind bitgleich zu `run1`. Punkt 33, deine Entscheidung. |
 
 ## Paketübersicht
 
@@ -59,8 +59,9 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | W2.1 | Layer: Widmung und Häuser im Grünen | **fertig** | 60 min | 18 min | **7/7 pixelgleich** · löst die Kette vom Mai-Artefakt |
 | W2.3 | Layer: OSM und Infrastruktur | **fertig** | 45 min | 19 min | **9/9 Layer bitgleich** · Skip belegt · 147+1 Tests |
 | W2.4 | Layer: Natur, Gelände, Zonen und Puffer | **fertig** | 50 min | 25 min | **16/17 pixelgleich** · 1 erklärte Abweichung · Punkt 20 beantwortet |
-| W3.1 | Finalisierung und Manifest-Vertrag | offen | 45 min | | |
-| W3.2 | Validierung | offen | 30 min | | schreibt `abweichungen.tsv` |
+| W3.1 | Finalisierung und Manifest-Vertrag | **fertig** | 45 min | 26 min | **9 Bänder vorhergesagt, 9 gemessen** · 147 → **152** Tests |
+| W3.2 | Validierung | **läuft** | 30 min | | schreibt `abweichungen.tsv`; Schritt 0 ist Merge `w3.1` + Punkt 36 |
+| W4.P0 | Vorfeld der Prüfwelle | offen | 20 min | | neu nach Regel 9 · besitzt `Makefile` allein |
 | W4.1 | Dashboard neu | offen | 40 min | | |
 | W4.2 | Gemeindegrenzen-Export | offen | 30 min | | |
 | W4.3 | Tests verdrahten | offen | 30 min | | |
@@ -70,7 +71,7 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 
 | | |
 |---|---|
-| Gebraucht bisher | **rund 4 h 45** Wanduhrzeit für 21 Pakete plus zwei Zusammenführungen |
+| Gebraucht bisher | **rund 6 ¾ h** Wanduhrzeit für 25 Pakete, drei Zusammenführungen und zwei Messläufe |
 | davon Welle 0 | 1 h 29, seriell (49 + 28 + 12 min) |
 | davon Welle 1, Aufräumen | 29 min (W1.7 seriell 15 min, dann vier parallel in 14 min) |
 | davon erste Zusammenführung | 30 min — doppelt so lang wie geschätzt |
@@ -78,14 +79,23 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | davon Wächter und Vorfeld | 26 min (13 + 13) |
 | davon Prep-Welle | rund 60 min für neun Pakete in Schüben (Summe der Einzelzeiten: 133 min) |
 | davon zweite Zusammenführung | **7 min** |
-| Verbleibend, geschätzt | **4 bis 5 ½ h** Wanduhrzeit |
-| Davon unbekannt | **nichts mehr** — die Kataster-Vorverarbeitung ist von W1.P2 auf 45–70 min vermessen |
+| davon Kataster-Volllauf | **48 min**, reine Maschinenzeit, einmalig |
+| davon Welle 2 | rund 45 min für drei Pakete (Summe der Einzelzeiten: 62 min) plus 23 min Zusammenführung |
+| davon W3.1 | **26 min** |
+| Verbleibend, geschätzt | **2 bis 2 ¾ h** Wanduhrzeit |
+| Davon unbekannt | **nichts mehr** — die Kataster-Vorverarbeitung ist zweimal vermessen, zuletzt im Volllauf mit 48,0 min |
 
-**Summe geschätzt gegen summe gebraucht**, über alle 20 Positionen mit
-Schätzung (Welle 0 hatte keine): **550 min geschätzt, 297 min gebraucht —
-minus 46 %.** Ich setze systematisch fast das Doppelte an. Genau zwei
-Positionen liefen über: W1.2 mit +10 % und die erste Zusammenführung mit
-+100 %.
+**Summe geschätzt gegen Summe gebraucht**, über alle 29 Positionen mit
+Schätzung (Welle 0 hatte keine): **855 min geschätzt, 436 min gebraucht —
+minus 49 %.** Ich setze systematisch fast das Doppelte an, und der Faktor
+hat sich über 29 Positionen kaum bewegt: Er lag nach 20 Positionen bei
+−46 % und liegt jetzt bei −49 %. Das ist kein Zufallsrauschen mehr,
+sondern eine stabile Eigenschaft meiner Schätzungen.
+
+Genau **drei** Positionen liefen über, und alle drei sind
+Zusammenführungen oder Datenbewegung: W1.2 mit +10 %, die erste
+Zusammenführung mit +100 %, die Zusammenführung der Welle 2 mit +15 %.
+**Kein einziges Bau-Paket hat je seine Schätzung überschritten.**
 
 Der erste echte Parallelbatch hat die Schätzung bestätigt und leicht
 unterboten: vier Pakete, geschätzt 65 min in Summe, gebraucht 14 min
@@ -118,13 +128,21 @@ Paket plus Puffer für meine eigene Abnahme, die seriell bleibt:
 | ~~Zwei Nachzügler (Punkt 19, 22)~~ | 2 | ~~20~~ · **12 min** |
 | ~~Vorfeld W2.P0, seriell~~ | 1 | ~~25~~ · **9 min** |
 | ~~Kataster-Volllauf, einmalig~~ | — | ~~45–70~~ · **48 min** |
-| Welle 2: W2.3 und W2.4 fertig, **W2.1 läuft** | 3 | 19 + 25 gemessen, W2.1 offen |
+| ~~Welle 2, drei Pakete~~ | 3 | ~~2 h 35~~ · 19 + 25 + 18 gemessen, **rund 45 min** Wanduhr |
 | ~~Zusammenführung Welle 2~~ | — | ~~20~~ · **23 min** |
-| Welle 3, seriell | 2 | 1 h 15 |
+| ~~W3.1~~ | 1 | ~~45~~ · **26 min** |
+| Merge `w3.1` + `Makefile`-Zeile, dann W3.2 | 1 | 10 + 30 min |
+| **W4.P0, seriell** (neu nach Regel 9) | 1 | 20 min |
 | Welle 4, parallel | 3 | 40 min |
 | Zusammenführung Welle 4 | — | 15 min |
 | Welle 5, inkl. Kataster **48 min gemessen** | 1 | 1 h 15 |
-| **Restdauer ab hier** | **7** | **rund 4 h roh · 3 – 3 ½ h korrigiert** |
+| **Restdauer ab hier** | **6** | **rund 3 h roh · 2 ¼ – 2 ½ h korrigiert** |
+
+W4.P0 verlängert die Restdauer um 20 Minuten und ist trotzdem die
+billigere Rechnung: Ohne den `build/layers/`-Symlink hätten die drei
+Worktrees der Welle 4 je 33 Checkpoints plus 164 s Finalisierung neu
+gerechnet — rund 5 Minuten Maschinenzeit, dreifach, plus die
+Fehlerquellen, die ein selbstgebautes TIF je Worktree mit sich bringt.
 
 Die Korrektur wendet den gemessenen Faktor 0,55 nur auf die **Denkzeit**
 an. Welle 5 bleibt unkorrigiert: dort dominiert Maschinenzeit, die nicht
@@ -1634,6 +1652,142 @@ gilt. Punkt 35.
 und 45 Python-Dateien. Drei Worktrees und drei Zweige regulär abgebaut,
 ohne `--force`, ohne `-D`.** Frei sind noch rund 23 GiB.
 
+### W3.1 — Finalisierung und Manifest-Vertrag · fertig
+
+Commit `782a0e0`, Zweig `w3.1` (Worktree steht noch, Merge ist Schritt 0
+von W3.2). Geschätzt 45 min, gebraucht 26. Vier Dateien:
+`pipeline/finalize.py` (neu), `make/finalize/finalize.mk` samt README
+(neu), `windkraft/calc/band_manifest.py` und `tests/test_band_manifest.py`
+(erweitert).
+
+**Neun Bänder vorhergesagt — neun gemessen.** Das ist der eigentliche
+Ertrag des Pakets, und die Reihenfolge ist der Punkt: Der Agent hat die
+Liste **vor** dem Vergleich aus dem Manifest abgeleitet, nicht danach aus
+dem Ergebnis gelesen.
+
+| Band | gegen `run1` |
+|---|---|
+| 1–25 | **bitgleich** |
+| 26 `geography_water_bodies` | **+543 106** — exakt die Zahl aus W2.4 |
+| 27, 28 | **bitgleich** |
+| 29 `exclusion_geography` | +35 487 |
+| 30 `all_exclusions` | +15 137 |
+| 31 `available_after_all_exclusions_raw` | −15 137 |
+| 32 `available_cleaned_min_10ha` | −15 137 |
+| 33–36 Weichzeichnung σ 100/200/250/300 m | −25 550 / −36 143 / −41 574 / −47 023 |
+| 37, 38 | **bitgleich** |
+
+Neuer `sha256`: **`4bdef6ad…6b1a13e`**, 124 613 971 Bytes. Der Wirkungspfad
+läuft über `WATER_BANDS` → `geography_band_names` →
+`exclusion_geography` (`abschichtung_common.py:1589-1592`) →
+`all_exclusions` → `available_*` → die vier Weichzeichnungen.
+
+**Die Zahlen erzählen etwas, das keine der beiden Wellen vorher wissen
+konnte.** Von den 543 106 zusätzlichen Wasserzellen erreichen nur
+**15 137 die Verfügbarkeitsbänder — 2,8 %**. Die übrigen 97,2 % lagen
+bereits unter einer anderen Ausschlussschicht; der Bodensee war
+größtenteils schon aus anderen Gründen ausgeschlossen. Und die
+Weichzeichnungen **verstärken**, statt zu dämpfen: 15 137 entfernte
+Zellen werden bei σ = 300 m zu 47 023, weil der Kern in die Nachbarschaft
+streut. Beide Effekte sind erklärbar, aber keiner war vorhergesagt.
+
+Die 543 106 Zellen sind bei 25 m Auflösung rund **339 km²** — meine
+eigene Multiplikation, keine Messung des Agenten. Das Rasterfenster reicht
+über die Staatsgrenze hinaus, und die Größenordnung passt zu einem See
+von 536 km², der zum Teil darin liegt. Das ist die Plausibilitätsprobe
+der Bodensee-Erklärung aus W2.4, mehr nicht.
+
+**`pipeline/finalize.py` ist ein reiner Komponist.** Es baut keinen Layer
+selbst: `_check_layers()` fordert alle 33 Namen aus
+`contract.LAYER_NAMES` unter `build/layers/` und wirft
+`FileNotFoundError`, statt fehlende nachzubauen. `compose_exclusion_geotiff()`
+und `write_band_manifest()` sind unverändert übernommen, `BANDS`,
+`HUMAN_BANDS` und sämtliche Puffer- und Schwellenwerte wörtlich aus
+`04_create_distance_zones.py`. `valid_area` kommt aus
+`pipeline.layers.geo._build_valid_area_mask()`. Die Trennung ist damit
+scharf: Layer bauen ist Welle 2, Zusammensetzen ist Welle 3, und die Naht
+dazwischen bricht laut statt still.
+
+Bewusst **nicht** mitgenommen und gemeldet: die
+Siedlungspuffer-Varianten, `--drop-human-band`, `--bbox`. Das dehnt
+Regel 4 in dieselbe Richtung wie bei W2.3 — und wieder ist das Aufzählen
+der Punkt.
+
+**Das Manifest hat einen Vertrag bekommen, Schema 1.0.0 → 2.0.0.** Je
+Band fünf neue Felder: `rolle` (bedingung / aggregat_kategorie /
+aggregat_gesamt / verfuegbarkeit_roh / verfuegbarkeit_bereinigt /
+unschaerfe / referenz), `puffer_m`, `puffer_hinweis`, `quelle`,
+`abgeleitet_von`. Dazu ein Schlüssel auf oberster Ebene,
+`geography_water_bodies_wirkungspfad` — die transitive Hülle über
+`abgeleitet_von`, **programmatisch berechnet, nicht getippt**. Genau
+daraus stammt die Neunerliste. Einer der fünf neuen Tests prüft, dass
+diese Hülle exakt den neun gemessenen Bandnamen entspricht: Die Vorhersage
+ist damit nicht nur einmal eingetroffen, sondern als Test verdrahtet.
+
+**Punkt 35 ist beantwortet:** Die neue Kette hat **keine** Abhängigkeit
+auf `output/.../zoning_vectors/`. Der Nebenbefund der Wellenzusammenführung
+betrifft nur die alte Kette und stirbt mit ihr.
+
+**Eine Lücke, die das Paket nicht schließen durfte:** `make/finalize/finalize.mk`
+existiert, aber `Makefile` hat keine `-include make/finalize/*.mk`-Zeile,
+weil W3.1 `Makefile` nicht anfassen durfte. **`make finalize` ist heute
+nicht erreichbar.** Die eine Zeile gehört in W3.2 — dieselbe Klasse
+Vorfeld-Arbeit, die W1.P0 und W2.P0 vorher erledigt hatten und die hier
+schlicht fehlte.
+
+**Laufzeiten:** `make layers` rund 3–4 min, `python -m pipeline.finalize`
+**164 s**. Die alte Stufe 4 brauchte 4:58 für dasselbe plus das Bauen der
+Layer — die Trennung kostet also nichts.
+
+**Nicht abgedeckt, selbst benannt:** kein Kaltstart aus Rohdaten; keine
+Ampel-Bewertung (das ist W3.2); die 33 Checkpoints nicht erneut verifiziert,
+sondern aus Welle 2 übernommen; `quelle` und `abgeleitet_von` nicht gegen
+`docs/dataflow/` gegengeprüft; kein `--force-layers` und kein Lasttest mit
+gleichzeitigen Worktrees.
+
+**Abnahme: 147 → 152 Tests plus 1 übersprungen, Wächter grün gegen 46
+Python-Dateien.**
+
+### Regel 9 — und was sie beim ersten Anwenden gefunden hat
+
+Kein Paket, sondern die Lehre aus Punkt 36, sofort auf die nächste Welle
+angewandt. Steht als §13.10 im Plan.
+
+**Der Befund selbst ist klein: eine fehlende `-include`-Zeile.** Aber der
+Weg dorthin ist bekannt. W1.P0 und W2.P0 waren eigene Vorfeld-Pakete, und
+beide haben sich bezahlt gemacht. Welle 3 bekam keines, mit der Begründung
+„nur zwei Pakete, seriell, also kein Konfliktrisiko". Die Begründung
+stimmt sogar — es *gab* keinen Konflikt. Sie beantwortet nur die falsche
+Frage: Ein Vorfeld verhindert nicht nur Konflikte, es **weist das Gemeingut
+einem Besitzer zu.** Wo niemand es besitzt, fasst es niemand an, und
+niemand meldet etwas — kein Test, kein Merge, kein Wächter.
+
+**Beim ersten Anwenden auf Welle 4 hat die Regel gleich zweimal getroffen:**
+
+1. W4.1 und W4.2 brauchen beide ein Make-Ziel unter `make/verify/`, aber
+   die `-include`-Zeile gehörte keinem der drei Pakete — **dieselbe Lücke
+   wie in Welle 3**, nur mit zwei Betroffenen statt einem.
+2. W4.3 besaß `Makefile` bereits für das `test`-Ziel. Ein Vorfeld hätte
+   dieselbe Datei angefasst — die Lücke schließen und dabei einen Konflikt
+   nach Regel 1 aufmachen.
+
+Deshalb ist **W4.P0** neu und besitzt `Makefile` als einziges Paket der
+Welle 4; W4.3 gibt das `test`-Ziel dorthin ab. Damit sind es 33 Pakete.
+
+**Dazu ein dritter Fund, der teurer gewesen wäre als beide zusammen:**
+Welle 4 fährt drei Pakete parallel, und das `worktree`-Ziel verlinkt heute
+`data/`, `distance_layers/` und `build/prep/` — aber **nicht**
+`build/layers/`. Jeder der drei Worktrees hätte 33 Checkpoints plus 164 s
+Finalisierung neu gerechnet, um ein TIF zu bekommen, das im Hauptrepo
+längst liegt. Das ist wörtlich derselbe Fehler, den W2.P0 für `build/prep/`
+abgewendet hat — die Kataster-Stufe dreifach. Er wiederholt sich eine
+Ebene höher, weil die Ebene neu ist.
+
+Dass die Regel beim ersten Anwenden gleich drei Dinge findet, ist kein
+gutes Zeichen für meinen ursprünglichen Zuschnitt. Es ist aber genau der
+Zweck einer Regel, die aus einem Fehler stammt: Sie soll das nächste Mal
+billiger sein als das erste.
+
 ## Offene Punkte
 
 | # | Punkt | Fällig |
@@ -1666,7 +1820,8 @@ ohne `--force`, ohne `-D`.** Frei sind noch rund 23 GiB.
 | 34 | **Zwei Modellentscheidungen im HiG-Pfad, die keine Implementierungsdetails sind.** DKM-Flächen über `HIG_MAX_FOOTPRINT_M2` = 10 000 m² werden durch eine 5-m-Scheibe um den Zentroid ersetzt; `HIG_MIN_ADRESSEN` = 5 trennt „Streusiedlung" (750 m Abstand) von „Einzellage" (25 m). Dazu eine bekannte einseitige Fehlklassifikation: Bei Mehrheitswidmung Industrie ohne widersprechendes BEV-Signal wird Bewohntes zu 25 m herabgestuft, nie umgekehrt. Von W2.1 nach Regel 4 unverändert übernommen und gemeldet. | fachlich, Nutzer |
 | 33 | **Die erste echte Abweichung — und sie ist eine Korrektur.** `geography_water_bodies` weicht in 543 106 von 336 038 001 Zellen ab (0,16 %), ausschließlich zusätzlich. Ursache: `osmium extract --bbox` klippt vor dem Tag-Filter und verliert die grenzüberschreitende Bodensee-Relation; die Prep-Stufe filtert gegen die ungeklippte Rohquelle und findet sie. Die neue Kette hat recht. **Zu entscheiden: Wird das als Abweichung in `abweichungen.tsv` geführt und die Bitgleichheit zu `run1` aufgegeben, oder gilt weiter der alte Zustand als Soll?** Offen ist außerdem, ob dieselbe Lücke weitere, kleinere Gewässer betrifft. | **Nutzer** |
 | ~~32~~ | ~~Zwei Fingerabdruck-Konventionen in einer Welle.~~ **Erledigt in `c18f82d`.** Der Unterschied war schärfer als beschrieben: nicht nur eine andere Ablage, sondern eine andere Granularität — Tag je Rasterdatei gegen globalen Schalter je Domäne. Angeglichen auf die Tag-Variante, W2.3s neun Layer danach neu als pixelgleich belegt. | — |
-| 35 | Stufe 1 der alten Kette (`01_build_official_zoning_layers.py`) schreibt `output/.../zoning_vectors/` bei jedem Lauf neu — dort gibt es keine Skip-Logik. Außerhalb von `distance_layers/`, deshalb harmlos; zu beachten, falls diese Dateien anderswo als stabil vorausgesetzt werden. | W3.1 |
+| ~~35~~ | ~~Stufe 1 der alten Kette schreibt `output/.../zoning_vectors/` bei jedem Lauf neu.~~ **Von W3.1 geprüft und erledigt:** Die neue Kette hat auf dieses Verzeichnis **keine** Abhängigkeit. Der Befund betrifft allein die alte Kette und stirbt mit ihr. | — |
+| 36 | **`make finalize` ist nicht erreichbar.** `make/finalize/finalize.mk` existiert seit W3.1, aber `Makefile` hat keine `-include make/finalize/*.mk`-Zeile — W3.1 durfte `Makefile` nicht anfassen. Eine Zeile, dieselbe Klasse Vorfeld-Arbeit wie W1.P0 und W2.P0, die für Welle 3 schlicht gefehlt hat. **Lehre als Regel 9 in PLAN §13.10 festgehalten**, und beim Anwenden auf Welle 4 hat sie dort drei weitere Lücken gefunden → W4.P0. | W3.2, Schritt 0 |
 | 30 | **Geteiltes Werkzeug, ungeteilte Bedeutung.** Alle neun Prep-Module benutzen `pipeline/fingerprint.py`, aber nur `osm.py` und `kataster/b_export_parquet.py` lesen den Fingerabdruck zum Selbst-Überspringen zurück; `adressen.py:71` hat `rebuild=True` hart verdrahtet, die übrigen schreiben ihn nur. **Für die Layer-Stufe von W2.3 entschieden und dokumentiert:** prüfen, und bei Abweichung neu bauen statt abbrechen. Offen bleibt die Uneinheitlichkeit **innerhalb der Prep-Stufe**. | Prep-Teil: Aufräumwelle |
 | 31 | `data/widmung/vorarlberg/fwp_flaeche.gpkg` erzeugt beim Lesen `RuntimeWarning: GPKG: unrecognized user_version=0x00000000`. Verarbeitung läuft vollständig durch (15 766 Wohnflächen). Vorbestehend, nach Regel 4 unangetastet. | Sammelposten |
 | ~~29~~ | ~~Die Kette hängt an einem Zwischenstand des Vorgängerprojekts.~~ **Entschärft durch Messung statt Entscheidung.** Der erste Volllauf (48,0 min) reproduziert `at_dkm_gst_nfl_epsg31287.geoparquet` inhaltlich vollständig: Zeilenzahl je Bundesland identisch (24 115 278), Schema identisch, Fläche bis zur letzten Nachkommastelle identisch, 5000/5000 WKB bytegleich. Einziger Unterschied: die Zeilenreihenfolge der Bundesländer, die `sha256` und 2 · 10⁻⁵ m² Float-Rauschen vollständig erklärt. Das Repo **kann** die Datei erzeugen; es hat sie bisher nur nicht gelesen. Rest erledigt sich mit W2.1s Umstellung. | — |
