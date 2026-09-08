@@ -65,10 +65,26 @@ from windkraft.calc.streusiedlung import load_candidate_signals  # noqa: E402
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Knie-Suche für Verkettungs-ε und Adress-Schwelle.")
     p.add_argument("--config", default="config.json")
-    p.add_argument("--zoning-dir", default="output/abschichtung_widmung_v2/zoning_vectors")
-    p.add_argument("--noe-dir", default="output/noe")
-    p.add_argument("--dkm-parquet", default="output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet")
+    # W6.1: output/ ist aus dem Repo entfernt (nach
+    # ~/Documents/master_windkraft/archiv/ herausbewegt). Die drei
+    # Vorgabewerte unten zeigen jetzt auf die Entsprechungen unter
+    # build/prep/ (dieselben Dateinamen, von der neuen Kette geschrieben -
+    # windkraft/calc/hig_source_masks.py:zoning_masks()/noe_pdf_mask() lesen
+    # wohn_misch_combined.gpkg/haeuser_im_gruenen_combined.gpkg/
+    # industrie_negativ_combined.gpkg bzw. pdf_750m_{geb,gwr,gruenland_widmung}.geojson
+    # namentlich). Dieses Skript hat kein Make-Ziel und muss nicht laufen -
+    # die Vorgaben duerfen aber nicht auf ein geloeschtes Verzeichnis luegen.
+    p.add_argument("--zoning-dir", default="build/prep/widmung")
+    p.add_argument("--noe-dir", default="build/prep/noe_sekrop/b_vectorize")
+    p.add_argument(
+        "--dkm-parquet",
+        default="build/prep/kataster/b_export_parquet/at_dkm_gst_nfl_epsg31287.geoparquet",
+    )
     p.add_argument("--address-dir", default="data/adressen")
+    # --cache-dir/--out-dir sind eigene Schreibziele dieses Skripts (kein
+    # Lesezugriff auf entfernten Inhalt) - output/ existiert hier nur noch
+    # als (nicht mehr vorhandenes) Default-Verzeichnis, das bei Bedarf frisch
+    # angelegt wuerde; W6.1 laesst diese beiden deshalb unveraendert.
     p.add_argument("--cache-dir", default="output/abschichtung_widmung_v2/_cache")
     p.add_argument("--out-dir", default="output/analysis/streusiedlung_sweep")
     p.add_argument("--bbox", default=None)

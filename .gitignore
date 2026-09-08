@@ -1,5 +1,4 @@
 /data/*
-/output/
 
 # Erzeugte Bäume der neuen Kette (docs/rewrite/PLAN.md §3): build/ ist
 # jederzeit löschbar, out/ enthält genau vier Produkte. Beides entsteht

@@ -259,11 +259,13 @@ def test_finalisiertes_tif_hat_die_neue_referenz_sha256():
 
 
 @pytest.mark.skipif(
-    not RUN1_TIF.exists(),
+    RUN1_TIF is None or not RUN1_TIF.exists(),
     reason=(
-        f"{RUN1_TIF} fehlt - die run1-Vergleichsbasis liegt im Hauptrepo unter "
-        "output/abschichtung_widmung_v2/ und wird von 'make worktree' NICHT in ein "
-        "Worktree verlinkt."
+        f"run1 nicht aufloesbar ({RUN1_TIF}) - seit W6.1 liegt die run1-"
+        "Vergleichsbasis nicht mehr im Repo, sondern (falls vorhanden) im Archiv "
+        "unter ~/Documents/master_windkraft/archiv/run1.tif und muss über "
+        "ABSCHICHTUNG_RUN1 aufgeloest werden (siehe pipeline/contract.py:RUN1_TIF). "
+        "Ein fehlendes/nicht gesetztes run1 ist kein gebrochener Vertrag."
     ),
 )
 def test_run1_bleibt_unveraendert_die_vergleichsbasis():
@@ -289,8 +291,11 @@ def test_run1_bleibt_unveraendert_die_vergleichsbasis():
 
 @pytest.mark.skipif(not LANGLAEUFER_AN, reason=LANGLAEUFER_GRUND)
 @pytest.mark.skipif(
-    not (FINALES_TIF.exists() and RUN1_TIF.exists()),
-    reason=f"{FINALES_TIF} oder {RUN1_TIF} fehlt - ohne beide kein Vergleich.",
+    not FINALES_TIF.exists() or RUN1_TIF is None or not RUN1_TIF.exists(),
+    reason=(
+        f"{FINALES_TIF} oder run1 ({RUN1_TIF}) fehlt - ohne beide kein Vergleich. "
+        "run1 seit W6.1 nur ueber ABSCHICHTUNG_RUN1 aufloesbar (siehe oben)."
+    ),
 )
 def test_abweichung_gegen_run1_betrifft_genau_achtzehn_baender():
     """Genau 18 Bänder weichen ab - nicht 17, nicht 19.

@@ -49,15 +49,24 @@ unberührt bleibt: 37/38 kennen nach wie vor keinen Grün-/Gelb-Korridor).
 
 ## Vergleichsbasis
 
-``osm_wka_distance_zones_widmung_v2_run1.tif`` unter
-``output/abschichtung_widmung_v2/`` - das letzte Ergebnis DIESES Repos,
-nicht die aus dem Vorgängerprojekt kopierte Referenz-TIF (§6, Begründung
-dort: zwischen ``run1`` und der Referenz bestehen bereits dokumentierte
-Alt-Abweichungen, die sich sonst mit den neuen vermischen würden). Der Pfad
-liegt bewusst nicht in ``pipeline.contract`` (kein RAW-/PREP-/LAYERS-/
-PRODUCTS-Pfad, sondern die geteilte, nie zu überschreibende
-run1-Vergleichsbasis der alten Kette) - hier lokal definiert, aber gegen
-``contract.ROOT`` verankert statt als zweites freischwebendes Literal.
+``osm_wka_distance_zones_widmung_v2_run1.tif`` - das letzte Ergebnis DIESES
+Repos aus der alten Kette, nicht die aus dem Vorgängerprojekt kopierte
+Referenz-TIF (§6, Begründung dort: zwischen ``run1`` und der Referenz
+bestehen bereits dokumentierte Alt-Abweichungen, die sich sonst mit den
+neuen vermischen würden).
+
+**Seit W6.1** liegt ``run1`` nicht mehr im Repo (``output/`` wurde nach
+``~/Documents/master_windkraft/archiv/`` herausbewegt, siehe dessen
+README.md) und ist deshalb kein RAW-/PREP-/LAYERS-/PRODUCTS-Pfad in
+``pipeline.contract`` mehr, sondern ``contract.RUN1_TIF`` - optional, aus
+der Umgebungsvariable ``ABSCHICHTUNG_RUN1`` aufgelöst, Vorgabe ``None``
+(dasselbe Muster wie ``ABSCHICHTUNG_ALTREPO`` in
+``tests/test_distance_engine_equivalence.py``). Ist ``run1`` nicht
+auflösbar, überspringt dieses Werkzeug den bandweisen Vergleich mit einer
+sichtbaren Meldung und führt nur noch die Prüfsummenprüfung gegen die
+aktuelle Referenz (:data:`AKTUELLE_REFERENZ_SHA256`) aus - wer ``run1`` aus
+dem Archiv zurückholt und ``ABSCHICHTUNG_RUN1`` setzt, bekommt wieder
+dasselbe Register wie zuvor.
 
 ## Drei Kennzahlen je Band (§6)
 
@@ -173,12 +182,9 @@ from windkraft.calc.band_manifest import (  # noqa: E402
 # Pfade
 # ---------------------------------------------------------------------------
 
-REFERENCE_TIF = (
-    contract.ROOT
-    / "output"
-    / "abschichtung_widmung_v2"
-    / "osm_wka_distance_zones_widmung_v2_run1.tif"
-)
+# Optional (siehe Moduldocstring, "Vergleichsbasis") - None, solange
+# ABSCHICHTUNG_RUN1 nicht gesetzt ist.
+REFERENCE_TIF = contract.RUN1_TIF
 
 # Die aktuelle Referenz (PLAN.md §6, "Die Referenz hat sich am 08.09.2026
 # geändert"): der sha256 des TIFs, das der Nutzer am 08.09.2026 mit der
@@ -612,7 +618,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Paket, dem diese Messung zugeordnet wird (z.B. W3.1 oder W2.4) - siehe PLAN.md Paragraph 6.",
     )
     p.add_argument("--new-tif", default=None, help="Default: pipeline.contract.PRODUCTS['abschichtung_tif'].")
-    p.add_argument("--reference-tif", default=None, help="Default: run1 unter output/abschichtung_widmung_v2/.")
+    p.add_argument(
+        "--reference-tif", default=None,
+        help="Default: pipeline.contract.RUN1_TIF (aus ABSCHICHTUNG_RUN1). Ohne gesetzte "
+             "Variable None - der bandweise Vergleich wird dann uebersprungen.",
+    )
     p.add_argument("--register", default=None, help="Default: docs/rewrite/abweichungen.tsv.")
     return p.parse_args(argv)
 
@@ -625,8 +635,6 @@ def main(argv: list[str] | None = None) -> int:
 
     if not new_tif.exists():
         raise FileNotFoundError(f"{new_tif} fehlt - 'make finalize' zuerst laufen lassen.")
-    if not reference_tif.exists():
-        raise FileNotFoundError(f"{reference_tif} fehlt - die run1-Vergleichsbasis ist nicht da.")
 
     # Schneller Weg (Moduldocstring, "Der Nutzer hat entschieden"): stimmt
     # der frisch finalisierte Stand bitgenau mit der aktuellen, vom Nutzer
@@ -645,6 +653,28 @@ def main(argv: list[str] | None = None) -> int:
                 "keine bandweise Pruefung noetig."
             )
             return 0
+
+    # Diagnoseweg braucht run1 (Moduldocstring, "Vergleichsbasis"): seit W6.1
+    # optional (ABSCHICHTUNG_RUN1) - fehlt run1, wird dieser Teil sichtbar
+    # uebersprungen statt hart abzubrechen ('run1 nicht da' war frueher ein
+    # FileNotFoundError). Die Pruefsummenpruefung oben ist davon unberuehrt
+    # und lief bereits (und hat nicht gepasst, sonst waere der Lauf schon
+    # oben mit Exit 0 beendet).
+    if reference_tif is None:
+        print(
+            "run1 nicht aufloesbar (ABSCHICHTUNG_RUN1 nicht gesetzt und "
+            "--reference-tif nicht angegeben) - der bandweise Vergleich gegen "
+            "run1 wird uebersprungen. Ohne run1 kann eine Abweichung von der "
+            f"aktuellen Referenz ({AKTUELLE_REFERENZ_SHA256[:8]}…"
+            f"{AKTUELLE_REFERENZ_SHA256[-6:]}) hier nicht bandweise diagnostiziert "
+            "werden. run1 aus dem Archiv "
+            "(~/Documents/master_windkraft/archiv/run1.tif) zurueckholen und "
+            "ABSCHICHTUNG_RUN1 setzen, um dasselbe Register wieder zu erzeugen.",
+            file=sys.stderr,
+        )
+        return 1
+    if not reference_tif.exists():
+        raise FileNotFoundError(f"{reference_tif} fehlt - die run1-Vergleichsbasis ist nicht da.")
 
     manifest_path = manifest_path_for(new_tif)
     if not manifest_path.exists():

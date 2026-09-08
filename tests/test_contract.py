@@ -10,7 +10,6 @@ kopiert") und §11.1 (Klassifikation der config.json-Pfade).
 """
 from __future__ import annotations
 
-import importlib.util
 import os
 import sys
 from pathlib import Path
@@ -285,14 +284,6 @@ def test_raw_lives_under_data():
 # 5. Layernamen sind eindeutig und decken sich mit der Kette
 # ---------------------------------------------------------------------------
 
-def _load_module_from_path(name: str, relpath: str):
-    spec = importlib.util.spec_from_file_location(name, PROJECT_ROOT / relpath)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[name] = module
-    spec.loader.exec_module(module)
-    return module
-
-
 def test_layer_names_are_unique():
     assert len(contract.LAYER_NAMES) == len(set(contract.LAYER_NAMES))
     assert len(contract.LAYER_NAMES) == 33
@@ -300,24 +291,37 @@ def test_layer_names_are_unique():
 
 def test_layer_names_match_the_chain():
     """Vergleicht pipeline.contract.LAYER_NAMES gegen die tatsächlichen
-    Namenslisten in den drei Skripten, die die Checkpoint-Layer schreiben
-    bzw. voraussetzen (02/03/04 der widmung_v2-Kette)."""
-    m02 = _load_module_from_path("_test_contract_w02", "scripts/widmung_v2/02_build_hig_sources.py")
-    m03 = _load_module_from_path("_test_contract_w03", "scripts/widmung_v2/03_build_osm_layers.py")
-    m04 = _load_module_from_path("_test_contract_w04", "scripts/widmung_v2/04_create_distance_zones.py")
+    Namenslisten in den drei Modulen, die die Checkpoint-Layer heute
+    tatsächlich schreiben.
+
+    Bis W6.1 verglich dieser Test gegen die drei Skripte der alten Kette
+    (``scripts/widmung_v2/02_build_hig_sources.py``,
+    ``03_build_osm_layers.py``, ``04_create_distance_zones.py``), geladen
+    über ``importlib`` (numerische Dateinamen sind kein gültiger Modulpfad
+    für einen normalen ``import``). W6.1 hat diese drei Dateien aus dem Repo
+    entfernt (letzter Stand je im Commit ``f1d00f7``, z. B. ``git show
+    f1d00f7:scripts/widmung_v2/04_create_distance_zones.py``) - die geprüfte
+    Zusage (LAYER_NAMES darf nicht gegen den tatsächlichen Erzeuger drift)
+    bleibt bestehen, nur die drei Skripte sind es nicht mehr: die neue Kette
+    (``pipeline/layers/hig.py`` W2.1, ``osm.py`` W2.3, ``geo.py`` W2.4)
+    führt dieselben Namenslisten unter denselben Namen fort (siehe deren
+    Moduldocstrings, Abschnitt "Regel 4") und ist ein ganz normaler
+    Modulpfad - kein ``importlib``-Umweg mehr nötig.
+    """
+    from pipeline.layers import geo, hig, osm  # noqa: PLC0415  (schwerer Import, nur hier nötig)
 
     from_chain = set()
-    from_chain.update(m02.SOURCE_LAYER_NAMES)
-    from_chain.update(m03.OSM_LAYER_NAMES)
-    from_chain.update(m03.INFRA_LAYER_NAMES)
-    from_chain.update(m03.AIRPORT_LAYER_NAMES)
-    from_chain.update(m04.HIG_FAMILY_SOURCE_BANDS)
-    from_chain.update(m04.BUFFER_BANDS)
-    from_chain.update(m04.NATURE_BANDS)
-    from_chain.update(m04.GEOGRAPHY_BANDS)
-    from_chain.update(m04.WATER_BANDS)
-    from_chain.update(m04.OFFICIAL_ZONING_BANDS)
-    from_chain.add(m04.WKA_BESTAND_BAND)
+    from_chain.update(hig.SOURCE_LAYER_NAMES)
+    from_chain.update(osm.OSM_LAYER_NAMES)
+    from_chain.update(osm.INFRA_LAYER_NAMES)
+    from_chain.update(osm.AIRPORT_LAYER_NAMES)
+    from_chain.update(geo.HIG_FAMILY_SOURCE_BANDS)
+    from_chain.update(geo.BUFFER_BANDS)
+    from_chain.update(geo.NATURE_BANDS)
+    from_chain.update(geo.GEOGRAPHY_BANDS)
+    from_chain.update(geo.WATER_BANDS)
+    from_chain.update(geo.OFFICIAL_ZONING_BANDS)
+    from_chain.add(geo.WKA_BESTAND_BAND)
 
     assert from_chain == set(contract.LAYER_NAMES)
 

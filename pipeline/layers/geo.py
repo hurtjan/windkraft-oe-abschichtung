@@ -2,8 +2,10 @@
 §7, §13.8; das Paket selbst ist dort neu - siehe dessen Begründung: "W2.4
 ist neu und übernimmt die 17 herrenlosen Checkpoints").
 
-``scripts/widmung_v2/04_create_distance_zones.py`` schreibt heute 17 der 33
-Checkpoint-Layer über sieben ``ensure_group_layers()``-Aufrufe (Konstanten
+``scripts/widmung_v2/04_create_distance_zones.py`` (seit W6.1 aus dem Repo
+entfernt; letzter Stand im Commit ``f1d00f7``, abrufbar mit
+``git show f1d00f7:scripts/widmung_v2/04_create_distance_zones.py``) schrieb
+17 der 33 Checkpoint-Layer über sieben ``ensure_group_layers()``-Aufrufe (Konstanten
 dort: ``HIG_FAMILY_SOURCE_BANDS``, ``BUFFER_BANDS``, ``NATURE_BANDS``,
 ``GEOGRAPHY_BANDS``, ``WATER_BANDS``, ``OFFICIAL_ZONING_BANDS``,
 ``WKA_BESTAND_BAND`` - siehe ``pipeline/contract.py:LAYER_NAMES``-Kommentar,
@@ -15,7 +17,9 @@ Paket zählt ``HIG_FAMILY_SOURCE_BANDS`` nicht einzeln auf, aber 4+5+2+3+1+1+1
 ## Wo die Grenze zu W3.1 verläuft
 
 Diese Datei endet, sobald die letzte der 17 Rastermasken als Checkpoint
-geschrieben ist. Was ``04_create_distance_zones.py`` DANACH tut -
+geschrieben ist. Was ``04_create_distance_zones.py`` (seit W6.1 aus dem Repo
+entfernt; letzter Stand im Commit ``f1d00f7``, abrufbar mit
+``git show f1d00f7:scripts/widmung_v2/04_create_distance_zones.py``) DANACH tut -
 ``compose_exclusion_geotiff()`` (Bänder zu einem GeoTIFF zusammensetzen,
 Kategorie-Aggregate bilden, Blur-Bänder rechnen, `available`/`cleaned`
 ableiten) und ``write_band_manifest()`` - ist laut Auftrag ausdrücklich
@@ -59,20 +63,21 @@ zeigen) - es gibt keinen Prep-Pfad, auf den umgestellt werden könnte.
 
 ``main()`` unterscheidet zwei Verzeichnisse, NIE dasselbe:
 
-- ``source_dir`` (Default: ``output/abschichtung_widmung_v2/distance_layers``,
-  im Worktree ein read-only-Symlink auf das Hauptrepo) - RÜCKFALL für die
-  acht externen Quell-Checkpoints, die ihre eigenen Baufunktionen
-  (build_hig_family_sources, build_v2_buffers) tatsächlich lesen. Diese
-  Stufe schreibt hierhin NIE. Dort liegt außerdem die geteilte
-  Vergleichsbasis der Abnahme (run1) - siehe Warnung im Auftrag.
+- ``source_dir`` (CLI-Parameter, seit W6.1 ohne Wirkung mehr - siehe unten)
+  war RÜCKFALL für die acht externen Quell-Checkpoints, die ihre eigenen
+  Baufunktionen (build_hig_family_sources, build_v2_buffers) tatsächlich
+  lesen. Diese Stufe schreibt hierhin NIE.
   W5.P1 (PLAN.md §13.6, dieselbe Entscheidung wie ``pipeline/layers/
-  osm.py:_cover_layer_path()``): ``_source_layer_path()`` prüft für jeden
+  osm.py:_cover_layer_path()``): ``_source_layer_path()`` prüfte für jeden
   dieser acht Namen ZUERST ``contract.LAYERS[name]`` unter ``build/layers/``
   (out_dir von W2.1/W2.3, falls die in DIESER Kette schon gelaufen sind)
-  und fällt erst danach - laut meldend, siehe dort - auf ``source_dir``
-  zurück. Vorher war ``source_dir`` hier die einzige, unbedingte Quelle;
-  das machte einen frischen Kettenlauf abhängig von einem run1-Artefakt,
-  das er laut PLAN.md §3 gerade NICHT voraussetzen soll.
+  und fiel erst danach - laut meldend, siehe dort - auf ``source_dir``
+  zurück (Default: ``output/abschichtung_widmung_v2/distance_layers``, run1
+  - im Worktree ein read-only-Symlink auf das Hauptrepo). **W6.1:** ``output/``
+  ist aus dem Repo entfernt (siehe ``~/Documents/master_windkraft/archiv/``);
+  ``_source_layer_path()`` bricht jetzt laut ab, statt auf ein
+  Verzeichnis zurückzufallen, das es nicht mehr gibt - ``source_dir`` bleibt
+  nur noch für die Fehlermeldung erhalten.
 - ``out_dir`` (Default: ``pipeline.contract.BUILD_LAYERS``, also
   ``build/layers/`` - privat in diesem Worktree, nicht symlinkt) - die 17
   eigenen Checkpoints dieser Stufe. Innerhalb derselben Gruppe gelesene,
@@ -178,7 +183,9 @@ from windkraft.calc.abschichtung_common import (  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Wortgleich aus scripts/widmung_v2/04_create_distance_zones.py übernommen
-# (Regel 4: Werte/Namen unverändert) - dort Zeilen ~126-138, 193-206.
+# (Regel 4: Werte/Namen unverändert) - dort Zeilen ~126-138, 193-206. Seit
+# W6.1 aus dem Repo entfernt, letzter Stand im Commit f1d00f7 - git show
+# f1d00f7:scripts/widmung_v2/04_create_distance_zones.py.
 # ---------------------------------------------------------------------------
 
 BAND_SCHEMA = "clean-38-ohne-wichtige-objekte-aug-2026"
@@ -305,6 +312,8 @@ def _fingerprint_tag() -> str:
 # Band-Gruppen - Portierung des "Layer-Teils" von
 # scripts/widmung_v2/04_create_distance_zones.py (Regel 4: Puffer/Schwellen/
 # Heuristiken unverändert, nur die Eingabe-Beschaffung ist neu verdrahtet).
+# Seit W6.1 aus dem Repo entfernt, letzter Stand im Commit f1d00f7 - git show
+# f1d00f7:scripts/widmung_v2/04_create_distance_zones.py.
 # ---------------------------------------------------------------------------
 
 
@@ -312,30 +321,36 @@ def _source_layer_path(name: str, source_dir: Path) -> Path:
     """Pfad zu einem der acht externen Quell-Checkpoints aus W2.1/W2.3
     (``official_settlement_source`` usw. - siehe ``_check_required_sources()``).
 
-    Zuerst der Zielort dieser Pipeline (``contract.LAYERS[name]`` unter
-    ``build/layers/``, falls W2.1/W2.3 dort inzwischen liefern) - genau das
-    Muster aus ``pipeline/layers/osm.py:_cover_layer_path()`` (W5.P1: dieselbe
-    Entscheidung, zweimal getroffen, siehe PLAN.md §13.6). Erst danach der
-    bestehende Checkpoint im geteilten, NUR LESEND zugänglichen ``source_dir``
-    (Default: ``output/abschichtung_widmung_v2/distance_layers``, run1).
+    Ausschließlich der Zielort dieser Pipeline (``contract.LAYERS[name]``
+    unter ``build/layers/``, von W2.1/W2.3 geschrieben) - genau das Muster
+    aus ``pipeline/layers/osm.py:_cover_layer_path()`` (W5.P1: dieselbe
+    Entscheidung, zweimal getroffen, siehe PLAN.md §13.6).
 
-    Anders als ``_cover_layer_path()`` meldet dieser Rückfall sich laut: ein
-    stiller Rückfall auf ein Artefakt der alten Kette ist genau die Sorte
-    Abhängigkeit, die W5.P1 beseitigen soll (Auftragstext, Punkt 3)."""
+    **W6.1:** der frühere Rückfall auf den geteilten, NUR LESEND
+    zugänglichen ``source_dir`` (Default: ``output/abschichtung_widmung_v2/
+    distance_layers``, run1) ist entfernt - dieses Verzeichnis existiert seit
+    W6.1 nicht mehr im Repo (``output/`` wurde nach
+    ``~/Documents/master_windkraft/archiv/`` herausbewegt). Fehlt der Layer
+    unter ``build/layers/``, bricht dieser Aufruf jetzt sofort mit benannter
+    Meldung ab, statt still auf ein Verzeichnis zurückzufallen, das es nicht
+    mehr gibt. ``source_dir`` bleibt Parameter (für die Fehlermeldung und
+    CLI-Kompatibilität von ``--source-dir``), wird aber nicht mehr gelesen."""
     build_path = contract.LAYERS[name]
-    if build_path.exists():
-        return build_path
-    fallback = layer_path(source_dir, name)
-    print(
-        f"[warn]  '{name}' fehlt unter {build_path} (build/layers/, W2.1/W2.3 "
-        f"noch nicht gelaufen) - Rueckfall auf geteilte Vergleichsbasis {fallback}",
-        flush=True,
-    )
-    return fallback
+    if not build_path.exists():
+        raise FileNotFoundError(
+            f"'{name}' fehlt unter {build_path} (build/layers/, W2.1/W2.3 noch "
+            "nicht gelaufen) - der Rueckfall auf die alte Kette "
+            f"({source_dir}) ist seit W6.1 entfernt, dieses Verzeichnis "
+            "existiert nicht mehr im Repo. Erst 'make layer-hig layer-osm' "
+            "laufen lassen (pipeline/layers/hig.py, osm.py)."
+        )
+    return build_path
 
 
 def build_hig_family_sources(grid: dict, source_dir: Path) -> dict[str, np.ndarray]:
-    """Wie 04_create_distance_zones.py:build_hig_family_sources(), Eingabe
+    """Wie 04_create_distance_zones.py:build_hig_family_sources() (seit W6.1
+    aus dem Repo entfernt, letzter Stand im Commit f1d00f7 - git show
+    f1d00f7:scripts/widmung_v2/04_create_distance_zones.py), Eingabe
     ``admin_boundaries()`` jetzt über ``_admin_boundaries()`` (Prep statt
     VGD-Rohquelle); die vier Quell-Checkpoints (ferienhaus_tourismus_source
     usw.) kommen aus ``build/layers/`` (W2.1), mit Rückfall auf das externe,
@@ -358,7 +373,9 @@ def build_hig_family_sources(grid: dict, source_dir: Path) -> dict[str, np.ndarr
 
 
 def build_v2_buffers(grid: dict, source_dir: Path, out_dir: Path) -> dict[str, np.ndarray]:
-    """Wie 04_create_distance_zones.py:build_v2_buffers(). Liest die vier
+    """Wie 04_create_distance_zones.py:build_v2_buffers() (seit W6.1 aus dem
+    Repo entfernt, letzter Stand im Commit f1d00f7 - git show
+    f1d00f7:scripts/widmung_v2/04_create_distance_zones.py). Liest die vier
     HiG-Familienbänder aus ``out_dir`` (von build_hig_family_sources() in
     DERSELBEN Ausführung geschrieben), die übrigen Quell-Checkpoints
     (official_settlement_source, nonresidential_hulls_source,
@@ -392,7 +409,9 @@ def build_v2_buffers(grid: dict, source_dir: Path, out_dir: Path) -> dict[str, n
 
 
 def _build_official_nature_mask(grid: dict) -> np.ndarray:
-    """Wie 04_create_distance_zones.py:_build_official_nature_mask(), Eingabe
+    """Wie 04_create_distance_zones.py:_build_official_nature_mask() (seit
+    W6.1 aus dem Repo entfernt, letzter Stand im Commit f1d00f7 - git show
+    f1d00f7:scripts/widmung_v2/04_create_distance_zones.py), Eingabe
     jetzt ``build/prep/natur/schutzgebiete.gpkg`` (920 Flächen, geometrieonly,
     schon EPSG:31287) statt des NSG-ZIPs. Der notnull/not-empty-Filter ist
     hier ein No-op (Prep garantiert das schon beim Schreiben), bleibt aber
@@ -406,7 +425,9 @@ def _build_official_nature_mask(grid: dict) -> np.ndarray:
 
 
 def _build_osm_nature_mask(grid: dict) -> np.ndarray:
-    """Wie 04_create_distance_zones.py:_build_osm_nature_mask(), Eingabe
+    """Wie 04_create_distance_zones.py:_build_osm_nature_mask() (seit W6.1
+    aus dem Repo entfernt, letzter Stand im Commit f1d00f7 - git show
+    f1d00f7:scripts/widmung_v2/04_create_distance_zones.py), Eingabe
     jetzt ``build/prep/osm/b_layers/nature.parquet`` statt eines frischen
     Osmium-Exports gegen die PBF-Rohquelle. Tag-/Text-Heuristik wortgleich."""
     path = contract.PREP["osm"]["b_layers"] / "nature.parquet"
@@ -444,7 +465,9 @@ def build_nature_masks(grid: dict) -> dict[str, np.ndarray]:
 
 
 def build_water_masks(grid: dict) -> dict[str, np.ndarray]:
-    """Wie 04_create_distance_zones.py:build_water_masks(), Eingabe jetzt
+    """Wie 04_create_distance_zones.py:build_water_masks() (seit W6.1 aus
+    dem Repo entfernt, letzter Stand im Commit f1d00f7 - git show
+    f1d00f7:scripts/widmung_v2/04_create_distance_zones.py), Eingabe jetzt
     ``build/prep/osm/b_layers/water.parquet``. ``water_bodies_mask()`` selbst
     (Fußabdruck + Mindestfläche über verbundene Rasterflächen) unverändert
     aus abschichtung_common importiert - reine Rechenlogik, kein I/O."""
@@ -460,7 +483,9 @@ def build_water_masks(grid: dict) -> dict[str, np.ndarray]:
 
 
 def build_official_zoning_masks(grid: dict) -> dict[str, np.ndarray]:
-    """Wie 04_create_distance_zones.py:build_official_zoning_masks(). Die
+    """Wie 04_create_distance_zones.py:build_official_zoning_masks() (seit
+    W6.1 aus dem Repo entfernt, letzter Stand im Commit f1d00f7 - git show
+    f1d00f7:scripts/widmung_v2/04_create_distance_zones.py). Die
     fünfte Quelle (NÖ) kommt jetzt aus ``build/prep/zonen/NOE.gpkg`` statt
     ``--official-zoning-geojson``; die vier ``WIND_ZONE_SOURCES``-Quellen aus
     ``build/prep/zonen/{Stmk,Sbg,Bgld,RED3}.gpkg`` statt
@@ -510,7 +535,9 @@ def _build_valid_area_mask(grid: dict) -> np.ndarray:
 
 
 def build_wka_bestand_hulls(grid: dict, out_dir: Path, valid_area: np.ndarray) -> dict[str, np.ndarray]:
-    """Wie 04_create_distance_zones.py:build_wka_bestand_hulls(). Eingabe
+    """Wie 04_create_distance_zones.py:build_wka_bestand_hulls() (seit W6.1
+    aus dem Repo entfernt, letzter Stand im Commit f1d00f7 - git show
+    f1d00f7:scripts/widmung_v2/04_create_distance_zones.py). Eingabe
     ``windpower``-OSM-Layer jetzt aus ``build/prep/osm/b_layers/
     windpower.parquet`` statt frischem Osmium-Export; ``official_wind_zoning``
     kommt aus ``out_dir`` (von build_official_zoning_masks() in DERSELBEN
@@ -558,7 +585,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(
         description=(
             "Layer-Stufe W2.4: Natur, Gelände, Zonen und Puffer - die 17 "
-            "Checkpoints aus scripts/widmung_v2/04_create_distance_zones.py, "
+            "Checkpoints aus scripts/widmung_v2/04_create_distance_zones.py "
+            "(seit W6.1 aus dem Repo entfernt, letzter Stand im Commit "
+            "f1d00f7: git show f1d00f7:scripts/widmung_v2/04_create_distance_zones.py), "
             "Eingaben aus build/prep/ statt data/. Keine Endkomposition "
             "(GeoTIFF/Manifest) - das ist W3.1."
         )
@@ -567,8 +596,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument(
         "--source-dir",
         default="output/abschichtung_widmung_v2/distance_layers",
-        help="READ-ONLY: die 15 externen Quell-Checkpoints aus 02/03 (REQUIRED_SOURCE_LAYERS) "
-             "und die geteilte Vergleichsbasis der Abnahme. Niemals hierhin schreiben.",
+        help="Seit W6.1 wirkungslos: der Rueckfall auf dieses (nicht mehr existierende) "
+             "Verzeichnis ist entfernt, die acht externen Quell-Checkpoints kommen "
+             "ausschliesslich aus build/layers/ (W2.1/W2.3) - fehlender Checkpoint dort "
+             "bricht laut ab. Parameter bleibt nur fuer die Fehlermeldung erhalten.",
     )
     p.add_argument(
         "--out-dir",
@@ -582,7 +613,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def _check_required_sources(source_dir: Path) -> None:
     """Schwächere Fassung von 04_create_distance_zones.py:
-    _check_required_sources(): dessen REQUIRED_SOURCE_LAYERS (15 Namen) prüft
+    _check_required_sources() (seit W6.1 aus dem Repo entfernt, letzter
+    Stand im Commit f1d00f7 - git show
+    f1d00f7:scripts/widmung_v2/04_create_distance_zones.py): dessen
+    REQUIRED_SOURCE_LAYERS (15 Namen) prüft
     auch die sieben Straßen-/Bahn-/Flughafen-/Militär-Checkpoints, die 04
     selbst NICHT baut, sondern nur als Vorbedingung für die spätere
     Endkomposition (compose_exclusion_geotiff(), trailing_bands) einfordert -
@@ -591,11 +625,15 @@ def _check_required_sources(source_dir: Path) -> None:
     Baufunktionen (build_hig_family_sources, build_v2_buffers) tatsächlich
     LESEN - eine engere, aber für diesen Auftrag vollständige Vorbedingung.
 
-    W5.P1: prüft wie ``_source_layer_path()`` zuerst ``build/layers/`` (W2.1/
-    W2.3 in DIESER Kette gelaufen) und erst danach ``source_dir`` - genau das
-    Muster aus ``pipeline/layers/osm.py:_require_hig_layers()``. Vorher prüfte
-    diese Funktion unbedingt nur ``source_dir`` (die geschützte run1-
-    Vergleichsbasis) - das war der Befund, den dieses Paket behebt."""
+    W5.P1: prüfte zuerst ``build/layers/`` (W2.1/W2.3 in DIESER Kette
+    gelaufen) und erst danach ``source_dir`` - genau das Muster aus
+    ``pipeline/layers/osm.py:_require_hig_layers()``. **W6.1:** der
+    Rückfall auf ``source_dir`` (Default: ``output/abschichtung_widmung_v2/
+    distance_layers``) ist entfernt, dieses Verzeichnis existiert seit W6.1
+    nicht mehr im Repo - diese Funktion prüft jetzt ausschließlich
+    ``build/layers/`` und bricht laut ab, wenn dort etwas fehlt.
+    ``source_dir`` bleibt Parameter (für die Fehlermeldung und
+    CLI-Kompatibilität), wird aber nicht mehr gelesen."""
     required = [
         "official_settlement_source",
         "ferienhaus_tourismus_source",
@@ -606,17 +644,14 @@ def _check_required_sources(source_dir: Path) -> None:
         "cableway_buildings_source",
         "general_buildings_source",
     ]
-    missing = [
-        name for name in required
-        if not contract.LAYERS[name].exists() and not layer_path(source_dir, name).exists()
-    ]
+    missing = [name for name in required if not contract.LAYERS[name].exists()]
     if missing:
         raise FileNotFoundError(
             f"Fehlende externe Quell-Checkpoints: {', '.join(missing)}. "
-            f"Weder unter {contract.BUILD_LAYERS} noch unter {source_dir} gefunden - "
-            "diese kommen aus W2.1/W2.3 (pipeline/layers/hig.py, osm.py; heute: "
-            "'make layer-hig layer-osm') bzw. aus einem früheren Kettenlauf unter "
-            "output/abschichtung_widmung_v2/distance_layers/."
+            f"Unter {contract.BUILD_LAYERS} nicht gefunden - diese kommen aus "
+            "W2.1/W2.3 (pipeline/layers/hig.py, osm.py; heute: "
+            "'make layer-hig layer-osm'). Der Rueckfall auf einen frueheren "
+            f"Kettenlauf unter {source_dir} ist seit W6.1 entfernt."
         )
 
 

@@ -261,31 +261,48 @@ def _read_prep_layer(key: str, bounds: tuple[float, float, float, float] | None)
 
 def _cover_layer_path(name: str, legacy_cover_dir: Path) -> Path:
     """Pfad zu einem OFFICIAL_COVER_LAYERS-Checkpoint (Vorbedingung aus dem
-    HIG-Paket W2.1, das diese Welle noch nicht baut).
+    HIG-Paket W2.1, ``pipeline/layers/hig.py``).
 
-    Zuerst der Zielort dieser Pipeline (``contract.LAYERS[name]`` unter
-    ``build/layers/``, falls W2.1 dort inzwischen liefert), sonst der
-    bestehende Checkpoint im geteilten, NUR LESEND zugänglichen
-    ``output/abschichtung_widmung_v2/distance_layers/`` (Symlink auf das
-    Hauptrepo, run1) - genau wie im Original ``--layer-dir`` gemeinsam
-    Lese- und Schreibziel war, hier aber strikt getrennt: diese Stufe
-    schreibt NIE nach ``legacy_cover_dir``, nur nach ``contract.BUILD_LAYERS``
-    (siehe main()).
+    Ausschließlich der Zielort dieser Pipeline (``contract.LAYERS[name]``
+    unter ``build/layers/``, von W2.1 geschrieben).
+
+    **W6.1:** der frühere Rückfall auf den geteilten, NUR LESEND
+    zugänglichen ``output/abschichtung_widmung_v2/distance_layers/``
+    (Symlink auf das Hauptrepo, run1) ist entfernt - dieses Verzeichnis
+    existiert seit W6.1 nicht mehr im Repo (``output/`` wurde nach
+    ``~/Documents/master_windkraft/archiv/`` herausbewegt). Fehlt der Layer
+    unter ``build/layers/``, bricht dieser Aufruf jetzt sofort mit benannter
+    Meldung ab, statt still auf ein Verzeichnis zurückzufallen, das es nicht
+    mehr gibt. ``legacy_cover_dir`` bleibt Parameter (für die Fehlermeldung
+    und CLI-Kompatibilität von ``--legacy-cover-dir``), wird aber nicht mehr
+    gelesen; diese Stufe schrieb ohnehin NIE dorthin, nur nach
+    ``contract.BUILD_LAYERS`` (siehe main()).
     """
     build_path = contract.LAYERS[name]
-    if build_path.exists():
-        return build_path
-    return legacy_cover_dir / f"{name}.tif"
+    if not build_path.exists():
+        raise FileNotFoundError(
+            f"'{name}' fehlt unter {build_path} (build/layers/) - der Rueckfall "
+            f"auf die alte Kette ({legacy_cover_dir}) ist seit W6.1 entfernt, "
+            "dieses Verzeichnis existiert nicht mehr im Repo. HIG-Quellen "
+            "zuerst bauen (Paket W2.1, pipeline/layers/hig.py; heute: "
+            "'make layer-hig')."
+        )
+    return build_path
 
 
 def _require_hig_layers(legacy_cover_dir: Path) -> None:
-    missing = [n for n in OFFICIAL_COVER_LAYERS if not _cover_layer_path(n, legacy_cover_dir).exists()]
+    """W6.1: prüft nur noch ``contract.LAYERS`` direkt (nicht über
+    ``_cover_layer_path()``, die bei einem fehlenden Layer jetzt selbst
+    abbricht) - so sammelt diese Funktion weiterhin ALLE fehlenden
+    Checkpoints in einer Meldung, statt beim ersten fehlenden abzubrechen."""
+    missing = [n for n in OFFICIAL_COVER_LAYERS if not contract.LAYERS[n].exists()]
     if missing:
         raise FileNotFoundError(
             f"Missing checkpoint(s): {', '.join(missing)}. "
-            f"Weder unter {contract.BUILD_LAYERS} noch unter {legacy_cover_dir} gefunden - "
-            "HIG-Quellen zuerst bauen (heute: scripts/widmung_v2/02_build_hig_sources.py; "
-            "künftig Paket W2.1)."
+            f"Unter {contract.BUILD_LAYERS} nicht gefunden - der Rueckfall auf "
+            f"die alte Kette ({legacy_cover_dir}) ist seit W6.1 entfernt, dieses "
+            "Verzeichnis existiert nicht mehr. HIG-Quellen zuerst bauen "
+            "(Paket W2.1, pipeline/layers/hig.py; heute: 'make layer-hig')."
         )
 
 
@@ -514,9 +531,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--config", default="config.json")
     p.add_argument(
         "--legacy-cover-dir", default="output/abschichtung_widmung_v2/distance_layers",
-        help="NUR LESEND: Fallback-Quelle für die HIG-Vorbedingungs-Checkpoints "
-        "(OFFICIAL_COVER_LAYERS), falls sie noch nicht unter build/layers/ liegen "
-        "(Paket W2.1 baut sie dort künftig). Diese Stufe schreibt NIE dorthin.",
+        help="Seit W6.1 wirkungslos: der Rueckfall auf dieses (nicht mehr existierende) "
+        "Verzeichnis ist entfernt, die HIG-Vorbedingungs-Checkpoints "
+        "(OFFICIAL_COVER_LAYERS) kommen ausschliesslich aus build/layers/ (Paket W2.1) "
+        "- fehlender Checkpoint dort bricht laut ab. Parameter bleibt nur fuer die "
+        "Fehlermeldung erhalten.",
     )
     p.add_argument("--bbox", default=None, help="EPSG:31287 bbox minx,miny,maxx,maxy für Smoke-Tests")
     p.add_argument(
