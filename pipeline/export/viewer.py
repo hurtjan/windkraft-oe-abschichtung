@@ -30,10 +30,16 @@
    Downsampling eines stetigen Prozentfelds die statistisch korrekte
    Aggregation; bilinear waere fuer Interpolation zwischen Stuetzstellen
    gedacht, nicht fuer Flaechenaggregation beim Verkleinern).
-3. Dekimiert lesen statt voll lesen + verkleinern: dataset.read(band,
-   out_shape=(h, w), resampling=...) laesst GDAL beim Lesen selbst
-   herunterrechnen, bevor die Umprojektion nach EPSG:3857 folgt - 38
-   Baender a 336 Mio. Zellen erst voll zu lesen waere unnoetig teuer.
+3. Zweistufige Resampling-Strategie: `dataset.read(band, out_shape=(h, w),
+   resampling=Resampling.average)` in einen `float32`-Puffer dekimiert
+   schon beim Lesen (GDAL erlaubt dort kein `max/mode`, deshalb
+   `average`; der `float32`-Puffer erhaelt aber alle duennen Strukturen,
+   weil jeder Mittelwert > 0 bleibt). Dann folgt `reproject()` nach
+   EPSG:3857 mit `Resampling.max` (Masken) oder `Resampling.average`
+   (Prozentbaender), um die Flaecheneinschraenkung ein zweites Mal
+   maximaliserend durchzusetzen. Diese zweistufigkeit ist noetig, weil
+   die erste Dekimierung aggressiv ist (~4x) und sonst duenne Masken
+   schon vorher verschwinden koennten.
 4. Prozentbaender: eigene Farbskala statt Volltonfarbe. Der Alphakanal
    wird proportional zum Prozentwert aus der Basisfarbe des Manifests
    abgeleitet (0% = durchsichtig, 100% = volle im Manifest hinterlegte
@@ -47,11 +53,22 @@
 
 ## Haerteabsicherung: Resampling-Unterstuetzung wird geprueft, nicht angenommen
 
-`_assert_resampling_supported()` probiert `Resampling.max` bzw.
-`Resampling.average` je einmal an einem kleinen echten Ausschnitt - fuer
-den dekimierten Lesevorgang UND fuer reproject() getrennt - und bricht
-mit klarer Fehlermeldung ab, statt still auf `nearest` zurueckzufallen,
-falls diese rasterio/GDAL-Installation eines davon nicht unterstuetzt.
+Der dekimierte Lesevorgang in `render_band_png()` nutzt immer
+`Resampling.average` in einen `float32`-Puffer (GDAL-Einschraenkung:
+`dataset.read(out_shape=...)` kennt kein `Resampling.max/mode`, nur
+`average/bilinear/nearest/...`). Der `float32`-Puffer bewirkt, dass
+jedes Fenster mit mindestens einem wahren Quellpixel einen Mittelwert
+groesser 0 behaelt - analog zu max, aber mit einem Algorithmus, der
+beim Lesen unterstuetzt wird. Der nachfolgende `reproject()`-Schritt
+nach EPSG:3857 wendet dann `Resampling.max` (Masken) oder
+`Resampling.average` (Prozentbaender) an - das funktioniert nachweislich.
+
+`_assert_resampling_supported()` prueft (a) dass `Resampling.average`
+beim dekimierten Lesen in float32 funktioniert (IMMER noetig,
+unabhaengig vom value_type) und (b) dass `resampling_for(value_type)`
+beim reproject() funktioniert (max bzw. average). Beide Pruefungen
+erfolgen an echten Ausschnitten des tatsaechlichen Rasters - hart Fehler
+bei Misslingen, kein stiller Rueckfall.
 """
 
 from __future__ import annotations
@@ -129,22 +146,29 @@ def resampling_for(value_type: str) -> Resampling:
 
 
 def _assert_resampling_supported(src: "rasterio.DatasetReader", band_index: int, resampling: Resampling) -> None:
-    """Bricht hart ab, statt still auf nearest zurueckzufallen, wenn dieses
-    rasterio/GDAL `resampling` fuer reproject() nicht unterstuetzt wird.
-    Geprueft an einem echten (kleinen) Ausschnitt des tatsaechlichen Rasters.
-
-    Hinweis: Resampling.max und Resampling.average koennen NICHT fuer
-    dataset.read(out_shape=...) verwendet werden (rasterio/GDAL erlaubt das
-    nicht - nur nearest/bilinear/cubic/etc). Deshalb wird der Lesevorgang
-    mit Resampling.nearest durchgefuehrt und die gewuenschte Aggregation
-    (max fuer Masken, average fuer Prozentbaender) erst beim reproject() nach
-    EPSG:3857 angewendet."""
+    """Bricht hart ab, statt still auf nearest zurueckzufallen, wenn
+    (a) Resampling.average beim dekimierten Lesen in float32 oder
+    (b) das gewuenschte Resampling beim reproject()
+    nicht funktioniert. Beide Tests an echten (kleinen) Ausschnitten des
+    tatsaechlichen Rasters."""
     probe_h, probe_w = min(64, src.height), min(64, src.width)
-    dst_probe = np.zeros((probe_h, probe_w), dtype=src.dtypes[band_index - 1])
     probe_transform = src.transform * src.transform.scale(src.width / probe_w, src.height / probe_h)
+
+    # (a) Resampling.average beim dekimierten Lesen in float32 - immer noetig
     try:
+        decimated_probe = np.empty((probe_h, probe_w), dtype=np.float32)
+        src.read(band_index, out=decimated_probe, resampling=Resampling.average)
+    except Exception as exc:  # noqa: BLE001
+        raise RuntimeError(
+            f"Resampling.average beim dekimierten Lesen in float32-Puffer "
+            f"wird von dieser rasterio/GDAL-Installation nicht unterstuetzt: {exc}"
+        ) from exc
+
+    # (b) Das gewuenschte Resampling beim reproject()
+    try:
+        dst_probe = np.zeros((probe_h, probe_w), dtype=np.float32)
         reproject(
-            source=src.read(band_index, out_shape=(probe_h, probe_w), resampling=Resampling.nearest),
+            source=decimated_probe,
             destination=dst_probe,
             src_transform=probe_transform,
             src_crs=src.crs,
@@ -195,17 +219,20 @@ def render_band_png(
     transparentes PNG schreiben. Rueckgabe: Zahl der undurchsichtigen
     Pixel (Beleg, dass das PNG nicht leer ist).
 
-    Hinweis: Das Lesen wird mit Resampling.nearest durchgefuehrt (was
-    rasterio/GDAL fuer dataset.read(out_shape=...) erlaubt), die
-    Aggregation (max fuer Masken, average fuer Prozentbaender) geschieht
-    erst beim reproject() nach EPSG:3857."""
+    Der dekimierte Lesevorgang nutzt Resampling.average in einen
+    float32-Puffer (GDAL erlaubt dort kein max/mode, nur average
+    und aehnliche). Der float32-Puffer erhaelt alle duennen Strukturen,
+    weil jeder Mittelwert > 0 bleibt. Die Aggregation nach value_type
+    (max fuer Masken, average fuer Prozentbaender) geschieht beim
+    reproject() nach EPSG:3857."""
     resampling = resampling_for(value_type)
     oversample = 2
     read_h = min(src.height, max(1, out_h * oversample))
     read_w = min(src.width, max(1, out_w * oversample))
-    decimated = src.read(band_index, out_shape=(read_h, read_w), resampling=Resampling.nearest)
+    decimated = np.empty((read_h, read_w), dtype=np.float32)
+    src.read(band_index, out=decimated, resampling=Resampling.average)
     decimated_transform = src.transform * src.transform.scale(src.width / read_w, src.height / read_h)
-    warped = np.zeros((out_h, out_w), dtype=decimated.dtype)
+    warped = np.zeros((out_h, out_w), dtype=np.float32)
     reproject(
         source=decimated,
         destination=warped,
@@ -356,7 +383,7 @@ def main(argv: list[str] | None = None) -> int:
                 _assert_resampling_supported(src, band["index"], resampling)
                 checked_resamplings.add(resampling)
 
-            filename = f"{band['index']:02d}.png"
+            filename = f"{band['index']:02d}_{safe_filename(band['name'])}.png"
             out_path = layer_dir / filename
             opaque_pixels = render_band_png(
                 src=src,

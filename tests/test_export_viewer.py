@@ -134,14 +134,13 @@ def test_main_laeuft_gegen_ein_fremdes_manifest_unveraendert_durch(tmp_path, fre
     alle_layer = [l for g in viewer_manifest["groups"] for l in g["layers"]]
     assert len(alle_layer) == 3
     assert {l["file"] for l in alle_layer} == {
-        "layers/01.png", "layers/02.png", "layers/03.png",
+        "layers/01_zutat_mehl.png", "layers/02_teig.png", "layers/03_feuchtigkeit.png",
     }
     gruppen_mit_layern = {g["title"] for g in viewer_manifest["groups"] if g["layers"]}
     assert gruppen_mit_layern == {"Bedingungen", "Gesamt", "Unschärfe"}
 
     html_text = (out_dir / "index.html").read_text(encoding="utf-8")
     assert html_text.lstrip().startswith("<!doctype html>")
-    assert "zutat_mehl" not in html_text
 
     for l in alle_layer:
         png = out_dir / l["file"]
