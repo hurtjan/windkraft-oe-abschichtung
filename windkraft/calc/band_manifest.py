@@ -30,6 +30,56 @@ Manifest. Hier werden sie NICHT dupliziert.
 
 Stil (JSON-Einrückung, Zeitstempel, Schlüsselreihenfolge) folgt bewusst
 ``write_legend()`` in ``windkraft/calc/kataster_layers.py`` des Alt-Repos.
+
+## Schema-Historie (Paket W3.1, docs/rewrite/PLAN.md §7)
+
+``SCHEMA_VERSION`` existierte schon vorher (a1cd332) - dieses Paket ändert
+den *Inhalt* je Band, nicht das Prinzip der Versionierung selbst, und hebt
+die Version deshalb an, statt sie unbemerkt gleich zu lassen (Auftrag W3.1:
+"soll eine spätere Änderung erkennbar machen, statt sie unbemerkt
+durchzulassen").
+
+  ``1.0.0``  Ausgangszustand (a1cd332, f411bc3): index, name, label_de,
+             description_de, category, value_type, clipped_to_austria,
+             is_total, color_rgba, default_visible je Band; ``sources`` nur
+             als globales Nachschlagewerk, ohne Zuordnung zu einem Band.
+  ``2.0.0``  W3.1 fügt vier Pflichtfelder je Band hinzu (additiv, aber ein
+             Konsument, der die Feldmenge exakt zählt statt auf ``in``
+             zu prüfen, sieht das als Bruch - deshalb Hauptversion, nicht
+             Nebenversion):
+               ``rolle``          Pipeline-Rolle, siehe ``ROLLEN`` unten -
+                                   löst auf, WAS ein Band ist (Bedingung,
+                                   Aggregat, Referenz, ...), unabhängig von
+                                   ``category`` (das ist reine Anzeige-
+                                   Gruppierung fürs Viewer-Panel).
+               ``puffer_m``       Abstand in Metern, float oder null.
+                                   Nur gesetzt, wo ein einzelner, über ganz
+                                   Österreich einheitlicher Wert existiert.
+               ``puffer_hinweis`` Freitext für die drei Fälle, die sich
+                                   nicht in eine einzelne Zahl pressen lassen
+                                   (bundeslandabhängig, Korridor statt
+                                   isotropem Puffer, Puffer schon im
+                                   Quellband enthalten) - null sonst.
+               ``quelle``         Schlüssel in ``sources`` (Rohdatensätze),
+                                   die DIREKT in dieses Band eingehen. Leer
+                                   bei Aggregat-/Ergebnisbändern - die lesen
+                                   keine Rohdaten, sondern andere Bänder
+                                   (siehe ``abgeleitet_von``).
+               ``abgeleitet_von`` Namen der Bänder, aus denen dieses Band
+                                   RECHNERISCH entsteht (ODER-Verknüpfung,
+                                   Negation, Schwellwert-Filter, Gauß-Blur).
+                                   Leer bei Bändern, die direkt aus
+                                   ``quelle`` gelesen werden.
+             Zusätzlich ein neuer Top-Level-Schlüssel
+             ``geography_water_bodies_wirkungspfad`` (Liste von
+             Bandnamen): der transitive Abschluss über ``abgeleitet_von``,
+             beginnend bei ``geography_water_bodies`` selbst - genau die
+             Bänder, die laut PLAN.md §13.9/Regel 8 als einzige von der
+             OSM-Wasserkörper-Korrektur (543.106 Zellen, nur zusätzlich)
+             abweichen DÜRFEN. Wird aus ``abgeleitet_von`` berechnet, nicht
+             zusätzlich gepflegt - eine zweite, von Hand synchron zu
+             haltende Liste wäre genau die stille Drift, die dieses Feld
+             verhindern soll.
 """
 
 from __future__ import annotations
@@ -45,7 +95,7 @@ from windkraft.viz.band_metadata import (
     layer_color,
 )
 
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "2.0.0"
 MANIFEST_SUFFIX = ".bands.json"
 
 # Fallbacks, falls die Tags einmal ohne diese Schlüssel kommen. Der Regelfall
@@ -400,6 +450,267 @@ BLUR_BLEED_CAVEAT = {
 
 
 # --------------------------------------------------------------------------
+# Rolle, Puffer, Quelle je Band (Paket W3.1, docs/rewrite/PLAN.md §7).
+#
+# Werte sind aus dem Code der Layer-/Finalisierungs-Stufe abgelesen, nicht
+# neu festgelegt (Regel 4): Puffer-Konstanten aus
+# windkraft/calc/abschichtung_common.py, Quellzuordnung aus
+# pipeline/contract.py:RAW (welche Domäne welchen Layer speist, siehe dort
+# §4-Domänentabelle im Plan) bzw. aus den Aufrufen in pipeline/layers/*.py
+# und pipeline/finalize.py (welches Band aus welchem Vorband entsteht).
+# --------------------------------------------------------------------------
+
+ROLE_BEDINGUNG = "bedingung"
+ROLE_AGGREGAT_KATEGORIE = "aggregat_kategorie"
+ROLE_AGGREGAT_GESAMT = "aggregat_gesamt"
+ROLE_VERFUEGBARKEIT_ROH = "verfuegbarkeit_roh"
+ROLE_VERFUEGBARKEIT_BEREINIGT = "verfuegbarkeit_bereinigt"
+ROLE_UNSCHAERFE = "unschaerfe"
+ROLE_REFERENZ = "referenz"
+
+ROLLEN = (
+    ROLE_BEDINGUNG,
+    ROLE_AGGREGAT_KATEGORIE,
+    ROLE_AGGREGAT_GESAMT,
+    ROLE_VERFUEGBARKEIT_ROH,
+    ROLE_VERFUEGBARKEIT_BEREINIGT,
+    ROLE_UNSCHAERFE,
+    ROLE_REFERENZ,
+)
+
+_ROLE_AGGREGAT_KATEGORIE_NAMES = {"exclusion_human", "exclusion_nature", "exclusion_geography"}
+_ROLE_AGGREGAT_GESAMT_NAMES = {"all_exclusions"}
+_ROLE_VERFUEGBARKEIT_ROH_NAMES = {"available_after_all_exclusions_raw"}
+_ROLE_REFERENZ_NAMES = {"official_wind_zoning", "wka_bestand_ausserhalb_zonen"}
+
+
+def band_role(name: str) -> str:
+    if name in _ROLE_AGGREGAT_KATEGORIE_NAMES:
+        return ROLE_AGGREGAT_KATEGORIE
+    if name in _ROLE_AGGREGAT_GESAMT_NAMES:
+        return ROLE_AGGREGAT_GESAMT
+    if name in _ROLE_VERFUEGBARKEIT_ROH_NAMES:
+        return ROLE_VERFUEGBARKEIT_ROH
+    if name.startswith("available_cleaned_min_"):
+        return ROLE_VERFUEGBARKEIT_BEREINIGT
+    if name.startswith(PERCENT_BAND_PREFIX):
+        return ROLE_UNSCHAERFE
+    if name in _ROLE_REFERENZ_NAMES:
+        return ROLE_REFERENZ
+    return ROLE_BEDINGUNG
+
+
+# Puffer in Metern, wo ein einziger, österreichweit einheitlicher Wert
+# existiert - aus abschichtung_common.py: HIG_FAMILY_BUFFER_M (750),
+# NONRESIDENTIAL_HULL_BUFFER_M (25), CABLEWAY_BUILDING_BUFFER_M (50),
+# GENERAL_BUILDING_BUFFER_M (25); die vier 150-m-Infrastrukturbänder tragen
+# ihren Wert schon im Namen bzw. in der Band.description der Finalisierung
+# ("150 m buffer around ..."). Bänder, die hier fehlen, haben KEINEN
+# räumlichen Abstand an dieser Stelle (Fußabdruck, Schwellenwert-Maske,
+# Aggregat) - band_buffer_m() liefert dann None, nicht 0.0 (0.0 wäre die
+# falsche Aussage "gepuffert mit 0 m").
+BUFFER_M = {
+    "haeuser_im_gruenen": 750.0,
+    "nonresidential_hulls_buffer": 25.0,
+    "cableway_buildings_buffer": 50.0,
+    "general_buildings_buffer": 25.0,
+    "road_motorway_trunk": 150.0,
+    "road_federal_state": 150.0,
+    "rail_main": 150.0,
+    "cableway_people_150m": 150.0,
+}
+
+# Freitext für die drei Fälle, die sich nicht in eine einzelne Zahl pressen
+# lassen - siehe Schema-Historie im Moduldocstring.
+BUFFER_NOTE_DE = {
+    "settlement_buffer": (
+        "Bundeslandabhängig (SETTLEMENT_BUFFER_BY_BL): 1.200 m in "
+        "Niederösterreich, sonst einheitlich 1.000 m."
+    ),
+    "haeuser_im_gruenen_noe_pdf": (
+        "750 m bereits im Quellband enthalten - die NÖ-SekROP-PDF-Zonen "
+        "liefern Objekt und Abstand zusammen, kein zweiter Puffer hier."
+    ),
+    "airport_runway_corridor_5km": (
+        "Kein isotroper Puffer: Korridor 5.000 m ab beiden Landebahn-Enden "
+        "(AIRPORT_CORRIDOR_LENGTH_M), ±15° Halbwinkel um die verlängerte "
+        "Bahnachse (AIRPORT_CORRIDOR_HALF_ANGLE_DEG)."
+    ),
+}
+
+
+def band_buffer_m(name: str) -> float | None:
+    return BUFFER_M.get(name)
+
+
+def band_buffer_note_de(name: str) -> str | None:
+    return BUFFER_NOTE_DE.get(name)
+
+
+# Quelle je Bedingungsband: Schlüssel in SOURCES (Rohdatensätze), die DIREKT
+# gelesen werden - nicht die davon abgeleiteten Zwischenbänder. Neun
+# flaechenwidmung_*-Schlüssel für die drei amtlichen Widmungsbänder (Wohn-
+# /Misch-/Kerngebiet, Ferienhaus/Tourismus, HiG-Widmung liegen alle in
+# denselben neun Landesquellen, nur nach Widmungskategorie gefiltert - siehe
+# scripts/widmung_v2/01_build_official_zoning_layers.py). Aggregat-/
+# Ergebnisbänder stehen hier NICHT - deren Quelle sind andere Bänder, siehe
+# BAND_DERIVED_FROM.
+_FLAECHENWIDMUNG_KEYS = [
+    "flaechenwidmung_bgld",
+    "flaechenwidmung_ktn",
+    "flaechenwidmung_noe",
+    "flaechenwidmung_ooe",
+    "flaechenwidmung_sbg",
+    "flaechenwidmung_stmk",
+    "flaechenwidmung_tirol",
+    "flaechenwidmung_vbg",
+    "flaechenwidmung_wien",
+]
+
+BAND_SOURCES: dict[str, list[str]] = {
+    "official_settlement_source": list(_FLAECHENWIDMUNG_KEYS),
+    "settlement_buffer": ["verwaltungsgrenzen_vgd"],
+    "haeuser_im_gruenen_ferienhaus": list(_FLAECHENWIDMUNG_KEYS),
+    "haeuser_im_gruenen_widmung": list(_FLAECHENWIDMUNG_KEYS) + ["verwaltungsgrenzen_vgd"],
+    "haeuser_im_gruenen_streusiedlung": ["bev_adressregister", "dkm_geoparquet", "verwaltungsgrenzen_vgd"],
+    "haeuser_im_gruenen_noe_pdf": ["noe_sekrop_mindestabstandszonen"],
+    "nonresidential_hulls_source": ["dkm_geoparquet", "osm_pbf"],
+    "cableway_buildings_source": ["osm_pbf"],
+    "general_buildings_source": ["osm_pbf", "dkm_geoparquet", "bev_adressregister"],
+    "road_motorway_trunk": ["osm_pbf"],
+    "road_federal_state": ["osm_pbf"],
+    "rail_main": ["osm_pbf"],
+    "cableway_people_150m": ["osm_pbf"],
+    "military_restricted_area": ["osm_pbf"],
+    "airport_area_major": ["osm_pbf"],
+    "airport_runway_corridor_5km": ["osm_pbf"],
+    "nature_protection_areas": ["naturschutzgebiete"],
+    "osm_nature_protection_areas": ["osm_pbf"],
+    "geography_slope_too_steep": ["dgm_25m"],
+    "geography_elevation_too_high": ["dgm_25m"],
+    "geography_wind_too_low": ["wind_leistungsdichte_150m"],
+    # Der einzige Layer mit einer erklärten, weitergetragenen Abweichung zu
+    # run1 (PLAN.md §13.9/Regel 8) - siehe geography_water_bodies_wirkungspfad
+    # in build_band_manifest().
+    "geography_water_bodies": ["osm_pbf"],
+    "official_wind_zoning": [
+        "amtliche_windzonen_noe",
+        "amtliche_windzonen_bgld",
+        "amtliche_windzonen_ktn",
+        "amtliche_windzonen_stmk_sbg",
+        "verwaltungsgrenzen_vgd",
+    ],
+    "wka_bestand_ausserhalb_zonen": ["osm_pbf"],
+}
+
+# Bandnamen, aus denen ein Band RECHNERISCH entsteht (ODER, Negation,
+# Schwellwert, Blur) - aus compose_exclusion_geotiff() abgelesen
+# (windkraft/calc/abschichtung_common.py):
+#   exclusion_human/_nature/_geography = ODER der jeweiligen Gruppenbänder
+#   all_exclusions                     = ODER der drei Kategorie-Aggregate
+#   available_after_all_exclusions_raw = NICHT all_exclusions (& valid_area)
+#   available_cleaned_min_*ha          = Mindestflächenfilter auf raw
+#   available_blur_sigma_*m            = Gauß-Blur auf raw (blur_source="raw"
+#                                         in pipeline/finalize.py)
+#   wka_bestand_ausserhalb_zonen       = testet OSM-Windpower-Punkte gegen
+#                                         official_wind_zoning
+# Wie abschichtung_common.py: HUMAN_BANDS (wortgleich aus
+# scripts/widmung_v2/04_create_distance_zones.py bzw. pipeline/finalize.py),
+# NATURE_BANDS, GEOGRAPHY_BANDS + WATER_BANDS - hier als Namensliste
+# gespiegelt statt importiert, damit dieses Modul weiterhin ohne
+# rasterio/geopandas testbar bleibt (siehe RASTER_DTYPE/RASTER_NODATA oben,
+# gleiches Prinzip).
+_HUMAN_BANDS = [
+    "settlement_buffer",
+    "haeuser_im_gruenen",
+    "nonresidential_hulls_buffer",
+    "cableway_buildings_buffer",
+    "general_buildings_buffer",
+    "road_motorway_trunk",
+    "road_federal_state",
+    "rail_main",
+    "cableway_people_150m",
+    "military_restricted_area",
+    "airport_area_major",
+    "airport_runway_corridor_5km",
+]
+_NATURE_BANDS = ["nature_protection_areas", "osm_nature_protection_areas"]
+_GEOGRAPHY_AND_WATER_BANDS = [
+    "geography_slope_too_steep",
+    "geography_elevation_too_high",
+    "geography_wind_too_low",
+    "geography_water_bodies",
+]
+
+BAND_DERIVED_FROM: dict[str, list[str]] = {
+    # Puffer-/Aggregatbänder der HiG-/Mensch-Gruppe, gebaut in
+    # pipeline/layers/hig.py bzw. pipeline/layers/geo.py
+    # (build_v2_buffers()/build_hig_family_sources()) - siehe deren Docstrings.
+    # Zusätzlich zum jeweiligen Quellband braucht der Puffer die
+    # Verwaltungsgrenzen (settlement_buffer: bundeslandabhängige Distanz) -
+    # die steht als Rohquelle in BAND_SOURCES, nicht hier.
+    "settlement_buffer": ["official_settlement_source"],
+    "haeuser_im_gruenen": [
+        "haeuser_im_gruenen_ferienhaus",
+        "haeuser_im_gruenen_widmung",
+        "haeuser_im_gruenen_streusiedlung",
+        "haeuser_im_gruenen_noe_pdf",
+    ],
+    "nonresidential_hulls_buffer": ["nonresidential_hulls_source"],
+    "cableway_buildings_buffer": ["cableway_buildings_source"],
+    "general_buildings_buffer": ["general_buildings_source"],
+    # Kategorie-/Ergebnisaggregate, gebaut in compose_exclusion_geotiff()
+    # (windkraft/calc/abschichtung_common.py).
+    "exclusion_human": list(_HUMAN_BANDS),
+    "exclusion_nature": list(_NATURE_BANDS),
+    "exclusion_geography": list(_GEOGRAPHY_AND_WATER_BANDS),
+    "all_exclusions": ["exclusion_human", "exclusion_nature", "exclusion_geography"],
+    "available_after_all_exclusions_raw": ["all_exclusions"],
+    "wka_bestand_ausserhalb_zonen": ["official_wind_zoning"],
+}
+
+
+def band_sources(name: str) -> list[str]:
+    return list(BAND_SOURCES.get(name, []))
+
+
+def band_derived_from(name: str) -> list[str]:
+    if name.startswith("available_cleaned_min_"):
+        return ["available_after_all_exclusions_raw"]
+    if name.startswith(PERCENT_BAND_PREFIX):
+        return ["available_after_all_exclusions_raw"]
+    return list(BAND_DERIVED_FROM.get(name, []))
+
+
+def _water_bodies_impact_path(band_names: list[str]) -> list[str]:
+    """Transitiver Abschluss über band_derived_from(), ab
+    ``geography_water_bodies`` - die einzigen Bänder, die laut PLAN.md
+    §13.9/Regel 8 von run1 abweichen DÜRFEN. Reine Graphsuche über die
+    ``abgeleitet_von``-Kanten der tatsächlich im Raster vorhandenen Bänder;
+    kein Sonderwissen über einzelne Bandnamen außer dem Startpunkt selbst."""
+    present = set(band_names)
+    if "geography_water_bodies" not in present:
+        return []
+    # Rückwärtskanten: welche Bänder haben X in ihrem abgeleitet_von?
+    dependents: dict[str, list[str]] = {}
+    for name in band_names:
+        for upstream in band_derived_from(name):
+            dependents.setdefault(upstream, []).append(name)
+
+    reached = {"geography_water_bodies"}
+    frontier = ["geography_water_bodies"]
+    while frontier:
+        current = frontier.pop()
+        for nxt in dependents.get(current, []):
+            if nxt not in reached:
+                reached.add(nxt)
+                frontier.append(nxt)
+    # Reihenfolge wie im Raster, Startband zuerst.
+    ordered = [n for n in band_names if n in reached and n != "geography_water_bodies"]
+    return ["geography_water_bodies", *ordered]
+
+
+# --------------------------------------------------------------------------
 # Ableitungen je Band
 # --------------------------------------------------------------------------
 
@@ -449,6 +760,11 @@ def band_entry(index: int, name: str, condition_descriptions: dict[str, str]) ->
         "is_total": is_total,
         "color_rgba": list(layer_color(name)),
         "default_visible": name in DEFAULT_VISIBLE,
+        "rolle": band_role(name),
+        "puffer_m": band_buffer_m(name),
+        "puffer_hinweis": band_buffer_note_de(name),
+        "quelle": band_sources(name),
+        "abgeleitet_von": band_derived_from(name),
     }
 
 
@@ -535,6 +851,10 @@ def build_band_manifest(
         "parameters": dict(tags),
         "sources": {key: dict(value) for key, value in SOURCES.items()},
         "caveats": caveats,
+        # PLAN.md §13.9/Regel 8: die transitive Ausbreitung der einzigen
+        # erklärten Abweichung zu run1, berechnet aus abgeleitet_von, nicht
+        # von Hand gepflegt (siehe Schema-Historie im Moduldocstring).
+        "geography_water_bodies_wirkungspfad": _water_bodies_impact_path(band_names),
     }
 
 
