@@ -60,11 +60,19 @@ zeigen) - es gibt keinen Prep-Pfad, auf den umgestellt werden könnte.
 ``main()`` unterscheidet zwei Verzeichnisse, NIE dasselbe:
 
 - ``source_dir`` (Default: ``output/abschichtung_widmung_v2/distance_layers``,
-  im Worktree ein read-only-Symlink auf das Hauptrepo) - die 15 externen
-  Checkpoints aus 02/03 (``REQUIRED_SOURCE_LAYERS`` in
-  ``04_create_distance_zones.py``), die diese Stufe nur LIEST, nie
-  schreibt. Dort liegt außerdem die geteilte Vergleichsbasis der Abnahme
-  (run1) - siehe Warnung im Auftrag.
+  im Worktree ein read-only-Symlink auf das Hauptrepo) - RÜCKFALL für die
+  acht externen Quell-Checkpoints, die ihre eigenen Baufunktionen
+  (build_hig_family_sources, build_v2_buffers) tatsächlich lesen. Diese
+  Stufe schreibt hierhin NIE. Dort liegt außerdem die geteilte
+  Vergleichsbasis der Abnahme (run1) - siehe Warnung im Auftrag.
+  W5.P1 (PLAN.md §13.6, dieselbe Entscheidung wie ``pipeline/layers/
+  osm.py:_cover_layer_path()``): ``_source_layer_path()`` prüft für jeden
+  dieser acht Namen ZUERST ``contract.LAYERS[name]`` unter ``build/layers/``
+  (out_dir von W2.1/W2.3, falls die in DIESER Kette schon gelaufen sind)
+  und fällt erst danach - laut meldend, siehe dort - auf ``source_dir``
+  zurück. Vorher war ``source_dir`` hier die einzige, unbedingte Quelle;
+  das machte einen frischen Kettenlauf abhängig von einem run1-Artefakt,
+  das er laut PLAN.md §3 gerade NICHT voraussetzen soll.
 - ``out_dir`` (Default: ``pipeline.contract.BUILD_LAYERS``, also
   ``build/layers/`` - privat in diesem Worktree, nicht symlinkt) - die 17
   eigenen Checkpoints dieser Stufe. Innerhalb derselben Gruppe gelesene,
@@ -300,15 +308,42 @@ def _fingerprint_tag() -> str:
 # ---------------------------------------------------------------------------
 
 
+def _source_layer_path(name: str, source_dir: Path) -> Path:
+    """Pfad zu einem der acht externen Quell-Checkpoints aus W2.1/W2.3
+    (``official_settlement_source`` usw. - siehe ``_check_required_sources()``).
+
+    Zuerst der Zielort dieser Pipeline (``contract.LAYERS[name]`` unter
+    ``build/layers/``, falls W2.1/W2.3 dort inzwischen liefern) - genau das
+    Muster aus ``pipeline/layers/osm.py:_cover_layer_path()`` (W5.P1: dieselbe
+    Entscheidung, zweimal getroffen, siehe PLAN.md §13.6). Erst danach der
+    bestehende Checkpoint im geteilten, NUR LESEND zugänglichen ``source_dir``
+    (Default: ``output/abschichtung_widmung_v2/distance_layers``, run1).
+
+    Anders als ``_cover_layer_path()`` meldet dieser Rückfall sich laut: ein
+    stiller Rückfall auf ein Artefakt der alten Kette ist genau die Sorte
+    Abhängigkeit, die W5.P1 beseitigen soll (Auftragstext, Punkt 3)."""
+    build_path = contract.LAYERS[name]
+    if build_path.exists():
+        return build_path
+    fallback = layer_path(source_dir, name)
+    print(
+        f"[warn]  '{name}' fehlt unter {build_path} (build/layers/, W2.1/W2.3 "
+        f"noch nicht gelaufen) - Rueckfall auf geteilte Vergleichsbasis {fallback}",
+        flush=True,
+    )
+    return fallback
+
+
 def build_hig_family_sources(grid: dict, source_dir: Path) -> dict[str, np.ndarray]:
     """Wie 04_create_distance_zones.py:build_hig_family_sources(), Eingabe
     ``admin_boundaries()`` jetzt über ``_admin_boundaries()`` (Prep statt
     VGD-Rohquelle); die vier Quell-Checkpoints (ferienhaus_tourismus_source
-    usw.) kommen unverändert aus dem externen, geteilten Checkpoint-
-    Verzeichnis (source_dir) - die schreibt W2.1/W2.2, nicht dieses Paket."""
+    usw.) kommen aus ``build/layers/`` (W2.1), mit Rückfall auf das externe,
+    geteilte Checkpoint-Verzeichnis (source_dir) - siehe
+    ``_source_layer_path()``."""
 
     def source(name: str) -> np.ndarray:
-        return read_layer_mask(layer_path(source_dir, name))
+        return read_layer_mask(_source_layer_path(name, source_dir))
 
     bl = _admin_boundaries(grid["bounds"])
     noe = bl[bl["BL"].eq("Niederösterreich")] if "BL" in bl.columns else bl.iloc[0:0]
@@ -327,14 +362,15 @@ def build_v2_buffers(grid: dict, source_dir: Path, out_dir: Path) -> dict[str, n
     HiG-Familienbänder aus ``out_dir`` (von build_hig_family_sources() in
     DERSELBEN Ausführung geschrieben), die übrigen Quell-Checkpoints
     (official_settlement_source, nonresidential_hulls_source,
-    cableway_buildings_source, general_buildings_source) aus dem externen
-    ``source_dir`` - siehe Moduldocstring zur Zwei-Verzeichnis-Regel."""
+    cableway_buildings_source, general_buildings_source) aus ``build/layers/``
+    (W2.1/W2.3), mit Rückfall auf den externen ``source_dir`` - siehe
+    ``_source_layer_path()``."""
 
     def own(name: str) -> np.ndarray:
         return read_layer_mask(layer_path(out_dir, name))
 
     def ext(name: str) -> np.ndarray:
-        return read_layer_mask(layer_path(source_dir, name))
+        return read_layer_mask(_source_layer_path(name, source_dir))
 
     settlement = ext("official_settlement_source")
     hig_family = own("haeuser_im_gruenen_ferienhaus") | own("haeuser_im_gruenen_widmung") | own("haeuser_im_gruenen_streusiedlung")
@@ -553,7 +589,13 @@ def _check_required_sources(source_dir: Path) -> None:
     genau der Teil, der laut Moduldocstring hier NICHT dazugehört (W3.1).
     Diese Stufe prüft nur die acht externen Checkpoints, die ihre eigenen
     Baufunktionen (build_hig_family_sources, build_v2_buffers) tatsächlich
-    LESEN - eine engere, aber für diesen Auftrag vollständige Vorbedingung."""
+    LESEN - eine engere, aber für diesen Auftrag vollständige Vorbedingung.
+
+    W5.P1: prüft wie ``_source_layer_path()`` zuerst ``build/layers/`` (W2.1/
+    W2.3 in DIESER Kette gelaufen) und erst danach ``source_dir`` - genau das
+    Muster aus ``pipeline/layers/osm.py:_require_hig_layers()``. Vorher prüfte
+    diese Funktion unbedingt nur ``source_dir`` (die geschützte run1-
+    Vergleichsbasis) - das war der Befund, den dieses Paket behebt."""
     required = [
         "official_settlement_source",
         "ferienhaus_tourismus_source",
@@ -564,12 +606,17 @@ def _check_required_sources(source_dir: Path) -> None:
         "cableway_buildings_source",
         "general_buildings_source",
     ]
-    missing = [name for name in required if not layer_path(source_dir, name).exists()]
+    missing = [
+        name for name in required
+        if not contract.LAYERS[name].exists() and not layer_path(source_dir, name).exists()
+    ]
     if missing:
         raise FileNotFoundError(
-            f"Fehlende externe Quell-Checkpoints in {source_dir}: {', '.join(missing)}. "
-            "Diese kommen aus W2.1/W2.3 (pipeline/layers/hig.py, osm.py) bzw. aus einem "
-            "früheren Kettenlauf unter output/abschichtung_widmung_v2/distance_layers/."
+            f"Fehlende externe Quell-Checkpoints: {', '.join(missing)}. "
+            f"Weder unter {contract.BUILD_LAYERS} noch unter {source_dir} gefunden - "
+            "diese kommen aus W2.1/W2.3 (pipeline/layers/hig.py, osm.py; heute: "
+            "'make layer-hig layer-osm') bzw. aus einem früheren Kettenlauf unter "
+            "output/abschichtung_widmung_v2/distance_layers/."
         )
 
 
