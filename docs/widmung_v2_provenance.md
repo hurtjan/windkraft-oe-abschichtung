@@ -26,9 +26,9 @@ geprüft (`ls`, `stat`, rasterio-Metadaten). Code-Stellen sind als `pfad:zeile` 
 ```mermaid
 flowchart LR
   subgraph RAW["Rohdaten (data/)"]
-    FW["Flächenwidmung 9 BL<br/>data/new_widmungs_data/*<br/>data/flächenwidmungen/*"]
-    DKM["DKM Kataster<br/>build/prep/kataster/b_export_parquet/at_dkm_gst_nfl_epsg31287.geoparquet<br/>(seit Paket W2.1; vormals output/kataster/…, siehe Tabelle unten)"]
-    BEV["BEV Adressregister<br/>data/adressregister/"]
+    FW["Flächenwidmung 9 BL<br/>data/widmung/&lt;bundesland&gt;/* (seit W0.1a; vormals data/new_widmungs_data/*, data/flächenwidmungen/*)"]
+    DKM["DKM Kataster<br/>derived/prep/kataster/b_export_parquet/at_dkm_gst_nfl_epsg31287.geoparquet<br/>(seit Paket W2.1; vormals output/kataster/…, siehe Tabelle unten; derived/ hieß bis Welle 6 build/)"]
+    BEV["BEV Adressregister<br/>data/adressen/ (vormals data/adressregister/)"]
     NOEPDF["NÖ SekROP PDF-Zonen<br/>output/noe/pdf_750m_*.geojson"]
     PBF["OSM Österreich<br/>data/austria-260330.osm.pbf"]
     DGM["DGM 25 m<br/>data/DGM_R25.tif"]
@@ -124,18 +124,23 @@ Die Auswahlregeln (welche Codes = Wohnbauland, Häuser im Grünen, Industrie) st
 vollständig in `windkraft/calc/widmung_sources.py` (`DATASETS` Z. 57–125, `SOURCES`
 Z. 235–351). `config.json` wird von Stufe 1 **nicht** gelesen.
 
+**Pfade seit Paket W0.1a:** alle 9 Quellen liegen unter der gemeinsamen Wurzel
+`data/widmung/<bundesland>/<datei>` (vormals verteilt auf
+`data/new_widmungs_data/<land>/` bzw. `data/flächenwidmungen/`, siehe
+`docs/rohdaten.md`).
+
 | BL | Datei | Layer / Spalte | Wohnbauland (→ 1.000/1.200 m) | Häuser im Grünen (→ 750 m) | Industrie (Negativsignal) | Größe / Datum |
 |---|---|---|---|---|---|---|
-| Bgld | `data/flächenwidmungen/WIDMUNGSFLAECHEN.zip` | `BGLD_FLAECHENWIDMUNG` / `WIDCODE` | 10001, 10002, 10003, 10006, 10009, 10011, 10012, 10016, 10019 | Ferienhaus/Tourismus 10030, 10007, 10017 | 10004, 10005, 10015 | 50 MB, 22.06. |
-| Ktn | `data/new_widmungs_data/kaernten/flawi_ktn_gpkg.zip` → entpackt nach `zoning_vectors/_cache/flawi_ktn_gpkg.gpkg` | `WIDG` / `WIDMUNG`, `WIDCODE`, `KATEGORIE` | Wohngebiet, Reines Wohngebiet; Misch: Dorfgebiet, Gemischtes Baugebiet, Geschäftsgebiet, Kurgebiet, Reines Kurgebiet | Hofstelle `WIDCODE` B2/B21/B22; Camping = Grünland ∧ Campingplatz | Industrie-, Gewerbe-, Reines Gewerbe-, Betriebsgebiet | ZIP 149 MB 12.07.; Cache 405 MB 23.07. |
-| NÖ | `data/new_widmungs_data/niederoesterreich/RRU_WI_HUELLE.gpkg` | `WI_ART` | SBL, SBLNB (Wohn+Misch nicht trennbar) | Gho (Hofstelle), Gc (Camping), Gkg (Kleingarten) | **keiner** (BIB existiert, wird nicht genutzt) | 115 MB, 10.07. |
-| OÖ | `data/new_widmungs_data/oberoesterreich/FLWI_WIDMUNGEN_F.zip!FLWI_WIDMUNGEN_F.shp` | `KENNZAHL` | 11005–11007, 11101–11106, 11201–11203; Misch 11001, 11002, 11009, 11010 | Hofstelle 13010/13020, Camping 13105, Golf 13107, Kleingarten 13201 | 11003, 11011 | 145 MB, 10.07. |
-| Sbg | `data/new_widmungs_data/salzburg/Flaechenwidmung_Shapefile.zip!Flaechenwidmung/Flaechenwidmung.shp` | `Typname` | BAEW, BADG, BARW, BAKG, BALK, BAZG, BAFW | Camping GLCA, Kleingarten GLKG | BAGG, BAIG, BABG | 31 MB, 12.07. |
-| Stmk | `data/new_widmungs_data/steiermark/Bauland.zip!Bauland.shp` | `GRUPPE_4` | wohn_Nutz; Misch gem_Nutz | – | betr_Nutz | 44 MB, 10.07. |
-| Stmk | `data/flächenwidmungen/Flaewi.shp.zip` (EPSG:4258, 645k Features – einzige „alte" Quelle) | `FWP_NUTZ` / `WIDMUNG` | – | Auffüllungsgebiet (afg/AF*), Kleingarten (klg/Klg*), Camping (Ca*, L(SF-Ca)) | – | 961 MB, 22.06. |
-| Tirol | `data/new_widmungs_data/tirol/FLW_Flaechenwidmung_*.gpkg` (Glob, erster Treffer; aktuell genau 1 Datei) | `FLW_Flaechenwidmung` / `WIDMUNG`, `FESTLEGUNG` | „Wohngebiet § 38", „Gemischtes Wohngebiet § 38", Kerngebiet § 40 (3), Allg./Landw. Mischgebiet | Tourismusgebiet § 40 (4); Hofstelle/Austraghaus (Regex); Camping/Golf über Sonderflächen + `FESTLEGUNG` | Gewerbe- u. Industriegebiet | 111 MB, 12.07. |
-| Vbg | `data/new_widmungs_data/vorarlberg/fwp_flaeche.gpkg` | `fwp_flaeche` / `wi_em_txt` | Regex `^Bau(erwartungs)?fläche\s+(Wohngebiet\|Mischgebiet\|Kerngebiet)` | Camping/Golf/Kleingarten (Regex) | `…\s+Betriebsgebiet` | 151 MB, 12.07. |
-| Wien | `data/new_widmungs_data/wien/genflwidmung_wien.geojson` (generalisierte Widmung, WFS GENFLWIDMUNGOGD; git-ignored) | `WIDMUNGSKLASSE_TXT`, `WIDMUNG_TXT` | startswith „Wohngebiet"; Misch `^Gemischtes Baugebiet(?!-Betriebsbaugebiet)` | Kleingarten in Gartensiedlungsgebiet | Industriegebiet, Gemischtes Baugebiet-Betriebsbaugebiet | 43 MB, 29.07. |
+| Bgld | `data/widmung/burgenland/WIDMUNGSFLAECHEN.zip` | `BGLD_FLAECHENWIDMUNG` / `WIDCODE` | 10001, 10002, 10003, 10006, 10009, 10011, 10012, 10016, 10019 | Ferienhaus/Tourismus 10030, 10007, 10017 | 10004, 10005, 10015 | 50 MB, 22.06. |
+| Ktn | `data/widmung/kaernten/flawi_ktn_gpkg.zip` → entpackt nach `zoning_vectors/_cache/flawi_ktn_gpkg.gpkg` | `WIDG` / `WIDMUNG`, `WIDCODE`, `KATEGORIE` | Wohngebiet, Reines Wohngebiet; Misch: Dorfgebiet, Gemischtes Baugebiet, Geschäftsgebiet, Kurgebiet, Reines Kurgebiet | Hofstelle `WIDCODE` B2/B21/B22; Camping = Grünland ∧ Campingplatz | Industrie-, Gewerbe-, Reines Gewerbe-, Betriebsgebiet | ZIP 149 MB 12.07.; Cache 405 MB 23.07. |
+| NÖ | `data/widmung/niederoesterreich/RRU_WI_HUELLE.gpkg` | `WI_ART` | SBL, SBLNB (Wohn+Misch nicht trennbar) | Gho (Hofstelle), Gc (Camping), Gkg (Kleingarten) | **keiner** (BIB existiert, wird nicht genutzt) | 115 MB, 10.07. |
+| OÖ | `data/widmung/oberoesterreich/FLWI_WIDMUNGEN_F.zip!FLWI_WIDMUNGEN_F.shp` | `KENNZAHL` | 11005–11007, 11101–11106, 11201–11203; Misch 11001, 11002, 11009, 11010 | Hofstelle 13010/13020, Camping 13105, Golf 13107, Kleingarten 13201 | 11003, 11011 | 145 MB, 10.07. |
+| Sbg | `data/widmung/salzburg/Flaechenwidmung_Shapefile.zip!Flaechenwidmung/Flaechenwidmung.shp` | `Typname` | BAEW, BADG, BARW, BAKG, BALK, BAZG, BAFW | Camping GLCA, Kleingarten GLKG | BAGG, BAIG, BABG | 31 MB, 12.07. |
+| Stmk | `data/widmung/steiermark/Bauland.zip!Bauland.shp` | `GRUPPE_4` | wohn_Nutz; Misch gem_Nutz | – | betr_Nutz | 44 MB, 10.07. |
+| Stmk | `data/widmung/steiermark/Flaewi.shp.zip` (EPSG:4258, 645k Features – einzige „alte" Quelle) | `FWP_NUTZ` / `WIDMUNG` | – | Auffüllungsgebiet (afg/AF*), Kleingarten (klg/Klg*), Camping (Ca*, L(SF-Ca)) | – | 961 MB, 22.06. |
+| Tirol | `data/widmung/tirol/FLW_Flaechenwidmung_*.gpkg` (Glob, erster Treffer; aktuell genau 1 Datei) | `FLW_Flaechenwidmung` / `WIDMUNG`, `FESTLEGUNG` | „Wohngebiet § 38", „Gemischtes Wohngebiet § 38", Kerngebiet § 40 (3), Allg./Landw. Mischgebiet | Tourismusgebiet § 40 (4); Hofstelle/Austraghaus (Regex); Camping/Golf über Sonderflächen + `FESTLEGUNG` | Gewerbe- u. Industriegebiet | 111 MB, 12.07. |
+| Vbg | `data/widmung/vorarlberg/fwp_flaeche.gpkg` | `fwp_flaeche` / `wi_em_txt` | Regex `^Bau(erwartungs)?fläche\s+(Wohngebiet\|Mischgebiet\|Kerngebiet)` | Camping/Golf/Kleingarten (Regex) | `…\s+Betriebsgebiet` | 151 MB, 12.07. |
+| Wien | `data/widmung/wien/genflwidmung_wien.geojson` (generalisierte Widmung, WFS GENFLWIDMUNGOGD; git-ignored) | `WIDMUNGSKLASSE_TXT`, `WIDMUNG_TXT` | startswith „Wohngebiet"; Misch `^Gemischtes Baugebiet(?!-Betriebsbaugebiet)` | Kleingarten in Gartensiedlungsgebiet | Industriegebiet, Gemischtes Baugebiet-Betriebsbaugebiet | 43 MB, 29.07. |
 
 Seit `de7279a` (29.07.) ist Wien mit dabei – **alle 9 Bundesländer** sind amtlich
 abgedeckt. (Der Docstring von `build_official_zoning_layers.py:6-12` sagt noch „8 BL /
@@ -146,9 +151,9 @@ Wien Vollausschluss" – veraltet.)
 | Datei | Was | Genutzte Spalten / Filter | Größe / Datum |
 |---|---|---|---|
 | `output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet` (Stand dieser Zeile: Vorgängerprojekt-Altlast, seit Paket W2.1 von keinem Codepfad mehr als Vorgabewert referenziert – siehe unten) | DKM-Nutzungsflächen ganz Österreich (selbst erzeugt aus BEV-DKM, siehe `scripts/kataster/`) | `source_layer ∈ {NFL_V2, NFL_DXF_POLYGONIZED}` ∧ (`ns ∈ {41, 52, 66, 71, …}` ∨ `ns_category ∈ {Baufläche, Garten}`); 41/66 = Gebäude, 52/71 = Garten (`windkraft/calc/kataster_layers.py:344-347`, `hig_detection.py:53-55,161-172`) | 5,3 GB, 15.05. |
-| `build/prep/kataster/b_export_parquet/at_dkm_gst_nfl_epsg31287.geoparquet` (neuer Vorgabewert seit Paket W2.1, `pipeline/layers/hig.py` / `pipeline/prep/kataster/b_export_parquet.py`) | dieselben DKM-Nutzungsflächen, jetzt aus der Prep-Stufe (`pipeline/prep/kataster/`) statt aus der obigen Vorgängerprojekt-Datei – Flächensumme je Bundesland bis zur letzten Nachkommastelle deckungsgleich geprüft (Zeilenreihenfolge der Bundesländer unterscheidet sich) | dieselben Filter wie oben, unverändert | siehe `pipeline/prep/kataster/b_export_parquet.py` bzw. `build/prep/kataster/b_export_parquet/.fingerprint.json` für den aktuellen Stand |
-| `data/adressregister/ADRESSE.csv` (+ Parquet-Cache `adressen_31287.parquet`) | BEV-Adressregister, Stichtag 1.10.2025, 2,52 Mio Adressen | `RW, HW, EPSG` (3 GK-Streifen → 31287), `#`-Koordinaten verworfen (`bev_register.py:88-95`) | 326 MB / 42 MB |
-| `data/adressregister/…Stichtagsdaten_*.zip` → `GEBAEUDE.csv` (+ Cache `bev_gebaeude_31287.parquet`) | BEV-Gebäude mit `EIGENSCHAFT` | Wohnen = 01/02/03, Industrie = 08, Hotel 04 gilt **nicht** als Wohnen (`bev_register.py:55-60`) | 98 MB / 42 MB |
+| `derived/prep/kataster/b_export_parquet/at_dkm_gst_nfl_epsg31287.geoparquet` (neuer Vorgabewert seit Paket W2.1, `pipeline/layers/hig.py` / `pipeline/prep/kataster/b_export_parquet.py`; `derived/` hieß bis Welle 6 `build/`) | dieselben DKM-Nutzungsflächen, jetzt aus der Prep-Stufe (`pipeline/prep/kataster/`) statt aus der obigen Vorgängerprojekt-Datei – Flächensumme je Bundesland bis zur letzten Nachkommastelle deckungsgleich geprüft (Zeilenreihenfolge der Bundesländer unterscheidet sich) | dieselben Filter wie oben, unverändert | siehe `pipeline/prep/kataster/b_export_parquet.py` bzw. `derived/prep/kataster/b_export_parquet/.fingerprint.json` für den aktuellen Stand |
+| `data/adressen/ADRESSE.csv` (+ Parquet-Cache `adressen_31287.parquet`; Verzeichnis hieß vor Paket W0.1 `data/adressregister/`) | BEV-Adressregister, Stichtag 1.10.2025, 2,52 Mio Adressen | `RW, HW, EPSG` (3 GK-Streifen → 31287), `#`-Koordinaten verworfen (`bev_register.py:88-95`) | 326 MB / 42 MB |
+| `data/adressen/…Stichtagsdaten_*.zip` → `GEBAEUDE.csv` (+ Cache `bev_gebaeude_31287.parquet`) | BEV-Gebäude mit `EIGENSCHAFT` | Wohnen = 01/02/03, Industrie = 08, Hotel 04 gilt **nicht** als Wohnen (`bev_register.py:55-60`) | 98 MB / 42 MB |
 | `output/noe/pdf_750m_{geb,gwr,gruenland_widmung}.geojson` | NÖ SekROP Teil C 3.2, Zonen **inkl. 750 m** (aus PDF georeferenziert, `scripts/noe/`) | Vereinigung der drei Klassen | 8,3 / 8,0 / 1,4 MB, 23.07. |
 | `output/noe/pdf_hig_source_{geb,gwr,gruenland_widmung}.geojson` | daraus rekonstruierte Quellobjekte (Erosion um 750 − 50 m, `windkraft/noe/pdf_hig_sources.py:34-35`) | → Band `noe_pdf_hig_source` (derzeit von niemandem gelesen) | 8,2 / 8,0 / 1,3 MB, 10.08. |
 
