@@ -41,8 +41,8 @@ den Pfad ein zweites Mal hinzuschreiben.
 | | |
 |---|---|
 | Datei | `out/abschichtung.tif` |
-| `sha256` | `4bdef6ad5e863692cef0f19cdfe959f04e439e9b17310f2f7a3c067d56b1a13e` |
-| Größe | 124.613.971 Bytes |
+| `sha256` | `fb57c41dca0642225a8115e3ed95297ede47b56d56c00fdddf8caa445e232c30` |
+| Größe | 124.597.421 Bytes |
 | Bänder | 38 |
 | Manifest-`schema_version` | `2.0.0` |
 
@@ -51,6 +51,17 @@ jedem `make test` (siehe dort auch, wie der langlaufende Reproduktionstest
 gezielt ausgeführt wird). Sie ändert sich nicht beiläufig — wenn doch,
 gehört das gemessen, begründet und in `docs/rewrite/abweichungen.tsv`
 eingetragen.
+
+**Zweiter Referenzwechsel (08.09.2026, Punkt 34, Paket W5.P2):** ein
+DKM-Kandidat mit Fußabdruck über `HIG_MAX_FOOTPRINT_M2` (10.000 m²), der
+keine einzige BEV-Adresse im eigenen Polygon trägt, entfällt jetzt als
+Kandidat vollständig statt wie bisher pauschal auf eine 5-m-Scheibe um
+seinen Zentroid reduziert zu werden (Nutzerentscheidung, Punkt 34). Für
+euch als Konsumenten heißt das: 514 von 806 betroffenen Riesenflächen
+sind weggefallen, und Band 32 (`available_cleaned_min_10ha`, die
+veröffentlichte Potenzialfläche) wächst dadurch netto um rund 98,4 ha
+gegenüber der vorherigen Referenz (`4bdef6ad…6b1a13e`) — Details je Band
+in `docs/rewrite/abweichungen.tsv` unter `paket = W5.P2`.
 
 **Die Altkette existiert weiter** (`make widmung-v2`,
 `scripts/widmung_v2/04_create_distance_zones.py`) und schreibt nach

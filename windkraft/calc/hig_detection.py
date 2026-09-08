@@ -93,6 +93,7 @@ class CandidateScan:
     n_buildings_total: int = 0
     n_filtered: int = 0
     n_oversized: int = 0
+    n_addressless_dropped: int = 0
 
     def __len__(self) -> int:
         return len(self.geometries)
@@ -141,14 +142,28 @@ def scan_dkm_candidates(
     bl_filter: set[str] | None = None,
     batch_size: int = 200_000,
     margin_m: float = 0.0,
+    address_xy: np.ndarray | None = None,
 ) -> CandidateScan:
     """Ein Durchlauf über das DKM-GeoParquet -> Kandidaten + Garten-Punkte.
 
     Nur Bauflächen, deren Zentroid-Zelle NICHT im Filter liegt, werden Kandidaten.
-    Footprints über ``max_footprint_m2`` werden durch eine 5-m-Scheibe um ihren
-    Zentroid ersetzt: in Niederösterreich stammen die DKM-Bauflächen aus einer
-    DXF-Polygonisierung, die einige hundert Riesenflächen erzeugt hat (größte
-    735 ha) - ungefiltert würden die halbe Landstriche zur Hülle machen.
+    Footprints über ``max_footprint_m2`` sind i.d.R. NÖ-DXF-Polygonisierungs-
+    artefakte (größte 735 ha) - ungefiltert würden die halbe Landstriche zur
+    Hülle machen. Nutzerentscheidung vom 08.09.2026 (Punkt 34, W5.P2):
+
+    * Trägt ein solcher Riesen-Footprint mindestens eine BEV-Adresse
+      (``address_xy``) IM EIGENEN Polygon, bleibt das heutige Verhalten
+      unverändert - er wird durch eine 5-m-Scheibe um seinen Zentroid ersetzt.
+    * Trägt er KEINE einzige BEV-Adresse im eigenen Polygon, entfällt er als
+      Kandidat vollständig: keine Scheibe, keine Hüllen-Mitgliedschaft. Eine
+      vorangegangene Messung (Charakterisierung der 806 Großflächen,
+      Vorfeld zu W5.P2) hat gezeigt, dass diese adresslosen Riesenflächen nur
+      zufällig über die 200-m-Verkettung in Hüllen mit anderen, adressierten
+      Gebäuden landen - sie selbst tragen kein Bewohntheits-Signal.
+
+    Ist ``address_xy`` ``None`` (z. B. ältere Aufrufer, die den Parameter noch
+    nicht kennen), bleibt das alte Verhalten vollständig erhalten: JEDER
+    Riesen-Footprint bekommt die 5-m-Scheibe, keiner entfällt.
 
     Zentroide außerhalb der um ``margin_m`` erweiterten Grid-Bounds werden
     verworfen. Beim Vollauslauf ändert das nichts (das Grid deckt Österreich ab),
@@ -227,8 +242,41 @@ def scan_dkm_candidates(
 
     areas = shapely.area(geometries)
     oversized = areas > float(max_footprint_m2)
+    n_oversized = int(oversized.sum())
+    n_addressless_dropped = 0
     if oversized.any():
-        geometries = np.where(oversized, shapely.buffer(shapely.centroid(geometries), 5.0), geometries)
+        if address_xy is None:
+            # Kein Adressbestand übergeben (z. B. ein Aufrufer, der den neuen
+            # Parameter noch nicht kennt) -> altes Verhalten unverändert.
+            has_own_address = np.ones(len(geometries), dtype=bool)
+        elif len(address_xy) == 0:
+            # Adressbestand übergeben, aber leer -> keine Riesenfläche hat
+            # eine eigene Adresse, alle entfallen.
+            has_own_address = np.zeros(len(geometries), dtype=bool)
+        else:
+            # Nur unter den oversized-Geometrien suchen (klein, ~hundert Fälle
+            # nationweit) statt den ganzen Adressbestand gegen alle Kandidaten
+            # zu prüfen - has_own_address gilt ausschließlich für die
+            # Riesen-Footprints, alle anderen Kandidaten bleiben unberührt.
+            oversized_idx = np.flatnonzero(oversized)
+            tree = shapely.STRtree(geometries[oversized_idx])
+            addr_points = shapely.points(address_xy[:, 0], address_xy[:, 1])
+            _, tree_hit = tree.query(addr_points, predicate="within")
+            has_own_address = np.zeros(len(geometries), dtype=bool)
+            if len(tree_hit):
+                has_own_address[oversized_idx[np.unique(tree_hit)]] = True
+
+        drop = oversized & ~has_own_address
+        keep_disc = oversized & has_own_address
+        n_addressless_dropped = int(drop.sum())
+
+        geometries = np.where(keep_disc, shapely.buffer(shapely.centroid(geometries), 5.0), geometries)
+
+        if drop.any():
+            keep = ~drop
+            geometries = geometries[keep]
+            centroids = centroids[keep]
+            bundeslaender = bundeslaender[keep]
 
     return CandidateScan(
         geometries=geometries,
@@ -237,7 +285,8 @@ def scan_dkm_candidates(
         garden_xy=np.concatenate(garden_parts) if garden_parts else np.zeros((0, 2)),
         n_buildings_total=n_total,
         n_filtered=n_filtered,
-        n_oversized=int(oversized.sum()),
+        n_oversized=n_oversized,
+        n_addressless_dropped=n_addressless_dropped,
     )
 
 

@@ -171,7 +171,13 @@ HIG_ADDRESS_RADIUS_M = 100.0
 HIG_GARDEN_RADIUS_M = 150.0
 
 # DKM-Footprints darüber sind NÖ-DXF-Polygonisierungsartefakte (809 Fälle,
-# größtes 735 ha) und werden durch eine 5-m-Scheibe um ihren Zentroid ersetzt.
+# größtes 735 ha). Bis W5.P2: ausnahmslos durch eine 5-m-Scheibe um ihren
+# Zentroid ersetzt. Seit W5.P2 (08.09.2026, Punkt 34, Nutzerentscheidung):
+# nur noch, wenn der Footprint mindestens eine BEV-Adresse im EIGENEN Polygon
+# trägt. Ohne eine solche Adresse entfällt der Kandidat vollständig - keine
+# Scheibe, keine Hüllen-Mitgliedschaft (windkraft/calc/hig_detection.py:
+# scan_dkm_candidates(), address_xy-Parameter). Kein representative_point(),
+# kein neuer Schwellwert - siehe dortiger Docstring.
 HIG_MAX_FOOTPRINT_M2 = 10_000.0
 
 # Unter diesem Wohnanteil (BEV-Eigenschaft 01/02/03 unter den erreichten
