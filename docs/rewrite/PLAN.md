@@ -228,7 +228,7 @@ Zwischen den Wellen wird synchronisiert, innerhalb einer Welle nicht.
 | 1 | Breite Arbeit | 18 | ja — gleichzeitig |
 | 2 | Layer | 3 | ja — gleichzeitig |
 | 3 | Finalisierung | 2 | nein — nacheinander |
-| 4 | Prüfung | 3 | ja — gleichzeitig |
+| 4 | Prüfung | 4 | Vorfeld zuerst, dann drei gleichzeitig |
 | 5 | Beweis | 1 | nein — nacheinander |
 
 „Besitzt" heißt: nur dieses Paket darf diese Pfade anfassen. Zwei Pakete
@@ -262,10 +262,11 @@ derselben Welle teilen sich niemals eine Datei.
 | W2.3 | 2 | Layer | Layer: OSM und Infrastruktur | `pipeline/layers/osm.py` | W2.P0 | Bitgleich; Wiederaufsetzen überspringt vorhandene Layer nachweislich korrekt. |
 | W2.4 | 2 | Layer | Layer: Natur, Gelände, Zonen und Puffer | `pipeline/layers/geo.py` | W2.P0 | Bitgleich für **alle 17** Checkpoints aus `04_create_distance_zones.py`; die Geometrietyp-Empfindlichkeit gegen den GPKG-Promotionseffekt geprüft und beantwortet. |
 | W3.1 | 3 | Finalisierung | Finalisierung und Manifest-Vertrag | `pipeline/finalize.py`; `windkraft/calc/band_manifest.py` | Welle 2 | 38 Bänder, Manifest mit Nummer, Name, Rolle, Puffer und Quelle je Band; Schema versioniert. **Nicht mehr bitgleich zu `run1`:** Abweichungen sind **ausschließlich** in den Bändern zulässig, die aus `geography_water_bodies` gespeist werden (§13.9) — welche das sind, ist Teil des Nachweises. Jede andere ist ein Fehler. |
-| W3.2 | 3 | Finalisierung | Validierung | `pipeline/validate.py` | W3.1 | Prüft das TIF gegen run1 nach der Ampel aus Abschnitt 6 und schreibt `abweichungen.tsv`. |
-| W4.1 | 4 | Prüfung | Dashboard neu | `pipeline/verify/dashboard.py`; `out/dashboard/` | W3.1 | Liest ausschließlich das Manifest; keine Bandnamen im Code. Läuft gegen ein Manifest mit geänderter Bandzahl ohne Anpassung. |
-| W4.2 | 4 | Prüfung | Gemeindegrenzen-Export | `pipeline/verify/gemeinden.py`; `out/gemeinden.geojson` | W1.P1 | Grenzen im Rasterbezug; Deckungsabweichung gegen das TIF ausgewiesen und unter Schwellwert. |
-| W4.3 | 4 | Prüfung | Tests verdrahten | `tests/**`; `Makefile` (nur das test-Ziel) | Welle 3 | `make test` läuft die acht vorhandenen Tests plus die neuen Vertragstests; grün. |
+| W3.2 | 3 | Finalisierung | Validierung | `pipeline/validate.py`; `docs/rewrite/abweichungen.tsv`; `make/validate/*`; `Makefile` (nur die beiden `-include`-Zeilen für `finalize` und `validate`) | W3.1 | Prüft das TIF gegen run1 nach der Ampel aus Abschnitt 6 und schreibt `abweichungen.tsv`. **Das Werkzeug bewertet, es entscheidet nicht:** Rot hält an und wird gemeldet (§6, Punkt 33). Die neun Bänder aus §13.9 müssen im Register stehen, jedes weitere ist ein Fehler. |
+| W4.P0 | 4 | Prüfung | Vorfeld der Prüfwelle | `pipeline/verify/__init__.py`; `make/verify/README.md`; **`Makefile` — als einziges Paket der Welle 4** (`-include make/verify/*.mk`, das `test`-Ziel für W4.3, und `build/layers/` samt fertigem TIF im `worktree`-Ziel) | Welle 3 | `make -n` für jedes bestehende Ziel byte-identisch; ein Wegwerf-Worktree sieht `build/layers/` **und** ein finalisiertes TIF, ohne beides neu zu rechnen, und schreibt in keines von beiden. Nach Regel 9 (§13.10). |
+| W4.1 | 4 | Prüfung | Dashboard neu | `pipeline/verify/dashboard.py`; `out/dashboard/` | W4.P0 | Liest ausschließlich das Manifest; keine Bandnamen im Code. Läuft gegen ein Manifest mit geänderter Bandzahl ohne Anpassung. |
+| W4.2 | 4 | Prüfung | Gemeindegrenzen-Export | `pipeline/verify/gemeinden.py`; `out/gemeinden.geojson` | W4.P0, W1.P1 | Grenzen im Rasterbezug; Deckungsabweichung gegen das TIF ausgewiesen und unter Schwellwert. |
+| W4.3 | 4 | Prüfung | Tests verdrahten | `tests/**` — **nicht mehr `Makefile`**, das `test`-Ziel zieht W4.P0 vor | W4.P0 | `make test` läuft die acht vorhandenen Tests plus die neuen Vertragstests; grün. |
 | W5.1 | 5 | Beweis | Beweislauf aus Rohdaten | — (nur Ausführung) | Wellen 0–4 | `rm -rf build && make all` erzeugt das TIF vollständig neu; Abnahmebedingung erfüllt; Laufzeiten je Stufe protokolliert. |
 
 ## 8. Regeln der Parallelität
@@ -791,8 +792,9 @@ Stelle, an der sie niemand stellt. Deshalb steht die
 Geometrietyp-Prüfung ausdrücklich in der Abnahme von W2.4.
 
 **Nachtrag:** Die Maschinensichten unten nennen 30 Arbeitspakete. Mit
-W2.P0 und W2.4 sind es 32, und `packages.tsv`/`packages.json` sind
-entsprechend veraltet — dieselbe Baustelle wie Punkt 16.
+W2.P0, W2.4 und dem später nachgezogenen W4.P0 (§13.10) sind es 33, und
+`packages.tsv`/`packages.json` sind entsprechend veraltet — dieselbe
+Baustelle wie Punkt 16.
 
 ### 13.9 Die erste Abweichung ist eine Korrektur
 
@@ -828,6 +830,67 @@ Kategorie- oder Aggregatband kann denselben Layer mitführen. **Jede
 andere Abweichung ist ein Fehler** — und die
 Vorhersagbarkeit ist hier der eigentliche Test: Eine Zahl, die man vorher
 nennt und danach misst, beweist mehr als eine, die man hinterher erklärt.
+
+**Beantwortet von W3.1: es sind neun.** Bänder 26, 29, 30, 31, 32 und
+33–36; der neue `sha256` lautet `4bdef6ad…6b1a13e`. Die Liste stammt
+nicht aus dem Vergleich, sondern aus dem Manifest — W3.1 hat sie über die
+transitive Hülle von `abgeleitet_von` **vor** der Messung berechnet und
+danach als Test verdrahtet. Die restlichen 29 Bänder sind bitgleich.
+
+Und die Zahlen laufen nicht linear durch: Von 543 106 zusätzlichen
+Wasserzellen erreichen nur **15 137 die Verfügbarkeitsbänder**, weil der
+Rest ohnehin schon ausgeschlossen war — während die Weichzeichnungen
+denselben Kern auf bis zu 47 023 Zellen **verstärken**. Eine Abweichung
+schrumpft also auf dem Weg durch die Aggregate und wächst wieder in den
+Unschärfebändern. **Das ist der Grund, warum §6 den Bändern 27–36 ein
+Budget in km² gibt statt in Prozent** — die Prozentzahl der Quelle sagt
+über die Wirkung am Ergebnis nichts aus. Der Entwurf der Ampel war an
+dieser Stelle richtiger, als ich beim Schreiben wusste.
+
+### 13.10 Jede Welle braucht ihr Vorfeld, auch die kleine
+
+W1.P0 und W2.P0 waren eigene Pakete: gemeinsames Modul, `-include`-Zeile
+im `Makefile`, Symlink im `worktree`-Ziel. Beide haben sich bezahlt
+gemacht — vor Welle 2 verhinderte W2.P0 drei sichere Dreifachkonflikte,
+und die anschließenden Merges liefen konfliktfrei.
+
+**Welle 3 hat keines bekommen, und genau das Vorhersehbare ist passiert.**
+W3.1 hat `make/finalize/finalize.mk` gebaut, durfte aber `Makefile` nicht
+anfassen — das gehört keinem Paket der Welle 3. Also fehlt die eine
+`-include`-Zeile, und **`make finalize` ist nicht erreichbar** (Punkt 36).
+Kein Test schlägt an, kein Merge kollidiert, kein Wächter meldet etwas:
+Die Datei ist da, das Ziel ist da, nur die Verdrahtung fehlt.
+
+Meine Begründung, Welle 3 kein Vorfeld zu geben, war „nur zwei Pakete,
+seriell, also kein Konfliktrisiko". Die Begründung stimmt sogar — es
+*gab* keinen Konflikt. Sie beantwortet nur die falsche Frage. Das ist
+Regel 7 an einer anderen Stelle: Ein Vorfeld verhindert nicht nur
+Konflikte, es **weist das Gemeingut einem Besitzer zu**. Wo niemand es
+besitzt, fasst es niemand an.
+
+> **Regel 9.** Sobald eine Welle eine **neue Art von Datei** hervorbringt
+> — ein Verzeichnis, eine Modulfamilie, eine Make-Fragmentgruppe —,
+> gehört die gemeinsame Verdrahtung dafür **vor** die Welle und braucht
+> einen benannten Besitzer, unabhängig von der Paketzahl und davon, ob
+> die Pakete parallel laufen. Die Prüffrage ist nicht „kollidieren zwei
+> Pakete", sondern „**wem gehört die Zeile, die alles zusammenhält**".
+
+Der Preis war hier eine Zeile in W3.2. Bei Welle 4 wäre er höher, und die
+Prüfung nach Regel 9 hat dort **sofort dasselbe Loch gefunden**: W4.1 und
+W4.2 brauchen beide ein Make-Ziel unter `make/verify/`, aber die
+`-include`-Zeile gehörte keinem der drei Pakete — während W4.3 das
+`Makefile` für das `test`-Ziel bereits besaß. Zwei Pakete hätten dieselbe
+Datei angefasst, das eine erlaubt, das andere unbeauftragt. Dazu kommt,
+dass Welle 4 parallel läuft: Ohne `build/layers/` und ein fertiges TIF im
+`worktree`-Ziel hätte jeder der drei Worktrees 33 Checkpoints plus 164 s
+Finalisierung neu gerechnet — derselbe Fehler, den W2.P0 für `build/prep/`
+schon einmal abgewendet hat.
+
+**Deshalb ist W4.P0 neu**, besitzt `Makefile` als einziges Paket der
+Welle 4, und W4.3 gibt das `test`-Ziel dorthin ab. Damit sind es
+**33 Pakete**. Dass die Regel beim ersten Anwenden gleich etwas findet,
+ist kein gutes Zeichen für den ursprünglichen Zuschnitt — aber genau der
+Zweck einer Regel, die aus einem Fehler stammt.
 
 ## Maschinensichten
 
