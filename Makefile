@@ -111,6 +111,16 @@ ifeq ($(strip $(LAYER_TARGETS)),)
 	@echo "layers: noch keine Layer-Pakete vorhanden - die entstehen erst in Welle 2 (docs/rewrite/PLAN.md §7, W2.1/W2.3/W2.4)."
 endif
 
+## Vorpaket W3.1 (docs/rewrite/PLAN.md §7, siehe make/finalize/README.md):
+## die Finalisierungs-Stufe (33 Checkpoints -> 38-Band-GeoTIFF + Manifest)
+## bekommt ihre eigene Datei make/finalize/finalize.mk mit dem Ziel
+## `finalize`. Anders als bei prep/layers gibt es hier nur eine Domäne,
+## also kein <domäne>-Ableitungsmuster und keine eigene TARGETS-Liste -
+## `finalize.mk` deklariert `.PHONY: finalize` und die Regel selbst. Das
+## führende "-" lässt make weiterlaufen, solange die Datei fehlt (kein
+## Fehler, kein Abbruch).
+-include make/finalize/*.mk
+
 ## Prep und Kette zusammen - der Beweislauf aus Rohdaten (Welle 5: W5.1).
 all: prep widmung-v2
 
