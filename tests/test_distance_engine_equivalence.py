@@ -1,19 +1,39 @@
-import sys
-sys.dont_write_bytecode = True
-
 """Äquivalenztest: distance_engine.py (NEU) gegen kataster_layers.py (ALT).
 
-Dieser Test importiert die unveränderte Originaldatei aus dem Alt-Repo direkt
-über ihren absoluten Pfad:
+Dieser Test importiert die unveränderte Originaldatei aus dem Alt-Repo
+`windkraft_ö_karten` direkt über ihren absoluten Pfad. Er ist das
+Verifikationsartefakt der Migration von `fft_circle_dilation` und `ns_kind`
+nach `windkraft/calc/distance_engine.py` - KEIN dauerhafter Unittest. Sobald
+das Alt-Repo nicht mehr existiert (oder die Datei dort geändert wird), wird er
+bedeutungslos und darf entfernt werden.
 
-    /Users/jhurt/Documents/windkraft_ö_karten/windkraft/calc/kataster_layers.py
+## Der Alt-Repo-Pfad, und was W4.3 daran repariert hat
 
-Er ist das Verifikationsartefakt der Migration von `fft_circle_dilation` und
-`ns_kind` nach `windkraft/calc/distance_engine.py` - KEIN dauerhafter Unittest.
-Sobald das Alt-Repo an diesem Pfad nicht mehr existiert (oder die Datei dort
-geändert wird), schlägt dieser Test fehl bzw. wird bedeutungslos und darf dann
-entfernt werden.
+Der Pfad stand hier als nacktes Literal, und `_load_old_module()` lief beim
+**Import** des Moduls. Auf jeder Maschine ohne dieses Alt-Repo - und in jedem
+Wegwerf-Worktree, dessen Nachbarverzeichnis anders heißt - brach damit nicht
+dieser eine Test ab, sondern die **Sammelphase von `make test`** mit einem
+`FileNotFoundError`: ein Kollektionsfehler, kein Testergebnis. Ein Test, der
+ein Verifikationsartefakt für eine abgeschlossene Migration ist, darf die
+gesamte Testsuite einer fremden Maschine nicht unbenutzbar machen.
+
+Zwei Änderungen, beide ohne Wirkung auf das, was der Test misst:
+
+1. Der Pfad ist über `ABSCHICHTUNG_ALTREPO` überschreibbar (dasselbe Muster
+   wie `ABSCHICHTUNG_ROOT` in `pipeline/contract.py`); das bisherige Literal
+   bleibt der Default, damit sich auf dieser Maschine nichts ändert.
+2. Fehlt die Alt-Datei, überspringt sich das Modul sauber selbst
+   (`pytest.skip(..., allow_module_level=True)`) mit einer Begründung, die
+   den erwarteten Pfad nennt - statt die Sammelphase abzubrechen.
+
+`sys.dont_write_bytecode = True` steht weiterhin vor dem Laden der Alt-Datei:
+das Alt-Repo gilt als read-only, und ein `__pycache__` dort hinein wäre ein
+Schreibzugriff.
 """
+import os
+import sys
+
+sys.dont_write_bytecode = True
 
 import importlib.util
 from pathlib import Path
@@ -28,8 +48,18 @@ if str(PROJECT_ROOT) not in sys.path:
 from windkraft.calc.distance_engine import fft_circle_dilation as fft_circle_dilation_new  # noqa: E402
 from windkraft.calc.distance_engine import ns_kind as ns_kind_new  # noqa: E402
 
-OLD_REPO_ROOT = "/Users/jhurt/Documents/windkraft_ö_karten"
+OLD_REPO_ROOT = os.environ.get(
+    "ABSCHICHTUNG_ALTREPO", "/Users/jhurt/Documents/windkraft_ö_karten"
+)
 OLD_MODULE_PATH = OLD_REPO_ROOT + "/windkraft/calc/kataster_layers.py"
+
+if not Path(OLD_MODULE_PATH).is_file():
+    pytest.skip(
+        f"Alt-Repo-Datei {OLD_MODULE_PATH} nicht vorhanden - dieser Aequivalenztest "
+        "vergleicht gegen das unveraenderte Original aus windkraft_ö_karten und ist "
+        "ohne dieses Repo gegenstandslos. Anderer Ort: ABSCHICHTUNG_ALTREPO setzen.",
+        allow_module_level=True,
+    )
 
 
 def _load_old_module():
