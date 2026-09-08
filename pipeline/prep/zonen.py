@@ -90,6 +90,7 @@ GeoDataFrame statt eines Fehlers liefert).
 
 from __future__ import annotations
 
+import sys
 import zipfile
 from pathlib import Path
 
@@ -212,9 +213,24 @@ def _fingerprint_inputs() -> list[Path]:
     return sorted(inputs)
 
 
-def run() -> Path:
+def run(force: bool = False) -> Path:
     out_dir = contract.PREP["zonen"]
     runtime.ensure_dir(out_dir)
+
+    inputs = _fingerprint_inputs()
+    output_paths = [out_dir / f"{key}.gpkg" for key in SOURCES]
+
+    # Selbst-Ueberspringer, gleiches Muster wie pipeline/prep/osm.py
+    # (run_extract/run_layers): ein wiederholter `make all` ohne
+    # Eingabeaenderung soll diese Stufe nicht neu rechnen (Punkt 52,
+    # docs/rewrite/PLAN.md). `--force` erzwingt einen Neulauf.
+    if (
+        not force
+        and all(p.exists() for p in output_paths)
+        and fingerprint.matches(out_dir, inputs)
+    ):
+        print(f"[skip]  prep-zonen: Fingerabdruck unveraendert -> {out_dir}", flush=True)
+        return out_dir
 
     counts: dict[str, tuple[int, float]] = {}
     for key, loader in SOURCES.items():
@@ -226,7 +242,7 @@ def run() -> Path:
         gdf.to_file(out_dir / f"{key}.gpkg", driver="GPKG")
         counts[key] = (len(gdf), float(gdf.area.sum()) / 1e6)
 
-    fingerprint.write(out_dir, _fingerprint_inputs())
+    fingerprint.write(out_dir, inputs)
 
     summary = ", ".join(f"{k}: n={n}, {area:.1f} km²" for k, (n, area) in counts.items())
     print(f"[done]  prep-zonen: {summary} -> {out_dir}", flush=True)
@@ -234,4 +250,4 @@ def run() -> Path:
 
 
 if __name__ == "__main__":
-    run()
+    run(force="--force" in sys.argv[1:])

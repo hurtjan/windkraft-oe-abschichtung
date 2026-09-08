@@ -314,13 +314,33 @@ def main() -> None:
     output_path = runtime.ensure_parent(Path(args.output))
     summary_csv = Path(args.summary_csv)
     overview_md = Path(args.overview_md)
-    for path in (output_path, summary_csv, overview_md):
-        if path.exists() and not args.overwrite:
-            raise SystemExit(f"{path} already exists; pass --overwrite")
-
     noe_dxf_zip = contract.RAW["kataster"]["noe_dxf_zip"]
     symbol_csv = contract.RAW["kataster"]["symbol_csv"]
 
+    # Selbst-Ueberspringer, gleiches Muster wie pipeline/prep/osm.py
+    # (run_extract/run_layers): ein wiederholter `make all` ohne
+    # Eingabeaenderung soll diese teuerste Prep-Stufe nicht neu rechnen,
+    # statt hart abzubrechen (Punkt 52, docs/rewrite/PLAN.md).
+    if (
+        not args.overwrite
+        and not args.noe_limit_files
+        and output_path.exists()
+        and summary_csv.exists()
+        and overview_md.exists()
+        and fingerprint.matches(PREP_DIR, [noe_dxf_zip, symbol_csv])
+    ):
+        print(f"[skip]  prep-kataster-a: Fingerabdruck unveraendert -> {output_path}", flush=True)
+        return
+
+    # Kein "already exists"-Abbruch mehr an dieser Stelle (vor Punkt 52
+    # `raise SystemExit(... pass --overwrite)`): der Selbst-Ueberspringer
+    # oben hat bereits entschieden, ob ein Neulauf noetig ist - wer bis
+    # hierher kommt, WILL neu rechnen (geaenderter Fingerabdruck,
+    # --overwrite, oder ein Teillauf per --noe-limit-files), und genau das
+    # ist der Zweck von "make all laeuft wiederholt ohne manuelles
+    # Eingreifen" (Punkt 52). Ein zusaetzlicher, manueller --overwrite waere
+    # hier ein Widerspruch zum Selbst-Ueberspringer, keine zusaetzliche
+    # Sicherheit.
     t0 = time.time()
     summary = Summary()
     lookup = NsLookup(symbol_csv)

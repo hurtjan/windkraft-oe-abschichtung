@@ -31,6 +31,7 @@ Prep-Ergebnis ist Aufgabe von Welle 2 (siehe PLAN.md §3).
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import geopandas as gpd
@@ -59,22 +60,39 @@ def _shapefile_sidecars(shp_path: Path) -> list[Path]:
     return sorted(p for p in shp_path.parent.glob(shp_path.stem + ".*") if p.is_file())
 
 
-def run() -> Path:
+def run(force: bool = False) -> Path:
     vgd_path = contract.RAW["admin"]["vgd"]
     out_dir = contract.PREP["admin"]
     runtime.ensure_dir(out_dir)
+
+    inputs = _shapefile_sidecars(vgd_path)
+    gemeinden_path = out_dir / GEMEINDEN_FILENAME
+    bundesland_path = out_dir / BUNDESLAND_MASKEN_FILENAME
+
+    # Selbst-Ueberspringer, gleiches Muster wie pipeline/prep/osm.py
+    # (run_extract/run_layers): ein wiederholter `make all` ohne
+    # Eingabeaenderung soll diese Stufe nicht neu rechnen (Punkt 52,
+    # docs/rewrite/PLAN.md). `--force` erzwingt einen Neulauf.
+    if (
+        not force
+        and gemeinden_path.exists()
+        and bundesland_path.exists()
+        and fingerprint.matches(out_dir, inputs)
+    ):
+        print(f"[skip]  prep-admin: Fingerabdruck unveraendert -> {out_dir}", flush=True)
+        return out_dir
 
     gdf = gpd.read_file(vgd_path)
     if gdf.crs is None or str(gdf.crs).upper() != TARGET_CRS:
         gdf = gdf.to_crs(TARGET_CRS)
 
     gemeinden = gdf.dissolve(by="GKZ", aggfunc="first").reset_index()[GEMEINDEN_COLUMNS]
-    gemeinden.to_file(out_dir / GEMEINDEN_FILENAME, driver="GPKG")
+    gemeinden.to_file(gemeinden_path, driver="GPKG")
 
     bundeslaender = gdf.dissolve(by="BL").reset_index()[["BL", "geometry"]]
-    bundeslaender.to_file(out_dir / BUNDESLAND_MASKEN_FILENAME, driver="GPKG")
+    bundeslaender.to_file(bundesland_path, driver="GPKG")
 
-    fingerprint.write(out_dir, _shapefile_sidecars(vgd_path))
+    fingerprint.write(out_dir, inputs)
 
     print(
         f"[done]  prep-admin: {len(gemeinden)} Gemeinden, "
@@ -85,4 +103,4 @@ def run() -> Path:
 
 
 if __name__ == "__main__":
-    run()
+    run(force="--force" in sys.argv[1:])

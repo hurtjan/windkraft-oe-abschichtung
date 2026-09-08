@@ -58,13 +58,14 @@ Codelisten (Regel 4).
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd
 
 from pipeline import contract, fingerprint, runtime
-from windkraft.calc import widmung_sources as ws
+from calc import widmung_sources as ws
 
 BUNDLE_FILENAME = "{bucket}_combined.gpkg"
 
@@ -129,10 +130,25 @@ def _raw_input_for_dataset(dataset_key: str) -> Path:
     return mapping[dataset_key]
 
 
-def run() -> Path:
+def run(force: bool = False) -> Path:
     out_dir = contract.PREP["widmung"]
     runtime.ensure_dir(out_dir)
     cache_dir = runtime.ensure_dir(out_dir / "_cache")
+
+    inputs = sorted({_raw_input_for_dataset(key) for key in ws.DATASETS})
+    bundle_paths = [out_dir / BUNDLE_FILENAME.format(bucket=b) for b in ws.BUCKETS]
+
+    # Selbst-Ueberspringer, gleiches Muster wie pipeline/prep/osm.py
+    # (run_extract/run_layers): ein wiederholter `make all` ohne
+    # Eingabeaenderung soll diese Stufe nicht neu rechnen (Punkt 52,
+    # docs/rewrite/PLAN.md). `--force` erzwingt einen Neulauf.
+    if (
+        not force
+        and all(p.exists() for p in bundle_paths)
+        and fingerprint.matches(out_dir, inputs)
+    ):
+        print(f"[skip]  prep-widmung: Fingerabdruck unveraendert -> {out_dir}", flush=True)
+        return out_dir
 
     built = _build_all_buckets(cache_dir)
 
@@ -144,7 +160,6 @@ def run() -> Path:
         total += len(gdf)
         print(f"[done]  prep-widmung: {bucket}: {len(gdf):,} Flächen, {km2:,.1f} km² -> {path}", flush=True)
 
-    inputs = sorted({_raw_input_for_dataset(key) for key in ws.DATASETS})
     fingerprint.write(out_dir, inputs)
 
     print(f"[done]  prep-widmung: {total:,} Flächen gesamt -> {out_dir}", flush=True)
@@ -152,4 +167,4 @@ def run() -> Path:
 
 
 if __name__ == "__main__":
-    run()
+    run(force="--force" in sys.argv[1:])
