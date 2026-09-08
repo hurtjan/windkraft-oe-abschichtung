@@ -124,14 +124,27 @@ behoben.
 (``HIG_FILTER_BUFFER_M``, ``HIG_CHAIN_M``, ``HIG_MIN_ADRESSEN``, ...), jede
 Klassifikationsregel (Streusiedlung vs. Einzellage, industriegebietartig
 vs. unbewohnt) und jede Sonderbehandlung (NÖ-PDF-Zonen sind bereits
-Objekt+750m und gehen ungepuffert ins Ergebnis, DKM-Riesenflächen >
-``HIG_MAX_FOOTPRINT_M2`` werden auf eine 5-m-Scheibe reduziert) bleibt
-unangetastet. Einzige Änderung: die vier I/O-Vorgabewerte oben
-(``--zoning-dir``, ``--noe-dir``, ``--dkm-parquet``, ``--cache-dir`` zeigen
-jetzt auf ``build/prep/`` statt auf Roh-/Zwischenstände) sowie die
-Zusammenlegung von ``--layer-dir``/``--out-dir`` zu einem einzigen
-``--out-dir`` (siehe oben, "Kein externes Quell-Checkpoint-Verzeichnis
-nötig").
+Objekt+750m und gehen ungepuffert ins Ergebnis) bleibt unangetastet.
+Einzige Änderung: die vier I/O-Vorgabewerte oben (``--zoning-dir``,
+``--noe-dir``, ``--dkm-parquet``, ``--cache-dir`` zeigen jetzt auf
+``build/prep/`` statt auf Roh-/Zwischenstände) sowie die Zusammenlegung von
+``--layer-dir``/``--out-dir`` zu einem einzigen ``--out-dir`` (siehe oben,
+"Kein externes Quell-Checkpoint-Verzeichnis nötig").
+
+## W5.P2 (08.09.2026, Punkt 34) - eine Ausnahme von Regel 4
+
+Die einzige fachliche Änderung an dieser Datei seit W2.1: DKM-Riesenflächen
+über ``HIG_MAX_FOOTPRINT_M2`` (735 ha größte, NÖ-DXF-Polygonisierungs-
+artefakte) wurden bisher AUSNAHMSLOS auf eine 5-m-Scheibe um ihren Zentroid
+reduziert. Der Nutzer hat entschieden: eine Riesenfläche ohne jede eigene
+BEV-Adresse (520 von 806 gemessenen Fällen, siehe Bericht W5.P2) entfällt
+jetzt als Kandidat vollständig - keine Scheibe, keine Hüllen-Mitgliedschaft.
+Riesenflächen MIT mindestens einer eigenen BEV-Adresse behalten das
+bisherige Verhalten unverändert (Scheibe um den Zentroid, kein
+``representative_point()``). Umgesetzt in
+``windkraft/calc/hig_detection.py:scan_dkm_candidates()`` über den neuen
+``address_xy``-Parameter; ``HIG_MAX_FOOTPRINT_M2`` selbst (10 000 m²) und
+``HIG_MIN_ADRESSEN`` (5) bleiben unverändert.
 """
 from __future__ import annotations
 
@@ -271,15 +284,25 @@ def build_sources(cfg: dict, grid: dict, args: argparse.Namespace, out_dir: Path
 
     bl_filter = set(args.bl) if args.bl else None
     hull_dilate_m, hull_erode_m = chain_hull_params(args.chain_m)
+    address_dir = Path(args.address_dir)
+    cache_dir = Path(args.cache_dir)
+    with timed("Stufe A: BEV-Adressen laden"):
+        # Vor dem DKM-Scan geladen (nicht erst in Stufe C wie bisher): der
+        # Scan braucht den Adressbestand jetzt selbst, um adresslose
+        # Riesen-Footprints (Punkt 34, W5.P2) als Kandidaten zu verwerfen.
+        address_xy = load_address_points(address_dir, cache_dir=cache_dir)
+
     with timed("Stufe B: DKM-Scan"):
         scan = scan_dkm_candidates(
             Path(args.dkm_parquet), grid, filter_mask, args.max_footprint_m2, bl_filter=bl_filter,
-            margin_m=hull_dilate_m,
+            margin_m=hull_dilate_m, address_xy=address_xy,
         )
+        n_oversized_kept = scan.n_oversized - scan.n_addressless_dropped
         print(
             f"[info]  Bauflächen {scan.n_buildings_total:,} | gefiltert {scan.n_filtered:,} "
             f"({100 * scan.n_filtered / max(scan.n_buildings_total, 1):.1f}%) | "
-            f"Kandidaten {len(scan):,} | >1ha-Fix {scan.n_oversized:,} | "
+            f"Kandidaten {len(scan):,} | >{args.max_footprint_m2:g}m2 gesamt {scan.n_oversized:,} "
+            f"(Scheibe {n_oversized_kept:,}, adresslos entfallen {scan.n_addressless_dropped:,}) | "
             f"Garten-Punkte {len(scan.garden_xy):,}",
             flush=True,
         )
@@ -291,9 +314,7 @@ def build_sources(cfg: dict, grid: dict, args: argparse.Namespace, out_dir: Path
         print(f"[info]  Hüllen: {n_labels:,} ({int(hull_mask.sum()):,} Zellen)", flush=True)
 
     with timed("Stufe C: Signale + Klassifikation"):
-        address_dir = Path(args.address_dir)
-        address_xy = load_address_points(address_dir, cache_dir=Path(args.cache_dir))
-        bev_buildings = load_building_points(address_dir, cache_dir=Path(args.cache_dir))
+        bev_buildings = load_building_points(address_dir, cache_dir=cache_dir)
         signals = building_signals(
             scan, address_xy, bev_buildings, args.address_radius_m, args.garden_radius_m,
             industrie_widmung_mask=zoning["industrie_negativ"], grid=grid,

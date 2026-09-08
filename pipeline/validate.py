@@ -13,16 +13,16 @@ Abweichung ist bereits **angenommen** (siehe Abschnitt "Der Nutzer hat
 entschieden" unten). Es "repariert" nichts, es stuft nichts herab, und es
 überschreibt nie ``run1`` selbst.
 
-## Der Nutzer hat entschieden (Welle 4, Nachtrag zu W3.2)
+## Der Nutzer hat entschieden (Welle 4, Nachtrag zu W3.2; zweiter Wechsel W5.P2)
 
 Am 08.09.2026 hat der Nutzer die Bodensee-Korrektur angenommen (Punkt 33,
 PLAN.md §6, Abschnitt "Die Referenz hat sich am 08.09.2026 geändert").
 Damit ist ``run1`` (``sha256 dc58b011…9e3df1``) nicht mehr das Ziel; Ziel
 ist jetzt Bitgleichheit mit der **aktuellen Referenz**
-(``sha256 4bdef6ad…6b1a13e`` - :data:`AKTUELLE_REFERENZ_SHA256`). ``run1``
-bleibt bestehen und bleibt die bandweise Vergleichsbasis für die
-Diagnose (§6-Randbedingung: es wird nichts dupliziert, kein zweites TIF
-vorgehalten), verliert aber seine Rolle als eingebaute Pass/Fail-Schranke:
+(:data:`AKTUELLE_REFERENZ_SHA256`). ``run1`` bleibt bestehen und bleibt die
+bandweise Vergleichsbasis für die Diagnose (§6-Randbedingung: es wird
+nichts dupliziert, kein zweites TIF vorgehalten), verliert aber seine
+Rolle als eingebaute Pass/Fail-Schranke:
 
 1. **Schneller Weg (Regelfall).** Stimmt der ``sha256`` des frisch
    finalisierten TIFs mit :data:`AKTUELLE_REFERENZ_SHA256` überein, ist die
@@ -178,7 +178,14 @@ REFERENCE_TIF = (
 # bewusst nicht in ein gemeinsames Modul gezogen, weil Produktionscode
 # nicht von einem Testmodul abhängen soll; wer den einen Wert ändert, muss
 # den anderen mitziehen.
-AKTUELLE_REFERENZ_SHA256 = "4bdef6ad5e863692cef0f19cdfe959f04e439e9b17310f2f7a3c067d56b1a13e"
+#
+# Zweiter Wechsel (08.09.2026, Punkt 34, W5.P2): adresslose DKM-
+# Großflächen über HIG_MAX_FOOTPRINT_M2 entfallen jetzt als Kandidat
+# (windkraft/calc/hig_detection.py:scan_dkm_candidates()). Der vorherige
+# Wert ``4bdef6ad5e863692cef0f19cdfe959f04e439e9b17310f2f7a3c067d56b1a13e``
+# bleibt in ``docs/rewrite/FORTSCHRITT.md``/``PLAN.md`` als historischer
+# Zeuge dokumentiert, ist aber - wie zuvor ``run1`` - kein Ziel mehr.
+AKTUELLE_REFERENZ_SHA256 = "fb57c41dca0642225a8115e3ed95297ede47b56d56c00fdddf8caa445e232c30"
 
 REGISTER_PATH = contract.ROOT / "docs" / "rewrite" / "abweichungen.tsv"
 

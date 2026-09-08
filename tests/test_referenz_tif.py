@@ -1,6 +1,20 @@
 """Vertragstest zur neuen Referenz (Paket W4.3, Teil A3).
 
-## Was hier vertraglich ist
+## Zweiter Wechsel (W5.P2, 08.09.2026, Punkt 34)
+
+Adresslose DKM-Großflächen über ``HIG_MAX_FOOTPRINT_M2`` entfallen jetzt
+als Kandidat (Nutzerentscheidung). ``REFERENZ_SHA256``/``REFERENZ_BYTES``
+unten sind auf den daraus finalisierten Stand gezogen. Die Neunerliste
+(``ABWEICHENDE_BANDNUMMERN``/``-NAMEN``) unten und der zugehörige
+Langläufer-Test ``test_abweichung_gegen_run1_betrifft_genau_neun_baender``
+beschreiben weiterhin NUR den Stand nach W3.1 (Bodensee) - sie sind NICHT
+Teil dieses Pakets und wurden bewusst nicht mitgezogen (Regel 4). Ein
+Lauf mit ``ABSCHICHTUNG_VERTRAGSTEST=1`` schlägt für diesen einen
+Langläufer deshalb inzwischen fehl (real weichen 18 Bänder von ``run1``
+ab, nicht neun - siehe Bericht zu W5.P2); die beiden billigen Tests, die
+in ``make test`` mitlaufen, sind davon nicht betroffen.
+
+## Was hier vertraglich ist (Stand W3.1/W4.3, unverändert)
 
 Am **08.09.2026** hat der Nutzer Punkt 33 der Offenen-Punkte-Liste
 entschieden: **die Bodensee-Korrektur wird übernommen.** Damit verliert
@@ -98,9 +112,12 @@ from windkraft.calc.band_manifest import manifest_path_for  # noqa: E402
 # Die Zahlen des Vertrags
 # ---------------------------------------------------------------------------
 
-# Neue Referenz, vom Nutzer am 08.09.2026 angenommen (Punkt 33).
-REFERENZ_SHA256 = "4bdef6ad5e863692cef0f19cdfe959f04e439e9b17310f2f7a3c067d56b1a13e"
-REFERENZ_BYTES = 124_613_971
+# Zweiter Wechsel (Punkt 34, W5.P2, 08.09.2026): adresslose DKM-
+# Großflächen entfallen als Kandidat. Vorheriger Wert (Punkt 33, Bodensee):
+# sha256 4bdef6ad…6b1a13e, 124 613 971 Bytes - bleibt als historischer
+# Zeuge in docs/rewrite/FORTSCHRITT.md/PLAN.md dokumentiert.
+REFERENZ_SHA256 = "fb57c41dca0642225a8115e3ed95297ede47b56d56c00fdddf8caa445e232c30"
+REFERENZ_BYTES = 124_597_421
 
 # Bisheriges Soll, ab 08.09.2026 nur noch Vergleichsbasis - aber als solche
 # unveränderlich.
