@@ -91,4 +91,9 @@ def test_compute_keys_are_full_paths_not_just_names(tmp_path):
 
     result = fingerprint.compute([same_name_a, same_name_b])
 
-    assert set(result.keys()) == {str(same_name_a), str(same_name_b)}
+    # W6.6/Punkt 56: compute() liefert seither {"_fingerprint_version": …,
+    # "entries": {...}} statt eines flachen Dicts (siehe fingerprint.py
+    # compute()-Docstring) - die Pfad-Schluessel selbst liegen unveraendert
+    # unter "entries".
+    assert result["_fingerprint_version"] == fingerprint.FINGERPRINT_SCHEMA_VERSION
+    assert set(result["entries"].keys()) == {str(same_name_a), str(same_name_b)}
