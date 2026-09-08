@@ -1,7 +1,21 @@
 # Umsetzungsplan: Umbau in sechs Wellen
 
-**Stand: geplant, nicht begonnen.** Kein Paket ist angefangen, keine Datei
-außerhalb von `docs/` wurde geändert.
+> **Eingefrorene ältere Planungsfassung — durch `PLAN.md` §7 abgelöst.**
+> Diese Tabelle listet 30 Arbeitspakete zum Stand der Erstniederschrift
+> („nicht begonnen"); inzwischen sind mehrere Wellen umgesetzt (u. a.
+> `windkraft/` → `calc/`, `scripts/`/`output/` archiviert, `pipeline/`
+> aufgebaut, siehe `FORTSCHRITT.md`), und `PLAN.md` §7 führt 44 Pakete
+> — die verbindliche, laufend gepflegte Fassung. Bekannter Widerspruch:
+> W1.2 listet hier sechs zu löschende Pfade inklusive
+> `data/…/Aktualitaetsstand.txt`; `PLAN.md` (Zeile ~604) stellt klar, dass
+> genau diese Datei **bleiben** soll (fünf Pfade weg, nicht sechs) — sie
+> existiert auch heute noch, unter `data/adressen/Aktualitaetsstand.txt`.
+> Diese Seite wird nicht mehr nachgezogen, um nicht denselben Pflegeaufwand
+> wie `docs/dataflow/` zu erzeugen; bei Widerspruch gilt `PLAN.md`.
+
+**Stand bei Erstniederschrift: geplant, nicht begonnen.** Kein Paket war zu
+diesem Zeitpunkt angefangen, keine Datei außerhalb von `docs/` war
+geändert.
 
 Dreißig Arbeitspakete, verteilt auf sechs Wellen. Welle 0 friert die
 Schnittstellen ein — Rohdatenpfade, Prep-Ausgaben, Layernamen, Produktpfade

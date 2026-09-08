@@ -33,12 +33,6 @@ dieses Repo (`/Users/jhurt/Documents/master_windkraft/abschichtung`).
   Leere. Nicht gefixt: ein robuster Import wäre keine rein mechanische
   Änderung mehr.
 
-- `windkraftzonen_shapefile_2024.json` und `zonierung_noe.json` haben
-  dieselbe Byte-Länge (600.056), unterscheiden sich aber in 11 Bytes.
-  Ungeklärt, welche Datei maßgeblich ist. Beide wurden übernommen; die Frage
-  ist inhaltlich und darf nicht als Nebenprodukt eines Umzugs entschieden
-  werden.
-
 ## Stille Fallbacks und Drift
 
 - `windkraft/calc/kataster_layers.py:876` (Alt-Repo) fängt bei fehlendem
@@ -104,11 +98,6 @@ dieses Repo (`/Users/jhurt/Documents/master_windkraft/abschichtung`).
 
 ## Aufräumarbeiten
 
-- `scripts/analysis/build_v2_dashboard_data.py:170-172` bricht am aktuellen
-  TIF hart ab, weil `EXCLUSION_LAYERS` sieben Bandnamen aus dem
-  Pre-Clean-Schema nennt. Wird durch das Band-Manifest adressiert (siehe
-  `README.md`), aber das Skript selbst ist noch nicht angepasst.
-
 - `windkraft/util/admin.py` (ganze Datei) wird von keinem übernommenen Modul
   importiert. Stand auf der Kopierliste, deshalb trotzdem übernommen — toter
   Code, Kandidat zum späteren Entfernen.
@@ -153,13 +142,6 @@ dieses Repo (`/Users/jhurt/Documents/master_windkraft/abschichtung`).
   `INDIVIDUAL_BUFFER_BY_BL` in `windkraft/calc/abschichtung_common.py`. Die
   Legacy-Ketten, die diese Blöcke einst lasen, gibt es in diesem Repo nicht
   mehr — die Blöcke sind damit vollständig tot.
-
-- `scripts/widmung_v2/03_build_osm_layers.py:232` und
-  `scripts/widmung_v2/04_create_distance_zones.py:377` — Default
-  `--osm-pbf-cache-dir output/abschichtung/osm_pbf_layers`, laut Hilfetext
-  "geteilt mit create_osm_wka_distance_zones.py". Dieses Skript existiert in
-  diesem Repo nicht; der Cache-Ordnername referenziert nur noch die
-  Legacy-Kette im Altrepo.
 
 - Veraltete Doku-/Kommentar-Verweise auf `scripts/main/` bzw. alte
   Dateinamen, die es in diesem Repo nicht mehr gibt — bewusst byte-identisch
@@ -225,6 +207,15 @@ ausschließlich Lesezugriffe sieht.
   Vorkehrung treffen.
 
 ## Schreibziel-Audit über die migrierte Kette (`windkraft/`, `scripts/`, `Makefile`, `config.json`)
+
+*Hinweis: `scripts/` (und mit ihm alle unten mit Zeilennummer zitierten
+`scripts/widmung_v2/*.py`-Dateien) wurde mit Paket W6.1 vollständig
+archiviert, `windkraft/` heißt seither `calc/`. Die einzelnen Pfad- und
+Zeilenverweise unten sind damit nicht mehr auffindbar; ob die
+zugrundeliegende Hardlink-Gefährdung in der neuen `pipeline/`-Kette
+fortbesteht, wurde im Rahmen dieses Audits nicht neu geprüft — dafür wäre
+ein eigener Durchlauf gegen `pipeline/` nötig. Nicht gestrichen, da nicht
+verifiziert, ob das Risiko erledigt oder nur der alte Code weg ist.*
 
 Vollständige Erfassung aller Schreibziele der migrierten Kette (Job 2, im
 Anschluss an den `bev_register.py`-Fix aus Job 1). Ursprüngliches Kriterium

@@ -363,11 +363,20 @@ tatsächlich liegen **9** vor, seit Wien am 29.07.2026 hinzukam. Gesamtgröße
 der tatsächlich von der Referenzkette gelesenen Dateien: **≈ 1,7 GB**
 (nachgemessen; die zuvor kolportierten „~1,76 GB“ treffen ungefähr zu).
 
-**Tatsächliche Ablage (verifiziert gegen den Baum, nicht `data/widmung/`):**
-Die Flächenwidmungsdaten liegen — sowohl im alten als auch im neuen Repo,
-identisch — auf **zwei** Verzeichnisse verteilt, nicht unter einem
-einheitlichen `data/widmung/<bl>/` (siehe Kasten am Ende dieses Abschnitts
-zu diesem nie umgesetzten Vorschlag). Maßgeblich sind die Pfade, die
+> **Vorbemerkung (seit Paketen W0.1a/W0.1b überholt):** Der Rest dieses
+> Unterabschnitts bis zum „Nachtrag (Pakete W0.1a/W0.1b)“ weiter unten
+> beschreibt den Stand **vor** der W0.1a-Konsolidierung nach
+> `data/widmung/<bundesland>/` — er ist absichtlich unverändert zur
+> Nachvollziehbarkeit stehen gelassen. **Aktuell** liegen alle 9
+> Flächenwidmungsdateien unter der gemeinsamen Wurzel
+> `data/widmung/<bundesland>/<datei>`, siehe Tabelle im Nachtrag.
+
+**Tatsächliche Ablage vor W0.1a (verifiziert gegen den damaligen Baum,
+historisch):** Die Flächenwidmungsdaten lagen — sowohl im alten als auch im
+neuen Repo, identisch — auf **zwei** Verzeichnisse verteilt, nicht unter
+einem einheitlichen `data/widmung/<bl>/` (siehe Kasten am Ende dieses
+Abschnitts zu diesem damals noch nicht umgesetzten Vorschlag). Maßgeblich
+waren zu diesem Zeitpunkt die Pfade, die
 `windkraft/calc/widmung_sources.py` tatsächlich liest: die Konstanten
 `NEW = ROOT / "data" / "new_widmungs_data"` und
 `OLD = ROOT / "data" / "flächenwidmungen"` (Zeilen 38–40) sowie die

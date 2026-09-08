@@ -7,8 +7,15 @@ werden erzeugt und nie gelesen. Der Entwurf trennt das in drei Bereiche mit
 je einer klaren Regel und macht `rm -rf build && make all` zum Beweis, dass
 die Kette wirklich aus Rohdaten läuft.
 
-**Stand: Entwurf. Nichts davon ist umgesetzt — kein Code geschrieben, keine
-Datei gelöscht, keine Hardlinks aufgelöst.**
+**Stand bei Erstniederschrift (dieses Dokument wird nicht laufend
+nachgeführt):** nichts war umgesetzt — kein Code geschrieben, keine Datei
+gelöscht, keine Hardlinks aufgelöst. **Das hat sich seither geändert:** die
+Umsetzung läuft in nummerierten Paketen, mit laufendem Stand in `PLAN.md`
+und `FORTSCHRITT.md` (mehrere Wellen abgeschlossen, u. a. `windkraft/` →
+`calc/` umbenannt, `scripts/`/`output/` archiviert, `pipeline/` aufgebaut).
+Dieses Dokument beschreibt weiterhin das **ursprüngliche Zielbild und seine
+Begründung** — für den aktuellen Umsetzungsstand sind `PLAN.md` und
+`FORTSCHRITT.md` maßgeblich, nicht diese Seite.
 
 ## Die drei Bereiche
 
@@ -79,8 +86,11 @@ Verfügbarkeit und Unschärfe · 37–38 Referenz.
 
 ## Löschliste / Bilanz
 
-Alle Zahlen stammen aus dem Datenflussgraphen unter `docs/dataflow/` und
-sind dort mit Fundstelle belegt.
+Alle Zahlen stammen aus dem Datenflussgraphen unter `docs/dataflow/`, der
+Fundstellen aus dem **damaligen** Code (Stand vor dem Welle-6-Umbau, Commit
+`f1d00f7`) belegt. `docs/dataflow/` wird seither nicht mehr aktualisiert
+(siehe Kopf dort) — diese Zahlen sind der Entwurfsstand von damals, nicht
+notwendig der heutige.
 
 | Posten | Details | Zahl |
 |---|---|---|
@@ -156,17 +166,25 @@ Löschliste aus dem Graphen ableitet, muss diesen Fall ausnehmen.
 
 ## Umsetzungsplan
 
-Wie aus diesem Zielbild wird, steht in [`UMSETZUNG.md`](UMSETZUNG.md):
-dreißig Arbeitspakete in sechs Wellen, mit Besitz je Pfad, Abhängigkeiten
-und Abnahmebedingung je Paket. `umsetzung.html` ist die interaktive Ansicht
-darauf; `packages.tsv` / `packages.json` sind die maschinenlesbare
-Paketmatrix daraus (`src/extract_packages.py`). Stand: geplant, noch nicht
-begonnen.
+Wie aus diesem Zielbild wird, stand ursprünglich in
+[`UMSETZUNG.md`](UMSETZUNG.md): dreißig Arbeitspakete in sechs Wellen, mit
+Besitz je Pfad, Abhängigkeiten und Abnahmebedingung je Paket. Die
+verbindliche, laufend aktualisierte Paketliste ist inzwischen `PLAN.md` §7
+(Stand: 44 Pakete über die Wellen 0–6) — `UMSETZUNG.md` ist die ältere
+Planungsfassung. `umsetzung.html` ist die interaktive Ansicht auf das
+`packages.tsv` / `packages.json`-Paar (maschinenlesbare Paketmatrix, erzeugt
+per `src/extract_packages.py`). Stand: mehrere Wellen bereits umgesetzt,
+siehe `FORTSCHRITT.md`.
 
 ## Grundlage
 
-Faktengrundlage ist der belegte Datenflussgraph unter `docs/dataflow/`
-(`docs/dataflow/flow_graph.json` — 220 Knoten, 348 Kanten, jede mit
-Fundstelle im Code). `zielbild.html` in diesem Verzeichnis ist die
-interaktive Ansicht auf denselben Entwurf; `domains.tsv` / `domains.json`
-sind die maschinenlesbare Domänenmatrix daraus.
+Faktengrundlage **war zum Zeitpunkt dieses Entwurfs** der belegte
+Datenflussgraph unter `docs/dataflow/` (`docs/dataflow/flow_graph.json` —
+220 Knoten, 348 Kanten, jede mit Fundstelle im **damaligen** Code).
+`docs/dataflow/` beschreibt die Kette vor dem Welle-6-Umbau und wird seit
+Commit `f1d00f7` nicht mehr aktualisiert (siehe Kopf dort) — für den
+heutigen Baum ist es nicht mehr die Faktengrundlage, sondern ein datierter
+Altstand, in derselben Rolle wie `docs/RUN1_VERGLEICH.md`. `zielbild.html`
+in diesem Verzeichnis ist die interaktive Ansicht auf denselben
+(Entwurfs-)Stand; `domains.tsv` / `domains.json` sind die maschinenlesbare
+Domänenmatrix daraus.

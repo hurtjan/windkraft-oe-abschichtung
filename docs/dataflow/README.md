@@ -1,5 +1,27 @@
 # docs/dataflow — kanonischer Datenfluss-Graph
 
+> **Eingefrorener Altstand — beschreibt die Kette vor dem Welle-6-Umbau,
+> nicht den heutigen Baum.** Dieses Verzeichnis (Graph, Fragmente, die
+> Erzeugungsskripte unter `src/` und ihre Ausgaben) ist ein aus dem
+> **damaligen** Code erzeugter Befund über die **damalige** Kette
+> (`scripts/` → `windkraft/` → `build/` → `output/`, `pipeline/verify/`
+> statt `pipeline/export/`), Stand Commit `f1d00f7`
+> (2026-09-08, „W5.P5: §13.9-Wächter auf Startknotensätze generalisiert,
+> DKM-Ursache bekommt eigenen Wirkungspfad"). Mit Welle 6 heißen `scripts/`
+> und `output/` nicht mehr so (archiviert), `windkraft/` ist `calc/`,
+> `build/` ist `derived/`, `pipeline/verify/` ist `pipeline/export/`. Der
+> Graph wird **nicht** neu erzeugt und **nicht** gelöscht — er bleibt als
+> datierter Befund über den Vorzustand stehen, in derselben Rolle wie
+> `docs/RUN1_VERGLEICH.md`. Wer den heutigen Datenfluss braucht, liest
+> `pipeline/`, `calc/`, `derived/` direkt.
+>
+> **Nebenbefund:** `src/1_merge.py` bildet u. a. den Pfad
+> `data/adressregister/…` ab (Zeilen 88–89) — dieses Verzeichnis gibt es
+> seit Paket W0.1 nicht mehr (siehe `docs/rohdaten.md`). Da dieses
+> Verzeichnis eingefroren bleibt, wird `1_merge.py` selbst nicht
+> angepasst; dieser Kopf deckt den veralteten Pfad mit ab, statt das
+> Skript zu ändern oder neu laufen zu lassen.
+
 **Interaktive Ansicht:** [`flow_diagram.html`](flow_diagram.html) — lokal per
 Doppelklick im Browser öffnbar, keine Abhängigkeiten und keine
 Netzwerkzugriffe außer dem Nachladen der Google-Fonts-Stylesheets.

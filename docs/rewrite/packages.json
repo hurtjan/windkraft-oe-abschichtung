@@ -189,22 +189,31 @@
     "acceptance": "Alignment und Vektorisierung getrennt; erzeugte GeoJSON deckungsgleich mit den bestehenden."
   },
   {
+    "id": "W2.P0",
+    "wave": "2",
+    "group": "layer",
+    "title": "Vorfeld der Layer-Welle",
+    "owns": "pipeline/layers/__init__.py;make/layers/README.md;Makefile (nur -include und worktree)",
+    "depends": "Welle 1",
+    "acceptance": "make -n für jedes bestehende Ziel byte-identisch; ein Wegwerf-Worktree sieht build/prep/ und schreibt nicht hinein."
+  },
+  {
     "id": "W2.1",
     "wave": "2",
     "group": "layer",
-    "title": "Layer: Widmung",
-    "owns": "pipeline/layers/widmung.py",
-    "depends": "Welle 1",
-    "acceptance": "Erzeugte Layer bitgleich zu den bestehenden Checkpoints."
+    "title": "Layer: Widmung und Häuser im Grünen",
+    "owns": "pipeline/layers/hig.py",
+    "depends": "W2.P0",
+    "acceptance": "Bitgleich; die NÖ-Ausmaskierung bleibt unverändert erhalten. W2.2 ist hier aufgegangen (Begründung PLAN.md §13.8: hig_source_masks.py verundet in widmung_seed() die drei Widmungs-Layer, das Ergebnis geht als Eingabefilter in candidate_filter_mask() — beide Layer entstehen in einem einzigen ensure_group_layers()-Aufruf; getrennt hätte entweder Code verdoppelt oder eine Datei zu zweit besessen)."
   },
   {
-    "id": "W2.2",
+    "id": "W2.4",
     "wave": "2",
     "group": "layer",
-    "title": "Layer: Häuser im Grünen",
-    "owns": "pipeline/layers/hig.py",
-    "depends": "Welle 1",
-    "acceptance": "Bitgleich; die NÖ-Ausmaskierung bleibt unverändert erhalten."
+    "title": "Layer: Natur, Gelände, Zonen und Puffer",
+    "owns": "pipeline/layers/geo.py",
+    "depends": "W2.P0",
+    "acceptance": "Bitgleich für alle 17 Checkpoints aus 04_create_distance_zones.py; die Geometrietyp-Empfindlichkeit gegen den GPKG-Promotionseffekt geprüft und beantwortet."
   },
   {
     "id": "W2.3",
@@ -268,5 +277,122 @@
     "owns": "— (nur Ausführung)",
     "depends": "Wellen 0–4",
     "acceptance": "rm -rf build && make all erzeugt das TIF vollständig neu; Abnahmebedingung erfüllt; Laufzeiten je Stufe protokolliert."
+  },
+  {
+    "id": "W4.P0",
+    "wave": "4",
+    "group": "verify",
+    "title": "Vorfeld der Prüfwelle",
+    "owns": "pipeline/verify/__init__.py;make/verify/README.md;Makefile (einziges Paket der Welle 4: -include make/verify/*.mk, das test-Ziel für W4.3, und build/layers/ samt fertigem TIF im worktree-Ziel)",
+    "depends": "Welle 3",
+    "acceptance": "make -n für jedes bestehende Ziel byte-identisch; ein Wegwerf-Worktree sieht build/layers/ und ein finalisiertes TIF, ohne beides neu zu rechnen, und schreibt in keines von beiden. Nach Regel 9 (PLAN.md §13.10)."
+  },
+  {
+    "id": "W5.P0",
+    "wave": "5",
+    "group": "verify",
+    "title": "Vorfeld des Beweislaufs",
+    "owns": "Makefile (nur das all-Ziel);docs/RUN1_VERGLEICH.md (nur ein datierter Nachtrag)",
+    "depends": "Welle 4",
+    "acceptance": "make -n für jedes bestehende Ziel byte-identisch; make all läuft nachweislich die neue Kette. Nach Regel 9 (PLAN.md §13.10). Gefunden und behoben: all: prep widmung-v2 rief die alte Kette auf — Welle 5 hätte den Vorgänger bewiesen und den Umbau nie berührt."
+  },
+  {
+    "id": "W5.P1",
+    "wave": "5",
+    "group": "verify",
+    "title": "Die letzte output/-Abhängigkeit",
+    "owns": "pipeline/layers/geo.py;make/layers/geo.mk;make/layers/osm.mk",
+    "depends": "W5.P0",
+    "acceptance": "Kein Modul unter pipeline/ liest mehr unbedingt aus output/. Nachweis über einen Lauf mit leerem Quellverzeichnis: kein Rückfall, Verzeichnis bleibt leer, alle 17 Layer pixelgleich. Die Layer-Reihenfolge hig → osm → geo ist im Make-Graphen verdrahtet statt alphabetisch."
+  },
+  {
+    "id": "W5.P2",
+    "wave": "5",
+    "group": "verify",
+    "title": "Adresslose Großflächen entfallen",
+    "owns": "windkraft/calc/hig_detection.py;pipeline/layers/hig.py;tests/test_hig_addressless_candidates.py (neu);pipeline/validate.py und tests/test_referenz_tif.py (nur das Hash-Literal);docs/rewrite/abweichungen.tsv;docs/HANDOFF.md",
+    "depends": "W5.P1",
+    "acceptance": "Ein Kandidat über HIG_MAX_FOOTPRINT_M2 ohne eigene BEV-Adresse entfällt; mit Adresse bleibt die Zentroidscheibe unverändert. Kein anderer Schwellwert wird angefasst. Nachzuweisen: Zahl der entfallenen Kandidaten, die pixelweise geänderten Checkpoints, die geänderten Bänder gegen die Zwischenreferenz, die Flächenwirkung auf haeuser_im_gruenen_streusiedlung und ob eine Hülle zerfällt."
+  },
+  {
+    "id": "W5.P3",
+    "wave": "5",
+    "group": "verify",
+    "title": "Die vier Nachzügler aus W5.P2",
+    "owns": "docs/rewrite/abweichungen.tsv;tests/test_referenz_tif.py;docs/HANDOFF.md;README.md",
+    "depends": "W5.P2",
+    "acceptance": "Vier Stellen, die seit f592e75 etwas Falsches behaupten: der Ursache-Text im Register (drei Gruppen statt einer), der gegatete Vertragstest (18 Bänder statt neun), der HANDOFF-Abschnitt gleichen Inhalts, und ein veralteter Hash im README."
+  },
+  {
+    "id": "W5.P4",
+    "wave": "5",
+    "group": "verify",
+    "title": "Das Register kennt nur eine Ursache",
+    "owns": "docs/rewrite/abweichungen.tsv (nur ampel);README.md (Zeile 191)",
+    "depends": "W5.P3",
+    "acceptance": "Schlüsselwort „angenommen”/„entschieden” repariert, validate.py real gelaufen, ampel zeigt den tatsächlichen Zustand; README-Zahl auf 18/zwei Ursachen nachgezogen. Der Wirkungspfad-Wächter selbst blieb fest auf Wasser verdrahtet — an W5.P5 zurückgegeben."
+  },
+  {
+    "id": "W5.P5",
+    "wave": "5",
+    "group": "verify",
+    "title": "Wirkungspfad-Wächter generalisieren",
+    "owns": "windkraft/calc/band_manifest.py;pipeline/validate.py",
+    "depends": "W5.P4",
+    "acceptance": "Der Wächter prüft jede Zeile gegen den Wirkungspfad ihrer eigenen ursache, nicht mehr fest gegen geography_water_bodies_wirkungspfad. So nicht eingetroffen, und die Abnahmebedingung war der Fehler, nicht das Paket: gemessen 5 gelb, 7/8/9 rot, 10 grün, 11–13 gelb, 27 gelb; kein anderer Wirkungspfad änderte sich."
+  },
+  {
+    "id": "W6.1",
+    "wave": "6",
+    "group": "abschluss",
+    "title": "Die alte Kette entfällt",
+    "owns": "löschen: scripts/** (komplett), windkraft/util/;herausbewegen: output/** → ~/Documents/master_windkraft/archiv/;ändern: Makefile (.DEFAULT_GOAL, die fünf widmung-v2-*-Ziele), pipeline/layers/geo.py, pipeline/layers/osm.py, pipeline/contract.py, pipeline/validate.py, pipeline/finalize.py (nur Zitatkommentare), tests/test_contract.py, tests/test_referenz_tif.py, docs/analysis/streusiedlung_knee.py, .gitignore",
+    "depends": "W5.1",
+    "acceptance": "rm -rf build/layers out && make all (9 min, build/prep/ unberührt) → TIF bitgleich fb57c41d…232c30, alle 38 Bänder, vier Produkte, Tests grün mit benannter Begründung je Testdifferenz, keine Zeichenkette output/ mehr unter pipeline/, windkraft/, tests/, make/, und make ohne Argument baut die neue Kette."
+  },
+  {
+    "id": "W6.2",
+    "wave": "6",
+    "group": "abschluss",
+    "title": "Drei Namen, die die Struktur erklären",
+    "owns": "windkraft/ → calc/;build/ → derived/;pipeline/verify/ → pipeline/export/;dazu jeder Importpfad im Repo, pipeline/contract.py, pyproject.toml, .gitignore, make/**, Makefile",
+    "depends": "W6.1",
+    "acceptance": "Reines Umbenennen, kein Zahlenwert ändert sich. Abnahme wie W6.1, plus: kein Vorkommen von windkraft., build/ oder verify mehr als Pfad oder Modulname, außer in erklärten historischen Erwähnungen."
+  },
+  {
+    "id": "W6.3",
+    "wave": "6",
+    "group": "abschluss",
+    "title": "README auf den neuen Baum, dann Zusammenführung nach main",
+    "owns": "README.md;main",
+    "depends": "W6.2",
+    "acceptance": "Ein frischer Klon von main plus data/ läuft make ohne Argument bis zu den vier Produkten durch. Die Zusammenführung gelang (65b97ac, Fast-Forward), der Klontest nicht — er übersprang nichts und richtete Schaden am geteilten derived/prep/ an. Die Abnahme wanderte deshalb nach W6.4."
+  },
+  {
+    "id": "W6.4",
+    "wave": "6",
+    "group": "abschluss",
+    "title": "Der Fingerabdruck wird ortsunabhängig",
+    "owns": "pipeline/fingerprint.py;die zehn Prep-Einstiegsmodule unter pipeline/prep/",
+    "depends": "W6.3",
+    "acceptance": "Schlüssel relativ zu contract.ROOT statt absolut; jedes Prep-Modul nimmt seine eigene Quelldatei in den Abdruck auf. Voller make all mit stehengelassenem derived/prep/ → TIF fb57c41d…232c30, zweiter Lauf überspringt alle zehn Stufen. Eingetroffen bis auf den Klontest."
+  },
+  {
+    "id": "W6.5",
+    "wave": "6",
+    "group": "doku",
+    "title": "Die Doku beschreibt den neuen Baum",
+    "owns": "docs/rohdaten.md;docs/dataflow/**;docs/rewrite/README.md;docs/rewrite/packages.tsv/.json;docs/rewrite/UMSETZUNG.md;docs/FOLLOWUPS.md;docs/widmung_v2_provenance.md;docs/widmung_v2.md",
+    "depends": "W6.6",
+    "acceptance": "Keine Doku behauptet mehr etwas, das die laufende Kette widerlegt; jede gelöschte Datei hat einen benannten Ersatz oder einen niedergeschriebenen Grund. docs/rohdaten.md wird korrigiert, nicht gelöscht. docs/dataflow/ wird datiert eingefroren, nicht neu erzeugt und nicht gelöscht, mit Kopf „Stand f1d00f7”; das README-Zitat wird entsprechend umgeschrieben."
+  },
+  {
+    "id": "W6.6",
+    "wave": "6",
+    "group": "abschluss",
+    "title": "Drei Einzeiler, die Welle 6 selbst hinterlassen hat",
+    "owns": "pipeline/fingerprint.py;die zehn Prep-Einstiegsmodule;tests/test_contract.py;die Stelle, an der die Test-Untergrenze sitzt (tests/conftest.py oder make/)",
+    "depends": "W6.4",
+    "acceptance": "(1) Der Fingerabdruck nimmt versionierte Quelldateien über sha256 statt über Größe und Zeitstempel auf; Rohdaten bleiben bei _stat(). (2) Die skipif-Bedingung von test_layer_names_match_existing_checkpoints zeigt auf derived/layers/ statt auf das archivierte output/…/distance_layers. (3) make test bekommt eine Untergrenze für die Zahl gesammelter Tests. Abnahme: voller make all → TIF fb57c41d…232c30 (Halt bei Abweichung), zweiter Lauf überspringt alle zehn Stufen, Klontest überspringt jetzt ebenfalls, make test meldet 214+3 statt 213+4, Untergrenze dynamisch gegengeprüft."
   }
 ]
