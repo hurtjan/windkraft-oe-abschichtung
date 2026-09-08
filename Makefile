@@ -7,6 +7,7 @@ V2_TIF = $(V2_DIR)/osm_wka_distance_zones_widmung_v2.tif
 .PHONY: widmung-v2 widmung-v2-zoning widmung-v2-hig widmung-v2-osm widmung-v2-tif \
         widmung-v2-validate check-hardlinks check-raw-only check-guards prep all test worktree
 .PHONY: layers
+.PHONY: verify
 
 # Ohne dieses .DEFAULT_GOAL würde make(1) das erste im File stehende Ziel
 # nehmen - das ist widmung-v2-zoning (nur Stufe 1 von 5), nicht die volle
@@ -131,12 +132,41 @@ endif
 ## nach, statt dieselbe Lücke ein zweites Mal offen zu lassen.
 -include make/validate/*.mk
 
+## Vorpaket W4.P0 (docs/rewrite/PLAN.md §13.10, Regel 9): dasselbe Muster
+## wie oben bei Prep und Layers, diesmal für die zwei parallelen
+## Verify-Pakete (W4.1 Dashboard, W4.2 Gemeindegrenzen-Export). Jedes
+## bekommt seine eigene Datei make/verify/<domäne>.mk mit dem Ziel
+## `verify-<domäne>`. Siehe make/verify/README.md für die Konvention. Das
+## führende "-" lässt make weiterlaufen, solange noch keine einzige Datei
+## existiert (kein Fehler, kein Abbruch).
+-include make/verify/*.mk
+
+# Namen aller so eingelesenen Ziele, aus den Dateinamen abgeleitet -
+# make/verify/dashboard.mk ergibt verify-dashboard. Leer, solange kein
+# make/verify/*.mk existiert.
+VERIFY_TARGETS := $(addprefix verify-,$(basename $(notdir $(wildcard make/verify/*.mk))))
+.PHONY: $(VERIFY_TARGETS)
+
+## Ruft alle zwei (bzw. die bereits vorhandenen) verify-<domäne>-Ziele auf.
+## Bewusst kein stiller Erfolg und kein Fehler, solange noch keines
+## existiert - nur die Auskunft, dass hier noch nichts läuft. Rückgabewert
+## in jedem Fall 0.
+verify: $(VERIFY_TARGETS)
+ifeq ($(strip $(VERIFY_TARGETS)),)
+	@echo "verify: noch keine Verify-Pakete vorhanden - die entstehen erst in Welle 4 (docs/rewrite/PLAN.md §7, W4.1/W4.2)."
+endif
+
 ## Prep und Kette zusammen - der Beweislauf aus Rohdaten (Welle 5: W5.1).
 all: prep widmung-v2
 
 ## Verdrahtet die 131 heute unerreichbaren Tests (kein `make test` bisher,
 ## siehe PLAN.md Ausgangslage: "12 unerreichbare Skripte, davon 8 Tests
-## ohne make test"). W4.3 erweitert dieses Ziel später um Vertragstests.
+## ohne make test"). `pytest tests/` sammelt bereits rekursiv alles unter
+## tests/ ein (kein testpaths/norecursedirs in pyproject.toml, das
+## einschränkt) - W4.3 legt seine neuen Vertragstests dort einfach als
+## weitere tests/test_*.py ab und braucht dafür KEINE Änderung an diesem
+## Ziel oder sonst am Makefile mehr (Regel 9, docs/rewrite/PLAN.md §13.10:
+## W4.P0 besitzt Makefile als einziges Paket der Welle 4).
 test:
 	uv run pytest tests/ -v
 
@@ -226,10 +256,35 @@ worktree:
 		echo "$$CLEANUP"; \
 		exit 1; \
 	fi; \
+	if [ -L "$$WT_DIR/build/layers" ]; then \
+		: schon ein Symlink - unveraendert uebernehmen; \
+	elif [ ! -e "$$WT_DIR/build/layers" ]; then \
+		ln -s $(CURDIR)/build/layers "$$WT_DIR/build/layers"; \
+	else \
+		echo "Abbruch: $$WT_DIR/build/layers existiert bereits, ist aber kein Symlink - unerwarteter Zustand, nichts geloescht."; \
+		echo "$$CLEANUP"; \
+		exit 1; \
+	fi; \
+	mkdir -p "$$WT_DIR/out"; \
+	for f in abschichtung.tif abschichtung.bands.json; do \
+		if [ -L "$$WT_DIR/out/$$f" ]; then \
+			: schon ein Symlink - unveraendert uebernehmen; \
+		elif [ -e "$$WT_DIR/out/$$f" ]; then \
+			echo "Abbruch: $$WT_DIR/out/$$f existiert bereits, ist aber kein Symlink - unerwarteter Zustand, nichts geloescht."; \
+			echo "$$CLEANUP"; \
+			exit 1; \
+		elif [ -e "$(CURDIR)/out/$$f" ]; then \
+			ln -s $(CURDIR)/out/$$f "$$WT_DIR/out/$$f"; \
+		fi; \
+	done; \
 	echo "Angelegt: $$WT_DIR auf Zweig $(PAKET). data/ und distance_layers/ sind Symlinks auf dieses Repo (read-only, kein Kopieraufwand)."; \
 	echo "WARNUNG: ein Lauf mit --force-layers dort schreibt in das GETEILTE distance_layers/ und zerstört die Arbeit aller anderen Worktrees - nicht verwenden."; \
 	echo "Zusaetzlich (W2.P0, docs/rewrite/PLAN.md §13.8): build/prep/ ist ebenfalls ein Symlink auf dieses Repo (read-only, kein Kopieraufwand - die Prep-Ausgaben muessten sonst je Worktree neu gerechnet werden, allein Kataster 45-70 Minuten)."; \
 	echo "WARNUNG: build/prep/ ist GETEILT und nur zum Lesen gedacht - ein Schreibzugriff (z.B. ein erneutes 'make prep' aus diesem Worktree) trifft alle Layer-Worktrees gleichzeitig; nur die Prep-Stufe im Hauptrepo darf dort schreiben."; \
+	echo "Zusaetzlich (W4.P0, docs/rewrite/PLAN.md §13.10): build/layers/ ist ebenfalls ein Symlink auf dieses Repo (read-only, kein Kopieraufwand - die 33 Checkpoints muessten sonst je Worktree neu gerechnet werden, dazu rund 165 s Finalisierung fuer das TIF)."; \
+	echo "WARNUNG: build/layers/ ist GETEILT und nur zum Lesen gedacht - ein Schreibzugriff (z.B. ein erneutes 'make layers' aus diesem Worktree) trifft alle Verify-Worktrees gleichzeitig; nur die Layer-Stufe im Hauptrepo darf dort schreiben."; \
+	echo "out/ selbst ist KEIN Symlink, sondern ein echtes, privates Verzeichnis in diesem Worktree - nur out/abschichtung.tif und out/abschichtung.bands.json darin sind Symlinks auf das fertige TIF samt Bandmanifest im Hauptrepo (read-only, falls dort schon finalisiert)."; \
+	echo "WARNUNG: out/abschichtung.tif und out/abschichtung.bands.json sind GETEILT und nur zum Lesen gedacht - ein Schreibzugriff (z.B. ein erneutes 'make finalize' aus diesem Worktree) trifft alle Verify-Worktrees gleichzeitig; nur die Finalize-Stufe im Hauptrepo darf dort schreiben. Alles andere unter out/ (z.B. out/dashboard/, out/gemeinden.geojson) ist frei beschreibbar, ohne das Hauptrepo oder ein Geschwister-Worktree zu beruehren."; \
 	echo "git status ist absichtlich sauber: data/ ist seit W1.2 ohne jede versionierte Datei (kein --skip-worktree mehr noetig), der Symlink 'data' selbst steht in .git/info/exclude (geteilt ueber alle Worktrees, nicht versioniert)."; \
-	echo "build/ ist zusaetzlich ueber .gitignore repoweit ausgeschlossen - fuer den build/prep-Symlink ist kein weiterer Eintrag in .git/info/exclude noetig."; \
+	echo "build/ und out/ sind zusaetzlich ueber .gitignore repoweit ausgeschlossen - fuer die Symlinks unter build/ und out/ ist kein weiterer Eintrag in .git/info/exclude noetig."; \
 	echo "Entfernen mit: git worktree remove $$WT_DIR && git branch -d $(PAKET)"

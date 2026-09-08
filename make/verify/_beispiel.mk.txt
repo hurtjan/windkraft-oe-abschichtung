@@ -1,0 +1,11 @@
+# Vorlage für make/verify/<domäne>.mk — siehe README.md in diesem Verzeichnis.
+#
+# Diese Datei trägt bewusst die Endung ".mk.txt", nicht ".mk": das
+# Haupt-Makefile liest nur "make/verify/*.mk" per -include ein
+# (docs/rewrite/PLAN.md §13.10), diese Vorlage soll dabei NICHT mitgelesen
+# werden. Zum Anlegen deines eigenen Ziels: Datei nach
+# make/verify/<domäne>.mk kopieren, "dashboard" durch deine Domäne ersetzen.
+
+.PHONY: verify-dashboard
+verify-dashboard:
+	uv run python -m pipeline.verify.dashboard
