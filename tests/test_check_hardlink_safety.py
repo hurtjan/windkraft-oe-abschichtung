@@ -6,6 +6,15 @@ Baum grün laufen.
 Arbeitet ausschließlich auf einem temporären Verzeichnis (tempfile) — hängt
 nicht an den echten data/-/output/-Bäumen dieses Repos, damit der Test nicht
 davon abhängt, was gerade lokal unter data/ oder output/ liegt.
+
+Die Namen im Testbaum sind trotzdem echte: W4.3 hat hier den Rest der
+DECLARED-Ära entfernt, der noch `data/adressregister/adressen_31287.parquet`
+anlegte — ein Verzeichnis, das W0.1 nach `data/adressen/` umbenannt hat, und
+eine Datei, die seit W1.1/W1.P3 unter `build/prep/adressen/` entsteht und
+nicht mehr unter `data/`. Der Test lief davon unberührt grün (tempfile), aber
+er lehrte jeden Leser einen Pfad, den es nicht mehr gibt. Für Regel B ist der
+Name ohnehin gleichgültig — seit W1.3 zählt *jede* Datei unter `data/`, nicht
+mehr eine deklarierte Teilmenge bekannter Schreibziele.
 """
 from __future__ import annotations
 
@@ -26,7 +35,7 @@ from check_hardlink_safety import run_check  # noqa: E402
 def _make_tree(root: Path) -> None:
     (root / "output" / "noe").mkdir(parents=True)
     (root / "output" / "kataster").mkdir(parents=True)
-    (root / "data" / "adressregister").mkdir(parents=True)
+    (root / "data" / "adressen").mkdir(parents=True)
 
 
 def test_clean_tree_passes():
@@ -39,7 +48,7 @@ def test_clean_tree_passes():
         (root / "output" / "kataster" / "big.geoparquet").write_text("data")
         # gewöhnliche Datei unter data/, Link-Count 1 — seit W1.3 der
         # Normalfall für jede Datei dort, nicht nur für Schreibziele
-        (root / "data" / "adressregister" / "adressen_31287.parquet").write_text("x")
+        (root / "data" / "adressen" / "ADRESSE.csv").write_text("x")
 
         result = run_check(root)
 
@@ -76,11 +85,11 @@ def test_detects_planted_hardlink_violation_under_data():
         root = Path(tmp)
         _make_tree(root)
 
-        cache = root / "data" / "adressregister" / "adressen_31287.parquet"
-        cache.write_text("cached")
+        quelle = root / "data" / "adressen" / "ADRESSE.csv"
+        quelle.write_text("roh")
         # simuliert: dieselbe Datei noch per Hardlink mit dem Alt-Repo geteilt
-        other_repo_copy = root / "adressen_31287_altes_repo.parquet"
-        os.link(cache, other_repo_copy)
+        other_repo_copy = root / "ADRESSE_altes_repo.csv"
+        os.link(quelle, other_repo_copy)
 
         result = run_check(root)
 
@@ -88,7 +97,7 @@ def test_detects_planted_hardlink_violation_under_data():
         assert len(result.violations) == 1
         v = result.violations[0]
         assert v.rule == "B"
-        assert v.path == cache
+        assert v.path == quelle
         assert v.link_count == 2
 
 
