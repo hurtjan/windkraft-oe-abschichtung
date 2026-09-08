@@ -311,7 +311,7 @@ Zwischen den Wellen wird synchronisiert, innerhalb einer Welle nicht.
 | 3 | Finalisierung | 2 | nein — nacheinander |
 | 4 | Prüfung | 4 | Vorfeld zuerst, dann drei gleichzeitig |
 | 5 | Beweis | 7 | Vorfeld in sechs Stufen, dann der Lauf |
-| 6 | Aufräumen und Abschluss | 4 | nein — nacheinander, weil nichts kollidiert und nichts sich beschleunigen lässt |
+| 6 | Aufräumen und Abschluss | 5 | nein — nacheinander, weil nichts kollidiert und nichts sich beschleunigen lässt |
 
 „Besitzt" heißt: nur dieses Paket darf diese Pfade anfassen. Zwei Pakete
 derselben Welle teilen sich niemals eine Datei.
@@ -443,8 +443,9 @@ Danach liest sich die Kette von selbst:
 |---|---|---|---|---|---|---|
 | W6.1 | 6 | Abschluss | Die alte Kette entfällt | löschen: `scripts/**` (komplett), `windkraft/util/` · herausbewegen: `output/**` → `~/Documents/master_windkraft/archiv/` · ändern: `Makefile` (`.DEFAULT_GOAL`, die fünf `widmung-v2-*`-Ziele), `pipeline/layers/geo.py`, `pipeline/layers/osm.py`, `pipeline/contract.py`, `pipeline/validate.py`, `pipeline/finalize.py` (nur Zitatkommentare), `tests/test_contract.py`, `tests/test_referenz_tif.py`, `docs/analysis/streusiedlung_knee.py`, `.gitignore` | W5.1 | Ein Paket statt sechs, weil nichts parallel läuft und keine Zahl sich ändert. **Sicherheitsnetz zuerst:** `output/` wird verschoben, nicht gelöscht — ein Umbenennen auf derselben Platte, sofort und umkehrbar. Der Rückfall auf `output/` in den Layer-Modulen wird **lauter Abbruch** statt stillem Nichts. `run1` bleibt über `ABSCHICHTUNG_RUN1` erreichbar — dasselbe Muster, das `test_distance_engine_equivalence.py` für `ABSCHICHTUNG_ALTREPO` benutzt —, damit `validate.py` und der 18-Bänder-Test wieder laufen, wenn jemand die Datei aus dem Archiv zurückholt. Abnahme: `rm -rf build/layers out && make all` (**9 min**, `build/prep/` unberührt) → TIF bitgleich `fb57c41d…232c30`, alle 38 Bänder, vier Produkte, Tests grün mit **benannter Begründung je Testdifferenz**, keine Zeichenkette `output/` mehr unter `pipeline/`, `windkraft/`, `tests/`, `make/`, und `make` ohne Argument baut die neue Kette. |
 | W6.2 | 6 | Abschluss | Drei Namen, die die Struktur erklären | `windkraft/` → `calc/`; `build/` → `derived/`; `pipeline/verify/` → `pipeline/export/`; dazu jeder Importpfad im Repo, `pipeline/contract.py`, `pyproject.toml`, `.gitignore`, `make/**`, `Makefile` | W6.1 | Reines Umbenennen, kein Zahlenwert ändert sich. Nach W6.1, nicht davor — sonst würden Dateien umbenannt, die zwei Minuten später gelöscht werden, und der Diff wäre unlesbar. Der Pfadvertrag aus W0.2 macht `build/` → `derived/` zu einer Zeile in `contract.py`; teuer ist nur `windkraft/` → `calc/`, weil es jeden Import berührt. Abnahme wie W6.1, plus: kein Vorkommen von `windkraft.`, `build/` oder `verify` mehr als Pfad oder Modulname, außer in erklärten historischen Erwähnungen. |
-| W6.3 | 6 | Abschluss | Zusammenführung nach `main` | `main` | W6.2 | Punkt 51. Ein frischer Klon von `main` plus `data/` läuft `make` ohne Argument bis zu den vier Produkten durch. **Das ist die Abnahmebedingung für das Zielbild aus §3** — und die erste, die es je gab. |
-| W6.4 | 6 | Doku | Die Doku beschreibt den neuen Baum | `docs/rohdaten.md`; `docs/dataflow/**`; `docs/rewrite/README.md`; `docs/rewrite/packages.tsv`/`.json`; `docs/rewrite/UMSETZUNG.md`; `docs/FOLLOWUPS.md`; `docs/widmung_v2_provenance.md`; `docs/widmung_v2.md` | W6.2 | **Vom Nutzer bewusst nach hinten gestellt** („Struktur und Doku dann hinten nach") — es blockiert nichts und ist Prosa, kein Aufräumen. `docs/rohdaten.md` behauptet in Zeile 365–420, `data/widmung/` existiere nicht; es existiert seit W0.1 mit neun Domänen. `docs/dataflow/` bildet 417-mal `scripts/` ab und **kein einziges Mal** `pipeline/`, wird aber von `docs/rewrite/README.md` als „Faktengrundlage" zitiert — nach W6.1 beschreibt es einen Baum, den es nicht mehr gibt. `packages.tsv` kennt 30 Pakete. Abnahme: keine Doku behauptet mehr etwas, das die laufende Kette widerlegt; jede gelöschte Datei hat einen benannten Ersatz oder einen niedergeschriebenen Grund. **`docs/rohdaten.md` wird korrigiert, nicht gelöscht** — es ist die einzige Provenienz- und Lizenzangabe der Rohdaten im Repo. |
+| W6.3 | 6 | Abschluss | README auf den neuen Baum, dann Zusammenführung nach `main` | `README.md`, `main` | W6.2 | Punkt 51. Ein frischer Klon von `main` plus `data/` läuft `make` ohne Argument bis zu den vier Produkten durch. **Das ist die Abnahmebedingung für das Zielbild aus §3** — und die erste, die es je gab. **Die Zusammenführung gelang (`65b97ac`, Fast-Forward), der Klontest nicht** — er übersprang nichts und richtete dabei Schaden am geteilten `derived/prep/` an (Punkt 55). Die Abnahme wanderte deshalb nach W6.4. |
+| W6.4 | 6 | Abschluss | Der Fingerabdruck wird ortsunabhängig | `pipeline/fingerprint.py`; die zehn Prep-Einstiegsmodule unter `pipeline/prep/` | W6.3 | Punkt 53 und Punkt 45. Schlüssel relativ zu `contract.ROOT` statt absolut; jedes Prep-Modul nimmt seine eigene Quelldatei in den Abdruck auf. Abnahme: voller `make all` mit stehengelassenem `derived/prep/` → TIF `fb57c41d…232c30` (**heilt zugleich Punkt 55, weil ein abweichender Wert bewiese, dass der Rückschrieb aus W6.3 den Zwischenstand verändert hat**), zweiter Lauf überspringt alle zehn Stufen, Klontest mit echter Kopie statt Symlink. **Eingetroffen bis auf den Klontest** — siehe den Nachtrag §13.11. |
+| W6.5 | 6 | Doku | Die Doku beschreibt den neuen Baum | `docs/rohdaten.md`; `docs/dataflow/**`; `docs/rewrite/README.md`; `docs/rewrite/packages.tsv`/`.json`; `docs/rewrite/UMSETZUNG.md`; `docs/FOLLOWUPS.md`; `docs/widmung_v2_provenance.md`; `docs/widmung_v2.md` | W6.2 | **Vom Nutzer bewusst nach hinten gestellt** („Struktur und Doku dann hinten nach") — es blockiert nichts und ist Prosa, kein Aufräumen. `docs/rohdaten.md` behauptet in Zeile 365–420, `data/widmung/` existiere nicht; es existiert seit W0.1 mit neun Domänen. `docs/dataflow/` bildet 417-mal `scripts/` ab und **kein einziges Mal** `pipeline/`, wird aber von `docs/rewrite/README.md` als „Faktengrundlage" zitiert — nach W6.1 beschreibt es einen Baum, den es nicht mehr gibt. `packages.tsv` kennt 30 Pakete. Abnahme: keine Doku behauptet mehr etwas, das die laufende Kette widerlegt; jede gelöschte Datei hat einen benannten Ersatz oder einen niedergeschriebenen Grund. **`docs/rohdaten.md` wird korrigiert, nicht gelöscht** — es ist die einzige Provenienz- und Lizenzangabe der Rohdaten im Repo. |
 
 ## 8. Regeln der Parallelität
 
@@ -1145,6 +1146,43 @@ statt eines stillen Fehlers im Register.
 > und **danach in einem eigenen Paket** abgeräumt, nicht in dem, das die
 > Änderung macht. Sonst entsteht genau das Muster aus §13.6: eine
 > Entscheidung, an vier Orten verschieden nachgezogen.
+
+### 13.11 Das Zielbild ist abgenommen — und die Wellenzählung war zwei Dateien lang uneins
+
+**Zuerst das Ergebnis, weil es das größte des Projekts ist.** §7 gibt W6.3
+die Abnahmebedingung für das Zielbild aus §3: *„Ein frischer Klon von
+`main` plus `data/` läuft `make` ohne Argument bis zu den vier Produkten
+durch."* Diese Bedingung ist am 08.09.2026 im Klontest von W6.4
+**erfüllt** — ein `git clone --local` von `main`, `data/` als Symlink,
+`make` ohne Argument, 62:49 Laufzeit, und am Ende
+`sha256 fb57c41d…232c30`, exakt die Referenz.
+
+Sie ist nicht so erfüllt worden, wie ich es mir gedacht hatte: Der Klon
+sollte den vorhandenen Zwischenstand wiederverwenden und in Minuten fertig
+sein; stattdessen hat er alles neu gerechnet. **Aber die Bedingung sagt
+„läuft durch", nicht „läuft schnell durch"** — und der Weg, den sie
+absichern soll, ist `[Rohdaten] → [Skripte] → [Ergebnisse]` ohne Reste des
+Vorgängerprojekts. Genau der ist damit an einem zweiten Ort im Dateisystem
+belegt, mit anderen Zeitstempeln, aus derselben Historie. Die
+Geschwindigkeit ist eine eigene Frage; sie steht als Punkt 56 im Register
+und ist keine Bedingung dieses Plans.
+
+**Und der Fehler in der Buchführung, weil er zu §13.6 gehört.** Die
+Pakettabelle oben führte W6.4 als Doku-Paket, während `FORTSCHRITT.md`
+W6.4 als Fingerabdruck-Paket führte und die Doku als W6.5. Beide Dateien
+schreibe ich, beide beschreiben dieselben Pakete, und sie waren eine
+ganze Welle lang uneins — **dieselbe Entscheidung, an zwei Orten
+verschieden nachgezogen**, nur diesmal nicht im Code, sondern in meiner
+eigenen Planung. Ursache: Der Fingerabdruck-Befund entstand *während*
+der Welle (Punkt 53, aus dem gescheiterten Klontest in W6.3) und bekam
+seine Nummer im Fortschritt, nicht im Plan. Der Plan ist jetzt
+nachgezogen; die Welle hat fünf Pakete statt vier.
+
+> **Ergänzung zu Regel 7.** Wächst eine Welle während ihrer Ausführung um
+> ein Paket, bekommt das Paket seine Nummer **im Plan zuerst**. Der
+> Fortschritt schreibt fort, was der Plan festlegt — nicht umgekehrt.
+> Sonst hat dieselbe Welle zwei Nummerierungen, und die spätere Lesart
+> hängt davon ab, welche Datei jemand zuerst öffnet.
 
 ## Maschinensichten
 
