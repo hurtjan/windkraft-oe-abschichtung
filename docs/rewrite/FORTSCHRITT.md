@@ -12,15 +12,17 @@ W0.1 in dessen §11. Die Belege liegen unter
 
 | | |
 |---|---|
-| Abgeschlossen | **37 von 39** — Welle 0 bis 4 vollständig, aus Welle 5 fünf Vorfeld-Pakete. Neun Pakete kamen unterwegs dazu (W2.P0, W2.4, W4.P0, W5.P0 bis W5.P4, W5.P5), eines entfiel (W2.2 → W2.1). |
-| Als Nächstes | **W5.P5** (neu, aus W5.P4 zurückgestellt) generalisiert den Wirkungspfad-Wächter im Manifest auf beliebige Ursachen — bisher kennt er nur Wasser, DKM/Punkt 34 fehlt dort strukturell (siehe Protokoll). Danach **W5.1** — der Beweislauf beweist jetzt den Endzustand und keinen Zwischenstand. Die Löschliste aus Punkt 37 wird **nicht** vorher ausgeführt: `rm -rf build` allein bringt 35 GiB gegen 22,5 GiB Spitzenbedarf, und bis der Beweislauf grün ist, sind die Zwischenstände der alten Kette der einzige Rückweg. |
+| Abgeschlossen | **38 von 39** — Welle 0 bis 5 vollständig. Neun Pakete kamen unterwegs dazu (W2.P0, W2.4, W4.P0, W5.P0 bis W5.P5), eines entfiel (W2.2 → W2.1). Der Plan ist damit **abgearbeitet**: §7 endet mit W5.1, und W5.1 ist grün. |
+| Als Nächstes | **Nichts Geplantes — und das ist der Befund.** Der Beweislauf hat gezeigt, dass die neue Kette aus Rohdaten allein läuft; damit ist der Grund weggefallen, aus dem die alte Kette bisher stehenbleiben musste. Aufgeräumt ist das Repo deswegen nicht: `output/`, `scripts/widmung_v2/` und die alten Doku-Stände stehen unverändert da. Das Ziel aus PLAN §3 (`[Rohdaten] → [Skripte] → [Ergebnisse]`) ist **beschrieben, aber nicht abgenommen** — es gibt kein Paket dafür. Vorschlag **Welle 6 (Aufräumen und Abschluss)** liegt beim Nutzer, zusammen mit zwei Entscheidungen, die nicht meine sind: ob `run1` als einziger Zeuge der alten Kette erhalten bleibt (ich plädiere dringend dafür), und ob das Aufräumen jetzt kommt oder der bewiesene Zustand als Zwischenstand genügt. |
 | **Referenz** | Seit `f592e75` **`sha256 fb57c41d…232c30`** — **zweite Wanderung an einem Tag.** Erst die Bodensee-Korrektur (Punkt 33, `4bdef6ad…`), dann der Wegfall adressloser Großflächen (Punkt 34, `fb57c41d…`). Beides Nutzerentscheidungen vom 08.09.2026. `run1` (`dc58b011…`) bleibt Vergleichsbasis und historischer Zeuge; **18 der 38 Bänder weichen inzwischen davon ab**, aus zwei benannten Ursachen. |
-| Zweig | `docs/audit-und-plan`, Kopf `27231d9`, keine offenen Worktrees, keine offenen Zweige |
+| Zweig | `docs/audit-und-plan`, Kopf **`581470e`**, keine offenen Worktrees. Daneben liegt `main` als unberührter Vorzustand — die Welle-0-bis-5-Arbeit ist **nie nach `main` zurückgeflossen**. Auch das gehört in Welle 6. |
+| **W5.1 hat keinen Commit** | Der Beweislauf ändert keine verfolgte Datei — `build/` und `out/` sind ignoriert —, deshalb steht der Kopf noch auf dem Protokoll-Commit *vor* dem Lauf. Folge: **das wichtigste Abnahmeergebnis des ganzen Projekts liegt nur als Prosa in dieser Datei**, nicht als Beleg unter `nachweise/`. Punkt 49. |
 | Die Kette läuft neu | 33 Layer aus `pipeline/layers/` (Reihenfolge **hig → osm → geo**) → `pipeline/finalize.py` (rund 165 s) → `pipeline/validate.py` → `pipeline/verify/` (Dashboard, Gemeindegrenzen). **Kein Skript aus `scripts/widmung_v2/` mehr im Weg, und kein Modul liest mehr aus `output/`.** |
-| Tests | **214 plus 2 übersprungen** — von 129 zu Beginn der Welle 1. Beide gegateten Langläufer sind jetzt nachweislich je einmal real gelaufen (46,5 s und 173,3 s). |
+| Tests | **215 plus 2 übersprungen** — von 129 zu Beginn der Welle 1. Beide gegateten Langläufer sind nachweislich je einmal real gelaufen (46,5 s und 173,3 s). Einer der beiden übersprungenen ist der Vergleich gegen das Vorgängerrepo (`test_distance_engine_equivalence.py`, überspringt sauber, wenn das alte Repo fehlt); welcher der zweite ist, steht nirgends — kleine Lücke, Punkt 50. |
 | `data/` | **hardlinkfrei**, 48 echte Dateien, per Wächter als Invariante gesichert |
-| Abweichungen | **zwei Ursachen, 18 betroffene Bänder** gegenüber `run1`. (1) Bodensee-Korrektur: Band 26 und 29 — **Ampel jetzt akzeptiert**. (2) Wegfall adressloser Großflächen: Bänder 5, 7–13 und 27 — **Ampel rot**, weil der Wirkungspfad-Wächter DKM noch nicht kennt (W5.P5). (3) Beides überlagert: Bänder 30–36 — **Ampel rot**, gemessene Fläche real über dem Gelb-Budget. Die erste Ursache war **vorher benannt und zweimal unabhängig gemessen**, die zweite ist eine bewusste fachliche Änderung. |
-| Plattenplatz | Punkt 37 ist **entschärft, nicht ausgeführt**: `rm -rf build` — Teil von W5.1 ohnehin — bringt rund 35 GiB frei gegen 22,5 GiB Spitzenbedarf. Die 9,6 GB unter `output/` sind Reserve, keine Voraussetzung, und werden **nach** dem Beweislauf gelöscht, nicht davor. Der Stand ist seit W5.P2 nicht neu gemessen. |
+| Abweichungen | **zwei Ursachen, 18 betroffene Bänder** gegenüber `run1`, alle in `abweichungen.tsv` mit Gruppentext. (1) Bodensee-Korrektur: Band 26 und 29 — **akzeptiert**. (2) Wegfall adressloser Großflächen: 5 gelb, 7/8/9 **rot**, 10 grün, 11–13 gelb, 27 gelb. (3) Beides überlagert: 30–36 **rot**. Die roten Bänder sind nach W5.P5 nicht mehr rot, *weil der Wächter etwas nicht kennt*, sondern **weil die gemessene Fläche das Budget überschreitet** — Band 7 mit 47,94 ha gegen 25 ha, die Bänder 8 und 9 mit 1,03 % und 1,09 % gegen 0,1 %. Das ist die ehrlichere Farbe: die Änderung ist groß, sie ist gewollt, und sie steht nicht auf Grün. |
+| Endprodukte | **Alle vier liegen jetzt echt im Hauptrepo**, mit Zeitstempel des Beweislaufs: `out/abschichtung.tif` (124,6 MB), `out/abschichtung.bands.json` (36,8 kB), `out/dashboard/` (64 kB), `out/gemeinden.geojson` (26,8 MB). Erstes Mal überhaupt — siehe Punkt 48. |
+| Plattenplatz | **Neu gemessen, und es ist eng: 16 GiB frei bei 99 % Belegung.** `build/` 11 GB, `output/` 11 GB, `data/` 13 GB. Punkt 37 ist damit **entsperrt und dringlich**: Der Beweislauf ist grün, die alte Kette ist nicht mehr der Rückweg, sondern Ballast — 11 GB, die niemand mehr braucht. Aber als Paket mit Abnahmebedingung, nicht als Handstreich. `build/` bleibt vorerst: es ist der Zwischenstand, aus dem `finalize` in dreieinhalb Minuten neu bauen kann, statt in 65 Minuten. |
 
 ## Paketübersicht
 
@@ -83,13 +85,14 @@ die es sie gibt.
 | W5.P3 | Die vier Nachzügler aus W5.P2 | **fertig** | 25 min | 10 min | Gruppen **nachgemessen statt geglaubt** · Fehler im Vertragstest gefunden · Punkt 41 beantwortet |
 | W5.P4 | Das Register kennt nur eine Ursache | **fertig** | 20 min | 13 min | Ampel 26/29 **akzeptiert** · README nachgezogen · zweiter Langläufer **173,3 s** grün · Wächter-Fix zurückgestellt → W5.P5 |
 | W5.P5 | Wirkungspfad-Wächter generalisieren | **fertig** | 45 min* | 25 min | **Manifest log über eine Quelle** · Pfad abgeleitet, nicht gepflegt · Schema 2.1.0 · 214 → **215** Tests |
-| W5.1 | Beweislauf aus Rohdaten | **läuft** | 150 min | | `rm -rf build && make all` · **die Abnahmebedingung des ganzen Umbaus** |
+| — | W5.1, erster Anlauf — **angehalten** | — | 4 min | zwei Halte-Bedingungen ausgelöst, **beide von mir falsch formuliert** |
+| W5.1 | Beweislauf aus Rohdaten | **fertig** | 150 min | 75 min | **TIF bitgleich, 38/38 Bänder** · kein Rückfall auf `output/` · `data/` unberührt · Laufzeiten je Stufe erstmals gemessen |
 
 ## Zeitbilanz
 
 | | |
 |---|---|
-| Gebraucht bisher | **rund 6 ¾ h** Wanduhrzeit für 25 Pakete, drei Zusammenführungen und zwei Messläufe |
+| Gebraucht bisher | **rund 16 ¼ h** Wanduhrzeit — die Summe der Zeilen darunter, über 38 Pakete, vier Zusammenführungen und die Messläufe. *Hier stand bis eben „rund 6 ¾ h für 25 Pakete"; das war seit Welle 3 falsch und ist mir beim Fortschreiben nicht aufgefallen, weil ich immer nur die neue Zeile ergänzt und nie die Summenzeile nachgezogen habe. Zweiter Rechenfehler dieser Art in derselben Tabelle — siehe den Nachtrag weiter unten.* |
 | davon Welle 0 | 1 h 29, seriell (49 + 28 + 12 min) |
 | davon Welle 1, Aufräumen | 29 min (W1.7 seriell 15 min, dann vier parallel in 14 min) |
 | davon erste Zusammenführung | 30 min — doppelt so lang wie geschätzt |
@@ -101,20 +104,33 @@ die es sie gibt.
 | davon Welle 2 | rund 45 min für drei Pakete (Summe der Einzelzeiten: 62 min) plus 23 min Zusammenführung |
 | davon Welle 3 | **26 min** (W3.1) + **4 h 43** (W3.2) — dazu unten |
 | davon Welle 4 | **8 min** (W4.P0) + rund 25 min für drei parallele Pakete (Summe der Einzelzeiten: 51 min) + **21 min** Zusammenführung |
-| davon Welle 5, Vorfeld | **100 min** (W5.P0 9 + W5.P1 11 + W5.P2 57 + W5.P3 10 + W5.P4 13), dazu 11 min Messung für Punkt 34 |
-| Verbleibend, geschätzt | **rund 2 – 2 ½ h**, davon fast alles Maschinenzeit: W5.P5, dann der Beweislauf |
-| Davon unbekannt | **nichts mehr** — die Kataster-Vorverarbeitung ist zweimal vermessen, zuletzt im Volllauf mit 48,0 min |
+| davon Welle 5, Vorfeld | **125 min** (W5.P0 9 + W5.P1 11 + W5.P2 57 + W5.P3 10 + W5.P4 13 + W5.P5 25), dazu 11 min Messung für Punkt 34 |
+| davon Welle 5, Beweislauf | **79 min** — 4 min abgebrochener erster Anlauf, 75 min der Lauf. Davon 65,8 min reine `prep`-Maschinenzeit, also **88 % des Laufs in einer einzigen Stufe** |
+| Verbleibend, geschätzt | **offen — Welle 6 ist noch nicht geschnitten.** Der Plan endet mit W5.1, und W5.1 ist fertig. Eine Zahl hier hinzuschreiben, bevor die Pakete benannt sind, wäre geraten und nicht geschätzt |
+| Davon unbekannt | **nichts mehr an Maschinenzeit** — die Kataster-Vorverarbeitung ist dreimal vermessen (45–70 min, 48,0 min, 65,8 min), der Gesamtlauf einmal. Unbekannt ist nur noch der Umfang des Aufräumens |
 
-**Summe geschätzt gegen Summe gebraucht**, über alle 41 Positionen mit
-Schätzung (Welle 0 hatte keine): **1225 min geschätzt, 888 min gebraucht —
-minus 28 %.**
+**Summe geschätzt gegen Summe gebraucht**, über alle 43 Positionen mit
+Schätzung (Welle 0 hatte keine): **1420 min geschätzt, 988 min gebraucht —
+minus 30 %.**
 
 **Diese Zahl ist irreführend, und zwar wegen genau einer Position.** Ohne
-W3.2 lautet sie **1195 gegen 605 — minus 49 %**, praktisch unverändert
-gegenüber den −46 % nach 20 und den −49 % nach 29 Positionen. W3.2 allein
-verschiebt den Faktor um 25 Prozentpunkte. Beide Zahlen stehen hier, weil
-beide wahr sind: Die erste beschreibt, wie lange es gedauert hat; die
-zweite, wie gut ich schätze.
+W3.2 lautet sie **1390 gegen 705 — minus 49 %**, praktisch unverändert
+gegenüber den −46 % nach 20, den −49 % nach 29 und den −49 % nach 41
+Positionen. W3.2 allein verschiebt den Faktor um 19 Prozentpunkte. Beide
+Zahlen stehen hier, weil beide wahr sind: Die erste beschreibt, wie lange
+es gedauert hat; die zweite, wie gut ich schätze.
+
+**Die beiden letzten Positionen haben den Faktor auf die Probe gestellt,
+und er hat gehalten.** W5.P5 lag mit 25 gegen 45 min im gewohnten Rahmen —
+wobei die 45 nachträglich eingetragen sind und deshalb weniger wert.
+Aussagekräftiger ist W5.1: **150 min geschätzt, 75 gebraucht**, und das
+bei einer Position, die zu 88 % aus Maschinenzeit besteht. Genau dort
+sollte mein Faktor eigentlich *nicht* greifen, weil Rechenzeit nicht mit
+meiner Einschätzung skaliert. Dass er trotzdem greift, heißt nicht, dass
+ich Maschinenzeit gut schätze — es heißt, dass ich sie **großzügig
+gepuffert** habe, weil ein Fehlschlag hier teuer gewesen wäre. Das ist ein
+anderer Grund für dieselbe Zahl, und ich schreibe ihn hin, damit die
+Statistik nicht mehr Kompetenz behauptet, als in ihr steckt.
 
 **Nachtrag, weil die Zahlen falsch waren.** Vor W5.P1 stand hier „1065
 gegen 801" und „1035 gegen 518". Die geschätzte Spalte stimmte, die
@@ -188,9 +204,11 @@ Paket plus Puffer für meine eigene Abnahme, die seriell bleibt:
 | ~~W4.P0, seriell~~ (neu nach Regel 9) | 1 | ~~20~~ · **8 min** |
 | ~~Welle 4, parallel~~ | 3 | ~~1 h 40~~ · 12 + 14 + 25 gemessen, **rund 25 min** Wanduhr |
 | ~~Zusammenführung Welle 4~~ | — | ~~45~~ · **21 min** |
-| Aufbereitung Punkt 10, 34, 37 + deine Entscheidung | — | 25 min |
-| Welle 5, inkl. Kataster **48 min gemessen** | 1 | 1 h 15 |
-| **Restdauer ab hier** | **1** | **rund 1 ¾ h — fast nur noch Maschinenzeit** |
+| ~~Aufbereitung Punkt 10, 34, 37 + deine Entscheidung~~ | — | ~~25~~ · **11 min** Messung, dann sechs Vorfeld-Pakete statt einer Aufbereitung |
+| ~~Welle 5, Vorfeld~~ | 6 | ~~—~~ · **125 min**, weil aus „einer Aufbereitung" sechs Pakete wurden |
+| ~~Welle 5, Beweislauf~~ | 1 | ~~1 h 15~~ · **1 h 19** (4 min Fehlstart + 75 min Lauf) — **auf vier Minuten genau, die beste Schätzung des Projekts.** Sie galt damals für die *ganze* Welle 5; dass daraus sieben Pakete wurden, macht sie nicht schlechter, aber die Zeile darüber zeigt, wo der Aufwand wirklich lag |
+| Welle 6, Vorschlag | 8 | rund 5 h, davon knapp 2 h Maschinenzeit |
+| **Restdauer ab hier** | **8** | **rund 5 h — aber erst, wenn du die Welle beauftragst** |
 
 W4.P0 verlängert die Restdauer um 20 Minuten und ist trotzdem die
 billigere Rechnung: Ohne den `build/layers/`-Symlink hätten die drei
@@ -235,7 +253,108 @@ Messung. **W1.P2 misst sie**, bevor Welle 5 davon abhängt.
 Aufwand je Paket, gemessen an W0.1: **53 Minuten** Wanduhrzeit, davon
 2,5 Minuten Datenbewegung und der Rest Schreiben und Prüfen.
 
+### Die neue Kette, erstmals von vorn gemessen
+
+Aus dem Beweislauf W5.1 am 08.09.2026, `rm -rf build && make all` aus den
+Rohdaten, kalter Zwischenstand:
+
+| Stufe | Dauer | Anteil |
+|---|---:|---:|
+| `make prep` | **1:05:48** | **88 %** |
+| `make layer-*` (33 Layer) | 5:25 | 7 % |
+| `pipeline/finalize.py` | 3:36 | 5 % |
+| `pipeline/verify/` | 0:14 | < 1 % |
+| **Gesamt** | **1:15:03** | |
+
+**Die Zahl, die alles andere relativiert, ist die erste.** Die
+Vorverarbeitung ist 88 % des Laufs; alles, was ich in Welle 2 bis 4 an
+Layern und Finalisierung umgebaut habe, macht zusammen 12 % aus. Der
+Vergleich mit der alten Kette oben (14:26) ist **kein Vergleich** — dort
+war die Vorverarbeitung nicht enthalten, hier ist sie es. Genau diese
+Lücke hat W1.P2 geschlossen, und der Grund, warum die Zeitbilanz oben
+zwischen Denkzeit und Maschinenzeit unterscheidet, steht damit zum ersten
+Mal als gemessene Zahl da statt als Vermutung.
+
+Die dreimal gemessene Kataster-Vorverarbeitung — 45–70 min (W1.P2,
+Volllauf mit Vorabprüfung), 48,0 min (isoliert), 65,8 min (im Kettenlauf)
+— streut um rund ein Drittel. Die Streuung ist nicht erklärt; sie hängt
+plausibel an Cache-Zustand und Plattenlast, gemessen ist das nicht.
+
 ## Protokoll
+
+### Bestandsaufnahme vor Welle 6 — was im Verzeichnis wirklich steht
+
+Der Nutzer hat gefragt, ob das Repo am Ende aufgeräumt sein wird, und die
+Frage mit einer Beobachtung begründet: „ein `out` ein `output` folder
+mehrere script folders ähnliches". Die Beobachtung stimmt in jedem Punkt.
+**Die Antwort auf die Frage war: nein.** Das Zielbild in PLAN §3 verlangt
+seit Beginn `[Rohdaten] → [Skripte] → [Ergebnisse]`, aber §7 endete mit
+W5.1. Kein Paket entfernt `output/`, keines legt die alte Kette still,
+keines hat eine Abnahmebedingung für „aufgeräumt". **Das ist genau die
+Lücke, die Regel 7 (§13.8) finden soll** — die Paketliste stimmte mit sich
+selbst überein, nicht mit dem Ziel —, und gefunden hat sie nicht die
+Regel, sondern der Nutzer beim Hineinschauen.
+
+Drei Agenten haben den Baum aufgenommen. Der Befund, der eine Annahme von
+mir widerlegt, steht zuerst:
+
+**`scripts/widmung_v2/` ist nicht tot, sondern das `make`-Standardziel.**
+`Makefile:18` setzt `.DEFAULT_GOAL := widmung-v2`; wer heute im
+Verzeichnis `make` ohne Argument tippt, startet die **alte** Kette. Dazu
+importiert `tests/test_contract.py:305-307` drei der fünf Skripte direkt.
+Ich hätte, ohne nachzusehen, das Gegenteil behauptet — und zwar mit
+derselben Begründung, mit der ich mich schon bei Punkt 10 geirrt habe:
+Der Beweislauf zeigt, dass die *neue* Kette allein läuft, und daraus habe
+ich geschlossen, die *alte* werde nicht mehr gebraucht. Das folgt nicht
+auseinander. Es ist eine Architekturentscheidung, kein Aufräumen, und sie
+gehört dem Nutzer.
+
+Der Bestand, mit Größen:
+
+| Eintrag | Größe | Was es heute ist |
+|---|---:|---|
+| `data/` | 13 GB | Rohdaten, hardlinkfrei, per Wächter gesichert — bleibt |
+| `build/` | 11 GB | Zwischenstand der neuen Kette — jederzeit löschbar, kostet dann 65 min |
+| `out/` | 145 MB | die vier Endprodukte, **erstmals echt vorhanden** |
+| `output/` | 11 GB | Ablage der alten Kette; darin `run1.tif` (119 MB) als Zeuge |
+| `scripts/noe/`, `preprocessing/`, `webmap/` | 156 kB | **leer** — nur `__pycache__` ohne Quelldatei, die Migration ist vollzogen |
+| `scripts/widmung_v2/` | 232 kB | fünf aktive Skripte, siehe oben |
+
+Was `output/` im Einzelnen hält: `zoning_vectors/` 728 MB,
+`osm_pbf_layers/` 4,6 GB (Cache), `kataster/…geoparquet` 5,0 GB,
+`distance_layers/` 34 MB, `hig_huellen.gpkg` 20 MB, dazu drei TIF-Kopien
+à 119 MB — `run1`, das laufende Artefakt der alten Kette, und ein
+`_w01_finalcheck.tif`, für das **kein Aufrufer existiert**; vermutlich ein
+manueller Prüflauf, den niemand aufgeräumt hat.
+
+**Zwei Fundstellen, die etwas Falsches behaupten:**
+
+`docs/rohdaten.md` erklärt in den Zeilen 365–420, `data/widmung/` existiere
+„weder im alten noch im neuen Repo", und die dort vorgeschlagene Struktur
+sei nie umgesetzt worden. Sie ist seit W0.1 umgesetzt, das Verzeichnis
+existiert mit neun Domänen, und `windkraft/calc/widmung_sources.py` liest
+daraus. Die Datei ist zugleich die **einzige** Provenienz- und
+Lizenzangabe der Rohdaten im Repo — sie gehört korrigiert, nicht gelöscht.
+
+`docs/dataflow/` — rund 14 700 Zeilen — bildet 417-mal `scripts/` ab und
+**kein einziges Mal** `pipeline/`, trägt aber `meta.fixed_at: 2026-09-07`.
+Das wäre für sich harmlos, wenn `docs/rewrite/README.md` es nicht in den
+Zeilen 82 und 168–169 als „Faktengrundlage" zitierte.
+
+**Plattenplatz, neu gemessen: 16 GiB frei bei 99 % Belegung.** Punkt 37
+ist damit nicht mehr nur entsperrt, sondern dringlich.
+
+Daraus ist Welle 6 geschnitten — acht Pakete mit Besitzer und
+Abnahmebedingung, in PLAN §7, ausdrücklich als *Vorschlag, noch nicht
+beauftragt*. Zwei Entscheidungen darin gehören dem Nutzer und stehen dort
+mit meiner Empfehlung: ob `run1.tif` als einziger Zeuge bleibt, und ob der
+**Code** der alten Kette als eingefrorene Zitatquelle stehenbleibt,
+während die 11 GB **Daten** entfallen. Für beides plädiere ich für Ja —
+beim zweiten, weil `pipeline/finalize.py` und `pipeline/layers/geo.py`
+sich an über zwanzig Stellen wörtlich auf diesen Quelltext berufen
+(„wortgleich übernommen"). Ihn zu löschen entwertet den
+Übernahmenachweis, den zwei Wellen lang jedes Paket geführt hat.
+
 
 ### W0.1 — Rohdaten nach Thema sortieren · fertig
 
@@ -2274,6 +2393,109 @@ W4.P0, das schon geschlossen ist; geht in die Zusammenführung.
 
 ### W5.P4 — Das Register kennt nur eine Ursache · teilweise angehalten
 
+### W5.1 — Der Beweislauf. Die Kette läuft aus Rohdaten.
+
+**`rm -rf build && make all` hat das Ergebnis allein aus `data/` neu
+erzeugt, und der TIF ist bitgleich** — Dateihash **und** alle 38 Bänder
+einzeln über `sha256(src.read(i).tobytes())`. Das ist die
+Abnahmebedingung des ganzen Umbaus, und sie ist erfüllt.
+
+Geschätzt 150 min, gebraucht **75**. Freier Platz nach `rm -rf build`:
+32,59 GiB, Minimum während des Laufs 15,38 GiB — nie in der Nähe der
+3-GiB-Abbruchschwelle.
+
+| Abnahmepunkt | Ergebnis |
+|---|---|
+| TIF gegen `fb57c41d…232c30` | **bitgleich**, 38/38 Bänder einzeln |
+| Rückfall auf `output/` | **kein einziger** — kein Treffer im Log |
+| `data/` angefasst | **nein**, 48 Dateien `sha256` vor/nach identisch |
+| Tests | 215 bestanden, 2 übersprungen |
+| Wächter | 127 Dateien (79 `output/`, 48 `data/`), 50 Python-Dateien |
+| `run1` | unverändert |
+
+**Die Laufzeiten, die dieses Projekt bis heute nicht hatte:**
+
+| Stufe | Dauer |
+|---|---:|
+| **Vorverarbeitung gesamt** | **1:05:48** |
+| davon Kataster | 38:38 |
+| davon Naturschutz | 19:56 |
+| davon Widmung | 3:52 |
+| davon OSM | 3:04 |
+| davon Verwaltung, Adressen, Gelände | 16 s |
+| 33 Layer, hig → osm → geo | **5:25** |
+| Finalisierung | 3:36 |
+| Prüfung | 14 s |
+
+**Die Vorverarbeitung ist 88 % des Laufs.** Layer, Finalisierung und
+Prüfung zusammen sind neun Minuten. Zwei meiner Schätzungen waren
+deutlich daneben: die Layer mit 15–25 min gegen tatsächlich **5:25**, und
+Naturschutz, das ich gar nicht auf der Rechnung hatte, mit **19:56** —
+als Paket hatte es 8 min gebraucht. Kataster lief mit 38:38 schneller als
+die gemessenen 48,0 min.
+
+#### Der Manifest-Unterschied — meine Hypothese hielt, der Mechanismus ist schärfer
+
+Das Manifest wich von der Sicherung ab, und zwar strukturell statt nur im
+Zeitstempel: `parameters.AREA_OR_POINT` nur in der Sicherung,
+`parameters.SETTLEMENT_BUFFER_VARIANT_NAMES` nur im neuen. **Alle 38
+Bänder feldweise identisch**, alle übrigen 24 Parameter identisch, keine
+dritte Abweichung.
+
+Meine Vermutung — die Sicherung stamme nicht aus einem echten
+`finalize`, sondern aus W5.P5s Regeneration **aus dem TIF-Header** — hat
+sich bestätigt. Der Agent hat sie aber nicht aus der Commit-Nachricht
+abgeschrieben, sondern die Tags aus dem TIF gelesen, und dabei ist die
+eigentliche Erkenntnis herausgefallen:
+
+- **`AREA_OR_POINT` ist ein GDAL-Haushaltsschlüssel**, kein Parameter
+  dieser Kette. `finalize.py` setzt ihn nirgends; GDAL fügt ihn beim
+  Schreiben selbst hinzu. Ein Header-Leser sieht ihn, `finalize` nie.
+- **`SETTLEMENT_BUFFER_VARIANT_NAMES` fehlt im TIF vollständig**, obwohl
+  `finalize.py:284` ihn ausdrücklich als leeren String setzt. **GDAL
+  verwirft leere String-Tags beim Schreiben.** Ein echter Parameter geht
+  also auf dem Weg in die Datei verloren, ohne Meldung.
+
+**Die Sicherung war die falsche Fassung, nicht das neue Manifest.** Sie
+trägt einen Nicht-Parameter und ihr fehlt ein echter. Belegt über
+`out/dashboard/report.json` aus dem Beweislauf selbst: Schema 2.1.0,
+beide Wirkungspfade mit 9 und 16 Namen, `validation: {"ok": true,
+"problems": []}`, und ein `source_manifest.generated_at`, das exakt auf
+das neue Manifest zeigt.
+
+Der Nebenbefund ist der bleibende: **Ein Parameter, den `finalize` setzt,
+kommt in der Datei nicht an.** Als Punkt 47.
+
+#### Die zwei verschwundenen Endprodukte — sie waren nie da
+
+`out/gemeinden.geojson` und `out/dashboard/` fehlten vor dem Lauf, obwohl
+W4.1 und W4.2 sie erzeugt und abgenommen hatten. Die Ursache ist keine
+Löschung, sondern eine Kette aus zwei bewussten Entscheidungen:
+
+1. **Das `worktree`-Ziel verlinkt `out/` absichtlich nur teilweise.** TIF
+   und Manifest sind Einzeldatei-Symlinks ins Hauptrepo;
+   `out/dashboard/` und `out/gemeinden.geojson` sind laut
+   `contract.PRODUCTS` **schreibend**, also echte private Dateien je
+   Worktree. Das steht sogar als geprüfter Fund im Protokoll:
+   „Schreibtest erfolgreich, Hauptrepo danach unverändert."
+2. **`verify` war bis W5.P0 gar nicht Teil von `make all`.**
+
+Also entstanden beide Produkte ausschließlich in den privaten
+`out/`-Verzeichnissen der Worktrees, wurden dort abgenommen, und
+verschwanden beim protokollgemäßen Abbau. Im Hauptrepo hat sie vor
+heute **nie etwas erzeugt**.
+
+**Damit wurden zwei der vier Endprodukte abgenommen, ohne je im Repo
+existiert zu haben.** Kein Test, kein Wächter und kein Merge konnte das
+melden, weil beide Bausteine für sich richtig waren. Als Punkt 48, und
+als Regel unten.
+
+Der Agent hat die Grenze seiner Aussage selbst gezogen: Er konnte nicht
+direkt belegen, dass genau die Worktrees `../abschichtung-4.1` und
+`../abschichtung-4.2` benutzt wurden — sie existieren nicht mehr. Die
+Indizienkette aus Zweignamen, Merge-Struktur, dokumentiertem Schreibtest
+und der `all`-Historie ist stark, ein Logeintrag fehlt.
+
 ### W5.P5 — Der Wirkungspfad je Ursache · und ein Manifest, das über sich selbst log
 
 Zwei Commits: **`472fcba`** — ausschließlich meine beiden Plandateien,
@@ -2965,7 +3187,7 @@ billiger sein als das erste.
 | ~~9~~ | ~~`docs/HANDOFF.md` trägt ein veraltetes Referenz-Manifest.~~ **Von W4.3 erledigt:** überarbeitet auf Schema 2.0.0, 38 Bänder, neue Referenz, mit eigenem Abschnitt zu den neun Bändern und ihrer praktischen Folge für die Konsumentenseite (Band 32 verliert rund 9,5 km²). **Nachzügler:** `README.md` behauptet dadurch jetzt fälschlich, HANDOFF sei veraltet — in der Zusammenführung korrigiert. | — |
 | ~~40~~ | ~~`run1` ist in keinem Worktree verlinkt.~~ **In der Zusammenführung der Welle 4 erledigt**, mit Gegennachweis über 36 Ziele und einem Worktree-Beleg: Alle vier Tests aus `test_referenz_tif.py` laufen dort jetzt durch (212,9 s). **Der eigentliche Befund war die Tarnung:** Einer der beiden Tests sah mit und ohne Umgebungsvariable identisch nach „skipped" aus — verschieden war nur die Begründung. Ein stiller Ausfall, als absichtlicher Skip getarnt. | — |
 | 41 | **Das Referenz-Hash-Literal steht an vier Stellen, nicht an zwei** — `pipeline/validate.py`, `tests/test_referenz_tif.py`, `docs/HANDOFF.md`, `README.md`. Von W5.P3 repoweit über alle drei Hashes belegt; eine fünfte gibt es nicht (`FORTSCHRITT.md` und `PLAN.md` führen die alten absichtlich als Historie). **Die Rechnung ist inzwischen zweimal bezahlt worden**, am selben Tag: Punkt 33 und Punkt 34. Beim zweiten Mal blieb eine Stelle zurück und musste in einem eigenen Paket nachgezogen werden. Bewusst nicht zusammengezogen, damit Produktionscode nicht von einem Testmodul abhängt — aber die ursprüngliche Begründung deckt zwei Codestellen ab, nicht vier, von denen zwei Prosa sind. | Sammelposten |
-| ~~10~~ | **Gemessen statt entschieden — das Muster ist gelöst.** Und die Ausgangszahl war falsch: `RUN1_VERGLEICH.md` vergleicht nur die **Pixelzahl** je Band, nicht die Zellwerte. Eine zellweise Neurechnung findet **20 abweichende** Bänder, nicht 18; die vier Weichzeichnungsbänder waren strukturell unsichtbar, weil ein Gauß-Blur Werte innerhalb einer bereits gesetzten Fläche verschiebt. „18" war die Zahl der **identischen** Bänder. **Bei 16 der 20 löst eine Ein-Zellen-Erosion den Befund vollständig auf** (größte Komponente ≤ 3 Zellen, Ampel überall grün) — Rasterisierungsrauschen. Die vier Weichzeichnungsbänder sind keine eigene Quelle, sondern die Verschmierung desselben 5-Zellen-Wurzelclusters, nachgewiesen über den 4σ-Kernelradius. **Offen bleibt allein der Auslöser im Code:** ein datierter OSM-Cache-Key-Fix im Alt-Repo ist ein plausibler, unbestätigter Kandidat für die OSM-Bänder; für die Bänder 1, 4 und 5 wurde trotz gezielter Suche nichts gefunden. Zwei widerlegte Hypothesen (4-Konnektivitäts-Fix, Adressregister-Neuschrieb) sind ausgeschlossen. | Auslöser: Sammelposten |
+| ~~10~~ | **Gemessen statt entschieden — das Muster ist gelöst.** Und die Ausgangszahl war falsch: `RUN1_VERGLEICH.md` vergleicht nur die **Pixelzahl** je Band, nicht die Zellwerte. Eine zellweise Neurechnung findet **20 abweichende** Bänder, nicht 18; die vier Weichzeichnungsbänder waren strukturell unsichtbar, weil ein Gauß-Blur Werte innerhalb einer bereits gesetzten Fläche verschiebt. „18" war die Zahl der **identischen** Bänder. **Bei 16 der 20 löst eine Ein-Zellen-Erosion den Befund vollständig auf** (größte Komponente ≤ 3 Zellen, Ampel überall grün) — Rasterisierungsrauschen. Die vier Weichzeichnungsbänder sind keine eigene Quelle, sondern die Verschmierung desselben 5-Zellen-Wurzelclusters, nachgewiesen über den 4σ-Kernelradius. **Offen bleibt allein der Auslöser im Code** — aber am 08.09.2026 hat eine Nachbarsitzung im Vorgängerprojekt meinen Kandidaten **widerlegt und einen besseren geliefert.** Ich führte `8c652ee` (23.07.2026, „stabilize OSM PBF cache key"). Der Diff erledigt ihn in einer Zeile: `key` unangetastet, nur `hash()` → `sha1(repr(key))[:12]`. Ein stabilerer Dateiname, derselbe Clip — das verschiebt Trefferquoten, keine Bandwerte. **Ich hatte die richtige Familie und den falschen Commit, weil der Titel zur Frage passte und ich nie in den Diff gesehen habe.** Genau das Muster, das ich meinen Agenten verbiete. Der echte Kandidat ist **`d9b6638` (04.09.2026, „unify OSM PBF cache stem across all pbf_for_bounds call sites")**: Vorher klippte jede Aufrufstelle auf ihre eigene Marge (0–6000 m) + 7000 m, nachher auf ein 10-km-Raster gerundet + feste 13000 m. Für Aufrufstellen mit kleiner Marge fehlten Features in einem Ring von mehreren Kilometern — ein **Mechanismus** für minimale Abweichungen am Gitterrand, kein Verdacht. Dazu ein datierbarer Zeuge: Der gelöschte PBF-Cache enthielt acht Stems, **keiner davon der Post-Fix-Stem** — er war vollständig vor-`d9b6638`. **Zwei Prüfpunkte, beide meine:** (1) Die Commit-Begründung hält nur, solange `read_layer(bounds=…)` nie über die alten 7 km hinausreicht — hier nachrechenbar. (2) Schließen meine beiden verglichenen Läufe den 04.09. ein? Wenn nicht, ist auch `d9b6638` erledigt. Für die Bänder 1, 4 und 5 wurde weiterhin nichts gefunden. Drei widerlegte Hypothesen: 4-Konnektivitäts-Fix, Adressregister-Neuschrieb, `8c652ee`. | Auslöser: Sammelposten |
 | 11 | `docs/FOLLOWUPS.md` führt die veraltete `EXCLUSION_LAYERS`-Liste weiterhin als offenen Punkt, obwohl W1.5 das ganze Skript gelöscht hat. **Mit Punkt 3 entschieden: lebende Liste.** Eine Liste offener Punkte, die geschlossene Punkte weiterführt, kostet jeden Leser die Prüfung, ob der Punkt noch existiert — das ist der Zweck der Liste, ins Gegenteil verkehrt. Wer einen Punkt schließt, streicht ihn dort. | W2.1 |
 | ~~12~~ | ~~Sackgasse eine Ebene höher: `pdf_hig_sources.py` erzeugt GeoJSON, die niemand liest.~~ **Erledigt in W1.P9** — das Modul `windkraft/noe/pdf_hig_sources.py` ist als ganzes weg, die Sackgasse an `e3d3655` belegt statt geglaubt. | — |
 | 13 | Der `Run:`-Hinweis im Docstring von `scripts/widmung_v2/02_build_hig_sources.py:26-27` nennt den alten Pfad `scripts/main/build_hig_sources.py`. Vorbestehend. | Sammelposten |
@@ -2983,6 +3205,11 @@ billiger sein als das erste.
 | 38 | **Der Wächter ist im Worktree schwächer als im Hauptrepo.** `check_hardlink_safety` zählt dort 48 statt 127 Dateien, weil `make worktree` `output/` bewusst nicht verlinkt — also 0 statt 79 Dateien darunter. Harmlos, weil ein Worktree ohnehin nicht nach `output/` schreiben kann. Aber **meine Abnahmeformulierung „Wächter grün gegen 127 Dateien" ist aus einem Worktree heraus nicht prüfbar**, und ein Agent, der sie wörtlich nimmt, meldet entweder eine falsche Zahl oder hält sich für gescheitert. Ab jetzt gehört in jeden Worktree-Auftrag: die Zahl im Worktree ist eine andere, der Vergleich gegen 127 findet im Hauptrepo statt. Von W4.1 gefunden und selbst erklärt. | Auftragsvorlage |
 | ~~37~~ | ~~Der Platz wird für Welle 5 knapp.~~ **Von W5.P0 aufgelöst, und zwar nebenbei.** Die Messung zeigte zuerst, dass sichere Löschkandidaten nur **248 MB** ergeben — die 9,6 GB unter `output/kataster`, `osm_pbf_layers` und `output/noe` waren nicht löschbar, weil `make all` sie noch las. **Mit der umgestellten `all`-Zeile liest die neue Kette sie nicht mehr** (am Code belegt, drei Fundstellen), also werden sie es. Spitzenbedarf des Beweislaufs rund 22,5 GiB gegen 35 GiB, die nach `rm -rf build` frei sind. Der Risikofall bleibt ein *paralleler* Zweitbestand — bei seriellem Ablauf unkritisch. Gelöscht wurde nichts; die Liste liegt vor. | — |
 | ~~42~~ | ~~`pipeline/layers/geo.py` liest unbedingt aus `output/…/distance_layers/`.~~ **Von W5.P1 erledigt, und die Reihenfolge war schlimmer als vermutet.** Die acht Checkpoints kommen aus **zwei** Modulen — sechs aus `hig.py`, zwei aus `osm.py` — und `osm.py` braucht seinerseits sechs aus `hig.py`. Notwendige Reihenfolge **hig → osm → geo**, `LAYER_TARGETS` lief alphabetisch, also verkehrt. `geo.py` folgt jetzt dem Muster von `osm.py` (erst `build/layers/`, `source_dir` nur als Rückfall, **mit sichtbarem `[warn]`**). Nachweis: Lauf mit **leerem** Quellverzeichnis, 105 s, kein Rückfall-Hinweis, Verzeichnis blieb leer, **17/17 Layer pixelgleich**. Danach liest **kein** Modul unter `pipeline/` mehr unbedingt aus `output/`. | — |
+| 51 | **Der Zweig `main` hat von 38 Paketen nichts gesehen.** Die gesamte Arbeit liegt auf `docs/audit-und-plan`; `main` steht unverändert auf dem Vorzustand. Solange das so ist, zeigt jeder, der das Repo frisch klont, die alte Kette. Das ist **kein Versehen** — der Zweigname sagt „Audit und Plan", und das war er anfangs auch —, aber es ist inzwischen falsch beschriftet: dort liegt der Umbau. Gehört nach Welle 6, als letzter Schritt und nicht als erster. | Welle 6 |
+| 50 | **Zwei Tests werden übersprungen, benannt ist nur einer.** `test_distance_engine_equivalence.py` überspringt sauber, wenn das Vorgängerrepo fehlt — das steht überall. Welcher der zweite ist, steht nirgends; ich habe die Zahl „plus 2 übersprungen" 38 Pakete lang fortgeschrieben, ohne sie je aufzulösen. Kleine Lücke, aber genau die Sorte, die später als Überraschung zurückkommt. | Sammelposten |
+| 49 | **Der wichtigste Beweis des Projekts hat keinen Beleg.** W5.1 hat die Kette aus Rohdaten bitgleich reproduziert — und **keine einzige Datei im Repo hinterlassen**: kein Commit (der Lauf ändert nichts Verfolgtes), kein Verzeichnis unter `nachweise/`, kein Lauf-Log. Die Zahlen stehen ausschließlich als Prosa in dieser Datei, von mir abgeschrieben aus einem Agentenbericht, den niemand nachprüfen kann. Dahinter steckt ein größeres Versäumnis: **`nachweise/` hat drei Verzeichnisse — `w01`, `w12`, `w13` — und dann hört es auf.** Die Praxis ist nach Welle 1 klanglos eingeschlafen, und mir ist es 35 Pakete lang nicht aufgefallen, obwohl der Kopf dieser Datei sie als Verweis führt. **Die Lehre ist nicht „mehr Belege", sondern: eine Praxis, die nicht in der Abnahmebedingung steht, stirbt.** | Welle 6, mit Punkt 48 |
+| 48 | **Zwei Endprodukte wurden abgenommen, ohne je im Repo zu existieren.** `out/gemeinden.geojson` und `out/dashboard/` entstanden in W4.1 und W4.2 ausschließlich in den privaten `out/`-Verzeichnissen ihrer Worktrees — dort sind sie laut `contract.PRODUCTS` bewusst **schreibend** statt verlinkt — und verschwanden beim Abbau der Worktrees. Im Hauptrepo hat sie bis W5.1 **nie etwas erzeugt**, weil `verify` bis W5.P0 nicht Teil von `make all` war. Beide Bausteine sind für sich richtig; erst zusammen ergeben sie eine Abnahme ohne Gegenstand. **Die Lehre gehört in die Auftragsvorlage:** Wird ein Paket in einem Worktree abgenommen, gilt die Abnahme erst, wenn das Produkt **nach dem Merge im Hauptrepo** noch da ist. | Auftragsvorlage, mit Punkt 38 |
+| 47 | **Ein Parameter, den `finalize` setzt, kommt in der Datei nicht an.** `pipeline/finalize.py:284` schreibt `SETTLEMENT_BUFFER_VARIANT_NAMES` als **leeren String** in die GeoTIFF-Tags; GDAL verwirft leere String-Tags beim Schreiben, ohne Meldung. Wer das Manifest aus dem Header rekonstruiert, sieht den Schlüssel nie — wer es aus `finalize` bezieht, schon. Umgekehrt trägt der Header `AREA_OR_POINT`, einen GDAL-Haushaltsschlüssel, den `finalize` nie setzt. Folgenlos für die Bänder, aber es sind **zwei Wege zu derselben Datei, die nicht dasselbe liefern** — das Muster aus §13.6, diesmal an einem Endprodukt. Von der Nachprüfung zu W5.1 mechanisch belegt, nicht aus der Commit-Nachricht abgeschrieben. | Sammelposten |
 | 45 | **Der Fingerabdruck bemerkt keine Codeänderung — vierter Fall desselben Musters.** `pipeline/layers/hig.py` hängt seinen Fingerabdruck an Parameter und Eingabedateien. Eine reine **Logikänderung** lässt alle Checkpoints als „fertig" gelten; W5.P2 musste die 33 Dateien von Hand löschen, um überhaupt einen Neubau zu erzwingen. `osm.py` löst genau das mit `BUILDING_CLASSIFICATION_REVISION`, `hig.py` hat kein Äquivalent. Gefährlich ist nicht dieser Lauf — er war beaufsichtigt —, sondern der nächste, bei dem es niemand weiß. Dieselbe Familie wie `layer_done()`, die W1.1-Weiche und Punkt 24. **Von W5.P2 selbst gemeldet.** | Aufräumwelle, mit Punkt 24 und 30 |
 | 44 | **Zwei Messungen derselben Größe, sechs Fälle Unterschied.** Die Charakterisierung zählte **520** adresslose Objekte über der Schwelle, W5.P2 beim Umsetzen **514** — dieselbe Quelle, dieselbe Schwelle, zwei Agenten. W5.P2 hat die Abweichung gemeldet statt sie wegzuerklären, und die Ursache bewusst nicht nachrecherchiert. Der eingebaute Wert ist der gemessene: 255 903 − 514 = 255 389 geht exakt auf. **Dieselbe Klasse wie Punkt 39** — vermutlich eine Randfallfrage bei `within` gegen `intersects` oder bei Adressen exakt auf der Polygonkante. Zu klären, falls eine der beiden Zahlen je zitiert wird. | Sammelposten, mit Punkt 39 |
 | ~~43~~ | ~~Zwei Tests ohne Codeänderung.~~ **Aufgeklärt, und meine Spur war falsch.** Nicht `make test` gegen `pytest` — beide liefern identische Zahlen. Die Ursache steht in der Historie: `c9745a3`, der Commit, der `validate.py` den Zustand „angenommen" beibrachte, fügt in `tests/test_validate.py` **genau zwei** Testfunktionen hinzu (22 → 24, per `git show` auf beide Stände belegt). Die zwei Tests, die „aus dem Nichts" kamen, sind genau die, die die Nutzerentscheidung zu Punkt 33 absichern. Ich hatte den Commit selbst protokolliert und die Verbindung nicht gezogen. | — |
