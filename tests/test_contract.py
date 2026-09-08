@@ -327,12 +327,17 @@ def test_layer_names_match_the_chain():
 
 
 @pytest.mark.skipif(
-    not (PROJECT_ROOT / "output" / "abschichtung_widmung_v2" / "distance_layers").is_dir(),
+    not contract.DERIVED_LAYERS.is_dir(),
     reason="Checkpoint-Verzeichnis aus einem früheren Kettenlauf nicht vorhanden",
 )
 def test_layer_names_match_existing_checkpoints():
-    layer_dir = PROJECT_ROOT / "output" / "abschichtung_widmung_v2" / "distance_layers"
-    on_disk = {p.stem for p in layer_dir.glob("*.tif")}
+    """W6.6/Punkt 57: zeigte bis dahin auf output/abschichtung_widmung_v2/
+    distance_layers/ - das hat W6.1 absichtlich ins Archiv verschoben, die
+    skipif-Bedingung schlug seither immer an und der Test lief nie mehr.
+    Die 33 Checkpoints liegen seit der neuen Kette unter contract.DERIVED_LAYERS
+    (derived/layers/, siehe pipeline/contract.py) - dorthin zeigt der
+    Vergleich jetzt, aus dem Vertrag gelesen statt handgeschrieben."""
+    on_disk = {p.stem for p in contract.DERIVED_LAYERS.glob("*.tif")}
     assert on_disk == set(contract.LAYER_NAMES)
 
 
