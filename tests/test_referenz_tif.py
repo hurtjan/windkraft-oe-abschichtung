@@ -1,30 +1,41 @@
-"""Vertragstest zur neuen Referenz (Paket W4.3, Teil A3).
+"""Vertragstest zur neuen Referenz (Paket W4.3, Teil A3; Bandliste seit
+W5.P3 auf zwei überlagerte Ursachen umgeschrieben).
 
-## Zweiter Wechsel (W5.P2, 08.09.2026, Punkt 34)
+## Zweiter Wechsel (W5.P2, 08.09.2026, Punkt 34) - Bandliste nachgezogen (W5.P3)
 
 Adresslose DKM-Großflächen über ``HIG_MAX_FOOTPRINT_M2`` entfallen jetzt
 als Kandidat (Nutzerentscheidung). ``REFERENZ_SHA256``/``REFERENZ_BYTES``
-unten sind auf den daraus finalisierten Stand gezogen. Die Neunerliste
-(``ABWEICHENDE_BANDNUMMERN``/``-NAMEN``) unten und der zugehörige
-Langläufer-Test ``test_abweichung_gegen_run1_betrifft_genau_neun_baender``
-beschreiben weiterhin NUR den Stand nach W3.1 (Bodensee) - sie sind NICHT
-Teil dieses Pakets und wurden bewusst nicht mitgezogen (Regel 4). Ein
-Lauf mit ``ABSCHICHTUNG_VERTRAGSTEST=1`` schlägt für diesen einen
-Langläufer deshalb inzwischen fehl (real weichen 18 Bänder von ``run1``
-ab, nicht neun - siehe Bericht zu W5.P2); die beiden billigen Tests, die
-in ``make test`` mitlaufen, sind davon nicht betroffen.
+unten sind auf den daraus finalisierten Stand gezogen. W5.P2 hatte diesen
+Wechsel selbst gemeldet, aber die Neunerliste
+(``ABWEICHENDE_BANDNUMMERN``/``-NAMEN``) und den zugehörigen Langläufer
+bewusst nicht mitgezogen (Regel 4) - der Lauf schlug seitdem fehl, weil
+real 18 Bänder von ``run1`` abweichen, nicht neun. W5.P3 zieht das jetzt
+nach: zwei Ursachen liegen inzwischen übereinander, und nur eine davon -
+die Bodensee-Korrektur - ist in ``geography_water_bodies_wirkungspfad``
+vorab genannt.
 
-## Was hier vertraglich ist (Stand W3.1/W4.3, unverändert)
+## Was hier vertraglich ist (Stand W5.P2/W5.P3)
 
 Am **08.09.2026** hat der Nutzer Punkt 33 der Offenen-Punkte-Liste
 entschieden: **die Bodensee-Korrektur wird übernommen.** Damit verliert
-``run1`` seinen Status als bitgenaues Soll. Neues Soll ist das aus den 33
-Checkpoints unter ``build/layers/`` finalisierte GeoTIFF
+``run1`` seinen Status als bitgenaues Soll. Am selben Tag hat er außerdem
+Punkt 34 entschieden: adresslose DKM-Großflächen über 10 000 m² entfallen
+als Kandidat. Neues Soll ist das aus den 33 Checkpoints unter
+``build/layers/`` finalisierte GeoTIFF nach BEIDEN Entscheidungen
 (``pipeline.contract.PRODUCTS["abschichtung_tif"]``):
 
-* ``sha256`` ``4bdef6ad…6b1a13e``, 124 613 971 Bytes,
-* und die Abweichung gegen ``run1`` betrifft **genau neun Bänder** —
-  26, 29, 30, 31, 32, 33, 34, 35, 36. Nicht acht, nicht zehn.
+* ``sha256`` ``fb57c41d…232c30``, 124 597 421 Bytes,
+* und die Abweichung gegen ``run1`` betrifft **genau 18 Bänder** — 5, 7,
+  8, 9, 10, 11, 12, 13, 26, 27, 29, 30, 31, 32, 33, 34, 35, 36. Nicht 17,
+  nicht 19.
+
+Diese 18 zerfallen in drei Gruppen (siehe
+``docs/rewrite/abweichungen.tsv``, Spalte ``ursache``, Paket ``W5.P2``):
+
+* **Nur Bodensee** (2 Bänder, von W5.P2 unverändert übernommen): 26, 29.
+* **Nur die adresslosen DKM-Großflächen** (9 Bänder, W5.P2 allein): 5, 7,
+  8, 9, 10, 11, 12, 13, 27.
+* **Beide Ursachen überlagert** (7 Bänder): 30, 31, 32, 33, 34, 35, 36.
 
 ``run1`` bleibt bestehen, aber in einer anderen Rolle: **Vergleichsbasis,
 nicht mehr Ziel.** Es muss deshalb unverändert ``dc58b011…9e3df1``
@@ -33,16 +44,22 @@ tragen — genau das prüft
 stillschweigend neu geschriebenes ``run1`` würde jede künftige Messung
 gegen eine bewegliche Basis führen, und niemand würde es merken.
 
-Die Neunerliste ist **nicht** aus dem Vergleich abgelesen, sondern stammt
-aus dem Manifest: ``geography_water_bodies_wirkungspfad`` ist die transitive
-Hülle über ``abgeleitet_von`` und wurde von W3.1 **vor** der Messung
-berechnet (PLAN.md §13.9, Regel 8: "vorher genannt, dann gemessen"). Dass
-das Manifest genau diese neun Namen führt, prüft bereits
+Die neun Bodensee-Bänder (26, 29-36, Gruppen "Nur Bodensee" und "Beide"
+oben) sind **nicht** aus dem Vergleich abgelesen, sondern stammen aus dem
+Manifest: ``geography_water_bodies_wirkungspfad`` ist die transitive Hülle
+über ``abgeleitet_von`` und wurde von W3.1 **vor** der Messung berechnet
+(PLAN.md §13.9, Regel 8: "vorher genannt, dann gemessen"). Dass das
+Manifest genau diese neun Namen führt, prüft bereits
 ``tests/test_band_manifest.py``
 (``test_geography_water_bodies_wirkungspfad_is_the_predicted_nine_bands``)
-auf einem synthetischen Manifest. Dieser Test hier schließt den Kreis am
-echten Artefakt: er misst die Bänder, die **tatsächlich** abweichen, und
-hält sie gegen dieselbe Neunerliste.
+auf einem synthetischen Manifest - unverändert, denn diese neun sind vom
+Punkt-34-Wechsel nicht berührt. Die übrigen neun Bänder (Gruppe "Nur die
+adresslosen DKM-Großflächen") haben **keine** entsprechende Vorab-Liste im
+Manifestschema; ihre Vorab-Nennung stand stattdessen im Messbericht zu
+W5.P2 (docs/rewrite/FORTSCHRITT.md, Punkt 34). Dieser Test hier schließt
+den Kreis am echten Artefakt: er misst die Bänder, die **tatsächlich**
+abweichen, hält sie gegen die volle 18er-Liste und prüft für die
+Bodensee-Teilmenge zusätzlich die Deckung mit dem Manifest.
 
 ## Warum drei der vier Tests nicht in `make test` laufen
 
@@ -63,7 +80,7 @@ sind **absichtlich** auszuführen, nicht beiläufig::
 
     # oder ein einzelner davon:
     ABSCHICHTUNG_VERTRAGSTEST=1 uv run pytest \\
-        tests/test_referenz_tif.py::test_abweichung_gegen_run1_betrifft_genau_neun_baender -v
+        tests/test_referenz_tif.py::test_abweichung_gegen_run1_betrifft_genau_achtzehn_baender -v
 
     ABSCHICHTUNG_VERTRAGSTEST=1 uv run pytest \\
         tests/test_referenz_tif.py::test_finalisierung_aus_checkpoints_reproduziert_die_referenz -v
@@ -124,20 +141,49 @@ REFERENZ_BYTES = 124_597_421
 RUN1_SHA256 = "dc58b011af1b461aa21f6416d378bce2a4187e18d674c65060506df5939e3df1"
 RUN1_BYTES = 124_685_819
 
-# Genau neun, keines mehr, keines weniger (PLAN.md §13.9). Nummern und Namen
-# beide festgehalten: die Nummer allein verschöbe sich still, wenn sich die
-# Bandreihenfolge je änderte.
-ABWEICHENDE_BANDNUMMERN = frozenset({26, 29, 30, 31, 32, 33, 34, 35, 36})
+# Genau 18, keines mehr, keines weniger - zwei überlagerte Ursachen seit
+# Punkt 34/W5.P2 (PLAN.md §13.9 fuer die Bodensee-Teilmenge; die adresslosen
+# DKM-Grossflaechen sind eine zweite, unabhaengige Ursache ohne eigenes
+# Manifestfeld). Nummern und Namen beide festgehalten: die Nummer allein
+# verschoebe sich still, wenn sich die Bandreihenfolge je aenderte. Herkunft
+# je Band steht in docs/rewrite/abweichungen.tsv, Paket W5.P2, Spalte
+# ursache.
+ABWEICHENDE_BANDNUMMERN = frozenset({5, 7, 8, 9, 10, 11, 12, 13, 26, 27, 29, 30, 31, 32, 33, 34, 35, 36})
 ABWEICHENDE_BANDNAMEN = frozenset({
-    "geography_water_bodies",            # 26 - die Korrektur selbst
-    "exclusion_geography",               # 29 - ab hier: Folge über den Wirkungspfad
-    "all_exclusions",                    # 30
-    "available_after_all_exclusions_raw",  # 31
-    "available_cleaned_min_10ha",        # 32
-    "available_blur_sigma_100m",         # 33
-    "available_blur_sigma_200m",         # 34
-    "available_blur_sigma_250m",         # 35
-    "available_blur_sigma_300m",         # 36
+    "haeuser_im_gruenen_streusiedlung",  # 5  - nur adresslose DKM-Grossflaechen
+    "haeuser_im_gruenen",                # 7  - nur adresslose DKM-Grossflaechen
+    "nonresidential_hulls_source",       # 8  - nur adresslose DKM-Grossflaechen
+    "nonresidential_hulls_buffer",       # 9  - nur adresslose DKM-Grossflaechen
+    "cableway_buildings_source",         # 10 - nur adresslose DKM-Grossflaechen
+    "cableway_buildings_buffer",         # 11 - nur adresslose DKM-Grossflaechen
+    "general_buildings_source",          # 12 - nur adresslose DKM-Grossflaechen
+    "general_buildings_buffer",          # 13 - nur adresslose DKM-Grossflaechen
+    "geography_water_bodies",            # 26 - nur Bodensee, unveraendert von W5.P2
+    "exclusion_human",                   # 27 - nur adresslose DKM-Grossflaechen
+    "exclusion_geography",               # 29 - nur Bodensee, unveraendert von W5.P2
+    "all_exclusions",                    # 30 - beide Ursachen ueberlagert
+    "available_after_all_exclusions_raw",  # 31 - beide Ursachen ueberlagert
+    "available_cleaned_min_10ha",        # 32 - beide Ursachen ueberlagert
+    "available_blur_sigma_100m",         # 33 - beide Ursachen ueberlagert
+    "available_blur_sigma_200m",         # 34 - beide Ursachen ueberlagert
+    "available_blur_sigma_250m",         # 35 - beide Ursachen ueberlagert
+    "available_blur_sigma_300m",         # 36 - beide Ursachen ueberlagert
+})
+
+# Die Teilmenge, die aus geography_water_bodies transitiv gespeist wird
+# (PLAN.md §13.9) - unveraendert 9 Baender, vom Punkt-34-Wechsel nicht
+# beruehrt. Das Manifest kennt nur diese Teilmenge vorab, nicht die volle
+# 18er-Liste.
+BODENSEE_BANDNAMEN = frozenset({
+    "geography_water_bodies",
+    "exclusion_geography",
+    "all_exclusions",
+    "available_after_all_exclusions_raw",
+    "available_cleaned_min_10ha",
+    "available_blur_sigma_100m",
+    "available_blur_sigma_200m",
+    "available_blur_sigma_250m",
+    "available_blur_sigma_300m",
 })
 
 FINALES_TIF = contract.PRODUCTS["abschichtung_tif"]
@@ -240,15 +286,17 @@ def test_run1_bleibt_unveraendert_die_vergleichsbasis():
     not (FINALES_TIF.exists() and RUN1_TIF.exists()),
     reason=f"{FINALES_TIF} oder {RUN1_TIF} fehlt - ohne beide kein Vergleich.",
 )
-def test_abweichung_gegen_run1_betrifft_genau_neun_baender():
-    """Genau neun Bänder weichen ab - nicht acht, nicht zehn.
+def test_abweichung_gegen_run1_betrifft_genau_achtzehn_baender():
+    """Genau 18 Bänder weichen ab - nicht 17, nicht 19.
 
-    Die Zahl ist der eigentliche Vertrag. Ein zehntes abweichendes Band
-    hieße, dass die Bodensee-Korrektur weiter wirkt als vorhergesagt (oder
-    dass etwas anderes mit hineingeraten ist); ein achtes hieße, dass ein
-    Band aus dem Wirkungspfad seine Abweichung verloren hat. Beides ist ein
-    Befund, kein Rauschen - PLAN.md §13.9: "Jede andere Abweichung ist ein
-    Fehler."
+    Die Zahl ist der eigentliche Vertrag, und seit Punkt 34/W5.P2 setzt sie
+    sich aus zwei überlagerten Ursachen zusammen (siehe Moduldocstring):
+    neun Bänder allein aus der Bodensee-Korrektur (Punkt 33) oder aus deren
+    Überlagerung mit Punkt 34, und neun weitere allein aus dem Wegfall der
+    adresslosen DKM-Großflächen (Punkt 34). Ein 19. abweichendes Band hieße,
+    dass eine der beiden Korrekturen weiter wirkt als vorhergesagt (oder
+    dass etwas anderes mit hineingeraten ist); ein 17. hieße, dass ein Band
+    seine Abweichung verloren hat. Beides ist ein Befund, kein Rauschen.
     """
     treffer = _abweichende_baender(FINALES_TIF, RUN1_TIF)
     nummern = {nr for nr, _name, _diff in treffer}
@@ -262,16 +310,31 @@ def test_abweichung_gegen_run1_betrifft_genau_neun_baender():
     assert namen == set(ABWEICHENDE_BANDNAMEN), (
         f"Abweichende Bandnamen: {sorted(namen)}, erwartet {sorted(ABWEICHENDE_BANDNAMEN)}."
     )
-    assert len(treffer) == 9, f"{len(treffer)} abweichende Bänder statt neun: {protokoll}"
+    assert len(treffer) == 18, f"{len(treffer)} abweichende Bänder statt 18: {protokoll}"
 
-    # Und dieselbe Neunerliste steht vorab im Manifest des TIFs - vorher
-    # genannt, dann gemessen (PLAN.md §13.9, Regel 8).
+    # Die Bodensee-Teilmenge (9 Bänder) steht vorab im Manifest des TIFs -
+    # vorher genannt, dann gemessen (PLAN.md §13.9, Regel 8). Die anderen
+    # neun Bänder (adresslose DKM-Großflächen, Punkt 34) haben kein
+    # entsprechendes Manifestfeld - der Wirkungspfad ist deshalb eine ECHTE
+    # TEILMENGE der tatsächlich abweichenden Bänder, keine Gleichheit mehr
+    # (das war die alte, jetzt falsche Annahme aus der Zeit vor Punkt 34,
+    # als es nur eine Ursache gab).
     manifest_pfad = manifest_path_for(FINALES_TIF)
     if manifest_pfad.exists():
         manifest = json.loads(manifest_pfad.read_text(encoding="utf-8"))
-        assert set(manifest["geography_water_bodies_wirkungspfad"]) == namen, (
-            "Der im Manifest vorab genannte Wirkungspfad deckt sich nicht mit den "
-            "tatsächlich abweichenden Bändern."
+        wirkungspfad = set(manifest["geography_water_bodies_wirkungspfad"])
+        assert wirkungspfad == BODENSEE_BANDNAMEN, (
+            f"Bodensee-Wirkungspfad im Manifest: {sorted(wirkungspfad)}, "
+            f"erwartet {sorted(BODENSEE_BANDNAMEN)}."
+        )
+        assert wirkungspfad <= namen, (
+            "Der im Manifest vorab genannte Bodensee-Wirkungspfad ist keine Teilmenge "
+            "der tatsächlich abweichenden Bänder mehr."
+        )
+        unerklaert = namen - wirkungspfad - ABWEICHENDE_BANDNAMEN
+        assert not unerklaert, (
+            f"Abweichende Bänder ohne Erklärung (weder Bodensee-Wirkungspfad noch "
+            f"die bekannte DKM-Großflächen-Liste): {sorted(unerklaert)}."
         )
 
 

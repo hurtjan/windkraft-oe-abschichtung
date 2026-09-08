@@ -68,7 +68,7 @@ in `docs/rewrite/abweichungen.tsv` unter `paket = W5.P2`.
 `output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2.tif`.
 Sie ist nicht das Auslieferungsartefakt. Wer aus einer älteren Integration
 noch auf jenen Pfad zeigt, liest ein Ergebnis der alten Kette — siehe
-„Neun Bänder unterscheiden sich von `run1`" weiter unten.
+„18 Bänder unterscheiden sich von `run1`" weiter unten.
 
 ## Das Manifest-Schema, Feld für Feld
 
@@ -166,8 +166,10 @@ Dazu ein neuer Schlüssel auf oberster Ebene:
   transitive Abschluss über `abgeleitet_von`, beginnend bei
   `geography_water_bodies`. Er wird **berechnet, nicht gepflegt** (eine
   zweite, von Hand synchron zu haltende Liste wäre genau die stille Drift,
-  die das Feld verhindern soll). Wozu er gut ist, steht unten unter „Neun
-  Bänder unterscheiden sich von `run1`".
+  die das Feld verhindern soll). Er deckt nur die Bodensee-Ursache ab — die
+  zweite, unabhängige Ursache unten (adresslose DKM-Großflächen) hat kein
+  eigenes Manifestfeld. Wozu er gut ist, steht unten unter „18 Bänder
+  unterscheiden sich von `run1`".
 
 **Warum Haupt- und nicht Nebenversion**, obwohl die Änderung rein additiv
 ist: ein Konsument, der die Feldmenge je Band exakt *zählt* oder auf
@@ -264,43 +266,91 @@ gültige Zählungen aus anderen Artefakten, siehe Root-`README.md`, Abschnitt
 etwas anderes; als Vergleichsbasis für v1 vs. v2 zählt ausschließlich die
 oben verifizierte GeoTIFF-Bandzahl.)
 
-## Neun Bänder unterscheiden sich von `run1`
+## 18 Bänder unterscheiden sich von `run1`
 
 Wer dieses Artefakt gegen ein älteres Ergebnis **derselben** v2-Kette
 hält — namentlich gegen
 `output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2_run1.tif`,
 das letzte Ergebnis der Altkette in diesem Repo (`sha256`
-`dc58b011…9e3df1`) —, findet genau neun abweichende Bänder. Das ist
-beabsichtigt und entschieden, kein Fehler:
+`dc58b011…9e3df1`) —, findet genau **18** abweichende Bänder, aus **zwei
+überlagerten Ursachen** (Punkt 33 und Punkt 34 der Offenen-Punkte-Liste in
+`docs/rewrite/FORTSCHRITT.md`, beide vom Nutzer am 08.09.2026
+entschieden). Das ist beabsichtigt und entschieden, kein Fehler:
 
-| Band | Name |
-|---|---|
-| 26 | `geography_water_bodies` |
-| 29 | `exclusion_geography` |
-| 30 | `all_exclusions` |
-| 31 | `available_after_all_exclusions_raw` |
-| 32 | `available_cleaned_min_10ha` |
-| 33–36 | `available_blur_sigma_100m` … `_300m` |
+| Gruppe | Band | Name |
+|---|---|---|
+| Nur Bodensee (Punkt 33) | 26 | `geography_water_bodies` |
+| Nur Bodensee (Punkt 33) | 29 | `exclusion_geography` |
+| Nur adresslose DKM-Großflächen (Punkt 34) | 5 | `haeuser_im_gruenen_streusiedlung` |
+| Nur adresslose DKM-Großflächen (Punkt 34) | 7 | `haeuser_im_gruenen` |
+| Nur adresslose DKM-Großflächen (Punkt 34) | 8 | `nonresidential_hulls_source` |
+| Nur adresslose DKM-Großflächen (Punkt 34) | 9 | `nonresidential_hulls_buffer` |
+| Nur adresslose DKM-Großflächen (Punkt 34) | 10 | `cableway_buildings_source` |
+| Nur adresslose DKM-Großflächen (Punkt 34) | 11 | `cableway_buildings_buffer` |
+| Nur adresslose DKM-Großflächen (Punkt 34) | 12 | `general_buildings_source` |
+| Nur adresslose DKM-Großflächen (Punkt 34) | 13 | `general_buildings_buffer` |
+| Nur adresslose DKM-Großflächen (Punkt 34) | 27 | `exclusion_human` |
+| Beide Ursachen überlagert | 30 | `all_exclusions` |
+| Beide Ursachen überlagert | 31 | `available_after_all_exclusions_raw` |
+| Beide Ursachen überlagert | 32 | `available_cleaned_min_10ha` |
+| Beide Ursachen überlagert | 33–36 | `available_blur_sigma_100m` … `_300m` |
 
-Die übrigen 29 Bänder sind bitgleich.
+Die übrigen 20 Bänder sind bitgleich.
 
-**Ursache:** Die Altkette klippt per `osmium extract --bbox` **vor** dem
-Tag-Filter. Bei einer großen grenzüberschreitenden Relation kappt das
-Mitglieder außerhalb der Box, und die Relation geht beim Export verloren —
-konkret der Bodensee. Die neue Prep-Stufe filtert gegen die volle,
-ungeklippte Rohquelle und findet ihn. **Die neue Kette hat recht**, und der
-Nutzer hat die Korrektur am 08.09.2026 angenommen (Punkt 33 der
-Offenen-Punkte-Liste in `docs/rewrite/FORTSCHRITT.md`).
+**Ursache 1 (Punkt 33, Bänder 26, 29–36):** Die Altkette klippt per
+`osmium extract --bbox` **vor** dem Tag-Filter. Bei einer großen
+grenzüberschreitenden Relation kappt das Mitglieder außerhalb der Box, und
+die Relation geht beim Export verloren — konkret der Bodensee. Die neue
+Prep-Stufe filtert gegen die volle, ungeklippte Rohquelle und findet ihn.
+**Die neue Kette hat recht**, und der Nutzer hat die Korrektur am
+08.09.2026 angenommen (Punkt 33).
 
-Die Liste dieser neun Bänder müsst ihr nicht abschreiben: sie steht als
-`geography_water_bodies_wirkungspfad` im Manifest und ist dort aus
-`abgeleitet_von` berechnet. Sie war **vor** der Messung genannt und danach
-bestätigt — die Zahlen je Band stehen in `docs/rewrite/abweichungen.tsv`.
+**Ursache 2 (Punkt 34, Bänder 5, 7–13, 27, 30–36):** Ein DKM-Kandidat mit
+Fußabdruck über `HIG_MAX_FOOTPRINT_M2` (10.000 m²), der keine einzige
+BEV-Adresse im eigenen Polygon trägt, entfällt jetzt als Kandidat
+vollständig, statt wie bisher pauschal auf eine 5-m-Scheibe um seinen
+Zentroid reduziert zu werden — 514 von 806 betroffenen Riesenflächen sind
+davon betroffen. Fachliche Entscheidung des Nutzers am 08.09.2026 (Punkt
+34), umgesetzt in `windkraft/calc/hig_detection.py:scan_dkm_candidates()`.
 
-Praktisch heißt das für euch: Band 32, die veröffentlichte Potenzialfläche,
-verliert gegenüber `run1` 15.137 Zellen (rund 9,5 km²) — dort, wo jetzt
-korrekt Wasser statt Landfläche steht. Wer Flächenbilanzen gegen ältere
-Auswertungen vergleicht, findet den Unterschied hier erklärt.
+Die neun Bodensee-Bänder (Gruppen „Nur Bodensee" und „Beide Ursachen
+überlagert") müsst ihr nicht abschreiben: sie stehen als
+`geography_water_bodies_wirkungspfad` im Manifest und sind dort aus
+`abgeleitet_von` berechnet — vor der Messung genannt, danach bestätigt.
+Für die neun Bänder aus Ursache 2 gibt es **kein** entsprechendes
+Manifestfeld; ihre Zahlen stehen ausschließlich in
+`docs/rewrite/abweichungen.tsv` unter `paket = W5.P2`, Spalte `ursache`
+nennt für jedes Band, welche der beiden Ursachen (oder beide) zutrifft.
+
+Praktisch heißt das für euch: Band 32, die veröffentlichte
+Potenzialfläche, verliert gegenüber `run1` **netto 13.562 Zellen (rund
+847,6 ha bzw. 8,48 km²)** — nachgemessen direkt am TIF, nicht
+ausgerechnet. Das ist kleiner als der reine Bodensee-Effekt (15.137
+Zellen, rund 945,7 ha bzw. 9,46 km², die W3.1-Zahl von oben), weil Punkt
+34 gegenläufig wirkt: 15.154 Zellen verlieren die Verfügbarkeit (weit
+überwiegend die Bodensee-Korrektur), aber 1.592 Zellen gewinnen sie neu
+hinzu (Flächen, die durch den Wegfall adressloser DKM-Großflächen nicht
+mehr ausgeschlossen sind) — macht 15.154 − 1.592 = 13.562 Zellen netto.
+Wer Flächenbilanzen gegen ältere Auswertungen vergleicht, findet den
+Unterschied hier erklärt.
+
+### Weitere Entscheidungen des Nutzers zu Punkt 34 (08.09.2026)
+
+- **`HIG_MIN_ADRESSEN` bleibt bei 5.** Gemessen: 10.873 Streusiedlungen
+  (≥ 5 Adressen, 750-m-Puffer) gegen 12.327 Einzellagen (< 5 Adressen,
+  25-m-Puffer) — **kein Knie im Histogramm** an dieser Schwelle: bei
+  Schwelle 3 wären es 68,2 % der Kandidaten, die als Streusiedlung
+  gelten, bei Schwelle 7 nur 32,8 %. Der Wert 5 ist eine bewusste
+  Setzung, keine aus den Daten abgelesene Bruchkante, und wird
+  unverändert beibehalten.
+- **Eine bekannte, einseitige Fehlklassifikation bleibt bestehen.** 249
+  von 2.736 Industriehüllen (9,1 %) tragen selbst keine BEV-Adresse und
+  werden deshalb auf den 25-m-Radius („Einzellage") herabgestuft, obwohl
+  **207 davon (83,1 %)** in unmittelbarer Nähe Adress- oder
+  Gartensignale tragen (Median 4 Adressen im Umfeld, **Maximum 1.089**).
+  Die Richtung des Fehlers ist konservativ — er schließt zu wenig aus,
+  nie zu viel —, deshalb bewusst **dokumentiert, nicht korrigiert**, auf
+  Entscheidung des Nutzers.
 
 ## Caveats in Klartext
 
