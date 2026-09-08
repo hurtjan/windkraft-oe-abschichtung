@@ -12,30 +12,18 @@ bekommt sie ihr eigenes Verzeichnis statt eine vierte Datei unter
 aufblähen, was die Abnahme dieses Pakets ausdrücklich als unverändert
 verlangt ("`make -n layers` weiterhin alle drei").
 
-## Ein Unterschied zu make/prep/ und make/layers/, ehrlich benannt
+## Ein Unterschied zu make/prep/ und make/layers/, der inzwischen geschlossen ist
 
-`Makefile` liest `make/prep/*.mk` und `make/layers/*.mk` bereits per
-`-include` ein (siehe dortige Kommentare, `PREP_TARGETS`/`LAYER_TARGETS`).
-Für `make/finalize/*.mk` gibt es **noch keine** entsprechende
-`-include`-Zeile - der Auftrag für dieses Paket untersagt ausdrücklich,
-`Makefile` anzufassen ("Fass Makefile nicht an"), und keines der bisher
-verplanten Pakete (W3.2 Validierung, W4.3 Testverdrahtung - siehe
-`docs/rewrite/PLAN.md` §7) trägt laut Plan die Verantwortung, diese eine
-Zeile nachzutragen.
-
-**Folge:** `finalize.mk` in diesem Verzeichnis ist heute noch nicht über
-`make finalize` erreichbar. Der Zielname `finalize` und das darin
-aufgerufene Modul (`python -m pipeline.finalize`) stehen aber bereits fest,
-sodass ein künftiges Paket nur noch
-
-    -include make/finalize/*.mk
-    .PHONY: $(addprefix finalize-,$(basename $(notdir $(wildcard make/finalize/*.mk))))
-
-(oder, da es hier nur eine Domäne gibt, schlicht `-include
-make/finalize/*.mk` plus eine direkte Abhängigkeit von `finalize:` auf das
-hier deklarierte `.PHONY`-Ziel) ins `Makefile` einfügen muss. Bis dahin:
-direkt aufrufen mit `uv run python -m pipeline.finalize` bzw. `make -f
-make/finalize/finalize.mk finalize`.
+`Makefile` liest `make/prep/*.mk` und `make/layers/*.mk` per `-include` ein
+(siehe dortige Kommentare, `PREP_TARGETS`/`LAYER_TARGETS`). Für
+`make/finalize/*.mk` fehlte diese Zeile eine Zeit lang - Paket W3.1 durfte
+`Makefile` selbst ausdrücklich nicht anfassen ("Fass Makefile nicht an").
+Seit **W3.2** steht `-include make/finalize/*.mk` im Haupt-`Makefile`
+(siehe dortiger Kommentar bei "Vorpaket W3.1"): `finalize.mk` in diesem
+Verzeichnis ist damit über `make finalize` erreichbar, direkt aufrufbar
+wie jedes andere Ziel. Der frühere Umweg über `uv run python -m
+pipeline.finalize` bzw. `make -f make/finalize/finalize.mk finalize`
+bleibt weiterhin funktionsfähig, ist aber nicht mehr nötig.
 
 ## Konvention (wie make/layers/README.md, § "Konvention")
 
