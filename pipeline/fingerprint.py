@@ -27,6 +27,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from pipeline import contract
+
 FINGERPRINT_FILENAME = ".fingerprint.json"
 
 
@@ -38,11 +40,27 @@ def _stat(path: Path) -> dict:
 def compute(inputs: list[Path]) -> dict:
     """Baut den Fingerabdruck-Datensatz für die gegebenen Eingaben.
 
-    Schlüssel ist der volle Pfad als String (nicht nur der Dateiname) -
-    zwei gleichnamige Dateien aus verschiedenen Verzeichnissen (z. B. je
-    ein Bundesland-ZIP) dürfen sich nicht überschreiben.
+    Schlüssel ist der Pfad als String, **relativ zu ``contract.ROOT``**, wenn
+    die Eingabe innerhalb des Repos liegt - nicht der volle absolute Pfad
+    (W6.4, docs/rewrite/FORTSCHRITT.md Punkt 53): der volle Pfad hängt am
+    Klonort, ``contract.ROOT`` selbst leitet sich aus ``__file__`` ab, also
+    hätte jeder Klon andere Schlüssel und nie einen Treffer - auch wenn die
+    Dateien (z. B. über einen read-only-Symlink wie ``derived/prep/`` in
+    ``make worktree``) buchstäblich dieselben sind. Für alles außerhalb von
+    ``contract.ROOT`` (kann laut Vertrag nicht vorkommen, aber ``compute()``
+    prüft das nicht) bleibt der Rückfall der aufgelöste absolute Pfad -
+    weiterhin voll, nicht nur der Dateiname: zwei gleichnamige Dateien aus
+    verschiedenen Verzeichnissen (z. B. je ein Bundesland-ZIP) dürfen sich
+    nicht überschreiben.
     """
-    return {str(p): _stat(p) for p in inputs}
+    result = {}
+    for p in inputs:
+        try:
+            key = str(p.relative_to(contract.ROOT))
+        except ValueError:
+            key = str(p.resolve())
+        result[key] = _stat(p)
+    return result
 
 
 def write(prep_dir: Path, inputs: list[Path]) -> Path:

@@ -34,6 +34,7 @@ import pyarrow.parquet as pq
 from pipeline import contract, fingerprint, runtime
 from pipeline.prep.kataster.a_noe_polygonize import DEFAULT_OUTPUT as NOE_STAGE_OUTPUT
 from pipeline.prep.kataster.a_noe_polygonize import PREP_DIR as NOE_STAGE_DIR
+from pipeline.prep.kataster.a_noe_polygonize import MODULE_PATH as NOE_STAGE_MODULE_PATH
 from pipeline.prep.kataster.common import (
     DEFAULT_SHP_ARCHIVES,
     FIELD_NAMES,
@@ -53,6 +54,12 @@ PREP_DIR = contract.PREP["kataster"]["b_export_parquet"]
 DEFAULT_OUTPUT = PREP_DIR / "at_dkm_gst_nfl_epsg31287.geoparquet"
 DEFAULT_SUMMARY_CSV = PREP_DIR / "at_dkm_gst_nfl_epsg31287_summary.csv"
 DEFAULT_OVERVIEW_MD = PREP_DIR / "at_dkm_gst_nfl_epsg31287_overview.md"
+
+# Zaehlt zum Fingerabdruck mit (W6.4, Punkt 45): eine Aenderung an dieser
+# Datei soll den Selbst-Ueberspringer aufheben, nicht nur eine Aenderung an
+# data/. Konservativ - nur die eigene Quelldatei, nicht die Importe (siehe
+# pipeline/fingerprint.py).
+MODULE_PATH = Path(__file__)
 
 
 def copy_noe_rows(source_path: Path, writer: GeoParquetBatchWriter, summary: Summary) -> int:
@@ -118,7 +125,7 @@ def main() -> None:
         and output_path.exists()
         and summary_csv.exists()
         and overview_md.exists()
-        and fingerprint.matches(PREP_DIR, [*shp_inputs, symbol_csv, noe_stage_output])
+        and fingerprint.matches(PREP_DIR, [*shp_inputs, symbol_csv, noe_stage_output, MODULE_PATH])
     ):
         print(f"[skip]  prep-kataster-b: Fingerabdruck unveraendert -> {output_path}", flush=True)
         return
@@ -139,7 +146,12 @@ def main() -> None:
             "Stufe. Mit --skip-noe testweise ohne NÖ-Zeilen exportieren."
         )
     if not args.skip_noe and not fingerprint.matches(
-        NOE_STAGE_DIR, [contract.RAW["kataster"]["noe_dxf_zip"], contract.RAW["kataster"]["symbol_csv"]]
+        NOE_STAGE_DIR,
+        [
+            contract.RAW["kataster"]["noe_dxf_zip"],
+            contract.RAW["kataster"]["symbol_csv"],
+            NOE_STAGE_MODULE_PATH,
+        ],
     ):
         print(
             "WARN: Fingerabdruck von Stufe a passt nicht mehr zu den aktuellen NÖ-Eingaben "
@@ -185,7 +197,7 @@ def main() -> None:
     print(f"wrote {overview_md}", flush=True)
 
     if not args.only_bundesland and not args.max_inner_zips_per_archive and not args.skip_shp and not args.skip_noe:
-        fingerprint.write(PREP_DIR, [*shp_inputs, symbol_csv, noe_stage_output])
+        fingerprint.write(PREP_DIR, [*shp_inputs, symbol_csv, noe_stage_output, MODULE_PATH])
     else:
         print(
             "Fingerabdruck NICHT geschrieben: Teillauf (--only-bundesland / "

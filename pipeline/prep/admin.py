@@ -65,7 +65,11 @@ def run(force: bool = False) -> Path:
     out_dir = contract.PREP["admin"]
     runtime.ensure_dir(out_dir)
 
-    inputs = _shapefile_sidecars(vgd_path)
+    # Path(__file__) zaehlt zum Fingerabdruck mit (W6.4, Punkt 45): eine
+    # Aenderung an dieser Datei soll den Selbst-Ueberspringer aufheben, nicht
+    # nur eine Aenderung an data/. Konservativ - nur die eigene Quelldatei,
+    # nicht die Importe (siehe pipeline/fingerprint.py).
+    inputs = _shapefile_sidecars(vgd_path) + [Path(__file__)]
     gemeinden_path = out_dir / GEMEINDEN_FILENAME
     bundesland_path = out_dir / BUNDESLAND_MASKEN_FILENAME
 

@@ -73,6 +73,15 @@ DEFAULT_OUTPUT = PREP_DIR / "noe_dxf_polygonized.geoparquet"
 DEFAULT_SUMMARY_CSV = PREP_DIR / "noe_dxf_polygonized_summary.csv"
 DEFAULT_OVERVIEW_MD = PREP_DIR / "noe_dxf_polygonized_overview.md"
 
+# Zaehlt zum Fingerabdruck mit (W6.4, Punkt 45): eine Aenderung an dieser
+# Datei soll den Selbst-Ueberspringer aufheben, nicht nur eine Aenderung an
+# data/. Konservativ - nur die eigene Quelldatei, nicht die Importe (siehe
+# pipeline/fingerprint.py). Als Modulkonstante exportiert, weil
+# b_export_parquet.py denselben gespeicherten Fingerabdruck (PREP_DIR) zur
+# Konsistenzpruefung erneut berechnet und dafuer denselben Eingabesatz
+# braucht.
+MODULE_PATH = Path(__file__)
+
 
 def build_noe_tile_jobs(
     zf: zipfile.ZipFile,
@@ -327,7 +336,7 @@ def main() -> None:
         and output_path.exists()
         and summary_csv.exists()
         and overview_md.exists()
-        and fingerprint.matches(PREP_DIR, [noe_dxf_zip, symbol_csv])
+        and fingerprint.matches(PREP_DIR, [noe_dxf_zip, symbol_csv, MODULE_PATH])
     ):
         print(f"[skip]  prep-kataster-a: Fingerabdruck unveraendert -> {output_path}", flush=True)
         return
@@ -373,7 +382,7 @@ def main() -> None:
     # PLAN.md §5): b_export_parquet prüft damit, ob diese Stufe seither neu
     # gelaufen ist.
     if not args.noe_limit_files:
-        fingerprint.write(PREP_DIR, [noe_dxf_zip, symbol_csv])
+        fingerprint.write(PREP_DIR, [noe_dxf_zip, symbol_csv, MODULE_PATH])
     else:
         print(
             "Fingerabdruck NICHT geschrieben: --noe-limit-files ist gesetzt "

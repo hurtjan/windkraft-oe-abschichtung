@@ -137,6 +137,11 @@ def run(force: bool = False) -> Path:
     cache_dir = runtime.ensure_dir(out_dir / "_cache")
 
     inputs = sorted({_raw_input_for_dataset(key) for key in ws.DATASETS})
+    # Path(__file__) zaehlt zum Fingerabdruck mit (W6.4, Punkt 45): eine
+    # Aenderung an dieser Datei soll den Selbst-Ueberspringer aufheben, nicht
+    # nur eine Aenderung an data/. Konservativ - nur die eigene Quelldatei,
+    # nicht die Importe (siehe pipeline/fingerprint.py).
+    inputs.append(Path(__file__))
     bundle_paths = [out_dir / BUNDLE_FILENAME.format(bucket=b) for b in ws.BUCKETS]
 
     # Selbst-Ueberspringer, gleiches Muster wie pipeline/prep/osm.py
