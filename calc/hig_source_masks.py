@@ -13,7 +13,7 @@ from pathlib import Path
 
 import numpy as np
 
-from windkraft.calc.abschichtung_common import (
+from calc.abschichtung_common import (
     raster_mask,
     read_layer,
     uniform_buffer_cell_mask,

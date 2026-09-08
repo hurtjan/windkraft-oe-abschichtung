@@ -1,4 +1,4 @@
-"""pipeline/verify/dashboard.py: die Abnahmebedingung von W4.1, verdrahtet.
+"""pipeline/export/dashboard.py: die Abnahmebedingung von W4.1, verdrahtet.
 
 W4.1s Abnahme lautet: "Liest ausschließlich das Manifest; keine Bandnamen im
 Code. Läuft gegen ein Manifest mit geänderter Bandzahl ohne Anpassung."
@@ -10,7 +10,7 @@ das ist der Unterschied zwischen einem Nachweis und einer Zusicherung.
 
 ## Warum dieses Modul dem Test nicht gehört
 
-``pipeline/verify/dashboard.py`` gehört W4.1, nicht W4.3 (PLAN.md §8,
+``pipeline/export/dashboard.py`` gehört W4.1, nicht W4.3 (PLAN.md §8,
 Regel 1: ein Pfad, ein Besitzer). Diese Datei **liest** es — als Quelltext
 für den Grep-Test und als Importziel für alles Übrige — und ändert daran
 nichts.
@@ -19,7 +19,7 @@ nichts.
 
 W4.1 liegt zum Zeitpunkt dieses Pakets auf Zweig ``4.1`` (Commit
 ``68ab19c``) und ist im Worktree von W4.3 nicht vorhanden. Solange
-``pipeline/verify/dashboard.py`` fehlt, überspringt sich dieses Modul
+``pipeline/export/dashboard.py`` fehlt, überspringt sich dieses Modul
 geschlossen — mit einer Begründung, die genau das sagt. Nach dem Merge der
 Welle 4 laufen die Tests ohne weiteres Zutun an.
 
@@ -42,7 +42,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-DASHBOARD_QUELLE = PROJECT_ROOT / "pipeline" / "verify" / "dashboard.py"
+DASHBOARD_QUELLE = PROJECT_ROOT / "pipeline" / "export" / "dashboard.py"
 
 if not DASHBOARD_QUELLE.is_file():
     pytest.skip(
@@ -53,7 +53,7 @@ if not DASHBOARD_QUELLE.is_file():
     )
 
 from pipeline import contract  # noqa: E402
-from pipeline.verify import dashboard  # noqa: E402
+from pipeline.export import dashboard  # noqa: E402
 
 ECHTES_MANIFEST = contract.PRODUCTS["abschichtung_bands_json"]
 

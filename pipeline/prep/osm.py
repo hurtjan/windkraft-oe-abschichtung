@@ -8,7 +8,7 @@ Ableitungen nach ``contract.PREP["osm"]``:
   gelesenen Objektgruppen ein ``osmium tags-filter`` (Rohquelle ->
   gefiltertes ``.osm.pbf``) gefolgt von einem ``osmium export``
   (gefiltertes ``.osm.pbf`` -> ``.geojsonseq``). Genau die zwei
-  Unterprozessaufrufe, die ``windkraft/calc/abschichtung_common.py:
+  Unterprozessaufrufe, die ``calc/abschichtung_common.py:
   osm_layer_path()`` heute bei jedem Kettenlauf pro Objektgruppe absetzt
   (Zeile ~504/509), hier einmalig für die GANZE Landesfläche statt für
   einen bbox-Ausschnitt.
@@ -24,7 +24,11 @@ Ableitungen nach ``contract.PREP["osm"]``:
 deklarieren dreizehn Schlüssel. Ein Repo-weiter Suchlauf über alle
 Aufrufstellen von ``osm_layer_path(cfg, ..., "<key>", ...)`` (in
 ``scripts/widmung_v2/03_build_osm_layers.py`` und
-``scripts/widmung_v2/04_create_distance_zones.py``) zeigt: nur ZEHN davon
+``scripts/widmung_v2/04_create_distance_zones.py`` - beide seit W6.1 aus
+dem Repo entfernt, letzter Stand je im Commit ``f1d00f7``, abrufbar mit
+``git show f1d00f7:scripts/widmung_v2/03_build_osm_layers.py`` bzw.
+``git show f1d00f7:scripts/widmung_v2/04_create_distance_zones.py``)
+zeigt: nur ZEHN davon
 werden von irgendeinem Konsumenten tatsächlich gelesen -
 
     buildings   OSM-Gebäude (Way/Relation `building=*`)
@@ -157,13 +161,13 @@ from pipeline import contract, fingerprint, runtime
 TARGET_CRS = "EPSG:31287"
 
 # ---------------------------------------------------------------------------
-# Wortgleich aus windkraft/calc/abschichtung_common.py übernommen (Zeilen
+# Wortgleich aus calc/abschichtung_common.py übernommen (Zeilen
 # ~219, ~327-368) - nur die zehn tatsächlich gelesenen Schlüssel, siehe
 # Moduldocstring. Regel 4: Filter/Tags bleiben unverändert: diese Werte sind
 # eine Kopie, kein Import, damit diese Prep-Stufe nicht von
-# ``windkraft`` (der Konsumentenseite, die diese Welle nicht anfasst)
+# ``calc`` (der Konsumentenseite, die diese Welle nicht anfasst)
 # abhängt - derselbe Grund, aus dem pipeline/prep/admin.py und
-# pipeline/prep/natur.py windkraft nicht importieren.
+# pipeline/prep/natur.py calc nicht importieren.
 # ---------------------------------------------------------------------------
 
 WIND_POWER_OSM_FILTERS = ["nwr/generator:source=wind", "nwr/man_made=wind_turbine"]

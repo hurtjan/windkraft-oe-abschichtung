@@ -16,7 +16,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from windkraft.calc.abschichtung_common import TARGET_CRS, drop_wind_power_buildings  # noqa: E402
+from calc.abschichtung_common import TARGET_CRS, drop_wind_power_buildings  # noqa: E402
 
 
 def _square(x: float, y: float, size: float = 7.0) -> Polygon:

@@ -8,7 +8,7 @@ hier. So ändert eine Umbenennung genau diese Datei statt fünfzehn.
 
 Diese Datei beschreibt nur, sie prüft nicht: kein Dateizugriff beim Import,
 keine ``.exists()``-Prüfung, kein ``mkdir``. Sie importiert auch nichts aus
-``windkraft`` oder ``scripts`` - beide importieren umgekehrt von hier, ein
+``calc`` oder ``scripts`` - beide importieren umgekehrt von hier, ein
 Import in die Gegenrichtung wäre der Zyklus, den dieses Modul gerade
 vermeiden soll (siehe pipeline/__init__.py). Wer die Existenz eines Pfads
 braucht, prüft selbst - siehe tests/test_contract.py.
@@ -41,9 +41,9 @@ ROOT = Path(
 ).resolve()
 
 DATA = ROOT / "data"
-BUILD = ROOT / "build"
-BUILD_PREP = BUILD / "prep"
-BUILD_LAYERS = BUILD / "layers"
+DERIVED = ROOT / "derived"
+DERIVED_PREP = DERIVED / "prep"
+DERIVED_LAYERS = DERIVED / "layers"
 OUT = ROOT / "out"
 
 # run1 - die Vergleichsbasis der alten Kette (osm_wka_distance_zones_widmung_v2_run1.tif,
@@ -72,7 +72,7 @@ RUN1_TIF = (
 
 RAW = {
     "admin": {
-        # windkraft/calc/abschichtung_common.py:624 (cfg["paths"]["vgd"]);
+        # calc/abschichtung_common.py:624 (cfg["paths"]["vgd"]);
         # ebenso von pipeline/prep/kataster/diagnostics.py (Paket W1.P2 hat
         # scripts/preprocessing/create_noe_dkm_polygon_fill_map.py dorthin
         # verschoben) und scripts/noe/extract_noe_vector_layers.py gelesen.
@@ -100,15 +100,16 @@ RAW = {
         "wien_zip": DATA / "kataster" / "KAT_DKM_Wien_SHP_20221001.zip",
     },
     "adressen": {
-        # windkraft/calc/bev_register.py: nimmt ein Verzeichnis entgegen und
+        # calc/bev_register.py: nimmt ein Verzeichnis entgegen und
         # sucht darin selbst per glob nach dem jüngsten Stichtags-ZIP bzw.
         # nach ADRESSE.csv/GEBAEUDE.csv als Klartext-Fallback. Aufrufer:
-        # scripts/widmung_v2/02_build_hig_sources.py:198 (--address-dir),
-        # windkraft/calc/streusiedlung.py:104-105.
+        # scripts/widmung_v2/02_build_hig_sources.py:198 (--address-dir) -
+        # seit W6.1 aus dem Repo entfernt, letzter Stand im Commit f1d00f7 -,
+        # calc/streusiedlung.py:104-105.
         "address_dir": DATA / "adressen",
     },
     "widmung": {
-        # windkraft/calc/widmung_sources.py: DATASETS[*]/_read_raw(); WIDMUNG
+        # calc/widmung_sources.py: DATASETS[*]/_read_raw(); WIDMUNG
         # = ROOT/"data"/"widmung" (dort zusammengesetzt, nicht als Literal
         # sichtbar - siehe PLAN.md §11.1).
         "burgenland": DATA / "widmung" / "burgenland" / "WIDMUNGSFLAECHEN.zip",
@@ -127,7 +128,9 @@ RAW = {
     },
     "osm": {
         # scripts/widmung_v2/03_build_osm_layers.py:231,
-        # scripts/widmung_v2/04_create_distance_zones.py:378 (--osm-pbf)
+        # scripts/widmung_v2/04_create_distance_zones.py:378 (--osm-pbf) -
+        # beide seit W6.1 aus dem Repo entfernt, letzter Stand je im Commit
+        # f1d00f7.
         "pbf": DATA / "osm" / "austria-260330.osm.pbf",
         # powerlines_gpkg steht NICHT hier: Paket W1.2 hat data/osm_power_lines.gpkg
         # gelöscht und den zugehörigen LEGACY_ENTFAELLT-Eintrag ausgetragen
@@ -136,13 +139,13 @@ RAW = {
         # vorhanden ist.
     },
     "gelaende": {
-        # windkraft/calc/abschichtung_common.py:1256, :307 (Fallback)
+        # calc/abschichtung_common.py:1256, :307 (Fallback)
         "dgm": DATA / "gelaende" / "DGM_R25.tif",
-        # windkraft/calc/abschichtung_common.py:1282, :307 (Fallback)
+        # calc/abschichtung_common.py:1282, :307 (Fallback)
         "wind_pd_150": DATA / "gelaende" / "AUT_power-density_150m.tif",
     },
     "natur": {
-        # windkraft/calc/abschichtung_common.py:1164 (cfg["paths"]["nsg_zip"]).
+        # calc/abschichtung_common.py:1164 (cfg["paths"]["nsg_zip"]).
         # nsg_gpkg (Mitgliedsname im ZIP) und nsg_layers (Layernamen im GPKG)
         # sind keine Pfade - die bleiben Nicht-Pfad-Parameter in config.json.
         "nsg_zip": DATA / "natur" / "SG_AT_2024_v_April_Stand_3_April_2024.zip",
@@ -150,17 +153,17 @@ RAW = {
     "zonen": {
         # scripts/widmung_v2/04_create_distance_zones.py:365 (--official-zoning-geojson)
         "official_zoning_noe": DATA / "zonen" / "zonierung_noe.json",
-        # Verzeichnis: enthält Sbg.shp/Stmk.shp, von windkraft/calc/wind_zones.py
+        # Verzeichnis: enthält Sbg.shp/Stmk.shp, von calc/wind_zones.py
         # per <zone_dir>/<key>.shp aufgelöst (kein eigener source_path);
         # scripts/widmung_v2/04_create_distance_zones.py:370 (--vorrangzonen-dir).
         "luca_zonen_dir": DATA / "zonen" / "luca_zonen",
-        # windkraft/calc/wind_zones.py:100,126 (hartkodierter source_path,
+        # calc/wind_zones.py:100,126 (hartkodierter source_path,
         # Positiv- UND Ausschlusszonen im selben Layer, per Attributfilter getrennt).
         "eignungszonen_zip": DATA / "zonen" / "WK_Eignungszonen.zip",
-        # windkraft/calc/wind_zones.py:115 (hartkodierter source_path).
+        # calc/wind_zones.py:115 (hartkodierter source_path).
         "red3_zip": DATA / "zonen" / "RED_III_Windkraftbeschleunigungszone.zip",
         # ausschlusszone_zip steht NICHT (mehr) hier: Paket W1.7 hat die
-        # Registrierung in windkraft/calc/wind_zones.py entfernt (Entscheidung
+        # Registrierung in calc/wind_zones.py entfernt (Entscheidung
         # (a) des Plans), es gibt also keinen Codeleser mehr - der Eintrag ist
         # mit dem Codeleser aus LEGACY_ENTFAELLT entfallen, nicht erst mit der
         # Datei. Paket W1.2 hat die Datei selbst (data/WINDKRAFT_AUSSCHLUSSZONE.zip)
@@ -170,7 +173,7 @@ RAW = {
         # pipeline/prep/noe_sekrop.py (PDF_PATH, beide Stufen) - vormals
         # scripts/noe/extract_noe_vector_layers.py:48 und
         # scripts/noe/align_pdf_shapefile.py, per Paket W1.P9 dorthin
-        # verschoben (siehe dessen Bericht). windkraft/noe/pdf_align.py:45
+        # verschoben (siehe dessen Bericht). calc/noe/pdf_align.py:45
         # bleibt als geteilte GPTS-Konstante bestehen, von dort importiert.
         # (DATA / "noe_sekrop" / ... - zusammengesetzt, siehe PLAN.md §11.1)
         "pdf": DATA / "noe_sekrop" / "TeilC_3_2_Karte_Mindestabstandszonen_A0_20240402.pdf",
@@ -191,7 +194,7 @@ RAW = {
 # unerreichbar (PLAN.md §11.1, Klasse "U": deklariert, kein Konsument).
 # Kein Rohdatum, nichts, das je verschwinden könnte. W1.x entfernt beide
 # Einträge ersatzlos; bis dahin müssen sie hier stehen, weil config.json
-# sie sonst nicht mehr auflösen könnte (siehe windkraft/config.py).
+# sie sonst nicht mehr auflösen könnte (siehe calc/config.py).
 #
 # LEGACY_ENTFAELLT - Pfade, die existieren und heute tatsächlich gelesen
 # werden (bis zu ihrer Entfernung gilt für sie also dieselbe Zusicherung
@@ -242,47 +245,50 @@ LEGACY_ENTFAELLT: dict[str, Path] = {
 # ---------------------------------------------------------------------------
 
 PREP = {
-    "admin": BUILD_PREP / "admin",
+    "admin": DERIVED_PREP / "admin",
     # Kataster: zwei Stufen, weil die NÖ-Polygonisierung teuer ist und vom
     # billigeren Parquet-Export getrennt bleibt (PLAN.md §4/§3).
     "kataster": {
-        "a_noe_polygonize": BUILD_PREP / "kataster" / "a_noe_polygonize",
-        "b_export_parquet": BUILD_PREP / "kataster" / "b_export_parquet",
+        "a_noe_polygonize": DERIVED_PREP / "kataster" / "a_noe_polygonize",
+        "b_export_parquet": DERIVED_PREP / "kataster" / "b_export_parquet",
     },
-    "adressen": BUILD_PREP / "adressen",
-    "widmung": BUILD_PREP / "widmung",
+    "adressen": DERIVED_PREP / "adressen",
+    "widmung": DERIVED_PREP / "widmung",
     # OSM: zwei Stufen, weil die osmium-Extraktion teuer ist und die
     # Layer-Ableitung oft wiederholt wird (PLAN.md §4).
     "osm": {
-        "a_extract": BUILD_PREP / "osm" / "a_extract",
-        "b_layers": BUILD_PREP / "osm" / "b_layers",
+        "a_extract": DERIVED_PREP / "osm" / "a_extract",
+        "b_layers": DERIVED_PREP / "osm" / "b_layers",
     },
     # Gelände & Wind: ein Durchreichen/Gitterprüfung, keine zwei Stufen -
     # siehe Kommentar oben (ANNAHME, von W1.P6 zu prüfen).
-    "gelaende": BUILD_PREP / "gelaende",
-    "natur": BUILD_PREP / "natur",
-    "zonen": BUILD_PREP / "zonen",
+    "gelaende": DERIVED_PREP / "gelaende",
+    "natur": DERIVED_PREP / "natur",
+    "zonen": DERIVED_PREP / "zonen",
     # NÖ SekROP: zwei Stufen, Karten-Alignment vor Vektorisierung (PLAN.md §4).
     "noe_sekrop": {
-        "a_align": BUILD_PREP / "noe_sekrop" / "a_align",
-        "b_vectorize": BUILD_PREP / "noe_sekrop" / "b_vectorize",
+        "a_align": DERIVED_PREP / "noe_sekrop" / "a_align",
+        "b_vectorize": DERIVED_PREP / "noe_sekrop" / "b_vectorize",
     },
 }
 
 
 # ---------------------------------------------------------------------------
 # LAYERS - Checkpoint-Layer der Rasterisierungsstufe. Bezeichner zuerst, Pfad
-# wird daraus abgeleitet (<name>.tif unter build/layers/) - wie es heute schon
-# layer_path() in windkraft/calc/abschichtung_common.py tut. Zielzustand:
-# heute liegen die entsprechenden 33 Checkpoints noch unter
-# output/abschichtung_widmung_v2/distance_layers/, Datei- und Codenamen sind
-# dort bereits deckungsgleich (siehe Bericht zu W0.2). Ausnahme: der Checkpoint
-# noe_pdf_hig_source wurde dort nie gelesen (Paket W1.6 hat den Erzeuger
-# entfernt) und fehlt deshalb hier absichtlich.
+# wird daraus abgeleitet (<name>.tif unter derived/layers/) - wie es heute schon
+# layer_path() in calc/abschichtung_common.py tut. Namensherkunft (Stand W0.2,
+# historisch): die 33 Checkpoints lagen damals noch unter
+# output/abschichtung_widmung_v2/distance_layers/, Datei- und Codenamen waren
+# dort bereits deckungsgleich (siehe Bericht zu W0.2) - dieses output/ existiert
+# seit W6.1 nicht mehr im Repo (siehe pipeline/validate.py). Ausnahme: der
+# Checkpoint noe_pdf_hig_source wurde dort nie gelesen (Paket W1.6 hat den
+# Erzeuger entfernt) und fehlt deshalb hier absichtlich.
 # ---------------------------------------------------------------------------
 
 LAYER_NAMES = (
-    # scripts/widmung_v2/02_build_hig_sources.py:SOURCE_LAYER_NAMES
+    # scripts/widmung_v2/02_build_hig_sources.py:SOURCE_LAYER_NAMES - seit
+    # W6.1 aus dem Repo entfernt, letzter Stand im Commit f1d00f7 - git show
+    # f1d00f7:scripts/widmung_v2/02_build_hig_sources.py.
     "official_settlement_source",
     "ferienhaus_tourismus_source",
     "official_hig_source",
@@ -291,7 +297,9 @@ LAYER_NAMES = (
     "bewohnt_einzellage_source",
     "nonresidential_hulls_source",
     # scripts/widmung_v2/03_build_osm_layers.py:OSM_LAYER_NAMES,
-    # INFRA_LAYER_NAMES, AIRPORT_LAYER_NAMES
+    # INFRA_LAYER_NAMES, AIRPORT_LAYER_NAMES - seit W6.1 aus dem Repo
+    # entfernt, letzter Stand im Commit f1d00f7 - git show
+    # f1d00f7:scripts/widmung_v2/03_build_osm_layers.py.
     "cableway_buildings_source",
     "general_buildings_source",
     "road_motorway_trunk",
@@ -323,7 +331,7 @@ LAYER_NAMES = (
     "wka_bestand_ausserhalb_zonen",
 )
 
-LAYERS = {name: BUILD_LAYERS / f"{name}.tif" for name in LAYER_NAMES}
+LAYERS = {name: DERIVED_LAYERS / f"{name}.tif" for name in LAYER_NAMES}
 
 
 # ---------------------------------------------------------------------------

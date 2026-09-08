@@ -25,11 +25,11 @@ Tatsachen, die bisher nur implizit existierten, werden hier explizit:
                           nicht.
 
 Farben, Kategorien, ``is_total`` und ``default_visible`` kommen aus
-``windkraft/viz/band_metadata.py`` - der gemeinsamen Quelle von Viewer und
+``calc/viz/band_metadata.py`` - der gemeinsamen Quelle von Viewer und
 Manifest. Hier werden sie NICHT dupliziert.
 
 Stil (JSON-Einrückung, Zeitstempel, Schlüsselreihenfolge) folgt bewusst
-``write_legend()`` in ``windkraft/calc/kataster_layers.py`` des Alt-Repos.
+``write_legend()`` in ``calc/kataster_layers.py`` des Alt-Repos.
 
 ## Schema-Historie (Paket W3.1, docs/rewrite/PLAN.md §7)
 
@@ -95,7 +95,7 @@ durchzulassen").
              Nebenversion, nicht Hauptversion: die neue Zeile ist additiv,
              ändert weder ``bands[]`` noch ein bestehendes Feld je Band,
              und folgt einer bereits generisch entdeckbaren Konvention
-             (``pipeline/verify/dashboard.py:_impact_path_keys()`` findet
+             (``pipeline/export/dashboard.py:_impact_path_keys()`` findet
              jeden Schlüssel, der auf ``_wirkungspfad`` endet und eine
              Liste ist, unabhängig vom Namen - siehe dort). Der bestehende
              ``geography_water_bodies_wirkungspfad`` bleibt unverändert:
@@ -112,7 +112,7 @@ import json
 import time
 from pathlib import Path
 
-from windkraft.viz.band_metadata import (
+from calc.viz.band_metadata import (
     CATEGORY_ORDER,
     DEFAULT_VISIBLE,
     categorize_layer,
@@ -128,7 +128,7 @@ MANIFEST_SUFFIX = ".bands.json"
 DEFAULT_PIPELINE = "widmung_v2"
 DEFAULT_BAND_SCHEMA = "clean-38-ohne-wichtige-objekte-aug-2026"
 
-# Wie output_profile() in windkraft/calc/abschichtung_common.py das GeoTIFF
+# Wie output_profile() in calc/abschichtung_common.py das GeoTIFF
 # anlegt. Hier als Konstante gespiegelt statt importiert, damit dieses Modul
 # ohne rasterio/geopandas testbar bleibt.
 RASTER_DTYPE = "uint8"
@@ -415,7 +415,8 @@ def _noe_dkm_affected(name: str) -> bool:
     Direkt: nonresidential_hulls_source (Hüllenklassen industriegebietartig +
     unbewohnt, NICHT NÖ-maskiert) und general_buildings_source (enthält
     bewohnt_einzellage_source UND ausdrücklich die NÖ-Streusiedlungs-Hüllen,
-    siehe scripts/widmung_v2/03_build_osm_layers.py). Dazu deren 25-m-Puffer.
+    siehe scripts/widmung_v2/03_build_osm_layers.py - seit W6.1 aus dem Repo
+    entfernt, letzter Stand im Commit f1d00f7). Dazu deren 25-m-Puffer.
 
     Geerbt: exclusion_human (ODER über die Pufferbänder), all_exclusions, die
     rohe und bereinigte Verfügbarkeit sowie die daraus geglätteten
@@ -478,7 +479,7 @@ BLUR_BLEED_CAVEAT = {
 #
 # Werte sind aus dem Code der Layer-/Finalisierungs-Stufe abgelesen, nicht
 # neu festgelegt (Regel 4): Puffer-Konstanten aus
-# windkraft/calc/abschichtung_common.py, Quellzuordnung aus
+# calc/abschichtung_common.py, Quellzuordnung aus
 # pipeline/contract.py:RAW (welche Domäne welchen Layer speist, siehe dort
 # §4-Domänentabelle im Plan) bzw. aus den Aufrufen in pipeline/layers/*.py
 # und pipeline/finalize.py (welches Band aus welchem Vorband entsteht).
@@ -641,7 +642,7 @@ BAND_SOURCES: dict[str, list[str]] = {
 
 # Bandnamen, aus denen ein Band RECHNERISCH entsteht (ODER, Negation,
 # Schwellwert, Blur) - aus compose_exclusion_geotiff() abgelesen
-# (windkraft/calc/abschichtung_common.py):
+# (calc/abschichtung_common.py):
 #   exclusion_human/_nature/_geography = ODER der jeweiligen Gruppenbänder
 #   all_exclusions                     = ODER der drei Kategorie-Aggregate
 #   available_after_all_exclusions_raw = NICHT all_exclusions (& valid_area)
@@ -696,7 +697,7 @@ BAND_DERIVED_FROM: dict[str, list[str]] = {
     "cableway_buildings_buffer": ["cableway_buildings_source"],
     "general_buildings_buffer": ["general_buildings_source"],
     # Kategorie-/Ergebnisaggregate, gebaut in compose_exclusion_geotiff()
-    # (windkraft/calc/abschichtung_common.py).
+    # (calc/abschichtung_common.py).
     "exclusion_human": list(_HUMAN_BANDS),
     "exclusion_nature": list(_NATURE_BANDS),
     "exclusion_geography": list(_GEOGRAPHY_AND_WATER_BANDS),

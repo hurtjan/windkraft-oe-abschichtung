@@ -11,7 +11,7 @@ Vektorisierung, PLAN.md §4):
 
 - ``run_align()`` -> ``contract.PREP["noe_sekrop"]["a_align"]``: liest nur
   die vier georeferenzierten Eckpunkte (``/GPTS`` des GeoPDFs, hier als
-  Konstante übernommen - siehe ``windkraft/noe/pdf_align.py``) und die
+  Konstante übernommen - siehe ``calc/noe/pdf_align.py``) und die
   Seitenhöhe, transformiert MGI (EPSG:4312) nach EPSG:31287 und passt eine
   affine Pixel<->Geo-Transformation. Schreibt ``alignment_mindestabstand.json``.
 - ``run_vectorize()`` -> ``contract.PREP["noe_sekrop"]["b_vectorize"]``:
@@ -44,16 +44,16 @@ keine der beiden ändert eine Ausgabedatei:
 
 Was diese Stufe bewusst NICHT mehr erzeugt: die drei
 ``pdf_hig_source_*.geojson``-Dateien (rekonstruierte SekROP-Quellobjekte
-über ``windkraft/noe/pdf_hig_sources.py:derive_layer_files()``, Erosion um
+über ``calc/noe/pdf_hig_sources.py:derive_layer_files()``, Erosion um
 750-50 m). Repoweite Vorwärts-/Rückwärtssuche (siehe Bericht zu W1.P9)
-bestätigt: seit Paket W1.6 (``windkraft/calc/hig_source_masks.py``,
+bestätigt: seit Paket W1.6 (``calc/hig_source_masks.py``,
 Funktion ``noe_pdf_source_mask()`` entfernt) liest diese Dateien niemand
 mehr - weder ein Band im 38-Band-Schema noch ``pipeline/contract.py:
-LAYER_NAMES`` noch irgendein anderes Skript. ``windkraft/noe/
+LAYER_NAMES`` noch irgendein anderes Skript. ``calc/noe/
 pdf_hig_sources.py`` wurde deshalb mit diesem Paket gelöscht, nicht
 mitverschoben - eine Sackgasse eine Ebene über der, die W1.6 beseitigt
 hat. Der einzige echte Abnehmer dieser Domäne ist ``noe_pdf_750m_zones``
-(über ``windkraft/calc/hig_source_masks.py:noe_pdf_mask()``, liest exakt
+(über ``calc/hig_source_masks.py:noe_pdf_mask()``, liest exakt
 die drei ``pdf_750m_*.geojson`` unten) - dieser Pfad bleibt unverändert
 erhalten und wird von diesem Paket nicht angefasst (Abgrenzung laut
 Auftrag: Konsumenten von ``noe_pdf_750m_zones`` ändert diese Welle nicht).
@@ -82,7 +82,7 @@ from shapely.affinity import affine_transform
 from shapely.geometry import Polygon
 
 from pipeline import contract, fingerprint, runtime
-from windkraft.noe.pdf_align import GPTS_LATLON_MINDESTABSTAND
+from calc.noe.pdf_align import GPTS_LATLON_MINDESTABSTAND
 
 PDF_PATH = contract.RAW["noe_sekrop"]["pdf"]
 VGD_PATH = contract.RAW["admin"]["vgd"]
@@ -96,7 +96,7 @@ ALIGNMENT_FILENAME = "alignment_mindestabstand.json"
 # Unverändert aus scripts/noe/align_pdf_shapefile.py. VP_BBOX ist die feste
 # Viewport-BBox der Kartenseite in PDF-Punkten, LPTS die Eckpunkt-Reihenfolge
 # (u=horizontal 0=links/1=rechts, v=vertikal 0=oben/1=unten), beide passend
-# zu GPTS_LATLON_MINDESTABSTAND (windkraft/noe/pdf_align.py, aus dem
+# zu GPTS_LATLON_MINDESTABSTAND (calc/noe/pdf_align.py, aus dem
 # /GPTS-Eintrag des GeoPDFs).
 VP_BBOX = [62.39916, 2355.6873, 2928.2005, 28.28232]
 LPTS = [(0, 1), (0, 0), (1, 0), (1, 1)]

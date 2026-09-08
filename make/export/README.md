@@ -1,19 +1,19 @@
-# make/verify/ — Konvention für die zwei Verify-Pakete
+# make/export/ — Konvention für die zwei Export-Pakete
 
 Vorpaket **W4.P0** (`docs/rewrite/PLAN.md` §13.10, Regel 9) hat dieses
-Verzeichnis angelegt, damit die zwei parallelen Verify-Pakete (W4.1
+Verzeichnis angelegt, damit die zwei parallelen Export-Pakete (W4.1
 Dashboard, W4.2 Gemeindegrenzen-Export) nicht beide dieselbe Zeile im
-`Makefile` ändern müssen. Das `Makefile` liest `make/verify/*.mk` per
+`Makefile` ändern müssen. Das `Makefile` liest `make/export/*.mk` per
 `-include` ein — zwei verschiedene Dateien statt zwei Änderungen an
 einer. Genau dasselbe Muster wie bei `make/prep/` und `make/layers/`
 (siehe deren `README.md` — "nicht ähnlich, sondern dasselbe").
 
 ## Konvention
 
-- Dein Make-Ziel heißt `verify-<domäne>` (z. B. `verify-dashboard`,
-  `verify-gemeinden`) und steht in `make/verify/<domäne>.mk` — sonst
+- Dein Make-Ziel heißt `export-<domäne>` (z. B. `export-dashboard`,
+  `export-gemeinden`) und steht in `make/export/<domäne>.mk` — sonst
   nirgends. `<domäne>` ist der Name deines Moduls unter
-  `pipeline/verify/` ohne `.py` (also `dashboard` bzw. `gemeinden` —
+  `pipeline/export/` ohne `.py` (also `dashboard` bzw. `gemeinden` —
   siehe `docs/rewrite/PLAN.md` §7, Spalte "Ort" für W4.1/W4.2).
 - Deine Produktpfade (`out/dashboard/`, `out/gemeinden.geojson`) stehen
   bereits in `pipeline/contract.py:PRODUCTS` (Schlüssel
@@ -25,38 +25,38 @@ einer. Genau dasselbe Muster wie bei `make/prep/` und `make/layers/`
   out_dir = contract.PRODUCTS["dashboard_dir"]
   ```
 
-  Das fertige TIF und das Bandmanifest, gegen die deine Verify-Stufe
+  Das fertige TIF und das Bandmanifest, gegen die deine Export-Stufe
   liest, stehen ebenso bereits in `pipeline/contract.py:PRODUCTS`
   (Schlüssel `abschichtung_tif`, `abschichtung_bands_json`) und liegen
   unter `out/` (siehe make/finalize/README.md, make/validate/README.md).
-- `make verify` ruft am Ende alle vorhandenen `verify-*`-Ziele auf. Das
-  geschieht automatisch über `VERIFY_TARGETS` im `Makefile` (aus den
-  Dateinamen unter `make/verify/` abgeleitet) — du musst `verify:` selbst
-  nicht anfassen, nur dein eigenes `verify-<domäne>:` deklarieren.
+- `make export` ruft am Ende alle vorhandenen `export-*`-Ziele auf. Das
+  geschieht automatisch über `EXPORT_TARGETS` im `Makefile` (aus den
+  Dateinamen unter `make/export/` abgeleitet) — du musst `export:` selbst
+  nicht anfassen, nur dein eigenes `export-<domäne>:` deklarieren.
 - Deklariere dein Ziel als `.PHONY` **in deiner eigenen Datei**, nicht im
-  Haupt-`Makefile` (das trägt `VERIFY_TARGETS` bereits automatisch in
+  Haupt-`Makefile` (das trägt `EXPORT_TARGETS` bereits automatisch in
   `.PHONY` ein, schadet aber nicht, wenn du es zusätzlich in deiner
   Datei tust).
 
 ## Minimalbeispiel
 
 Siehe `_beispiel.mk.txt` in diesem Verzeichnis — die Endung `.mk.txt`
-(nicht `.mk`) ist Absicht: sie wird von `-include make/verify/*.mk` nicht
+(nicht `.mk`) ist Absicht: sie wird von `-include make/export/*.mk` nicht
 eingelesen, dient nur als Vorlage zum Kopieren.
 
 ```make
-.PHONY: verify-dashboard
-verify-dashboard:
-	uv run python -m pipeline.verify.dashboard
+.PHONY: export-dashboard
+export-dashboard:
+	uv run python -m pipeline.export.dashboard
 ```
 
-## Worktree: build/layers/ und das fertige TIF sind schon da
+## Worktree: derived/layers/ und das fertige TIF sind schon da
 
 `make worktree PAKET=<dein-paket>` verlinkt seit W4.P0 auch
-`build/layers/` (die 33 Checkpoints) sowie `out/abschichtung.tif` und
+`derived/layers/` (die 33 Checkpoints) sowie `out/abschichtung.tif` und
 `out/abschichtung.bands.json` (das fertige TIF samt Bandmanifest) in dein
 Worktree hinein — alle drei als Symlinks auf dieses Repo, read-only,
-geteilt über alle Verify-Worktrees (siehe die Warnungen im `worktree`-Ziel
+geteilt über alle Export-Worktrees (siehe die Warnungen im `worktree`-Ziel
 selbst). Du musst weder die Layer-Stufe noch die Finalisierung in deinem
 Worktree neu rechnen, um gegen ihre Ausgaben zu prüfen.
 

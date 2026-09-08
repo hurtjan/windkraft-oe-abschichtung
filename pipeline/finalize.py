@@ -2,7 +2,7 @@
 docs/rewrite/PLAN.md §7, §13.9).
 
 Reiner Komponist. Diese Stufe baut KEINEN einzigen Layer selbst - alle 33
-Checkpoints unter ``build/layers/`` sind bereits von der Layer-Welle
+Checkpoints unter ``derived/layers/`` sind bereits von der Layer-Welle
 geschrieben (W2.1 ``pipeline/layers/hig.py``, W2.3 ``pipeline/layers/osm.py``,
 W2.4 ``pipeline/layers/geo.py`` - siehe ``make layers``). Was hier passiert,
 ist genau der Teil von ``scripts/widmung_v2/04_create_distance_zones.py``
@@ -13,8 +13,8 @@ Bedingungsbänder plus die beiden Referenzbänder einlesen, die Kategorie- und
 Ergebnisaggregate bilden, die vier Unschärfebänder rechnen und alles
 zusammen mit dem Manifest schreiben (``compose_exclusion_geotiff()`` +
 ``write_band_manifest()``, beide unverändert aus
-``windkraft/calc/abschichtung_common.py`` bzw.
-``windkraft/calc/band_manifest.py`` importiert - reine Rechenlogik, hier
+``calc/abschichtung_common.py`` bzw.
+``calc/band_manifest.py`` importiert - reine Rechenlogik, hier
 nicht neu erfunden).
 
 ## Wo die Grenze zu Welle 2 verläuft
@@ -66,7 +66,7 @@ die Aggregat-/Ergebnisbänder verschneidet) steht nicht in
 persistierter Bandtyp, sondern wurde in ``main()`` jedes Mal frisch aus den
 Verwaltungsgrenzen gebaut. Diese Datei importiert dafür
 ``pipeline.layers.geo._build_valid_area_mask()`` (liest
-``build/prep/admin/bundesland_masken.gpkg``, siehe dessen Modul) statt sie
+``derived/prep/admin/bundesland_masken.gpkg``, siehe dessen Modul) statt sie
 ein drittes Mal zu duplizieren oder auf die VGD-Rohquelle
 (``abschichtung_common.build_valid_area_mask()``) zurückzugreifen - Letzteres
 wäre ein Sprung von Stufe 5 direkt auf Stufe 1 und würde §3 verletzen ("nie
@@ -99,8 +99,8 @@ if str(PROJECT_ROOT) not in sys.path:
 from pipeline import contract, runtime  # noqa: E402
 from pipeline.layers.geo import _build_valid_area_mask  # noqa: E402
 
-from windkraft.config import load_config  # noqa: E402
-from windkraft.calc.abschichtung_common import (  # noqa: E402
+from calc.config import load_config  # noqa: E402
+from calc.abschichtung_common import (  # noqa: E402
     AIRPORT_CORRIDOR_HALF_ANGLE_DEG,
     AIRPORT_CORRIDOR_LENGTH_M,
     CABLEWAY_BUILDING_BUFFER_M,
@@ -121,7 +121,7 @@ from windkraft.calc.abschichtung_common import (  # noqa: E402
     load_grid,
     timed,
 )
-from windkraft.calc.band_manifest import write_band_manifest  # noqa: E402
+from calc.band_manifest import write_band_manifest  # noqa: E402
 
 PIPELINE_TAG = "widmung_v2"
 # Wortgleich aus scripts/widmung_v2/04_create_distance_zones.py (dort Zeile
@@ -226,7 +226,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(
         description=(
             "Finalisierung W3.1: komponiert das 38-Band-GeoTIFF plus Manifest "
-            "aus den Checkpoint-Layern der neuen Kette (build/layers/, siehe "
+            "aus den Checkpoint-Layern der neuen Kette (derived/layers/, siehe "
             "'make layers'). Baut selbst keine Layer."
         )
     )
@@ -234,7 +234,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument(
         "--layer-dir",
         default=None,
-        help="Quelle der 33 Checkpoint-Layer. Default: pipeline.contract.BUILD_LAYERS (build/layers/).",
+        help="Quelle der 33 Checkpoint-Layer. Default: pipeline.contract.DERIVED_LAYERS (derived/layers/).",
     )
     p.add_argument(
         "--output",
@@ -243,7 +243,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     # Kein --bbox (anders als beim alten Skript und bei pipeline/layers/*.py):
     # die 33 Checkpoints unter --layer-dir sind bereits auf dem vollen
-    # Österreich-Gitter geschrieben (build/layers/, siehe make layers). Ein
+    # Österreich-Gitter geschrieben (derived/layers/, siehe make layers). Ein
     # hier verkleinertes Gitter würde beim ersten read_layer_mask() sofort an
     # der Shape scheitern (getestet: (2000,2000) vs. (14001,24001)) - ein
     # bbox-Smoke-Test müsste auch die Checkpoints selbst neu (verkleinert)
@@ -257,7 +257,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
-    layer_dir = Path(args.layer_dir) if args.layer_dir else contract.BUILD_LAYERS
+    layer_dir = Path(args.layer_dir) if args.layer_dir else contract.DERIVED_LAYERS
     output = Path(args.output) if args.output else contract.PRODUCTS["abschichtung_tif"]
 
     with timed("load config/grid"):
@@ -266,7 +266,7 @@ def main(argv: list[str] | None = None) -> None:
 
     _check_layers(layer_dir)
 
-    with timed("build valid area mask (build/prep/admin)"):
+    with timed("build valid area mask (derived/prep/admin)"):
         valid_area = _build_valid_area_mask(grid)
 
     # Wortgleich aus scripts/widmung_v2/04_create_distance_zones.py:main()

@@ -3,7 +3,8 @@
 Dieser Test importiert die unveränderte Originaldatei aus dem Alt-Repo
 `windkraft_ö_karten` direkt über ihren absoluten Pfad. Er ist das
 Verifikationsartefakt der Migration von `fft_circle_dilation` und `ns_kind`
-nach `windkraft/calc/distance_engine.py` - KEIN dauerhafter Unittest. Sobald
+nach `calc/distance_engine.py` (bis W6.2 `windkraft/calc/distance_engine.py`)
+- KEIN dauerhafter Unittest. Sobald
 das Alt-Repo nicht mehr existiert (oder die Datei dort geändert wird), wird er
 bedeutungslos und darf entfernt werden.
 
@@ -45,8 +46,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from windkraft.calc.distance_engine import fft_circle_dilation as fft_circle_dilation_new  # noqa: E402
-from windkraft.calc.distance_engine import ns_kind as ns_kind_new  # noqa: E402
+from calc.distance_engine import fft_circle_dilation as fft_circle_dilation_new  # noqa: E402
+from calc.distance_engine import ns_kind as ns_kind_new  # noqa: E402
 
 OLD_REPO_ROOT = os.environ.get(
     "ABSCHICHTUNG_ALTREPO", "/Users/jhurt/Documents/windkraft_ö_karten"
@@ -69,10 +70,15 @@ def _load_old_module():
     gelegt (try/finally), damit die eigenen `windkraft.*`-Imports der Alt-Datei
     (terrain, siedlung_method, util/admin, config) aufloesen. Zusaetzlich wird
     der sys.modules-Cache um jeden bereits vorhandenen "windkraft"-Eintrag
-    (aus dem NEUEN Repo, s.o. bereits importiert) fuer die Dauer des Ladens
-    verdraengt und danach wiederhergestellt - sonst wuerde Python die
-    Alt-Importe faelschlich gegen das schon gecachte NEUE windkraft-Paket
-    aufloesen (gleicher Paketname, unterschiedlicher Ort auf der Platte).
+    verdraengt und danach wiederhergestellt - so wuerde Python die Alt-Importe
+    nicht faelschlich gegen einen schon gecachten "windkraft"-Eintrag aufloesen,
+    falls einer vorhanden ist. Bis W6.2 hiess auch das NEUE (dieses) Repo-Paket
+    windkraft - der Import oben landete dann selbst unter "windkraft" in
+    sys.modules, und genau diese Kollision (gleicher Paketname, unterschiedlicher
+    Ort auf der Platte) war der eigentliche Grund fuer die Verdraengung. Seit
+    der Umbenennung auf `calc` (W6.2) importiert dieses Modul unter "calc", die
+    Verdraengung hier bleibt als Absicherung stehen, ist aber im Regelfall ein
+    No-op (saved_modules bleibt leer).
     """
     saved_modules = {
         name: mod

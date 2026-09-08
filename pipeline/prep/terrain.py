@@ -25,7 +25,7 @@ dagegen ein echter Fehler dieser Stufe und bricht sehr wohl ab.
 
 Zielgitter (PLAN.md §13.5): EPSG:31287, 25 m, 24001 × 14001 Zellen. Das
 ist keine freie Erfindung dieser Datei - im heutigen Code
-(``windkraft/calc/abschichtung_common.py:load_grid``) IST ``DGM_R25.tif``
+(``calc/abschichtung_common.py:load_grid``) IST ``DGM_R25.tif``
 selbst die Vorlage, aus der die gesamte Kette ihr Rasterraster ableitet;
 das Zielgitter ist also per Definition das Gitter der DGM-Datei. Diese
 Konstanten hier sind der Schnappschuss dieses Gitters, damit die Prüfung

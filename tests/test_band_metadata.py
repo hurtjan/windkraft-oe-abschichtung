@@ -1,4 +1,4 @@
-"""Tests für windkraft.viz.band_metadata: Kategorien, Farben, Default-Sichtbarkeit.
+"""Tests für calc.viz.band_metadata: Kategorien, Farben, Default-Sichtbarkeit.
 
 Regressionsschutz für die Reihenfolge von HUMAN_PREFIXES (siehe Modul-Docstring
 von band_metadata.py) und für die Farb-/Kategorie-Zuordnung der 38 Bänder des
@@ -13,7 +13,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from windkraft.viz.band_metadata import (  # noqa: E402
+from calc.viz.band_metadata import (  # noqa: E402
     CATEGORY_ORDER,
     DEFAULT_VISIBLE,
     HUMAN_PREFIXES,

@@ -8,7 +8,7 @@ GeoParquet-Erzeugung: ``pipeline.prep.kataster.a_noe_polygonize`` importiert
 von hier nur die reinen DXF-/Geometrie-Hilfsfunktionen (unverändert). Dieses
 Skript selbst erzeugt PNG-Übersichten unter ``OUT_DIR`` - kein Prep-,
 Layer- oder Produktpfad im Sinne von ``pipeline.contract`` (deshalb bleibt
-``OUT_DIR`` unterhalb von ``output/``, nicht ``build/prep/``). Inputs kommen
+``OUT_DIR`` unterhalb von ``output/``, nicht ``derived/prep/``). Inputs kommen
 seit dem Umzug aus ``pipeline.contract.RAW`` statt aus lokal
 zusammengesetzten ``data/``-Pfaden (PLAN.md §8 Regel 2).
 

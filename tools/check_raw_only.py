@@ -58,7 +58,7 @@ BEKANNTE LÜCKEN — was dieser Wächter NICHT findet
    übersehener Funde) — kommt in diesem Repo aber nicht vor, weil niemand
    ``DATA.parent`` bildet.
 
-6. **Nur ``windkraft/``, ``scripts/``, ``pipeline/`` und ``tools/`` (außer
+6. **Nur ``calc/``, ``scripts/``, ``pipeline/`` und ``tools/`` (außer
    sich selbst und ``check_hardlink_safety.py``).** ``tests/`` ist bewusst
    ausgenommen — Tests arbeiten laut Konvention in ``tempfile``-Verzeichnissen
    (siehe ``tests/test_check_hardlink_safety.py``), nicht in ``data/``, aber
@@ -83,7 +83,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
-SCAN_DIRS = ("windkraft", "scripts", "pipeline", "tools")
+SCAN_DIRS = ("calc", "scripts", "pipeline", "tools")
 
 # Der Wächter scannt sich selbst nicht (enthält absichtlich Beispielnamen
 # wie "to_parquet" im Docstring/Quellcode) und lässt check_hardlink_safety.py

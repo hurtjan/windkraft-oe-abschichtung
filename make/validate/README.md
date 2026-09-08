@@ -4,7 +4,8 @@ Paket **W3.2** (`docs/rewrite/PLAN.md` §7) legt dieses Verzeichnis nach
 demselben Muster wie `make/prep/`, `make/layers/` und `make/finalize/` an
 (siehe deren `README.md` - "nicht ähnlich, sondern dasselbe"). Wie bei
 `make/finalize/` gibt es hier nur eine Domäne (Validierung ist eine eigene
-Stufe, §3: Roh → Prep → Layer → Finalize → **verify**), also kein
+Stufe, §3: Roh → Prep → Layer → Finalize → Export - §3 nennt die fünfte
+Stufe verify, bis W6.2 hiess sie so auch im Code), also kein
 `<domäne>`-Ableitungsmuster und keine eigene `*_TARGETS`-Liste -
 `validate.mk` deklariert Ziel und `.PHONY` direkt selbst.
 

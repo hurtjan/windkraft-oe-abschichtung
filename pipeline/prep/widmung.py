@@ -1,7 +1,7 @@
 """Prep: Flächenwidmung (Paket W1.P4, docs/rewrite/PLAN.md §7, §4).
 
 Neun Bundesländer, neun Rohformate (ZIP/SHP, GPKG, GeoJSON - siehe
-``windkraft/calc/widmung_sources.py:DATASETS``). Diese Stufe normalisiert
+``calc/widmung_sources.py:DATASETS``). Diese Stufe normalisiert
 genau das, was die Kette heute tatsächlich tut, um daraus drei
 bundesland-übergreifende Bündel zu bauen - nicht mehr und nicht weniger
 (Regel 4: Widmungsklassen, Attributfilter, Klassifikationen bleiben
@@ -19,15 +19,16 @@ Oberösterreich sieben Quellen speist), dieselbe Anwendung von
 ``source_mask`` je ``SOURCES``-Eintrag, dieselbe Gruppierung nach
 ``BUCKETS``. Jede fachliche Entscheidung (welcher Code zu welcher Klasse
 gehört, welches Feld gefiltert wird) bleibt ausschließlich in
-``windkraft/calc/widmung_sources.py`` - hier wird nur importiert, nie neu
+``calc/widmung_sources.py`` - hier wird nur importiert, nie neu
 klassifiziert.
 
 Die drei Bündel (``wohn_misch``, ``haeuser_im_gruenen``,
-``industrie_negativ`` - siehe ``windkraft/calc/widmung_sources.py:BUCKETS``
+``industrie_negativ`` - siehe ``calc/widmung_sources.py:BUCKETS``
 für die fachliche Bedeutung) entstehen als
 ``<bucket>_combined.gpkg`` unter ``contract.PREP["widmung"]`` - derselbe
-Dateiname wie im heutigen Zwischenstand unter
-``output/abschichtung_widmung_v2/zoning_vectors/``, damit ein späterer
+Dateiname wie damals (historisch, vor W6.1) im Zwischenstand unter
+``output/abschichtung_widmung_v2/zoning_vectors/`` (dieses output/ existiert
+seit W6.1 nicht mehr im Repo), damit ein späterer
 Konsument (Welle 2) ohne Umbenennung umgestellt werden kann.
 
 ``read_dataset`` (aus ``widmung_sources.py``) macht bereits die gesamte

@@ -2,7 +2,7 @@
 # keinem Makefile-Target aufgerufen. Es liegt hier als Herleitung der fest
 # verdrahteten Konstante HIG_CHAIN_M = 200 (Meter Verkettungsdistanz).
 # Verwendet wird die Konstante heute in:
-#   windkraft/calc/abschichtung_common.py:159  (Definition HIG_CHAIN_M = 200.0)
+#   calc/abschichtung_common.py:159  (Definition HIG_CHAIN_M = 200.0)
 #   scripts/widmung_v2/02_build_hig_sources.py:205  (Default fuer --chain-m)
 #   scripts/widmung_v2/04_create_distance_zones.py:477  (GeoTIFF-Metadatum)
 """Knie-Parametersuche für die Streusiedlungs-Erkennung (ε und Schwelle à la DBSCAN).
@@ -48,8 +48,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import shapely  # noqa: E402
 
-from windkraft.config import load_config  # noqa: E402
-from windkraft.calc.abschichtung_common import load_grid, timed  # noqa: E402
+from calc.config import load_config  # noqa: E402
+from calc.abschichtung_common import load_grid, timed  # noqa: E402
 from cluster_knee import (  # noqa: E402
     chord_knee,
     cluster_stats,
@@ -58,8 +58,8 @@ from cluster_knee import (  # noqa: E402
     kdist_curve,
     pair_edges,
 )
-from windkraft.calc.hig_detection import DISPLAY_BUNDESLAND  # noqa: E402
-from windkraft.calc.streusiedlung import load_candidate_signals  # noqa: E402
+from calc.hig_detection import DISPLAY_BUNDESLAND  # noqa: E402
+from calc.streusiedlung import load_candidate_signals  # noqa: E402
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -68,17 +68,17 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     # W6.1: output/ ist aus dem Repo entfernt (nach
     # ~/Documents/master_windkraft/archiv/ herausbewegt). Die drei
     # Vorgabewerte unten zeigen jetzt auf die Entsprechungen unter
-    # build/prep/ (dieselben Dateinamen, von der neuen Kette geschrieben -
-    # windkraft/calc/hig_source_masks.py:zoning_masks()/noe_pdf_mask() lesen
+    # derived/prep/ (dieselben Dateinamen, von der neuen Kette geschrieben -
+    # calc/hig_source_masks.py:zoning_masks()/noe_pdf_mask() lesen
     # wohn_misch_combined.gpkg/haeuser_im_gruenen_combined.gpkg/
     # industrie_negativ_combined.gpkg bzw. pdf_750m_{geb,gwr,gruenland_widmung}.geojson
     # namentlich). Dieses Skript hat kein Make-Ziel und muss nicht laufen -
     # die Vorgaben duerfen aber nicht auf ein geloeschtes Verzeichnis luegen.
-    p.add_argument("--zoning-dir", default="build/prep/widmung")
-    p.add_argument("--noe-dir", default="build/prep/noe_sekrop/b_vectorize")
+    p.add_argument("--zoning-dir", default="derived/prep/widmung")
+    p.add_argument("--noe-dir", default="derived/prep/noe_sekrop/b_vectorize")
     p.add_argument(
         "--dkm-parquet",
-        default="build/prep/kataster/b_export_parquet/at_dkm_gst_nfl_epsg31287.geoparquet",
+        default="derived/prep/kataster/b_export_parquet/at_dkm_gst_nfl_epsg31287.geoparquet",
     )
     p.add_argument("--address-dir", default="data/adressen")
     # --cache-dir/--out-dir sind eigene Schreibziele dieses Skripts (kein

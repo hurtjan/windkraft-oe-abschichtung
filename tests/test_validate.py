@@ -25,7 +25,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from windkraft.calc.band_manifest import (  # noqa: E402
+from calc.band_manifest import (  # noqa: E402
     ROLE_AGGREGAT_KATEGORIE,
     ROLE_BEDINGUNG,
     ROLE_REFERENZ,
@@ -232,7 +232,7 @@ def test_schwerpunkt_leere_maske_ist_leerer_string():
 
 
 # ---------------------------------------------------------------------------
-# measure_bands(): echte kleine GeoTIFFs, kein Zugriff auf build/prep/admin
+# measure_bands(): echte kleine GeoTIFFs, kein Zugriff auf derived/prep/admin
 # (Bundesland-Rasterisierung wird gemockt - eigenes Verhalten ist oben schon
 # fuer sich getestet).
 # ---------------------------------------------------------------------------

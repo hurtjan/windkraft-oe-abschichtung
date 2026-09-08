@@ -73,7 +73,7 @@ dasselbe Register wie zuvor.
 1. Abweichende Pixel, absolut.
 2. Anteil an den **gesetzten Pixeln des Bandes**.
 3. Größte zusammenhängende Abweichungsfläche in Hektar (4er-Nachbarschaft,
-   wie ``windkraft.calc.abschichtung_common.min_area_filter`` - Aug-2026-
+   wie ``calc.abschichtung_common.min_area_filter`` - Aug-2026-
    Entscheidung: nur Kantenkontakt verbindet).
 
 ### Die Nenner-Frage (Punkt aus dem Auftrag, hier entschieden)
@@ -94,7 +94,7 @@ in ``anteil_prozent``.
 ## Gruppen und Ampel
 
 Die Ampeltabelle unterscheidet zwei Gruppen nach ``band_role()`` aus
-``windkraft.calc.band_manifest``:
+``calc.band_manifest``:
 
 - ``bedingung`` (Bänder 1-26, Quellen und Puffer): Anteil **und** größte
   Fläche müssen beide unter dem jeweiligen Schwellwert liegen.
@@ -128,7 +128,7 @@ Referenzband-Regel selbst schon.
 PLAN.md §13.9 (Regel 8) erlaubt Abweichungen **ausschließlich** in Bändern,
 die transitiv aus einer bereits geprüften und angenommenen Ursache gespeist
 werden - welche das je Ursache sind, berechnet
-``windkraft.calc.band_manifest`` VOR der Messung aus ``abgeleitet_von`` und
+``calc.band_manifest`` VOR der Messung aus ``abgeleitet_von`` und
 legt es im Manifest als eigenen Top-Level-Schlüssel ab, einen je Ursache
 (``geography_water_bodies_wirkungspfad`` für die Bodensee-Korrektur, Punkt
 33; ``dkm_geoparquet_wirkungspfad`` für den Wegfall adressloser
@@ -138,7 +138,7 @@ DKM-Großflächen, Punkt 34, seit W5.P5) - siehe dortiges Modul, Regel 8:
 Dieses Werkzeug liest **jeden** Schlüssel, der im Manifest der
 ``..._wirkungspfad``-Konvention folgt (Namenssuffix, keine feste Liste von
 Schlüsselnamen - dieselbe Erkennung wie
-``pipeline/verify/dashboard.py:_impact_path_keys()``), bildet die
+``pipeline/export/dashboard.py:_impact_path_keys()``), bildet die
 Vereinigung ihrer Bandlisten und behandelt jede Abweichung auf einem Band
 AUSSERHALB dieser Vereinigung als Fehler: erzwungenes Rot, unabhängig von
 der berechneten Ampel-Farbe, mit eigenem Ursachenvermerk im Register. Jede
@@ -171,7 +171,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from pipeline import contract  # noqa: E402
 from pipeline.prep import admin as prep_admin  # noqa: E402
-from windkraft.calc.band_manifest import (  # noqa: E402
+from calc.band_manifest import (  # noqa: E402
     ROLE_BEDINGUNG,
     ROLE_REFERENZ,
     band_role,
@@ -200,7 +200,7 @@ REFERENCE_TIF = contract.RUN1_TIF
 #
 # Zweiter Wechsel (08.09.2026, Punkt 34, W5.P2): adresslose DKM-
 # Großflächen über HIG_MAX_FOOTPRINT_M2 entfallen jetzt als Kandidat
-# (windkraft/calc/hig_detection.py:scan_dkm_candidates()). Der vorherige
+# (calc/hig_detection.py:scan_dkm_candidates()). Der vorherige
 # Wert ``4bdef6ad5e863692cef0f19cdfe959f04e439e9b17310f2f7a3c067d56b1a13e``
 # bleibt in ``docs/rewrite/FORTSCHRITT.md``/``PLAN.md`` als historischer
 # Zeuge dokumentiert, ist aber - wie zuvor ``run1`` - kein Ziel mehr.
@@ -284,7 +284,7 @@ class BandResult:
 def _build_bundesland_code_raster(grid: dict) -> tuple[np.ndarray, dict[int, str]]:
     """Rasterisiert die 9 Bundesland-Polygone einmal auf das Zielgitter.
 
-    Liest ``build/prep/admin/bundesland_masken.gpkg`` (dieselbe Datei, die
+    Liest ``derived/prep/admin/bundesland_masken.gpkg`` (dieselbe Datei, die
     ``pipeline.layers.geo._build_valid_area_mask()`` für die Staatsgebiets-
     maske liest) - nur lesend, wie im Auftrag verlangt. Code 0 = außerhalb
     aller 9 Bundesländer (Rasterfenster reicht über die Staatsgrenze
@@ -433,7 +433,7 @@ def _erlaubte_baender_aus_manifest(manifest: dict) -> set[str]:
     Waechter"). Schluessel werden ueber das Namenssuffix gefunden, nicht
     ueber eine feste Liste ("geography_water_bodies_wirkungspfad",
     "dkm_geoparquet_wirkungspfad", ...) - dieselbe Konvention wie
-    ``pipeline/verify/dashboard.py:_impact_path_keys()``, hier lokal
+    ``pipeline/export/dashboard.py:_impact_path_keys()``, hier lokal
     dupliziert statt importiert: beide Module lesen dasselbe Manifest-
     Schema-Vokabular, aber unabhaengig voneinander (Verify- vs.
     Validierungsstufe, siehe PLAN.md §7), keine neue Kopplung zwischen den

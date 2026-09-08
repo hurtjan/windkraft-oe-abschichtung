@@ -10,7 +10,7 @@ davon abhängt, was gerade lokal unter data/ oder output/ liegt.
 Die Namen im Testbaum sind trotzdem echte: W4.3 hat hier den Rest der
 DECLARED-Ära entfernt, der noch `data/adressregister/adressen_31287.parquet`
 anlegte — ein Verzeichnis, das W0.1 nach `data/adressen/` umbenannt hat, und
-eine Datei, die seit W1.1/W1.P3 unter `build/prep/adressen/` entsteht und
+eine Datei, die seit W1.1/W1.P3 unter `derived/prep/adressen/` entsteht und
 nicht mehr unter `data/`. Der Test lief davon unberührt grün (tempfile), aber
 er lehrte jeden Leser einen Pfad, den es nicht mehr gibt. Für Regel B ist der
 Name ohnehin gleichgültig — seit W1.3 zählt *jede* Datei unter `data/`, nicht

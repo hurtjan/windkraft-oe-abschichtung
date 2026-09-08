@@ -5,7 +5,8 @@ demselben Muster wie `make/prep/` und `make/layers/` an (siehe deren
 `README.md` - "nicht ähnlich, sondern dasselbe"). Der Auftrag für W3.1
 verlangt ausdrücklich, dem `make/layers/README.md`-Muster zu folgen und
 nicht davon abzuweichen; da die Finalisierung eine eigene Stufe ist (§3:
-Roh → Prep → Layer → **Finalize** → verify), nicht Teil der Layer-Stufe,
+Roh → Prep → Layer → **Finalize** → Export - §3 nennt die fünfte Stufe
+verify, bis W6.2 hiess sie so auch im Code), nicht Teil der Layer-Stufe,
 bekommt sie ihr eigenes Verzeichnis statt eine vierte Datei unter
 `make/layers/` zu werden - eine Datei dort würde automatisch Teil von
 `LAYER_TARGETS` und würde `make -n layers` von drei auf vier Ziele

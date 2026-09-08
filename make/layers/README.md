@@ -24,7 +24,7 @@ drei Änderungen an einer. Genau dasselbe Muster wie bei `make/prep/` (siehe
   ```
 
   Die Prep-Ausgaben, gegen die deine Layer-Stufe prüft, stehen ebenso
-  bereits in `pipeline/contract.py:PREP` und liegen unter `build/prep/`
+  bereits in `pipeline/contract.py:PREP` und liegen unter `derived/prep/`
   (siehe `make/prep/README.md`).
 - `make layers` ruft am Ende alle vorhandenen `layer-*`-Ziele auf. Das
   geschieht automatisch über `LAYER_TARGETS` im `Makefile` (aus den
@@ -47,9 +47,9 @@ layer-hig:
 	uv run python -m pipeline.layers.hig
 ```
 
-## Worktree: build/prep/ ist schon da
+## Worktree: derived/prep/ ist schon da
 
-`make worktree PAKET=<dein-paket>` verlinkt seit W2.P0 auch `build/prep/`
+`make worktree PAKET=<dein-paket>` verlinkt seit W2.P0 auch `derived/prep/`
 in dein Worktree hinein (read-only, geteilt über alle Layer-Worktrees —
 siehe die Warnung im `worktree`-Ziel selbst). Du musst die Prep-Stufe in
 deinem Worktree also nicht neu rechnen, um gegen ihre Ausgaben zu prüfen.

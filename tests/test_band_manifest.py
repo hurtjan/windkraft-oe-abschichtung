@@ -21,7 +21,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from windkraft.calc.band_manifest import (  # noqa: E402
+from calc.band_manifest import (  # noqa: E402
     build_band_manifest,
     manifest_path_for,
     write_band_manifest,
