@@ -6,14 +6,15 @@ Abschichtung (Paket W4.1, docs/rewrite/PLAN.md §7).
 Der eigentliche interaktive Viewer für das Widmung-v2-Ergebnis lebt nicht
 in diesem Repo, sondern auf der Konsumentenseite ("Dashboard-Repo",
 ``scripts/band_manifest.py`` auf Branch ``feat/band-manifest`` dort - siehe
-``docs/HANDOFF.md``). Dieses Modul ist die **Prüfstufe** der Welle 4
-(``pipeline/export/``): es liest ``out/abschichtung.bands.json`` und
-schreibt einen Bericht (JSON + HTML) unter ``out/dashboard/``, der zeigt,
-was im Manifest steht, gruppiert nach ``rolle`` (WAS ein Band ist -
-Bedingung, Aggregat, Verfügbarkeit, Unschärfe, Referenz) und nach
-``category`` (die Anzeige-Gruppierung des Manifests selbst, z. B. Mensch/
-Natur/Geografie), und prüft das Manifest auf innere Widersprüche sowie
-optional gegen den Kopf des zugehörigen GeoTIFF.
+``docs/HANDOFF.md``). Seit Paket W6.7 übernimmt ``pipeline/export/viewer.py``
+die Erzeugung von ``out/dashboard/index.html`` (Leaflet/OSM-Kartenviewer);
+dieses Modul ist die **Prüfstufe** der Welle 4 (``pipeline/export/``): es
+liest ``out/abschichtung.bands.json`` und schreibt einen Bericht (JSON) unter
+``out/dashboard/``, der zeigt, was im Manifest steht, gruppiert nach
+``rolle`` (WAS ein Band ist - Bedingung, Aggregat, Verfügbarkeit, Unschärfe,
+Referenz) und nach ``category`` (die Anzeige-Gruppierung des Manifests selbst,
+z. B. Mensch/Natur/Geografie), und prüft das Manifest auf innere Widersprüche
+sowie optional gegen den Kopf des zugehörigen GeoTIFF.
 
 ## Der eigentliche Auftrag: keine Bandnamen im Code
 
@@ -100,7 +101,6 @@ Härtetests in der Abnahme.
 from __future__ import annotations
 
 import argparse
-import html
 import json
 import sys
 import time
@@ -317,7 +317,7 @@ def build_report(manifest: dict, raster_path: Path | None) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Ausgabe: JSON (maschinenlesbar) + HTML (Übersicht für Menschen)
+# Ausgabe: JSON (maschinenlesbar)
 # ---------------------------------------------------------------------------
 
 def write_json_report(out_dir: Path, report: dict) -> Path:
@@ -326,189 +326,6 @@ def write_json_report(out_dir: Path, report: dict) -> Path:
     return out_path
 
 
-def _e(value) -> str:
-    return html.escape("" if value is None else str(value))
-
-
-def _fmt_num(value) -> str:
-    return "–" if value is None else _e(value)
-
-
-def _render_validation_banner(report: dict) -> str:
-    problems = report["validation"]["problems"]
-    if not problems:
-        return '<div class="banner ok">Manifest ist in sich konsistent — keine Probleme gefunden.</div>'
-    items = "".join(f"<li>{_e(p)}</li>" for p in problems)
-    return f'<div class="banner bad"><strong>{len(problems)} Problem(e) im Manifest:</strong><ul>{items}</ul></div>'
-
-
-def _render_raster_check(report: dict) -> str:
-    rc = report["raster_check"]
-    if not rc.get("checked"):
-        return f'<div class="banner neutral">Raster-Abgleich übersprungen: {_e(rc.get("reason"))}</div>'
-    if rc["band_count_match"] and rc["names_match"]:
-        return (
-            f'<div class="banner ok">Raster-Kopf stimmt mit dem Manifest überein '
-            f'({rc["raster_band_count"]} Bänder, Reihenfolge identisch): {_e(rc["raster_path"])}</div>'
-        )
-    rows = "".join(
-        f"<tr><td>{_fmt_num(m['index'])}</td><td>{_e(m['raster_name'])}</td><td>{_e(m['manifest_name'])}</td></tr>"
-        for m in rc["mismatches"]
-    )
-    return (
-        f'<div class="banner bad"><strong>Raster und Manifest stimmen NICHT überein</strong> '
-        f'({_e(rc["raster_path"])}): Raster hat {rc["raster_band_count"]} Bänder, '
-        f'Manifest hat {rc["manifest_band_count"]}.'
-        f'<table><tr><th>Index</th><th>Raster-Name</th><th>Manifest-Name</th></tr>{rows}</table></div>'
-    )
-
-
-def _render_role_table(report: dict) -> str:
-    rows = "".join(
-        f'<tr><td><code>{_e(rolle)}</code></td><td>{count}</td></tr>'
-        for rolle, count in report["role_counts"].items()
-    )
-    return f'<table><tr><th>rolle</th><th>Bänder</th></tr>{rows}</table>'
-
-
-def _render_bands_table(report: dict) -> str:
-    rows = []
-    for b in report["bands"]:
-        rows.append(
-            "<tr>"
-            f'<td>{_fmt_num(b["index"])}</td>'
-            f'<td>{_e(b["name"])}</td>'
-            f'<td>{_e(b["label_de"])}</td>'
-            f'<td><code>{_e(b["rolle"])}</code></td>'
-            f'<td>{_e(b["category"])}</td>'
-            f'<td>{_fmt_num(b["puffer_m"])}</td>'
-            f'<td>{_e(b["puffer_hinweis"])}</td>'
-            f'<td>{b["quelle_count"]}</td>'
-            f'<td>{b["abgeleitet_von_count"]}</td>'
-            "</tr>"
-        )
-    return (
-        "<table><tr><th>#</th><th>name</th><th>label_de</th><th>rolle</th><th>category</th>"
-        "<th>puffer_m</th><th>puffer_hinweis</th><th>#quelle</th><th>#abgeleitet_von</th></tr>"
-        + "".join(rows)
-        + "</table>"
-    )
-
-
-def _render_sources(report: dict) -> str:
-    rows = "".join(
-        f'<tr><td><code>{_e(k)}</code></td><td>{_e(v.get("pfad"))}</td>'
-        f'<td>{_e(v.get("stand"))}</td><td>{_e(v.get("rolle"))}</td></tr>'
-        for k, v in report["sources"].items()
-    )
-    return f'<table><tr><th>Schlüssel</th><th>Pfad</th><th>Stand</th><th>Rolle</th></tr>{rows}</table>'
-
-
-def _render_caveats(report: dict) -> str:
-    if not report["caveats"]:
-        return "<p>Keine Caveats im Manifest.</p>"
-    items = []
-    for c in report["caveats"]:
-        affects = c.get("affects", {})
-        n_bands = len(affects.get("bands", [])) if isinstance(affects, dict) else 0
-        items.append(
-            f'<li><strong>{_e(c.get("id"))}</strong> '
-            f'(<code>{_e(c.get("severity"))}</code>, betrifft {n_bands} Band/Bänder)<br>{_e(c.get("text_de"))}</li>'
-        )
-    return f'<ul class="caveats">{"".join(items)}</ul>'
-
-
-def _render_impact_paths(report: dict) -> str:
-    if not report["impact_paths"]:
-        return "<p>Keine <code>*_wirkungspfad</code>-Felder im Manifest.</p>"
-    items = []
-    for key, names in report["impact_paths"].items():
-        chips = "".join(f"<code>{_e(n)}</code>" for n in names)
-        items.append(f"<li><strong>{_e(key)}</strong> ({len(names)} Bänder): {chips}</li>")
-    return f'<ul>{"".join(items)}</ul>'
-
-
-HTML_TEMPLATE = """<!DOCTYPE html>
-<html lang="de">
-<head>
-<meta charset="utf-8">
-<title>Abschichtung — Manifest-Dashboard</title>
-<style>
-  body {{ font-family: -apple-system, Helvetica, Arial, sans-serif; margin: 2rem; color: #1a1a1a; }}
-  h1, h2 {{ border-bottom: 1px solid #ddd; padding-bottom: .25rem; }}
-  table {{ border-collapse: collapse; margin: .5rem 0 1.5rem; width: 100%; }}
-  th, td {{ border: 1px solid #ccc; padding: .25rem .5rem; text-align: left; font-size: .85rem; }}
-  th {{ background: #f2f2f2; }}
-  code {{ background: #f2f2f2; padding: 0 .25rem; border-radius: 3px; }}
-  .banner {{ padding: .75rem 1rem; margin: .5rem 0 1rem; border-radius: 4px; }}
-  .banner.ok {{ background: #e6f4ea; border: 1px solid #34a853; }}
-  .banner.bad {{ background: #fce8e6; border: 1px solid #d93025; }}
-  .banner.neutral {{ background: #f1f3f4; border: 1px solid #999; }}
-  .meta {{ color: #555; font-size: .9rem; }}
-  ul.caveats li {{ margin-bottom: .5rem; }}
-</style>
-</head>
-<body>
-<h1>Abschichtung — Manifest-Dashboard</h1>
-<p class="meta">
-  Erzeugt {generated_at} · Manifest-Schema {schema_version} · Pipeline {pipeline} / {band_schema} ·
-  {band_count} Bänder · Raster {raster_file} ({crs}, {width}×{height}, {pixel_size} m)
-</p>
-
-<h2>Konsistenz des Manifests</h2>
-{validation_banner}
-
-<h2>Abgleich gegen das GeoTIFF</h2>
-{raster_check}
-
-<h2>Bänder nach rolle</h2>
-{role_table}
-
-<h2>Alle Bänder</h2>
-{bands_table}
-
-<h2>Caveats</h2>
-{caveats}
-
-<h2>Wirkungspfade (Felder auf *_wirkungspfad)</h2>
-{impact_paths}
-
-<h2>Quellen</h2>
-{sources_table}
-
-</body>
-</html>
-"""
-
-
-def render_html(report: dict) -> str:
-    raster_meta = report["raster_meta"]
-    sm = report["source_manifest"]
-    return HTML_TEMPLATE.format(
-        generated_at=_e(sm.get("generated_at")),
-        schema_version=_e(sm.get("schema_version")),
-        pipeline=_e(sm.get("pipeline")),
-        band_schema=_e(sm.get("band_schema")),
-        band_count=_fmt_num(sm.get("band_count")),
-        raster_file=_e(sm.get("raster_file")),
-        crs=_e(raster_meta.get("crs")),
-        width=_fmt_num(raster_meta.get("width")),
-        height=_fmt_num(raster_meta.get("height")),
-        pixel_size=_fmt_num(raster_meta.get("pixel_size_m")),
-        validation_banner=_render_validation_banner(report),
-        raster_check=_render_raster_check(report),
-        role_table=_render_role_table(report),
-        bands_table=_render_bands_table(report),
-        caveats=_render_caveats(report),
-        impact_paths=_render_impact_paths(report),
-        sources_table=_render_sources(report),
-    )
-
-
-def write_html_report(out_dir: Path, report: dict) -> Path:
-    out_path = out_dir / "index.html"
-    out_path.write_text(render_html(report), encoding="utf-8")
-    return out_path
 
 
 # ---------------------------------------------------------------------------
@@ -548,7 +365,6 @@ def main(argv: list[str] | None = None) -> int:
 
     out_dir.mkdir(parents=True, exist_ok=True)
     json_path = write_json_report(out_dir, report)
-    html_path = write_html_report(out_dir, report)
 
     print(f"Manifest gelesen: {manifest_path} ({report['source_manifest']['band_count']} Bänder)")
     print("Bänder je rolle:")
@@ -561,7 +377,6 @@ def main(argv: list[str] | None = None) -> int:
     else:
         print(f"Raster-Abgleich: übersprungen ({rc.get('reason')})")
     print(f"Geschrieben: {json_path}")
-    print(f"Geschrieben: {html_path}")
 
     problems = report["validation"]["problems"]
     if problems:
