@@ -12,10 +12,10 @@ W0.1 in dessen §11. Die Belege liegen unter
 
 | | |
 |---|---|
-| Abgeschlossen | **42 von 43** — Welle 0 bis 5 vollständig, Welle 6 bis auf die Doku (W6.5). Neun Pakete kamen unterwegs dazu (W2.P0, W2.4, W4.P0, W5.P0 bis W5.P5), eines entfiel (W2.2 → W2.1). Der ursprüngliche Plan endet mit W5.1; Welle 6 ist danach aus einer Beobachtung des Nutzers entstanden. |
+| Abgeschlossen | **43 von 44** — Welle 0 bis 5 vollständig, Welle 6 bis auf W6.6, das gerade läuft. Zehn Pakete kamen unterwegs dazu (W2.P0, W2.4, W4.P0, W5.P0 bis W5.P5, W6.6), eines entfiel (W2.2 → W2.1). Der ursprüngliche Plan endet mit W5.1; Welle 6 ist danach aus einer Beobachtung des Nutzers entstanden. |
 | **Das Zielbild aus PLAN §3 ist abgenommen** | Am 08.09.2026, im Klontest von W6.4: ein frischer `git clone` von `main`, `data/` als Symlink, `make` ohne Argument — **durchgelaufen bis zu den vier Produkten, `sha256 fb57c41d…232c30`**. Das ist die Bedingung, die §7 dem Paket W6.3 gegeben hat, und die erste, die es für das Zielbild je gab. Er ist **langsam** durchgelaufen (62:49 statt der erhofften Minuten, Punkt 56) — die Bedingung fordert aber „läuft durch", nicht „läuft schnell durch". `[Rohdaten] → [Skripte] → [Ergebnisse]` ist damit an einem zweiten Ort im Dateisystem belegt. |
 | **Der Umbau liegt auf `main`** | Seit `65b97ac` zeigen `main` und `docs/audit-und-plan` auf denselben Commit, zuletzt `052e9c5` (W6.4), Divergenz `0 0`. Beide Zusammenführungen waren saubere Fast-Forwards, `make test` und `sha256` danach geprüft. **42 Pakete, und der Umbau steht dort, wo ihn ein frischer Klon findet.** |
-| Als Nächstes | **Entscheidung des Nutzers ausstehend.** Zwei Kandidaten liegen vor: **W6.5 — die Doku beschreibt den neuen Baum** (rund 40 min, vom Nutzer bewusst nach hinten gestellt) und **ein Kartenviewer als Endprodukt** — der Nutzer hat am 08.09.2026 verlangt, dass unter `out/dashboard/` nicht die Übersichtstabelle liegt, sondern „die simple Visualisierung der Layer in einer Website über einem OSM-Layer". Der Befund aus dem Vorgängerprojekt liegt vor (siehe Protokoll), der Zuschnitt ist vorgeschlagen, aber **noch nicht in `PLAN.md` geschrieben** — er wartet auf die Zustimmung zur Rollenteilung zwischen Viewer und Prüfstufe. |
+| Als Nächstes | **W6.6 läuft** — die drei Einzeiler, die Welle 6 selbst hinterlassen hat (Punkt 56, 57, 54), mit vollem Kettenlauf und Klontest. Danach **der Kartenviewer**: Der Nutzer hat am 08.09.2026 verlangt, dass unter `out/dashboard/` nicht die Übersichtstabelle liegt, sondern „die simple Visualisierung der Layer in einer Website über einem OSM-Layer". Der Befund aus dem Vorgängerprojekt liegt vor (siehe Protokoll), der Zuschnitt steht, die Rollenteilung ist als Annahme gesetzt: **Viewer wird `out/dashboard/index.html`, die Prüfstufe behält `report.json`.** Er kann erst nach W6.6 starten, weil er `out/abschichtung.tif` liest, das W6.6 gerade neu schreibt. |
 | **Referenz** | Seit `f592e75` **`sha256 fb57c41d…232c30`** — **zweite Wanderung an einem Tag.** Erst die Bodensee-Korrektur (Punkt 33, `4bdef6ad…`), dann der Wegfall adressloser Großflächen (Punkt 34, `fb57c41d…`). Beides Nutzerentscheidungen vom 08.09.2026. `run1` (`dc58b011…`) bleibt Vergleichsbasis und historischer Zeuge; **18 der 38 Bänder weichen inzwischen davon ab**, aus zwei benannten Ursachen. |
 | Zweig | `docs/audit-und-plan`, letzter **Code**-Commit **`052e9c5`** (W6.4) — darüber liegen nur noch Commits dieser beiden Plandateien, die hier absichtlich nicht mitgezählt werden: eine Datei kann den Commit nicht nennen, der sie festhält. Keine offenen Worktrees. `main` steht seit W6.3 auf demselben Stand; der Zweig ist damit kein zweiter Wahrheitsort mehr, sondern nur noch der Ort, an dem gearbeitet wird. |
 | **W5.1 hat keinen Commit** | Der Beweislauf ändert keine verfolgte Datei — `build/` und `out/` sind ignoriert —, deshalb steht der Kopf noch auf dem Protokoll-Commit *vor* dem Lauf. Folge: **das wichtigste Abnahmeergebnis des ganzen Projekts liegt nur als Prosa in dieser Datei**, nicht als Beleg unter `nachweise/`. Punkt 49. |
@@ -93,8 +93,9 @@ die es sie gibt.
 | W6.2 | Drei Namen und ein wiederholbares `make` | **fertig** | 70 min* | 94 min | **Zweiter Lauf: 3 min statt 66** · alle zehn Prep-Stufen überspringen · TIF bitgleich · 213 + 4 Tests · Punkt 52 erledigt · zwei stille Fehler gefunden |
 | W6.3 | README auf den neuen Baum, dann `main` | **fertig, Vorbehalt eingelöst** | 25 min | 80 min | README `65b97ac` · **Zusammenführung nach `main` sauber, Fast-Forward** · `make test` und `sha256` auf `main` grün · **Klontest gescheitert und Schaden angerichtet** — W6.4 hat `derived/prep/` vollständig neu gerechnet und dabei denselben `sha256` erhalten |
 | W6.4 | Der Fingerabdruck wird ortsunabhängig | **fertig, Abnahme halb** | 90 min | 138 min | **`sha256` exakt getroffen**, Volllauf 61:56 · zweiter Lauf **3:04**, alle zehn Prep-Stufen `[skip]` · 213 + 4 Tests · Punkt 53 und 45 erledigt, Punkt 55 **geheilt** · **der Klon überspringt trotzdem nicht — Punkt 56** |
-| W6.5 | Die Doku beschreibt den neuen Baum | offen | 40 min | — | vom Nutzer nach hinten gestellt |
-| — | *Kartenviewer über OSM* | *vorgeschlagen* | — | — | *Zuschnitt liegt beim Nutzer, noch nicht in `PLAN.md`* |
+| W6.6 | Drei Einzeiler, die Welle 6 selbst hinterlassen hat | **läuft** | 30 min | — | Punkt 56, 57, 54 · Klontest muss jetzt überspringen · `make test` 214 + 3 |
+| W6.5 | Die Doku beschreibt den neuen Baum | **fertig** | 40 min | 40 min | **Auf die Minute geschätzt** · `docs/dataflow/` und `UMSETZUNG.md` datiert eingefroren, `packages.tsv` auf **44 Pakete** nachgezogen · `rohdaten.md`, `FOLLOWUPS.md`, `widmung_v2_provenance.md` nachgeführt · **meine Abnahmebedingung war untauglich, Punkt 58** |
+| — | *Kartenviewer über OSM* | *nach W6.6* | 60–75 min | — | *Rollenteilung als Annahme gesetzt, umkehrbar* |
 
 ## Zeitbilanz
 
@@ -114,16 +115,16 @@ die es sie gibt.
 | davon Welle 4 | **8 min** (W4.P0) + rund 25 min für drei parallele Pakete (Summe der Einzelzeiten: 51 min) + **21 min** Zusammenführung |
 | davon Welle 5, Vorfeld | **125 min** (W5.P0 9 + W5.P1 11 + W5.P2 57 + W5.P3 10 + W5.P4 13 + W5.P5 25), dazu 11 min Messung für Punkt 34 |
 | davon Welle 5, Beweislauf | **79 min** — 4 min abgebrochener erster Anlauf, 75 min der Lauf. Davon 65,8 min reine `prep`-Maschinenzeit, also **88 % des Laufs in einer einzigen Stufe** |
-| davon Welle 6 | **352 min** (W6.1 40 + W6.2 94 + W6.3 80 + W6.4 138) gegen **230 min** geschätzt — **die erste Welle, die überzieht**, und zwar um 53 %. Davon sind rund 210 min reine Maschinenzeit aus vier Kettenläufen |
+| davon Welle 6 | **392 min** (W6.1 40 + W6.2 94 + W6.3 80 + W6.4 138 + W6.5 40) gegen **270 min** geschätzt — **die erste Welle, die überzieht**, und zwar um 45 %. Davon sind rund 210 min reine Maschinenzeit aus vier Kettenläufen. W6.5 traf die Schätzung **auf die Minute** — es ist auch das einzige Paket der Welle ohne Maschinenzeit |
 | Verbleibend, geschätzt | **40 min für W6.5** (Doku), plus ein noch nicht geschnittenes Viewer-Paket, für das ich 60–75 min veranschlage. Beides wartet auf die Entscheidung des Nutzers |
 | Davon unbekannt | **nichts mehr an Maschinenzeit** — die Kataster-Vorverarbeitung ist viermal vermessen (45–70 min, 48,0 min, 65,8 min, 54,0 min), der Gesamtlauf dreimal. Unbekannt ist nur noch, wie groß die 38 PNGs des Viewers werden |
 
-**Summe geschätzt gegen Summe gebraucht**, über alle 44 Positionen mit
-Schätzung (Welle 0 hatte keine): **1510 min geschätzt, 1126 min gebraucht —
+**Summe geschätzt gegen Summe gebraucht**, über alle 45 Positionen mit
+Schätzung (Welle 0 hatte keine): **1550 min geschätzt, 1166 min gebraucht —
 minus 25 %.**
 
 **Diese Zahl ist irreführend, und zwar wegen genau einer Position.** Ohne
-W3.2 lautet sie **1480 gegen 843 — minus 43 %**, gegenüber −46 % nach 20,
+W3.2 lautet sie **1520 gegen 883 — minus 42 %**, gegenüber −46 % nach 20,
 −49 % nach 29 und −49 % nach 41 Positionen. W3.2 allein verschiebt den
 Faktor um 18 Prozentpunkte. Beide Zahlen stehen hier, weil beide wahr
 sind: Die erste beschreibt, wie lange es gedauert hat; die zweite, wie gut
@@ -344,6 +345,43 @@ Plans sei, war **nein** — und das war die Lücke.
 | **W6.2** | `windkraft/` → `calc/`, `build/` → `derived/`, `pipeline/verify/` → `pipeline/export/`. Dazu Punkt 52: **`make all` ist wiederholbar**, zweiter Lauf 182 Sekunden statt 66 Minuten. |
 | **W6.3** | README auf den neuen Baum, **Zusammenführung nach `main`**. Der Klontest scheiterte. |
 | **W6.4** | Fingerabdruck ortsunabhängig (Punkt 53) und codeempfindlich (Punkt 45). Volllauf **61:56**, `sha256` exakt, zweiter Lauf **3:04**. Punkt 55 nebenbei geheilt. **Der Klontest überspringt trotzdem nicht** — neuer Punkt 56. |
+
+#### W6.5 — die Doku, und eine Abnahme, die in die falsche Richtung zeigte
+
+Commit `3cfb4f2`, neun Dateien, +314/−73. **40 Minuten geschätzt, 40
+gebraucht** — die genaueste Schätzung des Projekts, und das einzige Paket
+der Welle 6 ohne Maschinenzeit. Beides hängt zusammen.
+
+**Die Leitentscheidung war, was *nicht* nachgezogen wird.** `docs/dataflow/`
+(14 700 Zeilen, 417-mal `scripts/`, kein einziges `pipeline/`) und
+`docs/rewrite/UMSETZUNG.md` bekommen einen **datierten Kopf** statt einer
+Neuerzeugung: Beide sind Befunde über den Zustand vor dem Umbau, dieselbe
+Gattung wie `docs/RUN1_VERGLEICH.md`. Gefährlich war nie ihr Inhalt,
+sondern ihr Etikett — `docs/rewrite/README.md` zitierte `dataflow/` als
+„Faktengrundlage" für ein Repo, das es nicht mehr beschreibt.
+
+**Bei `packages.tsv` hat der Agent anders entschieden, und zwar
+begründet.** Nicht einfrieren, sondern nachziehen: Die Quelle ist das
+JS-Array in `umsetzung.html`, die 15 fehlenden Pakete waren aus `PLAN.md`
+§7 vollständig rekonstruierbar, und danach erzeugt das vorhandene Skript
+die beiden Dateien wieder selbst. Ein einmaliger, abgegrenzter Nachtrag
+statt einer unbegrenzten Pflegepflicht. **Dabei fiel die richtige
+Paketzahl an: 44, nicht 43** — ich hatte die Konsolidierung W2.2 → W2.1
+in meiner eigenen Zählung nicht sauber verbucht.
+
+**Und eine meiner beiden Auftragsprämissen war falsch.** Ich hatte
+Registerpunkt 23 als offen mitgegeben („`docs/rohdaten.md` beschreibt
+338 674 verworfene NÖ-Polygone, die Produktionsdatei enthält 3 491 407").
+Der Agent hat nachgesehen: Die Doku nennt an Zeile 538–541 **beide Zahlen
+korrekt**, 3 491 407 gesamt und 338 674 verworfen. Es war nie ein
+Widerspruch, sondern zwei verschiedene Größen. Er hat die Datei an der
+Stelle nicht angefasst und es gemeldet — richtig so.
+
+**Der Fund über mich steht als Punkt 58 im Register.** Meine
+Abnahmebedingung war eine Zählung von Zeichenketten, und alle fünf Zahlen
+sind **gestiegen**, während die Doku besser wurde. Dritter Fall dieser
+Familie in einer Welle, nach Punkt 54 und 57 — und der erste, bei dem die
+Metrik nicht bloß blind war, sondern gegenläufig.
 
 #### W6.4 — die Behebung hat den Befund verschoben, nicht aufgelöst
 
@@ -3414,6 +3452,8 @@ billiger sein als das erste.
 | — | **`make all` läuft kein zweites Mal — und die Prep-Stufe beantwortet dieselbe Frage auf drei Arten.** Die Frage lautet „was tun, wenn meine Ausgabe schon da ist", und die zehn Prep-Einstiegsmodule beantworten sie so: **einmal richtig** (`pipeline/prep/osm.py:262,310` — Fingerabdruck prüfen, überspringen), **zweimal mit hartem Abbruch** (`kataster/a_noe_polygonize.py:317-319` und `kataster/b_export_parquet.py:102-104`, beide `raise SystemExit(… already exists; pass --overwrite)`), **siebenmal gar nicht** (`admin`, `adressen`, `natur`, `terrain`, `widmung`, `zonen`, `noe_sekrop` rechnen bedingungslos neu und überschreiben still — sie rufen `fingerprint.write()` am Ende, aber nie `fingerprint.matches()` davor). Folge: Ein zweiter `make all`-Lauf bricht nach 17 s bei `prep-kataster-a` ab. Wäre der behoben, käme sofort `prep-kataster-b`. Wären beide behoben, liefe er durch — würde aber **66 Minuten lang neu rechnen, was schon dasteht**. **§13.6 in Reinform, und schlimmer als ich es zuerst aufgeschrieben hatte:** ich hatte hier „neunmal überspringen, einmal abbrechen" stehen. Das war falsch, ungeprüft von mir behauptet, und W6.1 hat es nachgemessen widerlegt. Verdacht für die eigentliche Wurzel: der Makefile benutzt die Fingerabdrücke nicht, die er schreiben lässt. **Warum es 38 Pakete lang niemand merkte:** W5.1 begann mit `rm -rf build`, jeder frische Klon ebenso. Der Fehler zeigt sich nur beim **zweiten** Lauf — und den hat bis W6.1 niemand gemacht. | W6.2, Mindestumfang: wiederholbar |
 | ~~51~~ | ~~**Der Zweig `main` hat von 38 Paketen nichts gesehen.**~~ **Erledigt in W6.3** (`65b97ac`) und in W6.4 (`052e9c5`) bestätigt: beide Zusammenführungen Fast-Forward, Divergenz `0 0`, `make test` und `sha256` danach auf `main` geprüft. Wer heute klont, bekommt die neue Kette. Ursprünglicher Text: | — |
 | ↳ | **Der Zweig `main` hat von 38 Paketen nichts gesehen.** Die gesamte Arbeit liegt auf `docs/audit-und-plan`; `main` steht unverändert auf dem Vorzustand. Solange das so ist, zeigt jeder, der das Repo frisch klont, die alte Kette. Das ist **kein Versehen** — der Zweigname sagt „Audit und Plan", und das war er anfangs auch —, aber es ist inzwischen falsch beschriftet: dort liegt der Umbau. Gehört nach Welle 6, als letzter Schritt und nicht als erster. | Welle 6 |
+| 58 | **Dritter Fall in einer Welle: meine Abnahmebedingung war wieder eine Zeichenkettensuche — und diesmal zeigte sie in die falsche Richtung.** Für W6.5 hatte ich verlangt, die Vorkommen von `scripts/`, `output/`, `build/`, `windkraft` und `verify` unter `docs/` vorher und nachher zu zählen. Ergebnis: **jede einzelne Zahl ist gestiegen**, während die Doku nachweislich besser wurde. Beide Ursachen sind richtiges Arbeiten: Der datierte Kopf über `docs/dataflow/` **muss** die alten Namen nennen, um zu erklären, was das Verzeichnis beschreibt; und die 15 in `umsetzung.html` nachgetragenen Pakete zitieren wörtlich aus `PLAN.md`, wo Pfade wie `scripts/**` oder `windkraft/calc/hig_detection.py` den damaligen Zustand korrekt benennen. **Die Metrik ist also nicht bloß unzureichend, sie ist gegenläufig.** Nach Punkt 54 (Literalsuche übersieht zusammengesetzte Pfade) und Punkt 57 (dieselbe Ursache, andere Datei) ist das der dritte Fall in einer Welle, und der lehrreichste: dort maß ich die Schreibweise statt der Sache, hier maß ich sie **gegen** die Sache. Eine Abnahme muss fragen „behauptet noch irgendein Dokument etwas, das die laufende Kette widerlegt", und das ist eine Leseaufgabe, keine Zählaufgabe. | Auftragsvorlage, mit Punkt 54 und 57 |
+| 59 | **Zwei Doku-Gattungen, die noch keine Entscheidung haben.** W6.5 hat gemeldet, ohne anzufassen: `docs/MIGRATION_MAP.tsv` und `docs/rewrite/nachweise/{w01,w12,w13}/` sind datierte Migrations- und Hash-Nachweise — dieselbe Gattung wie `docs/RUN1_VERGLEICH.md` und das eben eingefrorene `docs/dataflow/`, aber sie standen in keiner Pfadliste, also blieben sie ungekennzeichnet. Dazu zwei Kleinigkeiten: `docs/FOLLOWUPS.md` führt weiterhin die Notiz „`pyproject.toml` heißt bewusst nicht um", obwohl es seit W6.2 `name = "calc"` heißt; und `docs/analysis/streusiedlung_knee.py` und `cluster_knee.py` tragen `scripts/`- und `output/`-Bezüge, gehörten aber keinem Paket. **Der gemeinsame Nenner ist wieder Regel 7:** Meine Pfadliste war mit sich selbst konsistent, nicht mit dem Bestand unter `docs/`. | Sammelposten |
 | 57 | **Ein Test prüft seit W6.1 nichts mehr, und der Grund ist derselbe wie bei Punkt 54.** `tests/test_contract.py:329-332` überspringt, wenn `PROJECT_ROOT/"output"/"abschichtung_widmung_v2"/"distance_layers"` fehlt — ein Verzeichnis, das W6.1 **absichtlich** ins Archiv verschoben hat. Der Test verglich die vorhandenen Checkpoints auf der Platte gegen `contract.LAYER_NAMES`; diese Prüfung findet seither nicht mehr statt. **Echter Deckungsverlust**, und die Behebung ist eine Zeile: Der Vergleich gehört auf `derived/layers/`, wo die 33 Checkpoints tatsächlich liegen. **Der eigentliche Befund ist aber der Weg dorthin:** Der Pfad ist aus Segmenten zusammengesetzt, nicht als Zeichenkette geschrieben — genau wie in Punkt 54. W6.1s Abnahmebedingung lautete wörtlich „keine Zeichenkette `output/` mehr unter `pipeline/`, `windkraft/`, `tests/`, `make/`", und sie wurde grün gemeldet. **Eine Literalsuche konnte diese Stelle nicht finden**, also war die Abnahme nicht falsch ausgeführt, sondern falsch formuliert. Zweiter Fall desselben Musters, in derselben Testsuite, innerhalb einer Welle. | mit Punkt 54 und 56 |
 | ~~50~~ | ~~**Vier übersprungene Tests, benannt ist einer.**~~ **Am 08.09.2026 aufgelöst, nach 42 Paketen.** Die vier sind: (1) `test_contract.py::test_layer_names_match_existing_checkpoints` — überspringt, weil das archivierte `output/`-Verzeichnis fehlt, **das ist der einzige echte Deckungsverlust, siehe Punkt 57**; (2) `test_referenz_tif.py::test_run1_bleibt_unveraendert_die_vergleichsbasis` — überspringt ohne `ABSCHICHTUNG_RUN1`, laut eigener Begründung „kein gebrochener Vertrag", harmlos; (3) und (4) die beiden gegateten Langläufer aus `test_referenz_tif.py`, die nur mit `ABSCHICHTUNG_VERTRAGSTEST=1` laufen und beide nachweislich je einmal grün waren. **Der Sprung von 2 auf 4 kam in W6.1, nicht in W6.4** — beide neuen Übersprünge sind Folgen der `output/`-Archivierung, an `908bf96` im Diff belegt. `test_distance_engine_equivalence.py`, das ich hier 38 Pakete lang als einen der beiden geführt habe, ist **gar nicht darunter**: Es überspringt nur, wenn das Vorgängerrepo fehlt, und das ist vorhanden. Ich habe also nicht nur die Zahl nicht aufgelöst, sondern die eine Erklärung, die ich hatte, war auch noch falsch. | — |
 | 49 | **Der wichtigste Beweis des Projekts hat keinen Beleg.** W5.1 hat die Kette aus Rohdaten bitgleich reproduziert — und **keine einzige Datei im Repo hinterlassen**: kein Commit (der Lauf ändert nichts Verfolgtes), kein Verzeichnis unter `nachweise/`, kein Lauf-Log. Die Zahlen stehen ausschließlich als Prosa in dieser Datei, von mir abgeschrieben aus einem Agentenbericht, den niemand nachprüfen kann. Dahinter steckt ein größeres Versäumnis: **`nachweise/` hat drei Verzeichnisse — `w01`, `w12`, `w13` — und dann hört es auf.** Die Praxis ist nach Welle 1 klanglos eingeschlafen, und mir ist es 35 Pakete lang nicht aufgefallen, obwohl der Kopf dieser Datei sie als Verweis führt. **Die Lehre ist nicht „mehr Belege", sondern: eine Praxis, die nicht in der Abnahmebedingung steht, stirbt.** | Welle 6, mit Punkt 48 |
