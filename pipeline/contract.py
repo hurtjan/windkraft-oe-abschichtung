@@ -46,6 +46,21 @@ BUILD_PREP = BUILD / "prep"
 BUILD_LAYERS = BUILD / "layers"
 OUT = ROOT / "out"
 
+# run1 - die Vergleichsbasis der alten Kette (osm_wka_distance_zones_widmung_v2_run1.tif,
+# sha256 dc58b011…9e3df1). W6.1 hat output/ aus dem Repo herausbewegt, nach
+# ~/Documents/master_windkraft/archiv/run1.tif; dort ist die Datei kein
+# Rohdatum und kein Produkt (siehe PLAN.md §8), gehört also nicht unter RAW/
+# PREP/LAYERS/PRODUCTS oben, sondern - wie ABSCHICHTUNG_ALTREPO in
+# tests/test_distance_engine_equivalence.py - nur optional per Umgebungsvariable
+# aufgelöst. Vorgabe None: ohne gesetzte Variable ist run1 schlicht nicht da,
+# kein Fehler (siehe pipeline/validate.py, tests/test_referenz_tif.py, die
+# beide entsprechend überspringen/kurzschließen).
+RUN1_TIF = (
+    Path(os.environ["ABSCHICHTUNG_RUN1"]).resolve()
+    if os.environ.get("ABSCHICHTUNG_RUN1")
+    else None
+)
+
 
 # ---------------------------------------------------------------------------
 # RAW - die Rohpfade je Domäne (PLAN.md §4 Domänentabelle, §11.2 Zielbaum).

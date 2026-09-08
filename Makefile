@@ -1,43 +1,18 @@
 PYTHON = uv run python
 CONFIG = config.json
 
-V2_DIR = output/abschichtung_widmung_v2
-V2_TIF = $(V2_DIR)/osm_wka_distance_zones_widmung_v2.tif
-
-.PHONY: widmung-v2 widmung-v2-zoning widmung-v2-hig widmung-v2-osm widmung-v2-tif \
-        widmung-v2-validate check-hardlinks check-raw-only check-guards prep all test worktree
+.PHONY: check-hardlinks check-raw-only check-guards prep all test worktree
 .PHONY: layers
 .PHONY: verify
 
 # Ohne dieses .DEFAULT_GOAL würde make(1) das erste im File stehende Ziel
-# nehmen - das ist widmung-v2-zoning (nur Stufe 1 von 5), nicht die volle
-# Kette. Siehe docs/rewrite/PLAN.md §7, Paket W0.3: "make ohne Argument
-# tatsächlich das Standardziel trifft und nicht zufällig das erste im
-# Makefile". widmung-v2 bleibt dabei unverändert - Standardziel wird nur
-# umgehängt, nicht neu gebaut.
-.DEFAULT_GOAL := widmung-v2
-
-## Widmungs-Abschichtung v2 — die Referenzkarte
-## Doku: docs/widmung_v2.md
-## Die Ordner sind hier ausgeschrieben: build_official_zoning_layers.py wird von
-## v1 und v2 geteilt, ein Lauf in den falschen Ordner fällt sonst nicht auf.
-widmung-v2-zoning:
-	$(PYTHON) scripts/widmung_v2/01_build_official_zoning_layers.py --out-dir $(V2_DIR)/zoning_vectors
-
-widmung-v2-hig:
-	$(PYTHON) scripts/widmung_v2/02_build_hig_sources.py --zoning-dir $(V2_DIR)/zoning_vectors --out-dir $(V2_DIR)
-
-widmung-v2-osm:
-	$(PYTHON) scripts/widmung_v2/03_build_osm_layers.py --layer-dir $(V2_DIR)/distance_layers
-
-widmung-v2-tif:
-	$(PYTHON) scripts/widmung_v2/04_create_distance_zones.py --layer-dir $(V2_DIR)/distance_layers --output $(V2_TIF)
-
-widmung-v2-validate:
-	$(PYTHON) scripts/widmung_v2/05_validate.py --tif $(V2_TIF)
-
-## Volle v2-Kette inkl. Testpunkt-Prüfung (mehrstündig)
-widmung-v2: widmung-v2-zoning widmung-v2-hig widmung-v2-osm widmung-v2-tif widmung-v2-validate
+# nehmen (check-hardlinks), nicht die volle Kette. Siehe docs/rewrite/PLAN.md
+# §7, Paket W0.3: "make ohne Argument tatsächlich das Standardziel trifft und
+# nicht zufällig das erste im Makefile". W6.1 hat die alte Kette
+# (scripts/widmung_v2/01…05_*.py, vormals das Ziel `widmung-v2`) aus dem Repo
+# entfernt (letzter Stand je Skript im Commit f1d00f7) - `all` (die neue
+# Kette, siehe deren Definition unten) ist seither das einzige Standardziel.
+.DEFAULT_GOAL := all
 
 ## Prüft mechanisch, dass jede Datei unter data/ Link-Count 1 hat und keine
 ## Ausgabe unter output/ einer ist (siehe tools/check_hardlink_safety.py,
@@ -59,14 +34,14 @@ check-raw-only:
 check-guards: check-hardlinks check-raw-only
 
 ## --- Neues Gerüst (docs/rewrite/PLAN.md §3, §7 Paket W0.3) ---------------
-## Fünf-Stufen-Modell: Roh -> Prep -> Layer -> Finalize -> verify. `make`
-## (Standard, siehe .DEFAULT_GOAL oben) bleibt weiterhin `widmung-v2`, die
-## alte Kette (scripts/widmung_v2/01…05_*.py) - unverändert seit W0.3.
-## `all` ist seit W5.P0 (docs/rewrite/PLAN.md §13.10, Regel 9) die neue
-## Kette selbst: prep -> layers -> finalize -> verify, siehe deren
-## Definition weiter unten. Die beiden Ziele sind seither verschieden:
-## `make` (ohne Argument) lässt weiterhin nur die alte Kette laufen,
-## `make all` nur die neue - keines ruft mehr das andere auf.
+## Fünf-Stufen-Modell: Roh -> Prep -> Layer -> Finalize -> verify. `all` ist
+## seit W5.P0 (docs/rewrite/PLAN.md §13.10, Regel 9) die neue Kette selbst:
+## prep -> layers -> finalize -> verify, siehe deren Definition weiter unten.
+## Bis W6.1 lief `make` (ohne Argument) stattdessen die alte Kette
+## (scripts/widmung_v2/01…05_*.py, Ziel `widmung-v2`) - seit W6.1 ist diese
+## Kette aus dem Repo entfernt (letzter Stand je Skript im Commit f1d00f7)
+## und `all` ist das einzige Standardziel (siehe .DEFAULT_GOAL oben);
+## `make` und `make all` sind seither dasselbe.
 
 ## Vorpaket W1.P0 (docs/rewrite/PLAN.md §13.4): statt dass jedes der neun
 ## parallelen Prep-Pakete (W1.P1-W1.P9) ein eigenes Ziel HIER anhängt - ein
@@ -182,8 +157,10 @@ endif
 ## einem Paket zuzuordnen"). Für den Beweislauf selbst gehört die Prüfung
 ## trotzdem dazu, nur als eigener, bewusster Schritt danach: von Hand
 ## `make validate PAKET=W5.1` (siehe make/validate/README.md). Die alte
-## Kette bleibt unter `widmung-v2` erreichbar (unser run1, siehe
-## docs/RUN1_VERGLEICH.md) - nur nicht mehr unter `all`.
+## Kette (Ziel `widmung-v2`, unser run1) ist seit W6.1 aus dem Repo entfernt
+## (run1 selbst liegt seither im Archiv, siehe
+## ~/Documents/master_windkraft/archiv/README.md) - sie war ohnehin nie Teil
+## von `all`.
 all: prep layers finalize verify
 
 ## Verdrahtet die 131 heute unerreichbaren Tests (kein `make test` bisher,
@@ -201,6 +178,18 @@ test:
 ## docs/rewrite/PLAN.md §8 Regel 3 und FORTSCHRITT.md "Offene Punkte" #1:
 ## data/ ist gitignoriert, ein frisches Worktree wäre sonst leer und ein
 ## Abnahmelauf dort unmöglich. Aufruf: make worktree PAKET=w1.1
+##
+## W6.1: die frühere Verlinkung von output/abschichtung_widmung_v2/
+## (distance_layers/ + die run1-Vergleichsbasis) ist ersatzlos entfernt,
+## nicht auf build/ bzw. out/ umgehängt - beide Zwecke sind bereits durch
+## andere, spätere Symlinks in diesem Ziel abgedeckt: distance_layers/ war
+## der Checkpoint-Ordner der alten Kette, dessen Nachfolger build/layers/
+## unten (W4.P0) ohnehin schon read-only verlinkt wird; die run1.tif liegt
+## seit W6.1 nicht mehr im Repo, sondern im Archiv
+## (~/Documents/master_windkraft/archiv/output/run1.tif) und wird nur noch
+## opt-in über die Umgebungsvariable ABSCHICHTUNG_RUN1 eingebunden
+## (pipeline/contract.py:RUN1_TIF) - dafür braucht es keinen worktree-eigenen
+## Symlink mehr, jeder Worktree kann ABSCHICHTUNG_RUN1 selbst setzen.
 worktree:
 	@if [ -z "$(PAKET)" ]; then \
 		echo "Nutzung: make worktree PAKET=<paket>  (z.B. PAKET=w1.1)"; \
@@ -268,21 +257,6 @@ worktree:
 	if ! grep -qxF '/data' "$$COMMON_DIR/info/exclude" 2>/dev/null; then \
 		echo '/data' >> "$$COMMON_DIR/info/exclude"; \
 	fi; \
-	mkdir -p "$$WT_DIR/output/abschichtung_widmung_v2"; \
-	if [ ! -L "$$WT_DIR/output/abschichtung_widmung_v2/distance_layers" ]; then \
-		ln -s $(CURDIR)/output/abschichtung_widmung_v2/distance_layers \
-			"$$WT_DIR/output/abschichtung_widmung_v2/distance_layers"; \
-	fi; \
-	if [ -L "$$WT_DIR/output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2_run1.tif" ]; then \
-		: schon ein Symlink - unveraendert uebernehmen; \
-	elif [ -e "$$WT_DIR/output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2_run1.tif" ]; then \
-		echo "Abbruch: $$WT_DIR/output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2_run1.tif existiert bereits, ist aber kein Symlink - unerwarteter Zustand, nichts geloescht."; \
-		echo "$$CLEANUP"; \
-		exit 1; \
-	elif [ -e "$(CURDIR)/output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2_run1.tif" ]; then \
-		ln -s $(CURDIR)/output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2_run1.tif \
-			"$$WT_DIR/output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2_run1.tif"; \
-	fi; \
 	mkdir -p "$$WT_DIR/build"; \
 	if [ -L "$$WT_DIR/build/prep" ]; then \
 		: schon ein Symlink - unveraendert uebernehmen; \
@@ -314,8 +288,8 @@ worktree:
 			ln -s $(CURDIR)/out/$$f "$$WT_DIR/out/$$f"; \
 		fi; \
 	done; \
-	echo "Angelegt: $$WT_DIR auf Zweig $(PAKET). data/, distance_layers/ und die run1-Vergleichsbasis (osm_wka_distance_zones_widmung_v2_run1.tif) sind Symlinks auf dieses Repo (read-only, kein Kopieraufwand)."; \
-	echo "WARNUNG: ein Lauf mit --force-layers dort schreibt in das GETEILTE distance_layers/ und zerstört die Arbeit aller anderen Worktrees - nicht verwenden."; \
+	echo "Angelegt: $$WT_DIR auf Zweig $(PAKET). data/ ist ein Symlink auf dieses Repo (read-only, kein Kopieraufwand)."; \
+	echo "WARNUNG: ein Lauf mit --force-layers dort schreibt in das GETEILTE build/layers/ und zerstört die Arbeit aller anderen Worktrees - nicht verwenden."; \
 	echo "Zusaetzlich (W2.P0, docs/rewrite/PLAN.md §13.8): build/prep/ ist ebenfalls ein Symlink auf dieses Repo (read-only, kein Kopieraufwand - die Prep-Ausgaben muessten sonst je Worktree neu gerechnet werden, allein Kataster 45-70 Minuten)."; \
 	echo "WARNUNG: build/prep/ ist GETEILT und nur zum Lesen gedacht - ein Schreibzugriff (z.B. ein erneutes 'make prep' aus diesem Worktree) trifft alle Layer-Worktrees gleichzeitig; nur die Prep-Stufe im Hauptrepo darf dort schreiben."; \
 	echo "Zusaetzlich (W4.P0, docs/rewrite/PLAN.md §13.10): build/layers/ ist ebenfalls ein Symlink auf dieses Repo (read-only, kein Kopieraufwand - die 33 Checkpoints muessten sonst je Worktree neu gerechnet werden, dazu rund 165 s Finalisierung fuer das TIF)."; \

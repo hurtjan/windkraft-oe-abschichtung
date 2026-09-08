@@ -5,7 +5,9 @@ Reiner Komponist. Diese Stufe baut KEINEN einzigen Layer selbst - alle 33
 Checkpoints unter ``build/layers/`` sind bereits von der Layer-Welle
 geschrieben (W2.1 ``pipeline/layers/hig.py``, W2.3 ``pipeline/layers/osm.py``,
 W2.4 ``pipeline/layers/geo.py`` - siehe ``make layers``). Was hier passiert,
-ist genau der Teil von ``scripts/widmung_v2/04_create_distance_zones.py``,
+ist genau der Teil von ``scripts/widmung_v2/04_create_distance_zones.py``
+(seit W6.1 aus dem Repo entfernt; letzter Stand im Commit ``f1d00f7``,
+abrufbar mit ``git show f1d00f7:scripts/widmung_v2/04_create_distance_zones.py``),
 der NACH dessen sieben ``ensure_group_layers()``-Aufrufen kommt: die 26
 Bedingungsbänder plus die beiden Referenzbänder einlesen, die Kategorie- und
 Ergebnisaggregate bilden, die vier Unschärfebänder rechnen und alles
@@ -29,12 +31,16 @@ Regel aus PLAN.md §3: "Jede Stufe darf nur aus der vorigen lesen."
 
 ``BANDS`` (die 26 Bedingungsbänder samt Beschreibung), ``HUMAN_BANDS``, die
 Tag-Konstruktion und alle Puffer-/Schwellenwert-Konstanten sind wortgleich
-aus ``scripts/widmung_v2/04_create_distance_zones.py`` übernommen - exakt
+aus ``scripts/widmung_v2/04_create_distance_zones.py`` übernommen (seit W6.1
+aus dem Repo entfernt; letzter Stand im Commit ``f1d00f7``, abrufbar mit
+``git show f1d00f7:scripts/widmung_v2/04_create_distance_zones.py``) - exakt
 dasselbe Vorgehen wie in ``pipeline/layers/geo.py`` (dessen Moduldocstring:
 "Regel 4: Werte/Namen unverändert") und aus demselben Grund: das alte
-Skript ist kein Paket (numerischer Dateiname, kein gültiger Modulpfad für
-einen normalen ``import``) und bleibt unangetastet als weiterhin lauffähige
-Altkette (``make widmung-v2``) stehen.
+Skript war kein Paket (numerischer Dateiname, kein gültiger Modulpfad für
+einen normalen ``import``). Die Altkette selbst (``make widmung-v2``) ist
+seit W6.1 entfernt (docs/rewrite/FORTSCHRITT.md) - dieser Abschnitt
+beschreibt weiterhin die Herkunft der Werte, nicht mehr eine parallel
+lauffähige Kette.
 
 ## Bewusst NICHT übernommen (mit Begründung, wie schon bei W2.4)
 
@@ -119,8 +125,10 @@ from windkraft.calc.band_manifest import write_band_manifest  # noqa: E402
 
 PIPELINE_TAG = "widmung_v2"
 # Wortgleich aus scripts/widmung_v2/04_create_distance_zones.py (dort Zeile
-# ~130) und pipeline/layers/geo.py (dort Zeile ~176) übernommen - derselbe
-# Tag-Wert muss über alle drei Stellen hinweg gleich bleiben, sonst würde
+# ~130; seit W6.1 aus dem Repo entfernt, letzter Stand im Commit f1d00f7 -
+# git show f1d00f7:scripts/widmung_v2/04_create_distance_zones.py) und
+# pipeline/layers/geo.py (dort Zeile ~176) übernommen - derselbe Tag-Wert
+# muss über alle drei Stellen hinweg gleich bleiben, sonst würde
 # layer_done() (Fingerabdruck-Vergleich) Checkpoints fälschlich als veraltet
 # ansehen.
 BAND_SCHEMA = "clean-38-ohne-wichtige-objekte-aug-2026"
@@ -137,8 +145,10 @@ class Band:
 
 
 # Wortgleich aus scripts/widmung_v2/04_create_distance_zones.py:BANDS (dort
-# Zeile ~147-174) übernommen - die 26 Bedingungsbänder in exakt der
-# Reihenfolge, in der compose_exclusion_geotiff() sie schreibt.
+# Zeile ~147-174; seit W6.1 aus dem Repo entfernt, letzter Stand im Commit
+# f1d00f7 - git show f1d00f7:scripts/widmung_v2/04_create_distance_zones.py)
+# übernommen - die 26 Bedingungsbänder in exakt der Reihenfolge, in der
+# compose_exclusion_geotiff() sie schreibt.
 BANDS = [
     Band("official_settlement_source", "Amtliches Wohn-/Misch-/Kern-/Dorfgebiet, alle 9 Bundesländer (build_official_zoning_layers.py)"),
     Band("settlement_buffer", "Siedlungsabstand um official_settlement_source (NÖ 1.200 m, sonst 1.000 m)"),
@@ -168,7 +178,9 @@ BANDS = [
     Band("geography_water_bodies", "Größere Wasserkörper (Seen/Stauseen/Flüsse) aus OSM, verbundene Flächen >= WATER_MIN_AREA_HA"),
 ]
 
-# Wortgleich aus scripts/widmung_v2/04_create_distance_zones.py:HUMAN_BANDS.
+# Wortgleich aus scripts/widmung_v2/04_create_distance_zones.py:HUMAN_BANDS
+# (seit W6.1 aus dem Repo entfernt, letzter Stand im Commit f1d00f7 - git
+# show f1d00f7:scripts/widmung_v2/04_create_distance_zones.py).
 HUMAN_BANDS = [
     "settlement_buffer",
     "haeuser_im_gruenen",
@@ -195,9 +207,11 @@ def _check_layers(layer_dir: Path) -> None:
     """Harte Vorbedingung statt stillem Fallback (PLAN.md §3, Stufe 5).
 
     Anders als das alte Skript (das acht fehlende Checkpoints selbst baut,
-    siehe _check_required_sources() in 04_create_distance_zones.py) prüft
-    diese Stufe ALLE 33 Checkpoints und baut keinen einzigen davon - Bauen
-    ist Aufgabe der Layer-Welle (W2.1/W2.3/W2.4), nicht dieser Stufe.
+    siehe _check_required_sources() in 04_create_distance_zones.py - seit
+    W6.1 aus dem Repo entfernt, letzter Stand im Commit f1d00f7: git show
+    f1d00f7:scripts/widmung_v2/04_create_distance_zones.py) prüft diese
+    Stufe ALLE 33 Checkpoints und baut keinen einzigen davon - Bauen ist
+    Aufgabe der Layer-Welle (W2.1/W2.3/W2.4), nicht dieser Stufe.
     """
     missing = [name for name in REQUIRED_LAYERS if not layer_path(layer_dir, name).exists()]
     if missing:
@@ -256,9 +270,11 @@ def main(argv: list[str] | None = None) -> None:
         valid_area = _build_valid_area_mask(grid)
 
     # Wortgleich aus scripts/widmung_v2/04_create_distance_zones.py:main()
-    # (dort Zeile ~472-499) übernommen, abzüglich der Varianten-/Drop-Tags
-    # (siehe Moduldocstring: bewusst nicht übernommen -> DROPPED_HUMAN_BANDS
-    # bleibt "keine", SETTLEMENT_BUFFER_VARIANTS bleibt "{}").
+    # (dort Zeile ~472-499; seit W6.1 aus dem Repo entfernt, letzter Stand im
+    # Commit f1d00f7 - git show f1d00f7:scripts/widmung_v2/04_create_distance_zones.py)
+    # übernommen, abzüglich der Varianten-/Drop-Tags (siehe Moduldocstring:
+    # bewusst nicht übernommen -> DROPPED_HUMAN_BANDS bleibt "keine",
+    # SETTLEMENT_BUFFER_VARIANTS bleibt "{}").
     tags = {
         "MIN_FRAGMENT_AREA_HA": str(args.min_fragment_area_ha),
         "PIPELINE": PIPELINE_TAG,
