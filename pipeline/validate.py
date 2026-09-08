@@ -1,0 +1,534 @@
+"""Validierung: vergleicht ein frisch finalisiertes TIF bandweise gegen die
+Vergleichsbasis ``run1`` und bewertet jede Abweichung nach der Ampel aus
+``docs/rewrite/PLAN.md`` §6 (Paket W3.2).
+
+## Was dieses Werkzeug tut - und was nicht
+
+Es **bewertet, es entscheidet nicht** (§6, Ablauf je Paket, Punkt 3: "Rot
+hält an. Dann Rückfrage, keine eigenmächtige Fortsetzung"). Es schreibt
+``docs/rewrite/abweichungen.tsv`` vollständig (alle Spalten außer
+``ursache``, die trägt ein Mensch ein), meldet Rot als Rot und beendet den
+Lauf mit Exit-Code 1, sobald mindestens ein Band Rot ist. Es "repariert"
+nichts, es stuft nichts herab, und es überschreibt nie ``run1`` selbst.
+
+## Vergleichsbasis
+
+``osm_wka_distance_zones_widmung_v2_run1.tif`` unter
+``output/abschichtung_widmung_v2/`` - das letzte Ergebnis DIESES Repos,
+nicht die aus dem Vorgängerprojekt kopierte Referenz-TIF (§6, Begründung
+dort: zwischen ``run1`` und der Referenz bestehen bereits dokumentierte
+Alt-Abweichungen, die sich sonst mit den neuen vermischen würden). Der Pfad
+liegt bewusst nicht in ``pipeline.contract`` (kein RAW-/PREP-/LAYERS-/
+PRODUCTS-Pfad, sondern die geteilte, nie zu überschreibende
+run1-Vergleichsbasis der alten Kette) - hier lokal definiert, aber gegen
+``contract.ROOT`` verankert statt als zweites freischwebendes Literal.
+
+## Drei Kennzahlen je Band (§6)
+
+1. Abweichende Pixel, absolut.
+2. Anteil an den **gesetzten Pixeln des Bandes**.
+3. Größte zusammenhängende Abweichungsfläche in Hektar (4er-Nachbarschaft,
+   wie ``windkraft.calc.abschichtung_common.min_area_filter`` - Aug-2026-
+   Entscheidung: nur Kantenkontakt verbindet).
+
+### Die Nenner-Frage (Punkt aus dem Auftrag, hier entschieden)
+
+§6 sagt wörtlich "Anteil an den **gesetzten Pixeln des Bandes**" - nicht
+"an der Gesamtzellzahl". W2.4 hat seinerzeit (PLAN.md §13.9,
+FORTSCHRITT.md) gegen die Gesamtzellzahl des Rasters (336.038.001 Zellen)
+gerechnet und kam für ``geography_water_bodies`` auf 0,16 %. Dieses
+Werkzeug folgt dem Wortlaut von §6: Nenner ist die Zahl der Zellen
+!= 0 im **Referenzband** (``run1`` - die im Vergleich ausgezeichnete,
+unveränderliche Seite), nicht die Gesamtzellzahl des Rasters. Für
+``geography_water_bodies`` ergibt das einen höheren Prozentsatz als
+0,16 % (der Nenner ist kleiner als 336.038.001 - ein See ist immer nur
+ein Bruchteil der Landesfläche). Beide Zahlen werden gemessen und im Bericht
+zu diesem Paket genannt, aber nur die §6-Variante (gesetzte Pixel) landet
+in ``anteil_prozent``.
+
+## Gruppen und Ampel
+
+Die Ampeltabelle unterscheidet zwei Gruppen nach ``band_role()`` aus
+``windkraft.calc.band_manifest``:
+
+- ``bedingung`` (Bänder 1-26, Quellen und Puffer): Anteil **und** größte
+  Fläche müssen beide unter dem jeweiligen Schwellwert liegen.
+- ``aggregat_kategorie`` / ``aggregat_gesamt`` / ``verfuegbarkeit_roh`` /
+  ``verfuegbarkeit_bereinigt`` / ``unschaerfe`` (Bänder 27-36, Aggregate
+  und Verfügbarkeit): ein einziges Flächenbudget in km², absolut (nicht
+  Prozent) - "die Fläche zählt, nicht die Pixelzahl" (§6). Die
+  Staatsfläche 83.921 km² aus der Ampeltabelle ist dabei nur Kontext für
+  die Größenordnung, kein Nenner.
+
+### Referenzbänder 37/38 - eine zweite Lücke in der Ampeltabelle, hier entschieden
+
+Die Ampeltabelle in §6 hat nur zwei Spalten (1-26, 27-36). Für die
+Referenzbänder 37/38 gibt es keine dritte Spalte - aber §6 sagt an anderer
+Stelle ausdrücklich "alle 38 Bänder müssen bitgleich zu ``run1`` sein",
+ohne Sonderfall (die frühere Steiermark-SAPRO-Ausnahme für Band 37 wurde
+von W1.7 ersatzlos gestrichen, weil die zugrunde liegende inhaltliche
+Änderung sich als nicht existent erwiesen hat). Entscheidung dieses
+Werkzeugs: jede Abweichung auf einem Referenzband ist automatisch **Rot**,
+unabhängig von Pixelzahl oder Fläche - es gibt für diese beiden Bänder
+keinen Grün-/Gelb-Korridor, weil die Ampeltabelle keinen definiert und die
+Bitgleichheits-Anforderung keine Ausnahme kennt.
+
+## §13.9-Wächter: der zehnte Fall ist ein Fehler
+
+PLAN.md §13.9 (Regel 8) erlaubt Abweichungen **ausschließlich** in den
+Bändern, die transitiv aus ``geography_water_bodies`` gespeist werden -
+welche das sind, berechnet ``windkraft.calc.band_manifest`` VOR der
+Messung aus ``abgeleitet_von`` und legt es im Manifest als
+``geography_water_bodies_wirkungspfad`` ab (siehe dortiges Modul, Regel 8:
+"vorher genannt, dann gemessen"). Dieses Werkzeug liest genau diese Liste
+aus dem Manifest des frisch geschriebenen TIFs - nicht aus einer eigenen
+Kopie - und behandelt jede Abweichung auf einem Band AUSSERHALB dieser
+Liste als Fehler: erzwungenes Rot, unabhängig von der berechneten
+Ampel-Farbe, mit eigenem Ursachenvermerk im Register.
+"""
+from __future__ import annotations
+
+import argparse
+import csv
+import json
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+
+import geopandas as gpd
+import numpy as np
+import rasterio
+from rasterio.features import rasterize
+from scipy import ndimage
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from pipeline import contract  # noqa: E402
+from pipeline.prep import admin as prep_admin  # noqa: E402
+from windkraft.calc.band_manifest import (  # noqa: E402
+    ROLE_BEDINGUNG,
+    ROLE_REFERENZ,
+    band_role,
+    manifest_path_for,
+)
+
+# ---------------------------------------------------------------------------
+# Pfade
+# ---------------------------------------------------------------------------
+
+REFERENCE_TIF = (
+    contract.ROOT
+    / "output"
+    / "abschichtung_widmung_v2"
+    / "osm_wka_distance_zones_widmung_v2_run1.tif"
+)
+
+REGISTER_PATH = contract.ROOT / "docs" / "rewrite" / "abweichungen.tsv"
+
+REGISTER_COLUMNS = [
+    "paket",
+    "band_nr",
+    "band_name",
+    "pixel_abs",
+    "anteil_prozent",
+    "groesste_flaeche_ha",
+    "schwerpunkt_bundesland",
+    "ampel",
+    "ursache",
+]
+
+URSACHE_PLATZHALTER = "TODO: von Hand eintragen"
+URSACHE_UNERWARTET = (
+    "FEHLER: nicht in geography_water_bodies_wirkungspfad - verstoesst "
+    "gegen PLAN.md Paragraph 13.9, vor Fortsetzung klaeren"
+)
+
+# ---------------------------------------------------------------------------
+# Ampel-Schwellen, PLAN.md §6
+# ---------------------------------------------------------------------------
+
+# Bänder 1-26 (bedingung): BEIDE Bedingungen müssen erfüllt sein.
+GRUEN_ANTEIL_PROZENT = 0.01
+GRUEN_FLAECHE_HA = 1.0
+GELB_ANTEIL_PROZENT = 0.1
+GELB_FLAECHE_HA = 25.0
+
+# Bänder 27-36 (Aggregate/Verfügbarkeit): absolutes Flächenbudget in km².
+GRUEN_FLAECHE_KM2 = 1.0
+GELB_FLAECHE_KM2 = 10.0
+
+AMPEL_BITGLEICH = "bitgleich"
+AMPEL_GRUEN = "gruen"
+AMPEL_GELB = "gelb"
+AMPEL_ROT = "rot"
+
+
+@dataclass
+class BandResult:
+    band_nr: int
+    band_name: str
+    role: str
+    pixel_abs: int
+    gesetzte_pixel_referenz: int
+    anteil_prozent: float  # Nenner: gesetzte Pixel im Referenzband (§6-Wortlaut)
+    anteil_prozent_kontrolle: float  # Nenner: Gesamtzellzahl (W2.4-Konvention) - nur zur Kontrolle
+    groesste_flaeche_ha: int | float
+    flaeche_km2: float
+    schwerpunkt_bundesland: str
+    ampel: str = AMPEL_BITGLEICH
+    unerwartet: bool = False
+
+
+# ---------------------------------------------------------------------------
+# Bundesland-Zuordnung
+# ---------------------------------------------------------------------------
+
+def _build_bundesland_code_raster(grid: dict) -> tuple[np.ndarray, dict[int, str]]:
+    """Rasterisiert die 9 Bundesland-Polygone einmal auf das Zielgitter.
+
+    Liest ``build/prep/admin/bundesland_masken.gpkg`` (dieselbe Datei, die
+    ``pipeline.layers.geo._build_valid_area_mask()`` für die Staatsgebiets-
+    maske liest) - nur lesend, wie im Auftrag verlangt. Code 0 = außerhalb
+    aller 9 Bundesländer (Rasterfenster reicht über die Staatsgrenze
+    hinaus, siehe geography_water_bodies/Bodensee).
+    """
+    path = contract.PREP["admin"] / prep_admin.BUNDESLAND_MASKEN_FILENAME
+    gdf = gpd.read_file(path)
+    codes = {i + 1: name for i, name in enumerate(gdf["BL"].tolist())}
+    arr = rasterize(
+        ((geom, code) for code, geom in zip(codes.keys(), gdf.geometry, strict=True)),
+        out_shape=grid["shape"],
+        transform=grid["transform"],
+        fill=0,
+        dtype="uint8",
+        all_touched=False,
+    )
+    return arr, codes
+
+
+def _schwerpunkt_bundesland(diff_mask: np.ndarray, bl_raster: np.ndarray, codes: dict[int, str]) -> str:
+    """Bundesland mit den meisten abweichenden Zellen - der Schwerpunkt,
+    nicht bloß irgendein betroffenes Land."""
+    hit_codes = bl_raster[diff_mask]
+    if hit_codes.size == 0:
+        return ""
+    counts = np.bincount(hit_codes, minlength=max(codes) + 1)
+    counts[0] = 0  # außerhalb aller Bundesländer zählt nicht als Schwerpunkt
+    if not counts.any():
+        return "(ausserhalb aller Bundeslaender)"
+    return codes[int(counts.argmax())]
+
+
+# ---------------------------------------------------------------------------
+# Flächenanalyse
+# ---------------------------------------------------------------------------
+
+def _largest_connected_component_px(diff_mask: np.ndarray) -> int:
+    """Größte zusammenhängende Abweichungsfläche in Pixeln, 4er-Nachbarschaft
+    - dieselbe Konvention wie ``abschichtung_common.min_area_filter()``."""
+    if not diff_mask.any():
+        return 0
+    structure = ndimage.generate_binary_structure(2, 1)
+    labels, n_labels = ndimage.label(diff_mask, structure=structure)
+    if n_labels == 0:
+        return 0
+    counts = np.bincount(labels.ravel())
+    counts[0] = 0
+    return int(counts.max())
+
+
+# ---------------------------------------------------------------------------
+# Messung
+# ---------------------------------------------------------------------------
+
+def measure_bands(new_tif: Path, reference_tif: Path) -> list[BandResult]:
+    with rasterio.open(new_tif) as new_src, rasterio.open(reference_tif) as ref_src:
+        if new_src.count != ref_src.count:
+            raise ValueError(
+                f"Bandzahl weicht ab: {new_tif} hat {new_src.count}, {reference_tif} hat {ref_src.count}."
+            )
+        if new_src.descriptions != ref_src.descriptions:
+            raise ValueError(
+                "Bandnamen/-reihenfolge weichen ab - kein bandweiser Vergleich moeglich:\n"
+                f"neu: {new_src.descriptions}\nrun1: {ref_src.descriptions}"
+            )
+        if new_src.shape != ref_src.shape or new_src.transform != ref_src.transform:
+            raise ValueError(
+                f"Gitter weicht ab: {new_tif} shape={new_src.shape} transform={new_src.transform} vs. "
+                f"{reference_tif} shape={ref_src.shape} transform={ref_src.transform}."
+            )
+
+        grid = {"shape": new_src.shape, "transform": new_src.transform, "crs": new_src.crs}
+        cell_area_m2 = abs(float(grid["transform"].a) * float(grid["transform"].e))
+        total_cells = int(grid["shape"][0]) * int(grid["shape"][1])
+        band_names = list(new_src.descriptions)
+
+        bl_raster: np.ndarray | None = None
+        bl_codes: dict[int, str] | None = None
+
+        results: list[BandResult] = []
+        for i, name in enumerate(band_names, start=1):
+            a = new_src.read(i)
+            b = ref_src.read(i)
+            diff_mask = a != b
+            pixel_abs = int(diff_mask.sum())
+            role = band_role(name)
+
+            if pixel_abs == 0:
+                results.append(
+                    BandResult(
+                        band_nr=i,
+                        band_name=name,
+                        role=role,
+                        pixel_abs=0,
+                        gesetzte_pixel_referenz=int((b != 0).sum()),
+                        anteil_prozent=0.0,
+                        anteil_prozent_kontrolle=0.0,
+                        groesste_flaeche_ha=0,
+                        flaeche_km2=0.0,
+                        schwerpunkt_bundesland="",
+                        ampel=AMPEL_BITGLEICH,
+                    )
+                )
+                del a, b, diff_mask
+                continue
+
+            if bl_raster is None:
+                bl_raster, bl_codes = _build_bundesland_code_raster(grid)
+
+            gesetzte_pixel_referenz = int((b != 0).sum())
+            anteil_prozent = (
+                pixel_abs / gesetzte_pixel_referenz * 100.0 if gesetzte_pixel_referenz else float("inf")
+            )
+            anteil_prozent_kontrolle = pixel_abs / total_cells * 100.0
+            groesste_px = _largest_connected_component_px(diff_mask)
+            groesste_flaeche_ha = groesste_px * cell_area_m2 / 10_000.0
+            flaeche_km2 = pixel_abs * cell_area_m2 / 1_000_000.0
+            schwerpunkt = _schwerpunkt_bundesland(diff_mask, bl_raster, bl_codes)
+
+            results.append(
+                BandResult(
+                    band_nr=i,
+                    band_name=name,
+                    role=role,
+                    pixel_abs=pixel_abs,
+                    gesetzte_pixel_referenz=gesetzte_pixel_referenz,
+                    anteil_prozent=anteil_prozent,
+                    anteil_prozent_kontrolle=anteil_prozent_kontrolle,
+                    groesste_flaeche_ha=groesste_flaeche_ha,
+                    flaeche_km2=flaeche_km2,
+                    schwerpunkt_bundesland=schwerpunkt,
+                )
+            )
+            del a, b, diff_mask
+
+    return results
+
+
+# ---------------------------------------------------------------------------
+# Ampel-Einstufung
+# ---------------------------------------------------------------------------
+
+def classify(result: BandResult, erlaubte_baender: set[str]) -> tuple[str, bool]:
+    """Reine Funktion der Kennzahlen - kein Dateizugriff, gut testbar.
+
+    Gibt (ampel, unerwartet) zurueck. ``unerwartet`` True heisst: dieses
+    Band weicht ab, ist aber nicht in der vom Manifest vorab genannten
+    geography_water_bodies_wirkungspfad-Liste (PLAN.md §13.9) - erzwingt
+    Rot unabhaengig von der sonst berechneten Farbe.
+    """
+    if result.pixel_abs == 0:
+        return AMPEL_BITGLEICH, False
+
+    unerwartet = result.band_name not in erlaubte_baender
+
+    if result.role == ROLE_BEDINGUNG:
+        if result.anteil_prozent <= GRUEN_ANTEIL_PROZENT and result.groesste_flaeche_ha <= GRUEN_FLAECHE_HA:
+            ampel = AMPEL_GRUEN
+        elif result.anteil_prozent <= GELB_ANTEIL_PROZENT and result.groesste_flaeche_ha <= GELB_FLAECHE_HA:
+            ampel = AMPEL_GELB
+        else:
+            ampel = AMPEL_ROT
+    elif result.role == ROLE_REFERENZ:
+        # Referenzbaender kennen laut Ampeltabelle keinen Gruen-/Gelb-
+        # Korridor; §6 verlangt Bitgleichheit ohne Ausnahme. Siehe
+        # Moduldocstring, Abschnitt "Referenzbaender 37/38".
+        ampel = AMPEL_ROT
+    else:
+        if result.flaeche_km2 <= GRUEN_FLAECHE_KM2:
+            ampel = AMPEL_GRUEN
+        elif result.flaeche_km2 <= GELB_FLAECHE_KM2:
+            ampel = AMPEL_GELB
+        else:
+            ampel = AMPEL_ROT
+
+    if unerwartet:
+        ampel = AMPEL_ROT
+
+    return ampel, unerwartet
+
+
+# ---------------------------------------------------------------------------
+# Register
+# ---------------------------------------------------------------------------
+
+def _load_existing_register(path: Path) -> dict[tuple[str, str], list[str]]:
+    if not path.exists():
+        return {}
+    rows: dict[tuple[str, str], list[str]] = {}
+    with path.open("r", encoding="utf-8", newline="") as f:
+        reader = csv.reader(f, delimiter="\t")
+        header = next(reader, None)
+        if header != REGISTER_COLUMNS:
+            raise ValueError(
+                f"{path} hat einen unerwarteten Kopf {header!r} - erwartet {REGISTER_COLUMNS!r}. "
+                "Von Hand pruefen statt automatisch ueberschreiben."
+            )
+        for row in reader:
+            if len(row) != len(REGISTER_COLUMNS):
+                continue
+            rows[(row[0], row[2])] = row
+    return rows
+
+
+def write_register(path: Path, paket: str, results: list[BandResult], erlaubte_baender: set[str]) -> list[BandResult]:
+    """Schreibt/aktualisiert das Register. Zeilen anderer Pakete bleiben
+    unveraendert stehen; Zeilen desselben Pakets werden aus der aktuellen
+    Messung neu gebaut - ein von Hand eingetragener ``ursache``-Text bleibt
+    dabei erhalten, solange er nicht der Platzhalter ist.
+
+    Gibt die Liste der fuer dieses Paket geschriebenen BandResult-Objekte
+    zurueck (mit gesetzter ``ampel``/``unerwartet``), fuer den Bericht auf
+    der Kommandozeile.
+    """
+    existing = _load_existing_register(path)
+    other_paket_rows = {key: row for key, row in existing.items() if key[0] != paket}
+
+    deviating = [r for r in results if r.pixel_abs > 0]
+    classified: list[BandResult] = []
+    new_rows: dict[tuple[str, str], list[str]] = {}
+    for r in deviating:
+        ampel, unerwartet = classify(r, erlaubte_baender)
+        r.ampel = ampel
+        r.unerwartet = unerwartet
+        classified.append(r)
+
+        key = (paket, r.band_name)
+        prior = existing.get(key)
+        if unerwartet:
+            ursache = URSACHE_UNERWARTET
+        elif prior is not None and prior[-1] and prior[-1] not in (URSACHE_PLATZHALTER, URSACHE_UNERWARTET):
+            ursache = prior[-1]
+        else:
+            ursache = URSACHE_PLATZHALTER
+
+        new_rows[key] = [
+            paket,
+            str(r.band_nr),
+            r.band_name,
+            str(r.pixel_abs),
+            f"{r.anteil_prozent:.4f}",
+            f"{r.groesste_flaeche_ha:.4f}",
+            r.schwerpunkt_bundesland,
+            r.ampel,
+            ursache,
+        ]
+
+    combined = {**other_paket_rows, **new_rows}
+    ordered = sorted(combined.values(), key=lambda row: (row[0], int(row[1])))
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8", newline="") as f:
+        writer = csv.writer(f, delimiter="\t", lineterminator="\n")
+        writer.writerow(REGISTER_COLUMNS)
+        writer.writerows(ordered)
+
+    return classified
+
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    p = argparse.ArgumentParser(
+        description=(
+            "Validierung W3.2: vergleicht ein finalisiertes TIF bandweise gegen "
+            "run1 und schreibt docs/rewrite/abweichungen.tsv nach der Ampel aus "
+            "PLAN.md Paragraph 6. Bewertet, entscheidet nicht - Rot haelt an."
+        )
+    )
+    p.add_argument(
+        "--paket",
+        required=True,
+        help="Paket, dem diese Messung zugeordnet wird (z.B. W3.1 oder W2.4) - siehe PLAN.md Paragraph 6.",
+    )
+    p.add_argument("--new-tif", default=None, help="Default: pipeline.contract.PRODUCTS['abschichtung_tif'].")
+    p.add_argument("--reference-tif", default=None, help="Default: run1 unter output/abschichtung_widmung_v2/.")
+    p.add_argument("--register", default=None, help="Default: docs/rewrite/abweichungen.tsv.")
+    return p.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    new_tif = Path(args.new_tif) if args.new_tif else contract.PRODUCTS["abschichtung_tif"]
+    reference_tif = Path(args.reference_tif) if args.reference_tif else REFERENCE_TIF
+    register_path = Path(args.register) if args.register else REGISTER_PATH
+
+    if not new_tif.exists():
+        raise FileNotFoundError(f"{new_tif} fehlt - 'make finalize' zuerst laufen lassen.")
+    if not reference_tif.exists():
+        raise FileNotFoundError(f"{reference_tif} fehlt - die run1-Vergleichsbasis ist nicht da.")
+
+    manifest_path = manifest_path_for(new_tif)
+    if not manifest_path.exists():
+        raise FileNotFoundError(
+            f"{manifest_path} fehlt - pipeline.finalize schreibt es zusammen mit dem TIF."
+        )
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    erlaubte_baender = set(manifest.get("geography_water_bodies_wirkungspfad", []))
+
+    results = measure_bands(new_tif, reference_tif)
+    bitgleich = [r for r in results if r.pixel_abs == 0]
+    classified = write_register(register_path, args.paket, results, erlaubte_baender)
+
+    print(f"Vergleich {new_tif.name} gegen {reference_tif.name}: {len(results)} Baender.")
+    print(f"  bitgleich: {len(bitgleich)}")
+    print(f"  abweichend: {len(classified)}")
+    if classified:
+        # groesste_ha (groesste zusammenhaengende Flaeche, Register-Spalte
+        # groesste_flaeche_ha) und gesamt_km2 (Summe aller abweichenden
+        # Zellen) sind unterschiedliche Groessen und faellen fuer Baender
+        # 27-36 unterschiedliche Ampel-Eingaben - beide getrennt ausweisen,
+        # sonst liest sich die falsche Zahl wie die entscheidende.
+        print(
+            f"\n{'nr':>3} {'band':<40} {'pixel_abs':>10} {'anteil_%':>10} "
+            f"{'kontroll_%':>10} {'groesste_ha':>12} {'gesamt_km2':>11} {'ampel':<8} {'bundesland'}"
+        )
+        for r in sorted(classified, key=lambda x: x.band_nr):
+            flag = " *UNERWARTET*" if r.unerwartet else ""
+            print(
+                f"{r.band_nr:>3} {r.band_name:<40} {r.pixel_abs:>10} "
+                f"{r.anteil_prozent:>10.4f} {r.anteil_prozent_kontrolle:>10.4f} "
+                f"{r.groesste_flaeche_ha:>12.4f} {r.flaeche_km2:>11.4f} {r.ampel:<8} {r.schwerpunkt_bundesland}{flag}"
+            )
+    print(f"\nRegister geschrieben: {register_path}")
+
+    rot = [r for r in classified if r.ampel == AMPEL_ROT]
+    if rot:
+        namen = ", ".join(f"{r.band_nr} {r.band_name}" for r in rot)
+        print(
+            f"\nROT: {len(rot)} Band(e) ueber dem Gelb-Budget oder ausserhalb "
+            f"des erlaubten Wirkungspfads ({namen}). PLAN.md Paragraph 6: "
+            "Rot haelt an - Rueckfrage beim Nutzer, keine eigenmaechtige Fortsetzung.",
+            file=sys.stderr,
+        )
+        return 1
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

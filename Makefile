@@ -121,6 +121,16 @@ endif
 ## Fehler, kein Abbruch).
 -include make/finalize/*.mk
 
+## Paket W3.2 (docs/rewrite/PLAN.md §7, siehe make/validate/README.md): die
+## Validierungs-Stufe (finalisiertes TIF bandweise gegen run1, Ampel aus §6)
+## bekommt ihre eigene Datei make/validate/validate.mk mit dem Ziel
+## `validate`. Dasselbe Muster wie bei make/finalize/ - nur eine Domäne,
+## kein <domäne>-Ableitungsmuster. Anders als bei W3.1 durfte dieses Paket
+## Makefile anfassen (Regel 9, docs/rewrite/PLAN.md §13.10) und trägt bei
+## derselben Gelegenheit auch die zuvor fehlende finalize-Zeile (Punkt 36)
+## nach, statt dieselbe Lücke ein zweites Mal offen zu lassen.
+-include make/validate/*.mk
+
 ## Prep und Kette zusammen - der Beweislauf aus Rohdaten (Welle 5: W5.1).
 all: prep widmung-v2
 
