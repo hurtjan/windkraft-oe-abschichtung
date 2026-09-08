@@ -310,7 +310,7 @@ Zwischen den Wellen wird synchronisiert, innerhalb einer Welle nicht.
 | 2 | Layer | 3 | ja — gleichzeitig |
 | 3 | Finalisierung | 2 | nein — nacheinander |
 | 4 | Prüfung | 4 | Vorfeld zuerst, dann drei gleichzeitig |
-| 5 | Beweis | 6 | Vorfeld in fünf Stufen, dann der Lauf |
+| 5 | Beweis | 7 | Vorfeld in sechs Stufen, dann der Lauf |
 
 „Besitzt" heißt: nur dieses Paket darf diese Pfade anfassen. Zwei Pakete
 derselben Welle teilen sich niemals eine Datei.
@@ -384,6 +384,16 @@ derselben Welle teilen sich niemals eine Datei.
    `docs/rewrite/FORTSCHRITT.md` und `docs/rewrite/PLAN.md` sind für Pakete
    tabu; sie berichten stattdessen. Zwei parallele Pakete, die beide ins
    Protokoll schreiben, kollidieren an der Wellengrenze garantiert.
+   **Nachtrag nach dem zweiten Vorfall (W5.P4):** Diese Regel verbietet
+   das *Bearbeiten* und schützt deshalb nicht vor `git add -A`. Was
+   unversioniert im Arbeitsbaum liegt, sammelt ein fremdes Paket
+   mit ein, ohne die Regel zu brechen. Deshalb gilt zusätzlich —
+   **Regel 10: die beiden Plandateien werden nach jedem Paket
+   committet**, von mir beauftragt und in einem eigenen Commit, der
+   nichts anderes enthält. Ein sauberer Arbeitsbaum ist der mechanische
+   Schutz, den eine Prosa-Regel nicht leisten kann. Pakete stagen
+   ausschließlich mit namentlich genannten Pfaden, nie mit `-A`, `.`
+   oder `commit -a`.
 
 ## 9. Bekannte Grenzen
 

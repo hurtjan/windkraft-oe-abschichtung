@@ -15,12 +15,12 @@ W0.1 in dessen §11. Die Belege liegen unter
 | Abgeschlossen | **37 von 39** — Welle 0 bis 4 vollständig, aus Welle 5 fünf Vorfeld-Pakete. Neun Pakete kamen unterwegs dazu (W2.P0, W2.4, W4.P0, W5.P0 bis W5.P4, W5.P5), eines entfiel (W2.2 → W2.1). |
 | Als Nächstes | **W5.P5** (neu, aus W5.P4 zurückgestellt) generalisiert den Wirkungspfad-Wächter im Manifest auf beliebige Ursachen — bisher kennt er nur Wasser, DKM/Punkt 34 fehlt dort strukturell (siehe Protokoll). Danach **W5.1** — der Beweislauf beweist jetzt den Endzustand und keinen Zwischenstand. Die Löschliste aus Punkt 37 wird **nicht** vorher ausgeführt: `rm -rf build` allein bringt 35 GiB gegen 22,5 GiB Spitzenbedarf, und bis der Beweislauf grün ist, sind die Zwischenstände der alten Kette der einzige Rückweg. |
 | **Referenz** | Seit `f592e75` **`sha256 fb57c41d…232c30`** — **zweite Wanderung an einem Tag.** Erst die Bodensee-Korrektur (Punkt 33, `4bdef6ad…`), dann der Wegfall adressloser Großflächen (Punkt 34, `fb57c41d…`). Beides Nutzerentscheidungen vom 08.09.2026. `run1` (`dc58b011…`) bleibt Vergleichsbasis und historischer Zeuge; **18 der 38 Bänder weichen inzwischen davon ab**, aus zwei benannten Ursachen. |
-| Zweig | `docs/audit-und-plan`, Kopf `e59d3d1`, keine offenen Worktrees, keine offenen Zweige |
+| Zweig | `docs/audit-und-plan`, Kopf `27231d9`, keine offenen Worktrees, keine offenen Zweige |
 | Die Kette läuft neu | 33 Layer aus `pipeline/layers/` (Reihenfolge **hig → osm → geo**) → `pipeline/finalize.py` (rund 165 s) → `pipeline/validate.py` → `pipeline/verify/` (Dashboard, Gemeindegrenzen). **Kein Skript aus `scripts/widmung_v2/` mehr im Weg, und kein Modul liest mehr aus `output/`.** |
 | Tests | **214 plus 2 übersprungen** — von 129 zu Beginn der Welle 1. Beide gegateten Langläufer sind jetzt nachweislich je einmal real gelaufen (46,5 s und 173,3 s). |
 | `data/` | **hardlinkfrei**, 48 echte Dateien, per Wächter als Invariante gesichert |
 | Abweichungen | **zwei Ursachen, 18 betroffene Bänder** gegenüber `run1`. (1) Bodensee-Korrektur: Band 26 und 29 — **Ampel jetzt akzeptiert**. (2) Wegfall adressloser Großflächen: Bänder 5, 7–13 und 27 — **Ampel rot**, weil der Wirkungspfad-Wächter DKM noch nicht kennt (W5.P5). (3) Beides überlagert: Bänder 30–36 — **Ampel rot**, gemessene Fläche real über dem Gelb-Budget. Die erste Ursache war **vorher benannt und zweimal unabhängig gemessen**, die zweite ist eine bewusste fachliche Änderung. |
-| Plattenplatz | **23 GiB frei**, `build/` 12 GB, `output/` 11 GB, `out/` 129 MB. Für Welle 5 eng — Punkt 37. |
+| Plattenplatz | Punkt 37 ist **entschärft, nicht ausgeführt**: `rm -rf build` — Teil von W5.1 ohnehin — bringt rund 35 GiB frei gegen 22,5 GiB Spitzenbedarf. Die 9,6 GB unter `output/` sind Reserve, keine Voraussetzung, und werden **nach** dem Beweislauf gelöscht, nicht davor. Der Stand ist seit W5.P2 nicht neu gemessen. |
 
 ## Paketübersicht
 
@@ -95,16 +95,16 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | davon Welle 2 | rund 45 min für drei Pakete (Summe der Einzelzeiten: 62 min) plus 23 min Zusammenführung |
 | davon Welle 3 | **26 min** (W3.1) + **4 h 43** (W3.2) — dazu unten |
 | davon Welle 4 | **8 min** (W4.P0) + rund 25 min für drei parallele Pakete (Summe der Einzelzeiten: 51 min) + **21 min** Zusammenführung |
-| davon Welle 5, Vorfeld | **77 min** (W5.P0 9 + W5.P1 11 + W5.P2 57), dazu 11 min Messung für Punkt 34 |
-| Verbleibend, geschätzt | **rund 1 ¼ h**, davon fast alles Maschinenzeit |
+| davon Welle 5, Vorfeld | **100 min** (W5.P0 9 + W5.P1 11 + W5.P2 57 + W5.P3 10 + W5.P4 13), dazu 11 min Messung für Punkt 34 |
+| Verbleibend, geschätzt | **rund 2 – 2 ½ h**, davon fast alles Maschinenzeit: W5.P5, dann der Beweislauf |
 | Davon unbekannt | **nichts mehr** — die Kataster-Vorverarbeitung ist zweimal vermessen, zuletzt im Volllauf mit 48,0 min |
 
-**Summe geschätzt gegen Summe gebraucht**, über alle 40 Positionen mit
-Schätzung (Welle 0 hatte keine): **1205 min geschätzt, 875 min gebraucht —
-minus 27 %.**
+**Summe geschätzt gegen Summe gebraucht**, über alle 41 Positionen mit
+Schätzung (Welle 0 hatte keine): **1225 min geschätzt, 888 min gebraucht —
+minus 28 %.**
 
 **Diese Zahl ist irreführend, und zwar wegen genau einer Position.** Ohne
-W3.2 lautet sie **1175 gegen 592 — minus 50 %**, praktisch unverändert
+W3.2 lautet sie **1195 gegen 605 — minus 49 %**, praktisch unverändert
 gegenüber den −46 % nach 20 und den −49 % nach 29 Positionen. W3.2 allein
 verschiebt den Faktor um 25 Prozentpunkte. Beide Zahlen stehen hier, weil
 beide wahr sind: Die erste beschreibt, wie lange es gedauert hat; die
@@ -2299,7 +2299,7 @@ Nutzer-Textgruppen danach exakt wiederhergestellt; verglichen mit der
 Sicherung hat sich am Ende ausschließlich die `ampel`-Spalte der Zeilen
 26 und 29 geändert (rot → **akzeptiert**). Die neun DKM-Zeilen (5,
 7–13, 27) und die sieben Überlagerungszeilen (30–36) bleiben **rot** —
-Erstere, weil sie am unrepariterten Wächter weiterhin als „unerwartet"
+Erstere, weil sie am unreparierten Wächter weiterhin als „unerwartet"
 scheitern, Letztere, weil ihre gemessene Fläche (10,3–93,6 km²) das
 Gelb-Budget von 10 km² real überschreitet, unabhängig vom Wächter.
 
@@ -2319,6 +2319,48 @@ von W5.P3 mit 46,5 s).
 zu erklären, weil kein Testcode geändert wurde. `make check-guards` grün,
 Referenzwerte (127/79/48/50) bestätigt. `data/` unangetastet, `run1` und
 Referenz-Hash beide verifiziert unverändert.
+
+#### Die vorstehenden Absätze hat nicht ich geschrieben
+
+**Und das ist zum zweiten Mal in diesem Projekt passiert.** Der Auftrag
+enthielt den Satz, der seit W1.5 in jedem Auftrag steht: „Fass
+`docs/rewrite/FORTSCHRITT.md` und `docs/rewrite/PLAN.md` nicht an —
+berichte mir stattdessen." Der Agent hat beide Dateien geschrieben und in
+`27231d9` committet, samt meiner unversionierten Arbeit aus zwei
+Sitzungen, und dabei eigenmächtig ein Paket W5.P5 eröffnet.
+
+**Geprüft, bevor bewertet.** Der Commit hat 1241 Zeilen hinzugefügt und
+45 entfernt. Ich habe alle 45 gelesen: Es sind **ausschließlich veraltete
+Zeilen von mir selbst** — der Stand-Block aus Welle 3, die alte
+Zeitbilanz mit 855/436, Registerzeilen zu den Punkten 9, 10, 14, 33 und
+34 in ihrer Fassung vor den Entscheidungen. Genau die Zeilen also, die
+ich in dieser Sitzung ohnehin ersetzt habe. **Es ist nichts verloren
+gegangen**, alle fünf Protokollabschnitte der Welle 5 stehen unverändert,
+und `PLAN.md` hat der Commit ausschließlich ergänzt.
+
+**Die Ursache ist zur Hälfte meine.** Ein Agent, der `git add -A` oder
+`git commit -a` benutzt, nimmt mit, was im Arbeitsbaum liegt — und dort
+lagen meine beiden Dateien seit zwei Sitzungen unversioniert. Die Regel
+allein schützt nicht davor; sie verbietet das *Bearbeiten*, nicht das
+Mitcommitten. Der Satz im Auftrag war notwendig und nicht hinreichend.
+
+> **Regel 10.** Die beiden Plandateien werden **nach jedem Paket
+> committet**, von mir beauftragt und allein. Was im Arbeitsbaum liegt,
+> kann ein fremdes `git add -A` einsammeln, ohne die Regel zu verletzen,
+> die das Bearbeiten verbietet. Ein sauberer Arbeitsbaum ist der
+> mechanische Schutz, den die Prosa-Regel nicht leisten kann.
+
+**Der Inhalt bleibt stehen, mit dieser Kennzeichnung.** Die Abschnitte
+sind sachlich richtig und decken sich mit dem Bericht; sie
+herauszulöschen und in meinen Worten neu zu schreiben würde das Protokoll
+nicht wahrer machen, sondern nur verbergen, wie es entstanden ist. Wer
+später liest, soll beides sehen: den Befund und seine Herkunft.
+
+**Die Paketeröffnung W5.P5 übernehme ich ausdrücklich** — nicht weil sie
+mir vorgelegt wurde, sondern weil sie richtig ist. Der Zuschnitt stimmt,
+und die Reihenfolge vor W5.1 stimmt auch: `band_manifest.py` ändert das
+Manifest, und das Manifest ist eines der vier Endprodukte, die der
+Beweislauf erzeugen soll.
 
 ### W5.P3 — Die vier Nachzügler, und was beim Aufräumen herausfiel
 
