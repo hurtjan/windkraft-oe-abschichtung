@@ -116,16 +116,29 @@ Referenzband-Regel selbst schon.
 
 ## §13.9-Wächter: der zehnte Fall ist ein Fehler
 
-PLAN.md §13.9 (Regel 8) erlaubt Abweichungen **ausschließlich** in den
-Bändern, die transitiv aus ``geography_water_bodies`` gespeist werden -
-welche das sind, berechnet ``windkraft.calc.band_manifest`` VOR der
-Messung aus ``abgeleitet_von`` und legt es im Manifest als
-``geography_water_bodies_wirkungspfad`` ab (siehe dortiges Modul, Regel 8:
-"vorher genannt, dann gemessen"). Dieses Werkzeug liest genau diese Liste
-aus dem Manifest des frisch geschriebenen TIFs - nicht aus einer eigenen
-Kopie - und behandelt jede Abweichung auf einem Band AUSSERHALB dieser
-Liste als Fehler: erzwungenes Rot, unabhängig von der berechneten
-Ampel-Farbe, mit eigenem Ursachenvermerk im Register.
+PLAN.md §13.9 (Regel 8) erlaubt Abweichungen **ausschließlich** in Bändern,
+die transitiv aus einer bereits geprüften und angenommenen Ursache gespeist
+werden - welche das je Ursache sind, berechnet
+``windkraft.calc.band_manifest`` VOR der Messung aus ``abgeleitet_von`` und
+legt es im Manifest als eigenen Top-Level-Schlüssel ab, einen je Ursache
+(``geography_water_bodies_wirkungspfad`` für die Bodensee-Korrektur, Punkt
+33; ``dkm_geoparquet_wirkungspfad`` für den Wegfall adressloser
+DKM-Großflächen, Punkt 34, seit W5.P5) - siehe dortiges Modul, Regel 8:
+"vorher genannt, dann gemessen".
+
+Dieses Werkzeug liest **jeden** Schlüssel, der im Manifest der
+``..._wirkungspfad``-Konvention folgt (Namenssuffix, keine feste Liste von
+Schlüsselnamen - dieselbe Erkennung wie
+``pipeline/verify/dashboard.py:_impact_path_keys()``), bildet die
+Vereinigung ihrer Bandlisten und behandelt jede Abweichung auf einem Band
+AUSSERHALB dieser Vereinigung als Fehler: erzwungenes Rot, unabhängig von
+der berechneten Ampel-Farbe, mit eigenem Ursachenvermerk im Register. Jede
+Zeile wird damit gegen den Wirkungspfad IHRER EIGENEN Ursache geprüft, nicht
+pauschal gegen einen einzigen - ein Band, das in keinem der bekannten Pfade
+auftaucht, bleibt unerwartet, ganz gleich, wie viele Ursachen das Manifest
+inzwischen kennt. Ein künftiger dritter Wirkungspfad braucht an dieser
+Stelle keine Anpassung, solange sein Manifest-Schlüssel derselben
+Namenskonvention folgt.
 """
 from __future__ import annotations
 
@@ -203,7 +216,7 @@ REGISTER_COLUMNS = [
 
 URSACHE_PLATZHALTER = "TODO: von Hand eintragen"
 URSACHE_UNERWARTET = (
-    "FEHLER: nicht in geography_water_bodies_wirkungspfad - verstoesst "
+    "FEHLER: in keinem *_wirkungspfad des Manifests - verstoesst "
     "gegen PLAN.md Paragraph 13.9, vor Fortsetzung klaeren"
 )
 
@@ -408,13 +421,33 @@ def measure_bands(new_tif: Path, reference_tif: Path) -> list[BandResult]:
 # Ampel-Einstufung
 # ---------------------------------------------------------------------------
 
+def _erlaubte_baender_aus_manifest(manifest: dict) -> set[str]:
+    """Vereinigung aller ``..._wirkungspfad``-Listen im Manifest - eine je
+    bereits geprueften/angenommenen Ursache (Moduldocstring, "§13.9-
+    Waechter"). Schluessel werden ueber das Namenssuffix gefunden, nicht
+    ueber eine feste Liste ("geography_water_bodies_wirkungspfad",
+    "dkm_geoparquet_wirkungspfad", ...) - dieselbe Konvention wie
+    ``pipeline/verify/dashboard.py:_impact_path_keys()``, hier lokal
+    dupliziert statt importiert: beide Module lesen dasselbe Manifest-
+    Schema-Vokabular, aber unabhaengig voneinander (Verify- vs.
+    Validierungsstufe, siehe PLAN.md §7), keine neue Kopplung zwischen den
+    beiden fuer zwei Zeilen Code."""
+    erlaubt: set[str] = set()
+    for key, value in manifest.items():
+        if key.endswith("_wirkungspfad") and isinstance(value, list):
+            erlaubt.update(value)
+    return erlaubt
+
+
 def classify(result: BandResult, erlaubte_baender: set[str]) -> tuple[str, bool]:
     """Reine Funktion der Kennzahlen - kein Dateizugriff, gut testbar.
 
     Gibt (ampel, unerwartet) zurueck. ``unerwartet`` True heisst: dieses
-    Band weicht ab, ist aber nicht in der vom Manifest vorab genannten
-    geography_water_bodies_wirkungspfad-Liste (PLAN.md §13.9) - erzwingt
-    Rot unabhaengig von der sonst berechneten Farbe.
+    Band weicht ab, ist aber in KEINER der vom Manifest vorab genannten
+    ``..._wirkungspfad``-Listen (PLAN.md §13.9) - ``erlaubte_baender`` ist
+    hier bereits die Vereinigung aller Ursachen (siehe main()), die Funktion
+    selbst kennt keine einzelne Ursache. Erzwingt Rot unabhaengig von der
+    sonst berechneten Farbe.
     """
     if result.pixel_abs == 0:
         return AMPEL_BITGLEICH, False
@@ -619,7 +652,7 @@ def main(argv: list[str] | None = None) -> int:
             f"{manifest_path} fehlt - pipeline.finalize schreibt es zusammen mit dem TIF."
         )
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    erlaubte_baender = set(manifest.get("geography_water_bodies_wirkungspfad", []))
+    erlaubte_baender = _erlaubte_baender_aus_manifest(manifest)
 
     results = measure_bands(new_tif, reference_tif)
     bitgleich = [r for r in results if r.pixel_abs == 0]

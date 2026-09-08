@@ -44,7 +44,7 @@ den Pfad ein zweites Mal hinzuschreiben.
 | `sha256` | `fb57c41dca0642225a8115e3ed95297ede47b56d56c00fdddf8caa445e232c30` |
 | Größe | 124.597.421 Bytes |
 | Bänder | 38 |
-| Manifest-`schema_version` | `2.0.0` |
+| Manifest-`schema_version` | `2.1.0` |
 
 Diese Prüfsumme ist verdrahtet: `tests/test_referenz_tif.py` prüft sie bei
 jedem `make test` (siehe dort auch, wie der langlaufende Reproduktionstest
@@ -166,15 +166,37 @@ Dazu ein neuer Schlüssel auf oberster Ebene:
   transitive Abschluss über `abgeleitet_von`, beginnend bei
   `geography_water_bodies`. Er wird **berechnet, nicht gepflegt** (eine
   zweite, von Hand synchron zu haltende Liste wäre genau die stille Drift,
-  die das Feld verhindern soll). Er deckt nur die Bodensee-Ursache ab — die
-  zweite, unabhängige Ursache unten (adresslose DKM-Großflächen) hat kein
-  eigenes Manifestfeld. Wozu er gut ist, steht unten unter „18 Bänder
-  unterscheiden sich von `run1`".
+  die das Feld verhindern soll). Er deckt nur die Bodensee-Ursache ab. Wozu
+  er gut ist, steht unten unter „18 Bänder unterscheiden sich von `run1`".
 
 **Warum Haupt- und nicht Nebenversion**, obwohl die Änderung rein additiv
 ist: ein Konsument, der die Feldmenge je Band exakt *zählt* oder auf
 Gleichheit prüft, statt mit `in` nachzusehen, sieht sie als Bruch. Die
 Versionsnummer soll den warnen, nicht ihn überraschen.
+
+### `2.1.0` (Paket W5.P5) — die zweite Ursache bekommt ihr eigenes Feld
+
+Die zweite, unabhängige Ursache aus dem Abschnitt „18 Bänder unterscheiden
+sich von `run1`" unten (adresslose DKM-Großflächen, Punkt 34) hatte bis
+`2.0.0` **kein** eigenes Manifestfeld — ihre Vorab-Nennung stand nur im
+Messbericht des erzeugenden Pakets. Seit `2.1.0` trägt das Manifest dafür
+einen zweiten Top-Level-Schlüssel:
+
+- **`dkm_geoparquet_wirkungspfad`** — derselben Konvention wie oben, nur
+  mit einem STARTKNOTENSATZ statt eines einzelnen Startbands: alle Bänder,
+  deren `quelle` `dkm_geoparquet` referenziert, plus deren transitiver
+  Abschluss über `abgeleitet_von`. Überschneidet sich mit
+  `geography_water_bodies_wirkungspfad` an den gemeinsamen Aggregat-/
+  Verfügbarkeitsbändern — beide Ursachen überlagern sich dort tatsächlich.
+
+**Warum Neben- und nicht Hauptversion**, anders als bei `2.0.0`: die
+Änderung fügt nur einen weiteren Top-Level-Schlüssel derselben, bereits
+generisch entdeckbaren `..._wirkungspfad`-Konvention hinzu (ein Konsument,
+der nach dem Namenssuffix statt nach einem festen Schlüsselnamen sucht,
+findet ihn ohne Anpassung) — `bands[]` und jedes bestehende Feld je Band
+bleiben unverändert. Genau die Fälle, die `2.0.0` zur Hauptversion machten
+(Feldmenge je Band exakt zählen oder auf Gleichheit prüfen), sind hier
+nicht betroffen.
 
 ## Vertrag vs. Dokumentation
 

@@ -150,12 +150,14 @@ def _validate_manifest_shape(manifest: dict) -> list[str]:
 def _impact_path_keys(manifest: dict) -> list[str]:
     """Alle Top-Level-Schlüssel, die der ``..._wirkungspfad``-Konvention aus
     dem Manifest-Schema folgen (siehe windkraft/calc/band_manifest.py,
-    Schema-Historie 2.0.0 - der heutige Manifest-Erzeuger trägt dort genau
-    einen solchen Schlüssel ein, benannt nach dem Band, dessen transitive
-    Wirkung er auflistet). Über das Namens-SUFFIX gefunden, nicht über einen
-    konkreten Bandnamen - ein fremdes Manifest mit einem anders benannten
-    Wirkungspfad-Schlüssel (z. B. ``irgendwas_wirkungspfad``) wird genauso
-    gefunden, unabhängig davon, wie das Band heißt, um das es geht."""
+    Schema-Historie - Schema 2.0.0 führte den ersten dieser Schlüssel ein,
+    2.1.0 einen zweiten; der heutige Manifest-Erzeuger trägt dort inzwischen
+    zwei solcher Schlüssel ein). Über das Namens-SUFFIX gefunden, nicht über
+    eine feste Anzahl oder einen konkreten Bandnamen - ein fremdes Manifest
+    mit einem anders benannten Wirkungspfad-Schlüssel (z. B.
+    ``irgendwas_wirkungspfad``) wird genauso gefunden, unabhängig davon, wie
+    das Band heißt, um das es geht, und unabhängig davon, wie viele solcher
+    Schlüssel es gibt."""
     return [k for k, v in manifest.items() if k.endswith("_wirkungspfad") and isinstance(v, list)]
 
 
