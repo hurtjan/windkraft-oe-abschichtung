@@ -132,10 +132,56 @@ REQUIRED_BAND_FIELDS = [
     "is_total",
     "color_rgba",
     "default_visible",
+    # Ab Schema 2.0.0 (Paket W3.1, docs/rewrite/PLAN.md §7): Nummer/Name/
+    # Rolle/Puffer/Quelle je Band, siehe Moduldocstring von band_manifest.py.
+    "rolle",
+    "puffer_m",
+    "puffer_hinweis",
+    "quelle",
+    "abgeleitet_von",
 ]
 
 PERCENT_INDICES = {33, 34, 35, 36}
 CLIPPED_INDICES = set(range(27, 37))
+
+# Rolle je Bandbereich (Schema 2.0.0) - deckungsgleich mit der Ampel-Logik
+# von PLAN.md §6 (1-26 Bedingung, 27-29 Kategorie-Aggregate, 30 Gesamt-
+# Aggregat, 31 roh, 32 bereinigt, 33-36 Unschärfe, 37-38 Referenz).
+EXPECTED_ROLE_BY_INDEX = {
+    **{i: "bedingung" for i in range(1, 27)},
+    27: "aggregat_kategorie",
+    28: "aggregat_kategorie",
+    29: "aggregat_kategorie",
+    30: "aggregat_gesamt",
+    31: "verfuegbarkeit_roh",
+    32: "verfuegbarkeit_bereinigt",
+    33: "unschaerfe",
+    34: "unschaerfe",
+    35: "unschaerfe",
+    36: "unschaerfe",
+    37: "referenz",
+    38: "referenz",
+}
+
+# Die transitive Ausbreitung der geography_water_bodies-Abweichung
+# (PLAN.md §13.9/Regel 8), vorher berechnet aus compose_exclusion_geotiff()s
+# tatsächlicher Verschaltung (geography_water_bodies -> exclusion_geography
+# -> all_exclusions -> available_after_all_exclusions_raw -> sowohl
+# available_cleaned_min_10ha als auch die vier Blur-Bänder, die laut
+# pipeline/finalize.py mit blur_source="raw" von available_after_all_
+# exclusions_raw abhängen, nicht von available_cleaned). Neun Bänder -
+# dieselbe Zahl, die der Bericht zu W3.1 vorab nennt.
+EXPECTED_WATER_BODIES_IMPACT_PATH = [
+    "geography_water_bodies",
+    "exclusion_geography",
+    "all_exclusions",
+    "available_after_all_exclusions_raw",
+    "available_cleaned_min_10ha",
+    "available_blur_sigma_100m",
+    "available_blur_sigma_200m",
+    "available_blur_sigma_250m",
+    "available_blur_sigma_300m",
+]
 
 
 @pytest.fixture(scope="module")
@@ -217,7 +263,7 @@ def test_raster_block_matches_grid(manifest):
 
 
 def test_top_level_shape(manifest):
-    assert manifest["schema_version"] == "1.0.0"
+    assert manifest["schema_version"] == "2.0.0"
     assert manifest["pipeline"] == "widmung_v2"
     assert manifest["band_schema"] == "clean-38-ohne-wichtige-objekte-aug-2026"
     assert manifest["raster_file"] == "osm_wka_distance_zones_widmung_v2.tif"
@@ -263,6 +309,65 @@ def test_blur_bleed_caveat_present_for_bands_33_to_36(manifest):
 def test_exactly_two_caveats_present(manifest):
     ids = {c["id"] for c in manifest["caveats"]}
     assert ids == {"noe_dkm_reconstructed", "blur_bands_bleed_across_border"}
+
+
+def test_role_matches_expected_bands(manifest):
+    for band in manifest["bands"]:
+        assert band["rolle"] == EXPECTED_ROLE_BY_INDEX[band["index"]], band["name"]
+
+
+def test_buffer_m_only_for_bands_with_a_single_austria_wide_value(manifest):
+    by_name = {b["name"]: b for b in manifest["bands"]}
+    assert by_name["haeuser_im_gruenen"]["puffer_m"] == 750.0
+    assert by_name["nonresidential_hulls_buffer"]["puffer_m"] == 25.0
+    assert by_name["cableway_buildings_buffer"]["puffer_m"] == 50.0
+    assert by_name["general_buildings_buffer"]["puffer_m"] == 25.0
+    assert by_name["road_motorway_trunk"]["puffer_m"] == 150.0
+    # Bundeslandabhängig - kein einzelner Wert, aber ein erklärender Hinweis.
+    assert by_name["settlement_buffer"]["puffer_m"] is None
+    assert "1.200 m" in by_name["settlement_buffer"]["puffer_hinweis"]
+    # Puffer schon im Quellband enthalten.
+    assert by_name["haeuser_im_gruenen_noe_pdf"]["puffer_m"] is None
+    assert by_name["haeuser_im_gruenen_noe_pdf"]["puffer_hinweis"]
+    # Korridor statt isotropem Puffer.
+    assert by_name["airport_runway_corridor_5km"]["puffer_m"] is None
+    assert "5.000 m" in by_name["airport_runway_corridor_5km"]["puffer_hinweis"]
+    # Reine Quell-/Schwellwert-/Aggregatbänder: weder Wert noch Hinweis.
+    for name in ("official_settlement_source", "geography_water_bodies", "all_exclusions"):
+        assert by_name[name]["puffer_m"] is None
+        assert by_name[name]["puffer_hinweis"] is None
+
+
+def test_quelle_set_for_condition_bands_empty_for_aggregates(manifest):
+    by_name = {b["name"]: b for b in manifest["bands"]}
+    assert by_name["geography_water_bodies"]["quelle"] == ["osm_pbf"]
+    assert by_name["nature_protection_areas"]["quelle"] == ["naturschutzgebiete"]
+    assert by_name["official_settlement_source"]["quelle"]
+    # Aggregat-/Ergebnisbänder lesen keine Rohdaten direkt.
+    for name in ("exclusion_human", "exclusion_nature", "exclusion_geography", "all_exclusions", "available_after_all_exclusions_raw"):
+        assert by_name[name]["quelle"] == [], name
+
+
+def test_abgeleitet_von_traces_aggregates_to_their_condition_bands(manifest):
+    by_name = {b["name"]: b for b in manifest["bands"]}
+    assert by_name["exclusion_geography"]["abgeleitet_von"] == [
+        "geography_slope_too_steep",
+        "geography_elevation_too_high",
+        "geography_wind_too_low",
+        "geography_water_bodies",
+    ]
+    assert by_name["all_exclusions"]["abgeleitet_von"] == ["exclusion_human", "exclusion_nature", "exclusion_geography"]
+    assert by_name["available_cleaned_min_10ha"]["abgeleitet_von"] == ["available_after_all_exclusions_raw"]
+    assert by_name["available_blur_sigma_100m"]["abgeleitet_von"] == ["available_after_all_exclusions_raw"]
+    # Bedingungsbänder sind nicht aus anderen Bändern abgeleitet.
+    assert by_name["geography_water_bodies"]["abgeleitet_von"] == []
+
+
+def test_geography_water_bodies_wirkungspfad_is_the_predicted_nine_bands(manifest):
+    # PLAN.md §13.9/Regel 8: nur diese neun Bänder dürfen von run1 abweichen
+    # (die geography_water_bodies-Korrektur, 543.106 Zellen, ausschließlich
+    # zusätzlich). Vorab genannt, nicht nachträglich gepasst.
+    assert manifest["geography_water_bodies_wirkungspfad"] == EXPECTED_WATER_BODIES_IMPACT_PATH
 
 
 def test_pixel_size_accepts_plain_affine_tuple():
