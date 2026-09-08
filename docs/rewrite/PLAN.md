@@ -54,7 +54,7 @@ allein aus `data/` heraus die vier Endprodukte reproduziert.
 |---|---|
 | `out/abschichtung.tif` | Das eigentliche Ergebnis der Abschichtung: 38 Bänder, uint8, EPSG:31287, 25 m, 24001 × 14001. |
 | `out/abschichtung.bands.json` | Vertrag: Bandnummer, Name, Rolle, Pufferdistanz, Quelle je Band — vom Schreiber selbst erzeugt. Die Datei, die das Dashboard-Repo konsumiert. |
-| `out/dashboard/` | Prüfung/Neubau: liest ausschließlich das Manifest, nie eine fest verdrahtete Bandliste. Genau daran ist der heutige Dashboard-Builder gescheitert. |
+| `out/dashboard/` | Prüfung/Neubau: liest ausschließlich das Manifest, nie eine fest verdrahtete Bandliste. Genau daran war der alte Dashboard-Builder gescheitert — `scripts/analysis/build_v2_dashboard_data.py`, **seit W1.5 gelöscht**, mit rund zwanzig wörtlich verdrahteten Bandnamen der alten 63-Band-Kette, von denen heute keiner mehr existiert. Seit W4.1 prüft die Stufe zusätzlich jede Querverweisung im Manifest gegen sich selbst. |
 | `out/gemeinden.geojson` | Prüfung/neu: Gemeindegrenzen im Rasterbezug, um die Deckung visuell zu prüfen — der heute fehlende Test gegen Georeferenzierungsfehler. |
 
 ### Die fünf Stufen der Eskalation
@@ -181,8 +181,69 @@ Abschichtung ein.
 Für Band 37 war eine Ausnahme vorgesehen: der Wegfall der steirischen
 SAPRO-2026-Ausschlusszonen galt als beschlossene inhaltliche Änderung.
 **W1.7 hat gemessen, dass es diese Änderung nicht gibt** — die
-Ausschlusszonen erreichten nie ein Band. Die Ausnahme entfällt ersatzlos:
-**alle 38 Bänder müssen bitgleich zu `run1` sein**, ohne Sonderfall.
+Ausschlusszonen erreichten nie ein Band. Die Ausnahme entfiel ersatzlos:
+alle 38 Bänder mussten bitgleich zu `run1` sein, ohne Sonderfall.
+
+#### Die Referenz hat sich am 08.09.2026 zweimal geändert
+
+Der Satz oben galt bis Welle 3. An **einem Tag** hat der Nutzer zwei
+fachliche Entscheidungen getroffen, und jede hat die Referenz verschoben:
+
+| Stand | `sha256` | Anlass | Unterschied zum Vorgänger |
+|---|---|---|---|
+| `run1` | `dc58b011…9e3df1` | die alte Kette | — |
+| Welle 3 | `4bdef6ad…6b1a13e` | **Punkt 33**, Bodensee-Korrektur angenommen | neun Bänder: 26, 29, 30–36 |
+| **heute** | **`fb57c41d…232c30`** | **Punkt 34**, adresslose Großflächen entfallen | 16 Bänder: 5, 7–13, 27, 30–36 |
+
+**Gegenüber `run1` weichen damit 18 der 38 Bänder ab**, aus zwei
+benannten Ursachen — und sieben Bänder (30–36) tragen beide zugleich.
+`abweichungen.tsv` führt das getrennt, damit die Überlagerung sichtbar
+bleibt statt zu verschmelzen.
+
+Die beiden Wechsel sind **nicht gleichrangig**, und das gehört
+festgehalten: Der erste war eine **Korrektur** — die neue Kette hatte
+recht, die alte unrecht, dreifach belegt. Der zweite ist eine **fachliche
+Änderung** — beide Zustände sind vertretbar, der Nutzer hat einen gewählt.
+Wer später fragt, warum das Ergebnis von `run1` abweicht, bekommt zwei
+verschiedene Antworten, und nur die erste ist ein Fehlerbefund.
+
+Die Ampel bleibt unverändert in Kraft; nur ihr Bezugspunkt wandert. **Ab
+jetzt gilt wieder: jede Abweichung von der Referenz ist ein Fehler** —
+diesmal von `fb57c41d…`. Die Zeilen in `abweichungen.tsv` sind kein
+offener Posten mehr, sondern der dokumentierte Grund für die Wechsel.
+
+Was das **nicht** aufhebt: `output/…_run1.tif` bleibt unangetastet und
+behält seine Prüfsumme. Es ist der einzige erhaltene Zeuge dafür, was die
+alte Kette gerechnet hat, und nach Regel 8 muss der Rückweg offen
+bleiben.
+
+#### Zwei Lücken, die W3.2 beim Implementieren schließen musste
+
+Die Ampel war als Text gemeint und ist jetzt Code. Dabei ist
+herausgekommen, dass sie an zwei Stellen nicht entscheidbar war.
+
+**Der Nenner.** „≤ 0,01 % der gesetzten Pixel" — gesetzt *wo*? W2.4 hatte
+gegen die Gesamtzellzahl 336 038 001 gerechnet und kam für
+`geography_water_bodies` auf 0,16 %; gegen die gesetzten Pixel des
+**Referenzbands** sind es **27,58 %**. Ein Faktor 170 zwischen zwei
+Lesarten desselben Satzes. **Verbindlich ist ab jetzt: gesetzte Pixel des
+Referenzbands aus `run1`.** `pipeline/validate.py` führt die Zahl gegen
+die Gesamtzellzahl als Kontrollwert mit und druckt sie, schreibt aber den
+Registerwert nach dieser Definition.
+
+**Die Referenzbänder.** Die Ampeltabelle hat zwei Spalten, für Bänder 1–26
+und 27–36. Für 37 und 38 gibt es keinen grünen oder gelben Korridor —
+sie stehen in keiner Spalte. Zusammen mit dem Satz oben („alle 38 Bänder
+müssen bitgleich sein, ohne Sonderfall") heißt das: **Bei 37 und 38 ist
+jede Abweichung Rot, unabhängig von ihrer Größe.** So implementiert; in
+der Praxis bisher nicht ausgelöst, weil beide bitgleich sind.
+
+**Bestätigt hat sich dagegen die Behauptung von oben**, die dritte
+Kennzahl sei die aussagekräftigste. Über alle neun abweichenden Bänder
+war die **größte zusammenhängende Fläche** die bindende Schranke — die
+Nennerfrage mit ihrem Faktor 170 hat **keine einzige** Ampelfarbe
+verändert. Ein verstreutes Prozent und ein zusammenhängendes Prozent sind
+verschiedene Dinge, und die Ampel misst das richtige.
 
 ### Ablauf je Paket
 
@@ -218,6 +279,26 @@ Zeile, kein Fließtext. Alle übrigen Spalten erzeugt das Werkzeug.
 Aus dieser Datei entscheidet der Nutzer im Nachhinein, welche Abweichungen
 akzeptiert werden.
 
+**Zu `schwerpunkt_bundesland` ein Vorbehalt aus der ersten Befüllung:**
+Die Spalte nennt für alle neun Zeilen Vorarlberg — richtig, aber ohne
+Kontext irreführend. **487 877 der 543 106 abweichenden Zellen von Band 26
+(89,83 %) liegen außerhalb aller neun Bundesländer**, weil das
+Rasterfenster über die Staatsgrenze in den Bodensee hinausreicht. Nur
+55 229 Zellen (rund 35 km²) fallen auf österreichisches Gebiet, und die
+liegen tatsächlich **ausschließlich** in Vorarlberg — null in den anderen
+acht. Die Spalte beantwortet „wo in Österreich am meisten", nicht „wo
+überhaupt"; wer sie liest, muss das wissen.
+
+**Ein Nenner, der nicht als Vorbehalt taugt:** Band 26 trägt das Attribut
+`clipped_to_austria: false`, und das Rasterfenster reicht mit rund 13 km
+Marge nach Bayern, Slowenien, Tschechien, Ungarn und in die Schweiz. Schon
+`run1` führte dort **202 736** Wasserzellen — echtes ausländisches Wasser,
+das mit der Bbox-Lücke nichts zu tun hat. Wer den Anteil „außerhalb
+Österreichs" über **alle gesetzten** Zellen bildet statt über die
+abweichenden, misst deshalb etwas ganz anderes (27,49 % statt 89,83 %).
+Beide Zahlen sind richtig, beide beschreiben verschiedene Mengen — und
+nur die zweite sagt etwas über die Korrektur aus.
+
 ## 7. Wellen und Pakete
 
 Zwischen den Wellen wird synchronisiert, innerhalb einer Welle nicht.
@@ -229,7 +310,7 @@ Zwischen den Wellen wird synchronisiert, innerhalb einer Welle nicht.
 | 2 | Layer | 3 | ja — gleichzeitig |
 | 3 | Finalisierung | 2 | nein — nacheinander |
 | 4 | Prüfung | 4 | Vorfeld zuerst, dann drei gleichzeitig |
-| 5 | Beweis | 1 | nein — nacheinander |
+| 5 | Beweis | 6 | Vorfeld in fünf Stufen, dann der Lauf |
 
 „Besitzt" heißt: nur dieses Paket darf diese Pfade anfassen. Zwei Pakete
 derselben Welle teilen sich niemals eine Datei.
@@ -266,8 +347,14 @@ derselben Welle teilen sich niemals eine Datei.
 | W4.P0 | 4 | Prüfung | Vorfeld der Prüfwelle | `pipeline/verify/__init__.py`; `make/verify/README.md`; **`Makefile` — als einziges Paket der Welle 4** (`-include make/verify/*.mk`, das `test`-Ziel für W4.3, und `build/layers/` samt fertigem TIF im `worktree`-Ziel) | Welle 3 | `make -n` für jedes bestehende Ziel byte-identisch; ein Wegwerf-Worktree sieht `build/layers/` **und** ein finalisiertes TIF, ohne beides neu zu rechnen, und schreibt in keines von beiden. Nach Regel 9 (§13.10). |
 | W4.1 | 4 | Prüfung | Dashboard neu | `pipeline/verify/dashboard.py`; `out/dashboard/` | W4.P0 | Liest ausschließlich das Manifest; keine Bandnamen im Code. Läuft gegen ein Manifest mit geänderter Bandzahl ohne Anpassung. |
 | W4.2 | 4 | Prüfung | Gemeindegrenzen-Export | `pipeline/verify/gemeinden.py`; `out/gemeinden.geojson` | W4.P0, W1.P1 | Grenzen im Rasterbezug; Deckungsabweichung gegen das TIF ausgewiesen und unter Schwellwert. |
-| W4.3 | 4 | Prüfung | Tests verdrahten | `tests/**` — **nicht mehr `Makefile`**, das `test`-Ziel zieht W4.P0 vor | W4.P0 | `make test` läuft die acht vorhandenen Tests plus die neuen Vertragstests; grün. |
-| W5.1 | 5 | Beweis | Beweislauf aus Rohdaten | — (nur Ausführung) | Wellen 0–4 | `rm -rf build && make all` erzeugt das TIF vollständig neu; Abnahmebedingung erfüllt; Laufzeiten je Stufe protokolliert. |
+| W4.3 | 4 | Prüfung | Tests verdrahten **und Vertragsschluss** | `tests/**`; **`docs/rewrite/abweichungen.tsv`** (von W3.2 übernommen, dort erledigt) und **`docs/HANDOFF.md`** (Punkt 9) — **nicht mehr `Makefile`**, das `test`-Ziel zieht W4.P0 vor | W4.P0 | `make test` läuft die acht vorhandenen Tests plus die neuen Vertragstests; grün. Dazu die Umsetzung der Nutzerentscheidung zu Punkt 33: `ursache`-Spalte gefüllt, jede Sollwertbehauptung auf die neue Referenz gezogen. |
+| W5.P0 | 5 | Beweis | Vorfeld des Beweislaufs | `Makefile` (nur das `all`-Ziel); `docs/RUN1_VERGLEICH.md` (nur ein datierter Nachtrag) | Welle 4 | `make -n` für jedes bestehende Ziel byte-identisch; `make all` läuft nachweislich die **neue** Kette. Nach Regel 9 (§13.10). **Gefunden und behoben: `all: prep widmung-v2` rief die alte Kette auf** — Welle 5 hätte den Vorgänger bewiesen und den Umbau nie berührt. |
+| W5.P1 | 5 | Beweis | Die letzte `output/`-Abhängigkeit | `pipeline/layers/geo.py`; `make/layers/geo.mk`; `make/layers/osm.mk` | W5.P0 | Kein Modul unter `pipeline/` liest mehr unbedingt aus `output/`. Nachweis über einen Lauf mit **leerem** Quellverzeichnis: kein Rückfall, Verzeichnis bleibt leer, alle 17 Layer pixelgleich. Die Layer-Reihenfolge **hig → osm → geo** ist im Make-Graphen verdrahtet statt alphabetisch. Behebt Punkt 42, der W2.4 gehört hätte. |
+| W5.P2 | 5 | Beweis | Adresslose Großflächen entfallen | `windkraft/calc/hig_detection.py`; `pipeline/layers/hig.py`; `tests/test_hig_addressless_candidates.py` (neu); `pipeline/validate.py` und `tests/test_referenz_tif.py` (nur das Hash-Literal); `docs/rewrite/abweichungen.tsv`; `docs/HANDOFF.md` | W5.P1 | Umsetzung der Nutzerentscheidung zu Punkt 34 (3). Ein Kandidat über `HIG_MAX_FOOTPRINT_M2` **ohne eigene BEV-Adresse** entfällt; mit Adresse bleibt die Zentroidscheibe unverändert. **Kein anderer Schwellwert wird angefasst.** Nachzuweisen sind: die Zahl der entfallenen Kandidaten, die pixelweise geänderten Checkpoints, die geänderten Bänder gegen die Zwischenreferenz, die Flächenwirkung auf `haeuser_im_gruenen_streusiedlung` **und** ob eine Hülle zerfällt. |
+| W5.P3 | 5 | Beweis | Die vier Nachzügler aus W5.P2 | `docs/rewrite/abweichungen.tsv`; `tests/test_referenz_tif.py`; `docs/HANDOFF.md`; `README.md` | W5.P2 | Vier Stellen, die seit `f592e75` etwas Falsches behaupten: der Ursache-Text im Register (drei Gruppen statt einer), der gegatete Vertragstest (18 Bänder statt neun), der HANDOFF-Abschnitt gleichen Inhalts, und ein veralteter Hash im README. Dazu die Dokumentation von Punkt 34 (1) und (2). |
+| W5.P4 | 5 | Beweis | Das Register kennt nur eine Ursache | `docs/rewrite/abweichungen.tsv` (nur `ampel`); `README.md` (Zeile 191) | W5.P3 | Schlüsselwort „angenommen"/„entschieden" repariert, `validate.py` real gelaufen, `ampel` zeigt den tatsächlichen Zustand; README-Zahl auf 18/zwei Ursachen nachgezogen; zweiter gegateter Langläufer real gelaufen. **Der Wirkungspfad-Wächter selbst blieb fest auf Wasser verdrahtet** — Zuschnitt größer als ein Nachmittag, an W5.P5 zurückgegeben. |
+| W5.P5 | 5 | Beweis | Wirkungspfad-Wächter generalisieren | `windkraft/calc/band_manifest.py`; `pipeline/validate.py` | W5.P4 | Der Wächter aus §13.9 prüft jede Zeile gegen den Wirkungspfad **ihrer eigenen** `ursache`, nicht mehr fest gegen `geography_water_bodies_wirkungspfad`. Dafür muss das Manifest einen Wirkungspfad für die DKM-Ursache (Punkt 34) hergeben — dazu erst die fehlende `OFFICIAL_COVER_LAYERS`-Kante (HIG-Zwischenschicht in `pipeline/layers/osm.py`) im Manifest-Graphen nachbilden. Abnahme: Bänder 5, 7–13, 27 werden bei akzeptierter Ursache korrekt grün/akzeptiert, kein anderer Wirkungspfad ändert sich. |
+| W5.1 | 5 | Beweis | Beweislauf aus Rohdaten | — (nur Ausführung) | W5.P5 | `rm -rf build && make all` erzeugt das TIF vollständig neu; Abnahmebedingung erfüllt; Laufzeiten je Stufe protokolliert. |
 
 ## 8. Regeln der Parallelität
 
@@ -792,9 +879,9 @@ Stelle, an der sie niemand stellt. Deshalb steht die
 Geometrietyp-Prüfung ausdrücklich in der Abnahme von W2.4.
 
 **Nachtrag:** Die Maschinensichten unten nennen 30 Arbeitspakete. Mit
-W2.P0, W2.4 und dem später nachgezogenen W4.P0 (§13.10) sind es 33, und
-`packages.tsv`/`packages.json` sind entsprechend veraltet — dieselbe
-Baustelle wie Punkt 16.
+W2.P0, W2.4, dem später nachgezogenen W4.P0 (§13.10) sowie W5.P0 bis
+W5.P5 sind es **39**, und `packages.tsv`/`packages.json` sind entsprechend
+veraltet — dieselbe Baustelle wie Punkt 16.
 
 ### 13.9 Die erste Abweichung ist eine Korrektur
 
@@ -811,9 +898,30 @@ außerhalb der Box, und die Relation geht beim Export verloren. Die
 Prep-Stufe filtert gegen die volle, ungeklippte Rohquelle und findet den
 Bodensee.
 
-**Der Zustand ist bewusst nicht entschieden, sondern dokumentiert.** Ob
-die Korrektur übernommen wird oder der alte Zustand als Soll gilt, ist
-eine fachliche Frage und gehört dem Nutzer (Punkt 33). Bis dahin gilt:
+**Die drei verlorenen Zeilen sind namentlich bekannt.** 128 028 gegen
+128 025 — der Unterschied besteht aus genau zwei OSM-Objekten:
+
+| `@id` | Objekt | Fehlende Zeilen |
+|---|---|---:|
+| 1156846 | **Bodensee**, `natural=water` / `water=lake`, MultiPolygon-Relation, ~531,35 km² | 1 |
+| 1473483026 | `natural=shoal` — eine **Sandbank von 1448 m²**, Way, in Linien- und Flächenform exportiert | 2 |
+
+Die Bounding Box der Sandbank liegt **vollständig innerhalb** der des
+Bodensees: kein zweiter, andernorts liegender Fall, sondern ein
+Sub-Feature derselben Stelle, vom selben Schnitt mitgerissen. Die
+Zusammenhangsanalyse der 543 106 Zellen bestätigt es unabhängig — **fünf
+Komponenten, davon eine mit 543 095 Zellen (99,998 %)** und vier Reste von
+zusammen 11 Zellen.
+
+**Damit ist die letzte offene Hälfte von Punkt 33 beantwortet: Nein,
+weitere Gewässer sind nicht betroffen.** Die Frage, die einmal „wie viel
+wissen wir nicht" hieß, endet bei zwei benannten OSM-Objekten.
+
+**Der Zustand war bewusst nicht entschieden, sondern dokumentiert.** Ob
+die Korrektur übernommen wird oder der alte Zustand als Soll gilt, war
+eine fachliche Frage und gehörte dem Nutzer (Punkt 33). **Am 08.09.2026
+hat er sie angenommen** — die Begründung dafür steht in §6. Bis dahin
+galt, und für den nächsten Fall dieser Art gilt weiterhin:
 
 > **Regel 8.** Eine erklärte Abweichung wird **weitergetragen, nicht
 > weggemacht** — mit ihrer Zahl, ihrer Ursache und ihrer Richtung. Sie
@@ -891,6 +999,52 @@ Welle 4, und W4.3 gibt das `test`-Ziel dorthin ab. Damit sind es
 **33 Pakete**. Dass die Regel beim ersten Anwenden gleich etwas findet,
 ist kein gutes Zeichen für den ursprünglichen Zuschnitt — aber genau der
 Zweck einer Regel, die aus einem Fehler stammt.
+
+**Bei Welle 5 hat sie das Teuerste überhaupt gefunden.** Welle 5 ist *ein*
+Paket, seriell, und bringt keine neue Dateiart hervor — nach dem Buchstaben
+der Regel hätte sie kein Vorfeld gebraucht. Die Prüffrage lautet aber
+„wem gehört die Zeile, die alles zusammenhält", und die Zeile war hier
+`all:` im `Makefile`. Sie stand seit W0.3 auf `prep widmung-v2` und rief
+damit die **alte** Kette auf, die keines der vier Endprodukte schreibt.
+**Der Beweislauf hätte den Vorgänger bewiesen und den Umbau nie
+berührt** — und weil er grün gewesen wäre, hätte es niemand gemerkt.
+W5.P0 hat es in einer Zeile behoben, mit `make -n` über 36 Ziele als
+Gegennachweis, und nebenbei Punkt 37 aufgelöst.
+
+**W5.P1 kam obendrauf, weil W5.P0 beim Hinsehen eine zweite Lücke fand:**
+`geo.py` las acht Checkpoints unbedingt aus `output/`, ohne Rückfall, und
+die Layer-Reihenfolge stand alphabetisch statt nach Abhängigkeit. Auch das
+hätte der Beweislauf nicht gemeldet, sondern still aus einem Altbestand
+bedient. Damit sind es **35 Pakete** — und die Regel hat in zwei von zwei
+Anwendungen etwas gefunden, das kein Test und kein Merge je gemeldet
+hätte.
+
+**Nachtrag: zwei weitere Pakete, aus einem anderen Grund.** W5.P2 setzt
+eine Nutzerentscheidung um, W5.P3 räumt hinter W5.P2 auf — damit **37**.
+Das zweite ist die eigentliche Lehre: W5.P2 hat drei Stellen im Repo
+zurückgelassen, die seither etwas Falsches behaupten, und **alle drei
+selbst gemeldet, statt sie stillschweigend mitzunehmen oder eigenmächtig
+zu ändern**. Dazu kam eine vierte, die mein Fehler war — ich hatte einen
+`ursache`-Text für alle neuen Registerzeilen diktiert, obwohl das Werkzeug
+gegen `run1` vergleicht und deshalb auch unveränderte Bänder mit ausgibt.
+
+**Nachtrag zum Nachtrag: ein fünftes und sechstes Paket, aus demselben
+Muster.** W5.P4 hat den Registerfehler (Schlüsselwort, `ampel`-Auffrischung,
+README) behoben, aber den eigentlichen Entwurfsfehler — den fest auf
+Wasser verdrahteten Wirkungspfad-Wächter — bewusst nicht angefasst, weil
+die saubere Lösung eine fehlende Kante im Manifest-Graphen zuerst
+nachbilden müsste. Genau dafür jetzt **W5.P5**: damit **39**. Auch das ist
+kein Rückschlag, sondern dieselbe Regel wieder bestätigt — ein Paket, das
+anhält statt zu improvisieren, erzeugt ein sauber benanntes Folgepaket
+statt eines stillen Fehlers im Register.
+
+> **Ergänzung zu Regel 9.** Ein Paket, das die **Referenz verschiebt**,
+> erzeugt zwangsläufig Folgearbeit an jeder Stelle, die die alte Referenz
+> zitiert — Tests, Handreichungen, README, Register. Diese Stellen sind
+> selten alle im Besitz desselben Pakets. Sie gehören **vorher gezählt**
+> und **danach in einem eigenen Paket** abgeräumt, nicht in dem, das die
+> Änderung macht. Sonst entsteht genau das Muster aus §13.6: eine
+> Entscheidung, an vier Orten verschieden nachgezogen.
 
 ## Maschinensichten
 

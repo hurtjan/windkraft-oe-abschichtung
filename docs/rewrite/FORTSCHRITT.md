@@ -12,12 +12,15 @@ W0.1 in dessen §11. Die Belege liegen unter
 
 | | |
 |---|---|
-| Abgeschlossen | **28 von 33** — Welle 0, 1 und 2 vollständig, aus Welle 3 das erste Paket. Drei Pakete kamen neu dazu (W2.P0, W2.4, W4.P0), eines entfiel (W2.2 → W2.1). |
-| Als Nächstes | **W3.2 Validierung** — bewertet das neue TIF nach der Ampel aus PLAN §6 und schreibt `abweichungen.tsv`. Schritt 0 ist der Merge von `w3.1` samt der fehlenden `Makefile`-Zeile (Punkt 36). |
-| Zweig | `docs/audit-und-plan`, Kopf `0223562`; **`w3.1` mit Commit `782a0e0` steht unmerged**, Worktree `../abschichtung-w3.1` offen |
-| Die Kette läuft neu | 33 Layer aus `pipeline/layers/`, zusammengesetzt von `pipeline/finalize.py` in 164 s. **Kein Skript aus `scripts/widmung_v2/` mehr im Weg.** |
+| Abgeschlossen | **37 von 39** — Welle 0 bis 4 vollständig, aus Welle 5 fünf Vorfeld-Pakete. Neun Pakete kamen unterwegs dazu (W2.P0, W2.4, W4.P0, W5.P0 bis W5.P4, W5.P5), eines entfiel (W2.2 → W2.1). |
+| Als Nächstes | **W5.P5** (neu, aus W5.P4 zurückgestellt) generalisiert den Wirkungspfad-Wächter im Manifest auf beliebige Ursachen — bisher kennt er nur Wasser, DKM/Punkt 34 fehlt dort strukturell (siehe Protokoll). Danach **W5.1** — der Beweislauf beweist jetzt den Endzustand und keinen Zwischenstand. Die Löschliste aus Punkt 37 wird **nicht** vorher ausgeführt: `rm -rf build` allein bringt 35 GiB gegen 22,5 GiB Spitzenbedarf, und bis der Beweislauf grün ist, sind die Zwischenstände der alten Kette der einzige Rückweg. |
+| **Referenz** | Seit `f592e75` **`sha256 fb57c41d…232c30`** — **zweite Wanderung an einem Tag.** Erst die Bodensee-Korrektur (Punkt 33, `4bdef6ad…`), dann der Wegfall adressloser Großflächen (Punkt 34, `fb57c41d…`). Beides Nutzerentscheidungen vom 08.09.2026. `run1` (`dc58b011…`) bleibt Vergleichsbasis und historischer Zeuge; **18 der 38 Bänder weichen inzwischen davon ab**, aus zwei benannten Ursachen. |
+| Zweig | `docs/audit-und-plan`, Kopf `e59d3d1`, keine offenen Worktrees, keine offenen Zweige |
+| Die Kette läuft neu | 33 Layer aus `pipeline/layers/` (Reihenfolge **hig → osm → geo**) → `pipeline/finalize.py` (rund 165 s) → `pipeline/validate.py` → `pipeline/verify/` (Dashboard, Gemeindegrenzen). **Kein Skript aus `scripts/widmung_v2/` mehr im Weg, und kein Modul liest mehr aus `output/`.** |
+| Tests | **214 plus 2 übersprungen** — von 129 zu Beginn der Welle 1. Beide gegateten Langläufer sind jetzt nachweislich je einmal real gelaufen (46,5 s und 173,3 s). |
 | `data/` | **hardlinkfrei**, 48 echte Dateien, per Wächter als Invariante gesichert |
-| Abweichungen bisher | **eine Ursache, neun betroffene Bänder** — `geography_water_bodies` (+543 106 Zellen, Bodensee-Relation) und die acht Bänder, die daraus abgeleitet sind. Alle neun **vorher benannt, dann gemessen**; die übrigen 29 sind bitgleich zu `run1`. Punkt 33, deine Entscheidung. |
+| Abweichungen | **zwei Ursachen, 18 betroffene Bänder** gegenüber `run1`. (1) Bodensee-Korrektur: Band 26 und 29 — **Ampel jetzt akzeptiert**. (2) Wegfall adressloser Großflächen: Bänder 5, 7–13 und 27 — **Ampel rot**, weil der Wirkungspfad-Wächter DKM noch nicht kennt (W5.P5). (3) Beides überlagert: Bänder 30–36 — **Ampel rot**, gemessene Fläche real über dem Gelb-Budget. Die erste Ursache war **vorher benannt und zweimal unabhängig gemessen**, die zweite ist eine bewusste fachliche Änderung. |
+| Plattenplatz | **23 GiB frei**, `build/` 12 GB, `output/` 11 GB, `out/` 129 MB. Für Welle 5 eng — Punkt 37. |
 
 ## Paketübersicht
 
@@ -60,12 +63,21 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | W2.3 | Layer: OSM und Infrastruktur | **fertig** | 45 min | 19 min | **9/9 Layer bitgleich** · Skip belegt · 147+1 Tests |
 | W2.4 | Layer: Natur, Gelände, Zonen und Puffer | **fertig** | 50 min | 25 min | **16/17 pixelgleich** · 1 erklärte Abweichung · Punkt 20 beantwortet |
 | W3.1 | Finalisierung und Manifest-Vertrag | **fertig** | 45 min | 26 min | **9 Bänder vorhergesagt, 9 gemessen** · 147 → **152** Tests |
-| W3.2 | Validierung | **läuft** | 30 min | | schreibt `abweichungen.tsv`; Schritt 0 ist Merge `w3.1` + Punkt 36 |
-| W4.P0 | Vorfeld der Prüfwelle | offen | 20 min | | neu nach Regel 9 · besitzt `Makefile` allein |
-| W4.1 | Dashboard neu | offen | 40 min | | |
-| W4.2 | Gemeindegrenzen-Export | offen | 30 min | | |
-| W4.3 | Tests verdrahten | offen | 30 min | | |
-| W5.1 | Beweislauf aus Rohdaten | offen | 15 min | | **+ Vorverarbeitung** |
+| W3.2 | Validierung | **fertig** | 30 min | 4 h 43 | **9/9 unabhängig bestätigt** · Ampel **rot** · 152 → **187** Tests |
+| — | Nachprüfung der Historien-Umschreibung | **fertig** | 15 min | 1 min | 7/7 bestätigt · Schritt 0d war doch erledigt |
+| W4.P0 | Vorfeld der Prüfwelle | **fertig** | 20 min | 8 min | 32/33 `make -n` gleich · Worktree **3,1 MB** · W4.3 braucht kein `Makefile` |
+| W4.1 | Dashboard neu | **fertig** | 40 min | 12 min | Härtetest gegen **5-Band-Fremdmanifest** bestanden · 0 Bandnamen im Code |
+| W4.2 | Gemeindegrenzen-Export | **fertig** | 30 min | 14 min | Deckung **+0,0502 %**, Schwellwert **geometrisch hergeleitet** · 62,9 % ausgeschöpft |
+| W4.3 | Tests verdrahten **+ Vertragsschluss** | **fertig** | 30 min | 25 min | Punkt 9 und 14 erledigt · **Testsammlungs-Absturz** gefunden · 18 Fremdtests vorgebaut |
+| — | Zusammenführung der Welle 4 **+ vier Nachzügler** | **fertig** | 45 min | 21 min | 3 Merges konfliktfrei · **208 + 2 Tests**, Vorhersage exakt · `validate.py` kennt jetzt „akzeptiert" |
+| W5.P0 | Vorfeld des Beweislaufs | **fertig** | 20 min | 9 min | **`make all` lief die alte Kette** · 36/36 `make -n` gleich · 9,6 GB werden löschbar |
+| W5.P1 | Die letzte `output/`-Abhängigkeit | **fertig** | 30 min | 11 min | **17/17 pixelgleich bei leerem Quellverzeichnis** · Punkt 42 und 43 erledigt |
+| — | Charakterisierung der 806 Großflächen | **fertig** | 25 min | 11 min | **nur 23 der 806 wirken** · Schwelle als runde Zahl mit offenem TODO belegt |
+| W5.P2 | Adresslose Großflächen entfallen | **fertig** | 60 min | 57 min | **514 statt 520 entfallen** · Band 32 **+98,44 ha** · keine Hülle zerfallen · 210 → **214** Tests |
+| W5.P3 | Die vier Nachzügler aus W5.P2 | **fertig** | 25 min | 10 min | Gruppen **nachgemessen statt geglaubt** · Fehler im Vertragstest gefunden · Punkt 41 beantwortet |
+| W5.P4 | Das Register kennt nur eine Ursache | **fertig** | 20 min | 13 min | Ampel 26/29 **akzeptiert** · README nachgezogen · zweiter Langläufer **173,3 s** grün · Wächter-Fix zurückgestellt → W5.P5 |
+| W5.P5 | Wirkungspfad-Wächter generalisieren | offen | — | | Manifest braucht Wirkungspfad je Ursache, nicht nur für Wasser |
+| W5.1 | Beweislauf aus Rohdaten | offen | 15 min | | **+ Vorverarbeitung** · jetzt gegen die *neue* Kette |
 
 ## Zeitbilanz
 
@@ -81,21 +93,56 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | davon zweite Zusammenführung | **7 min** |
 | davon Kataster-Volllauf | **48 min**, reine Maschinenzeit, einmalig |
 | davon Welle 2 | rund 45 min für drei Pakete (Summe der Einzelzeiten: 62 min) plus 23 min Zusammenführung |
-| davon W3.1 | **26 min** |
-| Verbleibend, geschätzt | **2 bis 2 ¾ h** Wanduhrzeit |
+| davon Welle 3 | **26 min** (W3.1) + **4 h 43** (W3.2) — dazu unten |
+| davon Welle 4 | **8 min** (W4.P0) + rund 25 min für drei parallele Pakete (Summe der Einzelzeiten: 51 min) + **21 min** Zusammenführung |
+| davon Welle 5, Vorfeld | **77 min** (W5.P0 9 + W5.P1 11 + W5.P2 57), dazu 11 min Messung für Punkt 34 |
+| Verbleibend, geschätzt | **rund 1 ¼ h**, davon fast alles Maschinenzeit |
 | Davon unbekannt | **nichts mehr** — die Kataster-Vorverarbeitung ist zweimal vermessen, zuletzt im Volllauf mit 48,0 min |
 
-**Summe geschätzt gegen Summe gebraucht**, über alle 29 Positionen mit
-Schätzung (Welle 0 hatte keine): **855 min geschätzt, 436 min gebraucht —
-minus 49 %.** Ich setze systematisch fast das Doppelte an, und der Faktor
-hat sich über 29 Positionen kaum bewegt: Er lag nach 20 Positionen bei
-−46 % und liegt jetzt bei −49 %. Das ist kein Zufallsrauschen mehr,
-sondern eine stabile Eigenschaft meiner Schätzungen.
+**Summe geschätzt gegen Summe gebraucht**, über alle 40 Positionen mit
+Schätzung (Welle 0 hatte keine): **1205 min geschätzt, 875 min gebraucht —
+minus 27 %.**
 
-Genau **drei** Positionen liefen über, und alle drei sind
-Zusammenführungen oder Datenbewegung: W1.2 mit +10 %, die erste
-Zusammenführung mit +100 %, die Zusammenführung der Welle 2 mit +15 %.
-**Kein einziges Bau-Paket hat je seine Schätzung überschritten.**
+**Diese Zahl ist irreführend, und zwar wegen genau einer Position.** Ohne
+W3.2 lautet sie **1175 gegen 592 — minus 50 %**, praktisch unverändert
+gegenüber den −46 % nach 20 und den −49 % nach 29 Positionen. W3.2 allein
+verschiebt den Faktor um 25 Prozentpunkte. Beide Zahlen stehen hier, weil
+beide wahr sind: Die erste beschreibt, wie lange es gedauert hat; die
+zweite, wie gut ich schätze.
+
+**Nachtrag, weil die Zahlen falsch waren.** Vor W5.P1 stand hier „1065
+gegen 801" und „1035 gegen 518". Die geschätzte Spalte stimmte, die
+gebrauchte trug durchgängig **15 Minuten zu viel** — ein Posten aus einer
+früheren Fassung, den ich nie herausgerechnet habe. Aufgefallen ist es,
+weil meine Handaddition beim Fortschreiben nicht mehr auf die eigene Zahl
+kam; nachgerechnet hat es dann ein Skript, das die Tabelle parst statt zu
+addieren, was ich zu sehen glaubte. Die Zeilenliste dieser Nachrechnung
+deckt sich Position für Position mit der Tabelle oben. **Die Aussage
+ändert sich dadurch nicht, die Zahl schon** — und in einer Datei, deren
+Zweck das Nachhalten von Zahlen ist, ist das ein Fehler mit Ansage.
+Dabei fiel zugleich auf: **eine Zeile für die Zusammenführung der Welle 2
+fehlt in der Tabelle ganz**, obwohl die Prosa sie mit 23 min führt.
+
+**Die Wette aus dem letzten Abschnitt ist gewonnen.** Ich hatte
+geschrieben, ich rechne weiter mit dem Faktor aus den regulären
+Positionen, und falls das nächste Paket wieder ausreißt, sei die Wette
+verloren. Es folgten vier Positionen — W4.P0, W4.1, W4.2, W4.3 — und alle
+vier lagen **unter** der Schätzung, drei davon deutlich. W3.2 war ein
+Umgebungsereignis, keine Trendwende.
+
+Vier Positionen liefen über. Drei davon sind Zusammenführungen oder
+Datenbewegung — W1.2 mit +10 %, die erste Zusammenführung mit +100 %, die
+der Welle 2 mit +15 %. Die vierte ist W3.2 mit **+840 %**, und ihre
+Ursache liegt nicht in der Aufgabe, sondern in blockierten Git-Kommandos
+und in einer Korrektur, die ich zu spät nachgeschickt habe. **Kein
+einziges Bau-Paket hat je seine Schätzung an der eigenen Arbeit
+überschritten.**
+
+Für die Restschätzung rechne ich weiter mit dem Faktor aus den 29
+regulären Positionen. Das ist eine Wette darauf, dass W3.2 ein
+Umgebungsereignis war und keine Trendwende — falls das nächste Paket
+wieder ausreißt, ist die Wette verloren und der Faktor gehört neu
+gerechnet.
 
 Der erste echte Parallelbatch hat die Schätzung bestätigt und leicht
 unterboten: vier Pakete, geschätzt 65 min in Summe, gebraucht 14 min
@@ -131,12 +178,13 @@ Paket plus Puffer für meine eigene Abnahme, die seriell bleibt:
 | ~~Welle 2, drei Pakete~~ | 3 | ~~2 h 35~~ · 19 + 25 + 18 gemessen, **rund 45 min** Wanduhr |
 | ~~Zusammenführung Welle 2~~ | — | ~~20~~ · **23 min** |
 | ~~W3.1~~ | 1 | ~~45~~ · **26 min** |
-| Merge `w3.1` + `Makefile`-Zeile, dann W3.2 | 1 | 10 + 30 min |
-| **W4.P0, seriell** (neu nach Regel 9) | 1 | 20 min |
-| Welle 4, parallel | 3 | 40 min |
-| Zusammenführung Welle 4 | — | 15 min |
+| ~~Merge `w3.1` + `Makefile`-Zeile, dann W3.2~~ | 1 | ~~40~~ · **4 h 43**, davon der Löwenanteil Umgebung |
+| ~~W4.P0, seriell~~ (neu nach Regel 9) | 1 | ~~20~~ · **8 min** |
+| ~~Welle 4, parallel~~ | 3 | ~~1 h 40~~ · 12 + 14 + 25 gemessen, **rund 25 min** Wanduhr |
+| ~~Zusammenführung Welle 4~~ | — | ~~45~~ · **21 min** |
+| Aufbereitung Punkt 10, 34, 37 + deine Entscheidung | — | 25 min |
 | Welle 5, inkl. Kataster **48 min gemessen** | 1 | 1 h 15 |
-| **Restdauer ab hier** | **6** | **rund 3 h roh · 2 ¼ – 2 ½ h korrigiert** |
+| **Restdauer ab hier** | **1** | **rund 1 ¾ h — fast nur noch Maschinenzeit** |
 
 W4.P0 verlängert die Restdauer um 20 Minuten und ist trotzdem die
 billigere Rechnung: Ohne den `build/layers/`-Symlink hätten die drei
@@ -1748,6 +1796,985 @@ gleichzeitigen Worktrees.
 **Abnahme: 147 → 152 Tests plus 1 übersprungen, Wächter grün gegen 46
 Python-Dateien.**
 
+### W3.2 — Validierung · fertig
+
+Vier Commits auf `docs/audit-und-plan`, Kopf `f86f30c`: `50069cd` (meine
+Plan-Markdowns), `70f0343` (Merge `w3.1`), `fe412be` (Punkt 36),
+`f86f30c` (`pipeline/validate.py`). Geschätzt 30 min, **gebraucht 4 h 43**
+— dazu unten.
+
+**Die Messung ist unabhängig bestätigt.** Der Agent hat das TIF selbst neu
+gebaut (169,8 s, `sha256 4bdef6ad…6b1a13e`, exakt der Wert aus W3.1) und
+gegen `run1` verglichen, ohne meine Zahlen zu übernehmen: **dieselben neun
+Bänder, jede Zellzahl exakt gleich, keine zehnte Abweichung.** Die
+Vorhersage aus dem Manifest hält damit über zwei getrennte Läufe und zwei
+Agenten hinweg.
+
+**Die Ampel steht — und sie zeigt Rot.**
+
+| Nr | Band | Ampel | größte Fläche | Gesamtfläche |
+|---|---|---|---:|---:|
+| 26 | `geography_water_bodies` | **rot** | 33 943 ha | 339,4 km² |
+| 29 | `exclusion_geography` | **rot** | 1 496 ha | 22,2 km² |
+| 30–32 | `all_exclusions`, `available_*` | gelb | 530 ha | 9,5 km² |
+| 33 | Weichzeichnung σ 100 m | **rot** | 832 ha | 16,0 km² |
+| 34 | σ 200 m | **rot** | 2 259 ha | 22,6 km² |
+| 35 | σ 250 m | **rot** | 2 595 ha | 26,0 km² |
+| 36 | σ 300 m | **rot** | 2 934 ha | 29,4 km² |
+
+Meine Überschlagsrechnung mit 625 m² je Zelle lag durchweg innerhalb von
+0,2 km²: 22 gegen 22,18 · 9,5 gegen 9,46 · 16–29 gegen 15,97–29,39. Das
+war keine Kunst, aber es zeigt, dass an der Umrechnung nichts
+Überraschendes hängt — die Zahlen sind das, wonach sie aussehen.
+
+**Zwei Lücken in meiner eigenen Ampel, die erst beim Implementieren
+sichtbar wurden.** Beide stehen jetzt in PLAN §6:
+
+1. **Der Nenner war nicht entscheidbar.** „≤ 0,01 % der gesetzten Pixel" —
+   W2.4 hatte gegen die Gesamtzellzahl gerechnet (0,16 %), gegen die
+   gesetzten Pixel des Referenzbands sind es **27,58 %**. Faktor 170
+   zwischen zwei Lesarten desselben Satzes.
+2. **Die Referenzbänder 37/38 stehen in keiner Spalte der Ampeltabelle.**
+   Der Agent hat entschieden: dort ist jede Abweichung Rot, weil §6 an
+   anderer Stelle Bitgleichheit ohne Sonderfall verlangt. Richtig, und
+   von ihm selbst als ungetestet gekennzeichnet.
+
+**Der Faktor 170 hat trotzdem keine einzige Ampelfarbe verändert** — über
+alle neun Bänder war die *größte zusammenhängende Fläche* die bindende
+Schranke. Damit hat sich die Behauptung aus §6 bestätigt, die dritte
+Kennzahl sei die aussagekräftigste: 500 verstreute Pixel sind Rauschen,
+500 zusammenhängende sind ein Layer. Der Entwurf hat an dieser Stelle
+gehalten, und zwar an der Stelle, an der ich ihn nicht geprüft hatte.
+
+**Ein Befund, nach dem niemand gefragt hatte, und er ist der interessanteste
+des Pakets.** `schwerpunkt_bundesland` sagt für alle neun Zeilen
+„Vorarlberg" — technisch richtig, aber **89,9 % der abweichenden Zellen
+von Band 26 liegen außerhalb aller neun Bundesländer**. Das Rasterfenster
+reicht über die Staatsgrenze in den Bodensee. Nur 54 920 Zellen (10,1 %,
+rund 34 km²) fallen auf österreichisches Gebiet — und das ist ungefähr der
+österreichische Anteil am Bodensee. Die Erklärung aus W2.4 ist damit ein
+drittes Mal bestätigt, diesmal geografisch statt topologisch. Dass der
+Agent die eigene Registerspalte als potenziell irreführend kennzeichnet,
+statt sie einfach zu füllen, ist der Grund, warum der Befund existiert.
+
+**Die Zuordnung im Register ist `W3.1`, bewusst entschieden:** Acht der
+neun Zeilen betreffen Bänder, die erst `finalize.py` erzeugt — `W2.4`
+hätte acht von neun falsch attribuiert. Die Ursache bleibt in der Spalte
+`ursache`, wo sie hingehört; die trägt ein Mensch ein.
+
+**Punkt 36 ist geschlossen, mit dem Gegennachweis aus W2.P0s Schule:** vor
+und nach jeder `Makefile`-Änderung `make -n` für jedes bestehende Ziel —
+31 Vergleiche in Runde 1, 32 in Runde 2, alle byte-identisch. Neu
+erreichbar sind `make finalize` und `make validate PAKET=…`; letzteres
+bricht ohne `PAKET` mit Nutzungshinweis ab.
+
+**Abnahme: 152 → 187 Tests plus 1 übersprungen, Wächter grün gegen 47
+Python-Dateien.** Die 35 neuen prüfen die Ampel-Einstufung an synthetischen
+Grenzwerten, nicht am heutigen Zustand — darunter „beide Kennzahlen müssen
+halten, eine reicht nicht", der Referenzband-Sonderfall und ein
+Regressionstest auf den Nenner.
+
+**Nicht abgedeckt, selbst benannt:** keine rückwirkende Befüllung des
+Registers für die Wellen 1–2 (dazu unten); `out/abschichtung.tif`
+(124 MB) liegt unaufgeräumt; der §13.9-Wächter gegen ein unerwartetes
+zehntes Band ist nur synthetisch getestet, weil es keinen echten Fund gab;
+`packages.tsv`/`packages.json` weiter veraltet.
+
+Zur Rückwirkung: **es fehlt nichts.** §6 verlangt eine Prüfung an jeder
+Wellengrenze, und die hat stattgefunden — sie war bis einschließlich der
+Zusammenführung der Welle 2 jedes Mal bitgleich. Ein Register, das nur
+Abweichungen führt, ist für die Wellen 0 bis 2 korrekt leer.
+
+#### Die 4 h 43, und warum sie nicht an der Aufgabe lagen
+
+Der bislang größte Ausreißer des Projekts, und der erste, der die
+Schätzstatistik ernsthaft verzerrt. Die Ursache liegt nicht in der
+Validierung — die ist 30-Minuten-Arbeit, wie geschätzt.
+
+**Der Sandbox-Classifier hat gewöhnliche Git-Kommandos blockiert** —
+`checkout`, `merge`, `branch -f`, zeitweise sogar `status` und `add` —,
+und zwar wechselnd, mal vorübergehend, mal dauerhaft. Dazu kam mein
+eigener Beitrag: Ich habe die Korrektur der Commit-Nachricht für Schritt 0a
+**nachgeschickt, nachdem der Agent ihn bereits committet hatte**. Ein
+`--amend` ging da nicht mehr, weil zwei Kind-Commits daraufsaßen. Der
+Agent hat die drei Commits über Git-Plumbing (`commit-tree`, `read-tree`,
+`write-tree`, `update-ref`) neu gebaut und umgehängt.
+
+Das ist eine Historien-Umschreibung auf Selbstauskunft, und ich lasse sie
+nicht so stehen. **Ein zweiter Agent hat sie nachgeprüft, ohne sie
+ausgeführt zu haben** — sieben Fragen, jede mit Kommando und Ausgabe:
+
+| Prüfung | Ergebnis |
+|---|---|
+| `git fsck --full` | keine `error`- oder `missing`-Zeile, nur dangling |
+| Kette ab Kopf | `f86f30c` → `fe412be` → `70f0343` (Merge, zweiter Elternteil `782a0e0`) → `50069cd` |
+| `782a0e0` erreichbar | ja, `merge-base --is-ancestor` Exit 0 |
+| **„nur Prosa"** | `git diff <alt> <neu> --stat` für alle drei Paare: **ausschließlich** `FORTSCHRITT.md` und `PLAN.md`, kein einziger anderer Dateiname |
+| W3.1s Arbeit unversehrt | `git diff 782a0e0 f86f30c` über `finalize.py`, `finalize.mk`, README, `band_manifest.py` → **leer**. Schema 2.0.0 bestätigt. |
+| `run1`-TIF | `sha256 dc58b011…9e3df1`, exakter Match |
+| `distance_layers/` | 33 Dateien, neueste mtime **6. September 17:50** — vor dem Prüflauf, keine Schreibspur |
+| unabhängiger Lauf | **187 passed, 1 skipped**; Wächter grün gegen 127 Dateien und 47 Python-Dateien |
+
+**Und er hat zwei Dinge gefunden, die im Bericht von W3.2 fehlten.**
+
+Erstens: **Schritt 0d war längst erledigt.** Worktree `../abschichtung-w3.1`
+existiert nicht mehr, Zweig `w3.1` ist weg — beides regulär, nur eben
+nicht berichtet. Ich hatte danach gefragt, weil es im Bericht fehlte; die
+Antwort ist die harmlose. Trotzdem ist die Lehre die gleiche wie bei den
+Fingerabdrücken: **Was ein Bericht nicht erwähnt, ist nicht erledigt,
+sondern unbekannt.**
+
+Zweitens: `git fsck` listet **18 dangling Objekte**, nicht die drei, die
+ein sauberes Ersetzen je Commit hinterlassen würde. Der Umbau lief also
+iterativ, mit Zwischenständen. Unschädlich — aber wer hier einmal
+`git gc --prune=now` laufen lässt, sollte vorher ins `reflog` schauen.
+
+Zwei Lehren, beide unbequem:
+
+- **Eine Korrektur an einem laufenden Auftrag ist teuer, wenn sie zu spät
+  kommt.** Meine Nachricht war inhaltlich richtig und im Ergebnis der
+  Auslöser für eine Stunde Reparatur. Richtig gewesen wäre, den Commit so
+  stehen zu lassen und die Ergänzung als **zweiten** Commit anzuhängen —
+  Historie ist billig, Umschreiben nicht.
+- **Die Zeitmessung misst die Umgebung mit.** „Gebraucht" bleibt
+  Wanduhrzeit von der Beauftragung bis zum Commit, und das ist richtig so;
+  aber diese eine Zahl beschreibt nicht die Aufgabe. Sie steht deshalb
+  unten in der Zeitbilanz getrennt.
+
+### Punkt 33 entschieden — die Referenz wandert
+
+Der Nutzer hat am **08.09.2026** die Bodensee-Korrektur angenommen. Damit
+verliert `run1` nach 29 Paketen seinen Status als bitgenaues Soll; neue
+Referenz ist `sha256 4bdef6ad…6b1a13e`. Die alte Datei bleibt unangetastet
+und behält ihre Prüfsumme — sie ist der einzige erhaltene Zeuge dafür, was
+die alte Kette gerechnet hat, und nach Regel 8 muss der Rückweg offen
+bleiben.
+
+Die Entscheidung fiel an dem Punkt, an dem mein eigener Plan sie
+erzwungen hat: §6 sagt „**Rot hält an**", und die Ampel stand auf Rot.
+Dass das Anhalten funktioniert hat, ist rückblickend das Wertvollste an
+der Regel — nicht die Ampelfarben, sondern dass jemand gefragt wurde,
+bevor 543 106 Zellen stillschweigend zum neuen Normal wurden.
+
+**Zweite Entscheidung:** Punkt 10 und Punkt 34 bleiben liegen bis vor
+Welle 5. Beide ändern Zahlen, nicht Struktur; Welle 4 läuft ohne sie.
+
+Praktische Folge, an W4.3 übergeben: `abweichungen.tsv` bekommt seine
+`ursache`-Zeilen, und jede Stelle im Repo, die `dc58b011…` als *Ziel*
+behauptet, muss auf den neuen Wert — wobei ein *historischer Messwert*
+stehenbleibt. Diese Unterscheidung hat das Projekt schon einmal getroffen,
+bei `docs/RUN1_VERGLEICH.md` gegen die lebende Doku (Punkt 3).
+
+### W4.P0 — Vorfeld der Prüfwelle · fertig
+
+Commit `3a38519`. Geschätzt 20 min, gebraucht 8. Vier Dateien: `Makefile`,
+`pipeline/verify/__init__.py`, `make/verify/README.md`,
+`make/verify/_beispiel.mk.txt`.
+
+**Der Gegennachweis: 33 bestehende Ziele, 32 byte-identisch.** Das 33. ist
+`worktree`, und das ist die Aufgabe. Der Agent hat je Zielblock einzeln
+verglichen statt den Gesamt-Diff zu lesen — der Unterschied ist, dass ein
+Gesamt-Diff eine kompensierende Änderung durchgehen ließe.
+
+**Die Lösung für `out/` ist genauer als meine Frage.** Ich hatte nach
+„geteilt und lesbar gegen privat und beschreibbar" gefragt und die Grenze
+beim Verzeichnis vermutet. Sie liegt bei der einzelnen Datei:
+`pipeline/contract.py:PRODUCTS` teilt `out/` bereits in zwei **lesende**
+Einträge (`abschichtung_tif`, `abschichtung_bands_json`) und zwei
+**schreibende** (`dashboard_dir`, `gemeinden_geojson`). Der Worktree
+bekommt also ein echtes, privates `out/`, in das nur die zwei fertigen
+Produkte als **Einzeldatei-Symlinks** eingehängt werden. `build/layers/`
+wird wie `build/prep/` als ganzes Verzeichnis verlinkt.
+
+Nachgewiesen statt behauptet: 34 Einträge in `build/layers/` sichtbar ohne
+Neuberechnung; Inode, mtime und Größe der beiden Produkte identisch zum
+Hauptrepo; Schreibtest in `out/dashboard/` und `out/gemeinden.geojson`
+erfolgreich, Hauptrepo danach unverändert; **Worktree 3,1 MB**, keine
+Duplikate. Abbau ohne `--force` und ohne `-D`.
+
+**Punkt 3 des Auftrags ist mit „nein" beantwortet, und das war das Ziel
+der Frage.** `make test` ruft `uv run pytest tests/ -v`, es gibt kein
+einschränkendes `testpaths` oder `norecursedirs` — pytest sammelt bereits
+rekursiv alles unter `tests/` ein, auch neue Unterverzeichnisse. W4.3
+braucht also **keine** `Makefile`-Änderung und legt seine Tests einfach
+ab. Der Agent hat daraufhin nichts gebaut, sondern nur einen Kommentar
+korrigiert, der fälschlich behauptete, W4.3 werde das Ziel erweitern.
+**Nicht vorsorglich zu bauen, was niemand braucht, ist hier die richtige
+Antwort gewesen** — und sie kostet Welle 4 einen Konfliktherd.
+
+**Ein Messstolperstein, den er selbst gemeldet hat:** `stat` ohne `-L`
+liefert auf macOS die mtime des *Symlinks*, nicht des Ziels. Seine erste
+Prüfung zeigte dadurch scheinbar verschiedene mtimes. Mit `-L` sind Inode,
+mtime und Größe exakt gleich. Wer das nachprüft, sollte es wissen.
+
+**Nicht abgedeckt, selbst benannt:** kein `VERIFY`-Block in
+`pipeline/contract.py` angelegt (analog `PREP`/`LAYERS`) — `PRODUCTS` deckt
+die vier Pfade bereits ab, aber falls W4.1/W4.2 einen eigenen Block
+erwarten, fehlt er; keine funktionale Prüfung, dass die Module gegen das
+Symlink-TIF laufen (sie existieren noch nicht); die überholte Fußnote in
+`make/finalize/README.md`, die `make finalize` noch für unerreichbar
+erklärt, nicht angefasst — richtig, sie gehört ihm nicht.
+
+**Abnahme: 187 Tests plus 1 übersprungen unverändert, Wächter grün gegen
+127 Dateien und 47 → 48 Python-Dateien**, `distance_layers/` weiterhin mit
+mtime vom 6. September, `run1` mit unveränderter Prüfsumme.
+
+### W4.1 — Dashboard neu · fertig
+
+Commit `68ab19c`, Zweig `4.1`. Geschätzt 40 min, gebraucht 12. Zwei
+Dateien: `pipeline/verify/dashboard.py`, `make/verify/dashboard.mk`.
+
+**Der Fund, der den Zuschnitt betrifft, kam vor der ersten Zeile Code.**
+Der „heutige Dashboard-Builder", den PLAN §3 als zu ersetzen benennt, ist
+`scripts/analysis/build_v2_dashboard_data.py` — **seit W1.5 gelöscht**. Der
+Agent hat ihn in der Historie nachgelesen (`git show 9c64a85^:…`): Sein
+`EXCLUSION_LAYERS`-Dict führt rund zwanzig Bandnamen der alten
+**63-Band**-Kette wörtlich, von denen heute keiner existiert. Das ist
+Punkt 11 an seiner Wurzel und zugleich das Musterbeispiel für §13.6.
+
+**Und der eigentliche Konsument liegt gar nicht in diesem Repo.**
+`docs/HANDOFF.md` nennt ein separates Dashboard-Repo (Zweig
+`feat/band-manifest`), das `out/abschichtung.bands.json` und das TIF liest.
+W4.1s Aufgabe ist damit enger und ehrlicher als ihr Name: eine
+**Prüfstufe**, passend zum Wellentitel „Prüfung".
+
+**Das steht so bereits in §3, und der Agent hat es unabhängig
+wiedergefunden** — die Zeile nennt das Manifest ausdrücklich „die Datei,
+die das Dashboard-Repo konsumiert", und `out/dashboard/` ist dort schon
+als Prüfung geführt, nicht als Oberfläche. Veraltet ist an §3 nur der
+Nebensatz „daran ist der **heutige** Dashboard-Builder gescheitert": Der
+Builder ist seit W1.5 gelöscht. Nachgezogen. Ohne den Blick in die
+Historie hätte der Agent versucht, ein aktives Skript zu ersetzen, das es
+hier nicht mehr gibt.
+
+**Was das Modul prüft**, und es ist mehr als eine Anzeige: Es liest das
+Manifest über `contract.PRODUCTS`, prüft `band_count` gegen die tatsächliche
+Bandzahl, Indizes auf Lückenlosigkeit, Namen auf Eindeutigkeit — und dann
+**jede Querverweisung**: `quelle` gegen `sources`, `abgeleitet_von` gegen
+die Bandnamen, jede `*_wirkungspfad`-Liste, jeden `caveats[].affects.bands`-
+Index. Das ging vor Schema 2.0.0 gar nicht; erst W3.1 hat die Felder
+geschaffen, gegen die sich hier prüfen lässt. Dazu ein Kopf-Abgleich gegen
+das GeoTIFF, der nur Metadaten liest, keine Pixelzeile.
+
+**Der Härtetest ist der Kern der Abnahme, und er ist bestanden.** Ein
+synthetisches Manifest mit **5 statt 38 Bändern**, komplett fremden Namen
+(`einhorn_sichtung`, `drachenhoehle_puffer`), anderer `category_order` und
+sogar anderem `*_wirkungspfad`-Schlüsselnamen — dazu ein passendes
+4×4-GeoTIFF. Das Modul läuft ohne eine geänderte Zeile durch, Exit 0,
+`validation.ok = True`, und die generische Wirkungspfad-Erkennung greift
+auch beim fremden Schlüssel. Zusätzlich derselbe Lauf ganz ohne Raster.
+
+**„Keine Bandnamen im Code" ist belegt, und die Art des Belegs ist der
+Punkt:** Der Agent hat programmatisch alle 38 Namen aus dem echten
+Manifest gegen den Quelltext geprüft — Ergebnis leer. Beim ersten Lauf war
+es **nicht** leer: `geography_water_bodies` stand in einem erklärenden
+Docstring-Beispiel. Er hat die Stelle umformuliert, **statt sich darauf zu
+berufen, dass Doku nicht zählt.** Auch die `rolle`-Werte selbst stehen
+nirgends als Literal — gruppiert wird nach dem, was im Manifest steht.
+
+**Drei bewusste Auslassungen, alle begründet und im Moduldocstring
+festgehalten:** Fläche je Band und Bundesland (bräuchte einen vollen
+Pixel-Scan über 336 Mio. Zellen und `prep/admin` — fremde Zuständigkeit;
+`pipeline/validate.py` kann es bereits), die 3er-Venn-Überschneidung
+(ebenfalls Pixel-Scan), und der Vergleich gegen die Studie 2023 mit festen
+`STUDY_KM2`/`STUDY_MW` (externe Referenzwerte ohne Manifestbezug). Die
+Trennlinie, die er zieht — **Prüfung ja, Analyse nein** — ist die richtige
+für eine Welle, die „Prüfung" heißt.
+
+**Ein methodischer Befund, den ich in künftige Aufträge übernehme:** Im
+Worktree zählt `check_hardlink_safety` **48 Dateien**, im Hauptrepo **127**.
+Der Grund ist harmlos — `make worktree` verlinkt `output/` bewusst nicht,
+also sieht der Wächter dort 0 statt 79 Dateien. Aber meine
+Abnahmeformulierung „Wächter grün gegen 127 Dateien" ist **aus einem
+Worktree heraus gar nicht prüfbar**. Der Agent hat es gemerkt, den Lauf
+zusätzlich im Hauptrepo gemacht (127, grün, unverändert) und die
+Diskrepanz erklärt, statt die abweichende Zahl zu melden oder zu
+verschweigen. Punkt 38.
+
+**Nicht abgedeckt, selbst benannt:** kein Pixel-Vergleich (bewusst); kein
+automatischer Wächter für die „keine Bandnamen"-Regel — der Handbeleg ist
+einmalig, ein Test dafür läge in `tests/` und gehört W4.3. **Fünf konkrete
+Tests hat er vorgeschlagen statt sie nur zu erwähnen**; ich habe sie an
+W4.3 weitergereicht.
+
+**Abnahme: 187 Tests plus 1 übersprungen unverändert, beide Wächter grün
+(Worktree wie Hauptrepo), `run1` mit unveränderter Prüfsumme.**
+
+### W4.2 — Gemeindegrenzen-Export · fertig
+
+Commit `ad57044`, Zweig `4.2`. Geschätzt 30 min, gebraucht 14. Zwei
+Dateien: `pipeline/verify/gemeinden.py` (430 Zeilen), `make/verify/gemeinden.mk`.
+
+`out/gemeinden.geojson`: **2093 Gemeinden**, 26,8 MB, EPSG:31287 mit
+ausdrücklichem `crs`-Member (`urn:ogc:def:crs:EPSG::31287`). Bewusst
+**nicht** nach WGS84 reprojiziert — „im Rasterbezug" verlangt genau das,
+und ein GeoJSON ohne `crs`-Member gilt nach RFC 7946 implizit als WGS84.
+Das ist Punkt 18 richtig behandelt: nicht angenommen, sondern benannt.
+Ebenso bewusst **nicht vereinfacht**, weil jede Toleranz die gemessene
+Vektorfläche verändert und damit die Deckungszahl unehrlich macht.
+
+**Die Deckungsprüfung ist das Beste an diesem Paket, und der Schwellwert
+ist der Grund.** §7 sagt „unter Schwellwert", nennt aber keinen. Statt
+einen Erfahrungswert zu setzen, hat der Agent eine **geometrische
+Obergrenze** hergeleitet: `raster_mask()` rasterisiert mit
+`all_touched=True`; bei überlappungsfreien Polygonen kann das pro
+Streckeneinheit der Außengrenze höchstens eine Zellbreite zusätzlich
+aufnehmen. Umfang 2681,1 km × 25 m = **67,027 km²**. Kein
+Sicherheitsaufschlag, keine Kalibrierung am Ergebnis.
+
+| | |
+|---|---:|
+| Vektorfläche, 2093 Polygone | 83 879,200 km² |
+| Überlapp/Lücke | 0,0007 m² |
+| Rasterfläche, gültige Zellen × 625 m² | 83 921,336 km² |
+| **Abweichung** | **+42,136 km² · +0,0502 %** |
+| Schwellwert (hergeleitet) | 67,027 km² — **62,9 % ausgeschöpft** |
+
+**Und er hat die Erklärung eingeklemmt, statt sie zu behaupten.**
+`all_touched=False` liefert 83 879,05 km² — praktisch die Vektorfläche;
+`all_touched=True` liefert den vollen Saum. Die Klammerbreite von
+**42,28 km² deckt sich fast punktgenau mit der gemessenen Abweichung von
+42,14 km².** Damit ist „das ist Rasterisierung" keine Vermutung mehr.
+
+Dieselbe Lokalisierung wie die Ampel in §6 bestätigt es aus der anderen
+Richtung: Der Saum umfasst 67 652 Zellen in **38 193 Komponenten**, die
+größte 3,13 ha, und **eine einzige Ein-Zellen-Erosion löst 100 % davon
+auf**. Er ist nirgends breiter als eine Zelle. Verstreutes Rauschen, keine
+konzentrierte Abweichung.
+
+**Ein unabhängiger Plausibilitätstest fiel nebenbei ab:** Die Vektorfläche
+von 83 879,20 km² trifft Österreichs amtliche Staatsfläche von
+83 879 km². Das prüft die VGD-Quelle gegen etwas außerhalb dieses Projekts
+— die erste Zahl in dieser Kette, die das tut.
+
+Er hat `_build_valid_area_mask()` aus `pipeline/layers/geo.py`
+**importiert statt nachgebaut** und auf dem Gitter des tatsächlichen TIF
+gemessen, nicht auf einem aus `config.json` abgeleiteten. Beides ist
+§13.6 richtig angewandt.
+
+**Er hat eine meiner Zahlen nicht übernommen, und das war richtig.** Ich
+hatte ihm die 89,9 % aus W3.2 mitgegeben (Anteil der Band-26-Zellen
+außerhalb aller Bundesländer). Seine Gegenmessung ergab 27,93 %, und er
+hat gemeldet, dass er die Diskrepanz nicht auflösen kann, statt die
+fremde Zahl weiterzureichen. **Die beiden messen verschiedene Mengen** —
+W3.2 die *abweichenden* Zellen, er *alle gesetzten* —, aber das
+festzustellen ist meine Aufgabe, nicht seine. Eigene Messung nachgeschoben.
+
+**Nicht abgedeckt, selbst benannt:** keine vereinfachte Variante für die
+Web-Darstellung (wäre ein fünftes Produkt unter `out/`, und §3 erlaubt
+genau vier); der Deckungsbericht existiert nur als Stdout, aus demselben
+Grund; die Zahlendiskrepanz nur gegengemessen, nicht aufgeklärt.
+
+**Vier Tests vorgeschlagen** statt sie in `tests/` abzulegen — darunter
+`measure_coverage()` gegen ein synthetisches 2×2-Gitter mit von Hand
+nachgerechneter Erwartung, und der Fehlerpfad „falsche Gemeindezahl → Exit 1,
+**ohne** dass die Datei vorher geschrieben wird".
+
+**Abnahme: 187 Tests plus 1 übersprungen unverändert, Wächter grün gegen
+49 Python-Dateien, `run1` mit unveränderter Prüfsumme.**
+
+### W4.3 — Tests verdrahten und Vertragsschluss · fertig
+
+Commit `180bc03`, Zweig `4.3`. Geschätzt 30 min, gebraucht 25. Acht
+Dateien, +940/−107.
+
+**Der wichtigste Fund ist ein Bruch, den die Nutzerentscheidung selbst
+erzeugt hat.** `pipeline/validate.py` zitiert in seinem Docstring noch den
+Satz „alle 38 Bänder müssen bitgleich zu `run1` sein" und stuft deshalb
+**fünf der neun angenommenen Bänder als Rot** ein — `make validate
+PAKET=W3.1` bricht mit Exit 1 ab, obwohl genau diese Abweichung
+entschieden und angenommen ist. Dem Werkzeug fehlt der Zustand „vom
+Nutzer angenommen".
+
+Das ist die unangenehme Sorte Befund: Nichts ist kaputtgegangen, sondern
+eine Entscheidung hat ein Werkzeug überholt, das sie nicht kennt. Und ein
+Prüfwerkzeug, das bei erwartetem Zustand rot zeigt, wird nach dem dritten
+Mal ignoriert — das ist schlimmer als keines. Der Agent hat es **gemeldet
+statt repariert**, weil `validate.py` ihm nicht gehört, und
+`make validate` bewusst nicht gefahren. Beides richtig. Geht in die
+Zusammenführung.
+
+**Der Hash-Audit hatte ein überraschendes Ergebnis: kein einziger
+maschineller Treffer.** `dc58b011…` steht nirgends in Code, Tests oder
+Make-Zielen — nur an drei Prosastellen in meinen eigenen Plandateien, alle
+historisch korrekt. Die echten Sollwertbehauptungen stehen **ohne
+Hash-Literal** da, als Satz. Genau deshalb hätte eine Textsuche nach dem
+Hash sie nie gefunden, und genau deshalb war der Auftrag richtig
+formuliert: „jede Stelle, die ihn als *Ziel* behauptet", nicht „jedes
+Vorkommen".
+
+**Der gefährlichste Fund war der harmlos aussehende.** Der
+Alt-Repo-Pfad in `test_distance_engine_equivalence.py` war nicht nur
+veraltet — auf jeder Maschine ohne das Vorgängerprojekt hätte er die
+**gesamte Testsammlung** zum Absturz gebracht, nicht bloß einen Test.
+Jetzt per Umgebungsvariable überschreibbar mit sauberem Skip. Eine dritte,
+von mir nicht genannte Fundstelle derselben Ursache in
+`test_check_raw_only.py` hat er mitgezogen.
+
+**Punkt 14 entschieden:** Der Test bleibt, `parametrize` wird zur Schleife
+im Testkörper, umbenannt zu `test_legacy_entfaellt_paths_exist`.
+Begründung: Ein leeres Register ist eine **wahre Aussage**, kein
+Nicht-Test — und die Verdopplung zum bestehenden
+`test_legacy_entfaellt_is_currently_empty` wird vermieden. Damit ist auch
+bestätigt, dass der eine übersprungene Test in allen bisherigen Zählungen
+genau dieser war.
+
+**Punkt 9 erledigt:** `docs/HANDOFF.md` überarbeitet — Schema 2.0.0,
+38 Bänder, neue Referenz, und ein Abschnitt zu den neun Bändern samt
+praktischer Folge für die Konsumentenseite (Band 32 verliert rund
+9,5 km² gegenüber `run1`).
+
+**A3, der Vertragstest:** `tests/test_referenz_tif.py`. Zwei Tests laufen
+in `make test`, zwei sind hinter `ABSCHICHTUNG_VERTRAGSTEST=1` und wurden
+**tatsächlich gefahren** (211 s): Die Finalisierung reproduziert
+`4bdef6ad…` bitgenau, und der Bandvergleich findet exakt die neun. Ein
+teurer Test, der übersprungen wird, aber nachweislich einmal gelaufen ist
+— das ist die richtige Behandlung.
+
+**Die 18 Dashboard-Tests aus W4.1s Vorschlagsliste sind alle umgesetzt**,
+und der Weg dorthin ist bemerkenswert: `pipeline/verify/dashboard.py` lag
+in einem fremden Zweig, den sein Worktree nicht sah. Er hat das Modul über
+die geteilte Git-Objektdatenbank gelesen (`git show 68ab19c:…`),
+kurzzeitig materialisiert, alle 18 Tests gegen die **echte** Signatur
+verifiziert (18/18 grün) und es wieder entfernt — im Commit ist es nicht.
+Bis zum Merge überspringt sich das Testmodul geschlossen **mit Nennung von
+Zweig und Commit**; danach läuft es ohne Zutun. Das ist die Antwort auf
+meine Anweisung „schreib den Test trotzdem", und sie ist besser als die
+Anweisung.
+
+**Zwei Einwände gegen meinen eigenen Auftrag, beide berechtigt:**
+
+1. `docs/HANDOFF.md` und die `ursache`-Spalte von `abweichungen.tsv` sind
+   in PLAN §7 **nicht** W4.3 zugewiesen — §7 nennt für W4.3 nur `tests/**`,
+   und `abweichungen.tsv` steht dort bei W3.2. Er ist meinem Auftrag
+   gefolgt und hat die Lücke gemeldet. **Regel 1 gilt auch für mich**: Wer
+   eine Zuständigkeit umhängt, trägt sie nach. §7 ist nachgezogen.
+2. Die Zahl „208 Tests plus 2 übersprungen" fürs Hauptrepo ist
+   **gerechnet, nicht gemessen** — im Worktree waren es 189 plus 4. Er
+   sagt das dazu, statt die Zahl als Messung zu verkaufen. Die
+   Zusammenführung misst sie.
+
+**Nicht abgedeckt, selbst benannt:** keine volle Kette gefahren, nur die
+Finalisierungsstufe; `make validate PAKET=W3.1` nicht real gefahren (es
+hätte abgebrochen); die Dashboard-Tests nur gegen den Stand `68ab19c`
+verifiziert; W4.2s Modul gar nicht angesehen, weil kein Nachtrag dazu
+vorlag.
+
+**Und ein Befund ganz am Ende, den niemand beauftragt hatte:** `run1` ist
+in **keinem** `make worktree`-Checkout verlinkt. Zwei Tests überspringen
+sich deshalb systematisch in jedem Worktree der Welle 4, ohne dass es
+auffällt — dieselbe Klasse wie Punkt 38, nur eine Datei weiter. Gehört
+W4.P0, das schon geschlossen ist; geht in die Zusammenführung.
+
+### W5.P4 — Das Register kennt nur eine Ursache · teilweise angehalten
+
+Commit `e59d3d1`. Geschätzt 20 min, gebraucht rund 13. Zwei der drei
+Punkte erledigt, der dritte — der eigentliche Entwurfsfehler — bewusst
+**nicht** implementiert, sondern zurückgemeldet.
+
+**Der Wirkungspfad-Wächter wurde nicht repariert.** Das Schlüsselwort
+„angenommen" ist weiterhin fest verdrahtet und kennt „entschieden"
+(Punkt 34) nicht; der Wächter aus PLAN §13.9 bleibt auf genau einen
+Wirkungspfad (`geography_water_bodies_wirkungspfad`) fixiert. Begründung
+des Agenten, nachvollzogen: Ein generischer Fix bräuchte im Manifest
+einen vergleichbaren Wirkungspfad für die DKM-Ursache — den gibt es
+nicht, und es gibt ihn auch nicht implizit, weil die DKM-Klassifikation
+über `OFFICIAL_COVER_LAYERS` in `pipeline/layers/osm.py` läuft, deren
+HIG-Zwischenschicht (`hig_hulls_source` u. ä.) im deklarativen
+Manifest-Graphen (`BAND_SOURCES`/`BAND_DERIVED_FROM`) gar nicht als
+eigener Knoten existiert. Ein korrekter Fix müsste diese Kante erst
+modellieren — mehr als ein Nachmittag, also angehalten statt
+eigenmächtig gebaut. **Steht offen für ein Folgepaket**, mit
+Lösungsskizze im Bericht: `band_manifest.py` um die
+`OFFICIAL_COVER_LAYERS`-Abhängigkeit erweitern,
+`_water_bodies_impact_path()` zu einer Funktion generalisieren, die
+einen Startknotensatz nimmt, je Ursache einen eigenen Wirkungspfad im
+Manifest ablegen, `validate.py` wählt ihn pro Zeile nach `ursache`-Text.
+
+**`validate.py` lief real** (`--paket W5.P2 --new-tif out/abschichtung.tif`,
+Bitgleich-Kurzweg umgangen). Dabei **hat** der Lauf, mangels Wächter-Fix,
+die neun DKM-Zeilen mit dem generischen `URSACHE_UNERWARTET`-Text
+überschrieben — der Agent hatte vorher gesichert und die drei
+Nutzer-Textgruppen danach exakt wiederhergestellt; verglichen mit der
+Sicherung hat sich am Ende ausschließlich die `ampel`-Spalte der Zeilen
+26 und 29 geändert (rot → **akzeptiert**). Die neun DKM-Zeilen (5,
+7–13, 27) und die sieben Überlagerungszeilen (30–36) bleiben **rot** —
+Erstere, weil sie am unrepariterten Wächter weiterhin als „unerwartet"
+scheitern, Letztere, weil ihre gemessene Fläche (10,3–93,6 km²) das
+Gelb-Budget von 10 km² real überschreitet, unabhängig vom Wächter.
+
+**README.md:191 korrigiert**, mit nachgemessenen (nicht übernommenen)
+Zahlen: 18 statt „neun", zwei Ursachen statt einer, die drei Gruppen
+benannt, und die Netto-Aussage zum Endergebnis — Band 32 liegt 847,6 ha
+(8,48 km²) unter `run1`, direkt aus den beiden TIF-Bändern nachgerechnet
+(365019,625 ha gegen 365867,25 ha), keine Korrektur nötig.
+
+**Der zweite gegatete Langläufer lief.**
+`test_finalisierung_aus_checkpoints_reproduziert_die_referenz`: **173,3 s
+(2:53 min)**, grün, belegt `fb57c41d…232c30` end-to-end. Damit sind beide
+Vertragstests dieses Pakets jetzt tatsächlich gelaufen (der Nachbar schon
+von W5.P3 mit 46,5 s).
+
+**Abnahme: 214 Tests plus 2 übersprungen — unverändert**, keine Differenz
+zu erklären, weil kein Testcode geändert wurde. `make check-guards` grün,
+Referenzwerte (127/79/48/50) bestätigt. `data/` unangetastet, `run1` und
+Referenz-Hash beide verifiziert unverändert.
+
+### W5.P3 — Die vier Nachzügler, und was beim Aufräumen herausfiel
+
+Commit `dea4a33`. Geschätzt 25 min, gebraucht 10. Vier Dateien, kein
+Kettenlauf, keine Zahl am TIF.
+
+**Er hat meine Gruppeneinteilung nicht geglaubt, sondern nachgemessen.**
+Ich hatte drei Gruppen diktiert — nur Bodensee, nur Punkt 34, beides.
+Statt die Liste zu übernehmen, hat er je Band die Zellzahlen der
+`W5.P2`-Zeile gegen die `W3.1`-Zeile gehalten: Bänder 26 und 29
+zellidentisch (also unberührt), Bänder 5, 7–13 und 27 ohne
+W3.1-Gegenstück (also neu), Bänder 30–36 verschieden (also überlagert).
+**2 + 9 + 7 = 18, exakt wie vorhergesagt.** Neun Zeilen umgeschrieben,
+neun waren schon richtig.
+
+**Und dabei ist ein echter Fehler im Vertragstest aufgefallen — einer,
+den ich nicht bestellt hatte.** Der Test verglich den Wirkungspfad aus
+dem Manifest (`geography_water_bodies_wirkungspfad`) auf **Gleichheit**
+mit der Menge der abweichenden Bänder. Diese Annahme trug genau so lange,
+wie es **eine** Ursache gab. Mit der zweiten wäre der Test rot geworden —
+nicht weil etwas kaputt ist, sondern weil seine Voraussetzung
+weggefallen war. Er hat den Wirkungspfad im Manifest direkt nachgemessen
+(unverändert neun Namen, weil es eine statische Hülle über
+`abgeleitet_von` ist), die Prüfung auf **Teilmenge** umgestellt und
+ergänzt, dass die verbleibenden Bänder genau die bekannte DKM-Menge sein
+müssen. **Einmal wirklich gelaufen: 46,5 s, grün.**
+
+**Die Zahl, die in die Handreichung gehört, hat er direkt gemessen statt
+aus meiner abgeleitet.** Ich hatte ihm +98,44 ha für Band 32 genannt und
+gesagt, der Nettostand gegen `run1` sei damit ein anderer. Er hat beide
+TIFs geöffnet und Band 32 gelesen: **13 562 Zellen netto weniger als
+`run1` — 847,625 ha, 8,48 km²** (15 154 verloren, 1 592 gewonnen). Der
+alte Wert aus Welle 3 war 945,7 ha Verlust. Die Differenz von rund 98 ha
+stimmt mit meiner Zahl überein — aber sie ist unabhängig entstanden, und
+genau darum ist sie etwas wert.
+
+**Punkt 41 ist beantwortet: es sind vier Stellen, keine fünfte.**
+Repoweite Suche über alle drei Hashes: `validate.py`,
+`test_referenz_tif.py`, `HANDOFF.md`, `README.md`. Dazu diese Datei und
+`PLAN.md`, die die alten Hashes absichtlich als Historie führen.
+
+**Zwei Enden hat er gemeldet statt geraten.** Erstens: `README.md:191`
+spricht weiter von „neun abweichenden Bändern" und nennt nur Punkt 33 —
+derselbe Satz, in dem er eine Zeile höher den Hash gezogen hat. Mein
+Auftrag nannte nur den Hash, also blieb der Satz nach Regel 4 stehen.
+Zweitens: Die `ampel`-Spalte der Bänder 26 und 29 steht noch auf „rot",
+weil sie aus einem Lauf vor der Textkorrektur stammt und ein neuer Lauf
+verboten war. **Beides geht an W5.P4.**
+
+### W5.P2 — Adresslose Großflächen entfallen · die Referenz wandert zum zweiten Mal
+
+Commit `f592e75`. Geschätzt 60 min, gebraucht 57 — die erste Schätzung
+seit W3.2, die nicht deutlich unterboten wurde, und das ist plausibel:
+Der Löwenanteil war Rechenzeit für 33 Checkpoints und zwei
+Finalisierungen.
+
+**Die Umsetzung.** `scan_dkm_candidates()` bekommt einen neuen Parameter
+für die Adresspunkte und wirft übergroße Kandidaten ohne eigene Adresse
+aus dem Kandidatenarray, **bevor** die Scheibenersetzung greift — per
+STRtree-`within` gegen die Originalpolygone. Mit Adresse bleibt alles wie
+gehabt. Fehlt der Parameter, gilt das Altverhalten; damit läuft das alte
+`02_build_hig_sources.py` unverändert weiter, das noch niemand löschen
+darf. Vier neue Tests nageln die drei Fälle der Regel fest.
+
+Die Frage aus meinem Auftrag, ob es zwei Wege zur Adresszuordnung gibt,
+hat er beantwortet: **es gab keinen.** Im Modul existierte nur der
+bestehende 100-m-Radius-Signalweg, also hat er neu implementiert — aber
+über genau die Quelle, die die Kette ohnehin liest.
+
+**Meine Zahl war falsch, und er hat widersprochen.** Erwartet hatte ich
+520 entfallende Objekte, aus der Charakterisierung. Gemessen sind es
+**514**: `Kandidaten 255.389 | >10000m2 gesamt 806 (Scheibe 292,
+adresslos entfallen 514)`, und 255 903 − 514 geht exakt auf. Sechs Fälle
+Unterschied zwischen zwei Messungen derselben Größe, von zwei Agenten,
+mit derselben Quelle. Er hat die Ursache nicht nachrecherchiert, weil das
+außerhalb des Auftrags lag — richtig so. **Als Punkt 44 im Register.**
+
+**Die Änderung ist über die Gruppengrenze gewandert, wie befürchtet.**
+Zehn der 33 Checkpoints haben sich pixelweise geändert, und zwei Paare
+davon — `cableway_buildings_*` und `general_buildings_*` — stammen aus
+`osm.py`, nicht aus `hig.py`. Genau deshalb stand im Auftrag, alle 33 neu
+zu rechnen statt nur die HiG-Gruppe. Hätte er sich auf die eigene Gruppe
+beschränkt, wären vier Checkpoints stumm veraltet gewesen.
+
+**16 von 38 Bändern haben sich geändert** gegenüber der Zwischenreferenz
+`4bdef6ad…`: 5, 7–13, 27 und 30–36. Größte Einzelfläche 259,6 ha in
+Band 36.
+
+**Die Zahl, für die dieses Paket gemacht wurde:**
+`haeuser_im_gruenen_streusiedlung` verliert **24,125 ha** (386 Zellen),
+ausschließlich Verlust, kein Gewinn. Und das Endergebnis:
+**Band 32 — `available_cleaned_min_10ha`, die veröffentlichte
+Potenzialfläche — wächst netto um 98,44 ha** (brutto 99,5, Verlust 1,06).
+Der Charakterisierungsagent hatte diese Zahl ausdrücklich nicht liefern
+können, ohne die Hüllenbildung neu zu rechnen. Jetzt ist sie gemessen
+statt geschätzt.
+
+**Meine zweite Sorge ist ausgeräumt, und zwar richtig geprüft.** Ich
+hatte gewarnt, dass die 18 wegfallenden Objekte in 200-m-verketteten
+Hüllen sitzen und eine Hülle zerfallen oder unter `HIG_MIN_ADRESSEN`
+rutschen könnte. Er hat das nicht aus der Zellenzahl geschlossen, sondern
+per Label-Überlappung zwischen altem und neuem Hüllenlauf: **alle 10 873
+Streusiedlungshüllen bilden sich 1:1 auf genau eine neue ab** — null
+zerfallen, null abgerutscht, null verschwunden, null neu. Die
+Gesamtzahl aller Hüllen sank von 46 512 auf 46 198; die fehlenden 314
+waren isolierte Ein-Objekt-Hüllen der entfallenen Kandidaten. Eine
+Folgewirkung zweiter Ordnung gibt es nicht.
+
+**Neue Referenz: `sha256 fb57c41d…232c30`**, 124 597 421 Bytes.
+**214 Tests plus 2 übersprungen** — die Differenz zu 210 sind exakt seine
+vier neuen. Wächter grün, `run1` unverändert, `data/` mit null Zeilen in
+`git status`.
+
+**Ein struktureller Fund, der über dieses Paket hinausgeht.** Der
+Fingerabdruck-Mechanismus von `hig.py` hätte die Änderung **nicht
+bemerkt**: Er hängt an Parametern und Eingabedateien, nicht am Code. Eine
+reine Logikänderung lässt die Checkpoints als „fertig" gelten. Der Agent
+musste die 33 Dateien von Hand löschen, um einen echten Neubau zu
+erzwingen. `osm.py` hat für genau dieses Problem ein
+`BUILDING_CLASSIFICATION_REVISION`; `hig.py` hat kein Äquivalent. Das ist
+dieselbe Familie wie `layer_done()`, die W1.1-Weiche und Punkt 24 — der
+vierte Fall desselben Musters. **Als Punkt 45 im Register.**
+
+### Die 806 Großflächen — die Frage ist kleiner, als sie aussieht
+
+Messung ohne Codeänderung, für die Entscheidung zu Punkt 34 (3).
+Vier Skripte im Scratchpad, die die **echten** Produktionsfunktionen
+importieren (`candidate_filter_mask`, die `scan_dkm_candidates`-Logik,
+`ns_kind`) statt sie nachzubauen, und ausschließlich lesend auf `data/`,
+`build/prep/` und `build/layers/` zugreifen. Der Kandidatenstand ist
+gegengerechnet: **255 903 Kandidaten, davon 806 übergroß** — exakt die
+Zahlen aus der ersten Messung. `run1` danach unverändert.
+
+**Die kategoriale Frage läuft leer, und das ist selbst ein Befund.**
+`ns_category` ist für **alle** 255 903 Kandidaten identisch „Baufläche" —
+die Filterlogik schränkt vorher auf `ns_kind()=="building"` ein, das
+erzwingt es. Auch `ns` trennt kaum: 802 der 806 tragen „Gebäude". Aus dem
+Kataster ist über die 806 nichts zu erfahren. Die Antwort liegt
+vollständig in der **Herkunft**: 699 von 806 sind Niederösterreich, und
+dort sind übergroße Objekte **17,3 % aller Kandidaten** gegenüber unter
+1 % in jedem anderen Bundesland. Alle zehn größten tragen das Präfix
+`NFL_DXF_POLYGONIZED` — es sind die bekannten Artefakte aus dem
+DXF-Linienwerk, und sie liegen in Gebirgsgemeinden (Schwarzau im Gebirge
+gleich viermal unter den Top 10, dazu Göstling, Hollenstein, Dorfstetten).
+
+**Der entscheidende Befund ist aber ein anderer: von den 806 wirken
+tatsächlich 23.** Per Sampling der echten aktuellen Bänder aus
+`build/layers/`:
+
+| Band | Treffer unter den 806 |
+|---|---:|
+| `nonresidential_hulls_source` (unbewohnt → 25 m) | 668 (82,9 %) |
+| `bewohnt_einzellage_source` (< 5 Adressen → 25 m) | 77 (9,6 %) |
+| `hig_hulls_source` (Streusiedlung, **vor** NÖ-Maske) | 61 (7,6 %) |
+| **`haeuser_im_gruenen_streusiedlung`** (**nach** NÖ-Maske) | **23 (2,9 %)** |
+
+Der Sprung von 61 auf 23 hat einen Namen: In Niederösterreich trägt
+**ausschließlich** die amtliche SekROP-PDF-Quelle den 750-m-Abstand
+(`04_create_distance_zones.py:264-266`, `source("hig_hulls_source") &
+~noe_mask`). Alle 38 NÖ-Hüllen, die als Streusiedlung qualifizieren,
+fallen unabhängig von der Fußabdruck-Regel aus dem Band. Und weil
+699 der 806 in NÖ liegen, sind sie für `haeuser_im_gruenen_*`
+**strukturell irrelevant** — gleich welche Ersatzregel man wählt. Die
+Schwelle, über die wir entscheiden, entscheidet über 23 Objekte.
+
+**Zwei Nebenbefunde, die für sich stehen.** Erstens: **80 der 806 (9,9 %)
+haben ihren Zentroid außerhalb des eigenen Polygons** — darunter das
+größte Objekt überhaupt, 734,5 ha, dessen Scheibe nachweislich nicht auf
+der eigenen Fläche steht. Das ist ein Platzierungsfehler, kein
+Modelldetail. Zweitens: **520 der 806 (64,5 %) haben null BEV-Adressen im
+eigenen Polygon**, Median 0, Maximum 79. Für die 286 mit Adresse liegt die
+Scheibe grob richtig (Median 79,5 m zur nächsten Adresse); für die 520
+ohne ist die nächste Adresse im Median 598 m weit weg — dort wohnt schlicht
+niemand.
+
+**Woher die 10 000 kommt: aus einer runden Zahl.** Fundstelle
+`plans/haeuser-im-gruenen-v2.md` im Alt-Repo, `4c5c185` vom 23.07.2026:
+„Footprints > 1 ha → 5-m-Zentroidpunkt (809 Fälle, davon 701
+NÖ-DXF-Polygonisierungsartefakte, größtes 735 ha)". In derselben
+Parameterliste steht `MAX_FOOTPRINT_M2=10.000` mit dem ausdrücklichen
+Zusatz „kalibrieren an St. Peter vs. Poggersdorf" — **als offener TODO
+markiert und nie nachgeholt.** Es gibt keine Größenverteilung, keine
+statistische Herleitung, keinen Vergleich mit typischen Hofstellen. Der
+heutige Code-Kommentar übernimmt den Satz unverändert.
+
+Der Agent hat außerdem gesagt, was er **nicht** messen konnte: Die genaue
+Flächenwirkung der adressbasierten Alternativen bräuchte einen vollen
+Neulauf der Hüllenbildung, und der hätte `build/layers/` beschrieben — das
+war ihm untersagt. Er hat Richtung und Größenordnung begründet statt eine
+Hektarzahl zu erfinden. Der Auftrag lautete „Empfiehl nichts", und er hat
+sich daran gehalten.
+
+### W5.P1 — Die letzte `output/`-Abhängigkeit · fertig
+
+Commit `ae8bf0f`. Geschätzt 30 min, gebraucht 11. Drei Dateien:
+`pipeline/layers/geo.py`, `make/layers/geo.mk`, `make/layers/osm.mk`.
+
+**Die Reihenfolge war schlimmer, als W5.P0 vermutet hatte.** Die acht
+Checkpoints kommen aus **zwei** Modulen — sechs aus `hig.py`, zwei aus
+`osm.py` — und `osm.py` braucht seinerseits sechs aus `hig.py`. Die
+notwendige Reihenfolge ist also **hig → osm → geo**; `LAYER_TARGETS` lief
+alphabetisch `geo, hig, osm`, also genau verkehrt. Zwei Abhängigkeitszeilen
+in den Make-Fragmenten stellen das jetzt her.
+
+**Der Nachweis ist die Art, die ich sehen wollte:** `geo.py` lief mit
+`--source-dir` auf ein **leeres** Verzeichnis, 105 s, **kein einziger
+Rückfall-Hinweis** — alle acht Quellen kamen aus `build/layers/`. Das
+leere Verzeichnis blieb leer. Und die 17 erzeugten Layer sind
+**pixelgleich** zu den bestehenden, per `sha256(src.read(1).tobytes())`,
+keine Abweichung. Damit ist belegt, dass der Umbau die Abhängigkeit
+entfernt **und** das Ergebnis nicht verändert hat.
+
+Den Rückfallzweig hat er zusätzlich isoliert geprüft, indem er
+`contract.LAYERS` per Monkeypatch einen fehlenden Checkpoint vorgaukelte:
+Er löst korrekt auf `source_dir` auf **und meldet sich mit `[warn]`**. Das
+war die dritte Anforderung — ein stiller Rückfall auf ein Artefakt der
+alten Kette wäre genau die Abhängigkeit, die wir loswerden wollten.
+
+**Die vollständige Antwort auf die Frage, die ich für die letzte
+Gelegenheit hielt:** Nach dem Fix liest **kein** Modul unter `pipeline/`
+mehr unbedingt aus `output/`. Zwei Ausnahmen, beide begründet und geprüft:
+`validate.py` liest `run1` — das ist sein Zweck, und es ist ausdrücklich
+nicht Teil von `all`. `prep/kataster/diagnostics.py` **schreibt** PNGs
+nach `output/`, liest aber nichts und ist in keinem Make-Ziel verdrahtet.
+
+**Er ist über den Auftrag hinausgegangen und hat es zur Prüfung
+vorgelegt** — `layer-osm: layer-hig` stand nicht in meinem Auftrag. Seine
+Begründung: Ohne diese Zeile fiele `osm` bei einem sauberen Lauf
+weiterhin **still** auf `output/` zurück, solange `hig` nicht vorher lief.
+Das ist richtig, und es ist genau der Zweck des Pakets — die Erweiterung
+ist bestätigt. Dass er sie kennzeichnet statt sie beiläufig mitzunehmen,
+ist der Unterschied zu einer schleichenden Auftragsausweitung.
+
+**Punkt 43 ist aufgeklärt, und meine Spur war falsch.** Ich hatte auf
+`make test` gegen direktes `pytest` getippt; beide liefern identische
+Zahlen. Die Ursache lag in der Historie: Commit `c9745a3` — der Commit,
+der `validate.py` den Zustand „angenommen" beigebracht hat — fügt in
+`tests/test_validate.py` **genau zwei** Testfunktionen hinzu. 208 + 2 =
+210. Belegt über `git show` auf beide Stände: 22 gegen 24 `test_`-Funktionen.
+Die zwei Tests, die „ohne Codeänderung" auftauchten, sind genau die zwei,
+die die Nutzerentscheidung absichern. Ich hatte den Commit selbst
+protokolliert und die Verbindung nicht gezogen.
+
+**Abnahme: 210 Tests plus 2 übersprungen, Wächter grün gegen 127 Dateien
+und 50 Python-Dateien, `run1` und `distance_layers/` unverändert.**
+Wegwerf-Ausgabe 22 MiB, danach gelöscht.
+
+### W5.P0 — `make all` lief noch die alte Kette
+
+Commit `1dd2a2b`. Zwei Dateien: `Makefile`, `docs/RUN1_VERGLEICH.md`.
+
+**Das ist der Befund, der den Abschlussnachweis gerettet hat, und er stand
+in einer Zeile:**
+
+```
+all: prep widmung-v2
+```
+
+`widmung-v2` startet `scripts/widmung_v2/01…05_*.py`. Die neuen Stufen —
+`layers`, `finalize`, `verify` — waren **nicht** Teil von `make all`. Und
+PLAN §3 sagt wörtlich: „`rm -rf build && make all` ist der Beweislauf: er
+zeigt, dass die Kette allein aus `data/` heraus die vier Endprodukte
+reproduziert."
+
+**Die alte Kette schreibt kein einziges der vier Endprodukte.** Welle 5
+hätte also die alte Kette bewiesen und den ganzen Umbau nicht berührt —
+vier Wellen Arbeit, die im Abschlussnachweis nicht vorkommen. Der Agent
+hat den Vorher-Zustand aufgenommen und es belegt: kein Aufruf schrieb nach
+`out/`.
+
+Das ist Regel 7 in Reinform. Niemandem gehörte die Zeile, die `all`
+definiert; also hat sie niemand nachgezogen. Kein Test schlägt an, kein
+Merge kollidiert — `make all` lief ja, es lief nur das Falsche. Und es ist
+der zweite Fall von Regel 9: **auch die letzte Welle braucht ihr
+Vorfeld.** Nach W1.P0, W2.P0 und W4.P0 hätte ich es wissen können.
+
+Die Reparatur war am Ende **eine Zeile** — `all: prep layers finalize
+verify` —, weil alles andere schon dastand. Gegennachweis: 36 Ziele außer
+`all`, `make -n` byte-identisch, null Abweichungen; die Zielmenge selbst
+unverändert.
+
+**Und die drei „Altlasten" waren die aktivsten Pfade im Repo.** Die
+Messung vorher hatte es schon gezeigt, W5.P0 hat es am Code bestätigt:
+`output/kataster/` (5,0 GB), `output/abschichtung/osm_pbf_layers/`
+(4,6 GB) und `output/noe/` (34 MB) wurden bei **jedem** `make all` noch
+gelesen — als Vorgabewerte der alten Skripte. Der neue Code nennt sie
+„Vorgängerprojekt-Altlast" und liest sie nicht: `hig.py:377` zeigt auf
+`build/prep/kataster/`, `osm_pbf_layers` kommt in `pipeline/` überhaupt
+nicht vor, `--noe-dir` zeigt auf `build/prep/noe_sekrop/`. **Mit der
+umgestellten `all`-Zeile werden 9,6 GB löschbar** — dieselbe Änderung löst
+den Beweislauf und den Plattenplatz.
+
+**Der wichtigste Fund war der, nach dem ich nicht gefragt hatte.**
+`pipeline/layers/geo.py:533` setzt `--source-dir` per Vorgabewert auf
+`output/…/distance_layers/` — die geschützte `run1`-Vergleichsbasis — und
+liest von dort **acht Checkpoints unbedingt, ohne Rückfallweg** auf
+`build/layers/`. `osm.py` macht es richtig und prüft erst `build/layers/`.
+Damit ist `rm -rf build && make all` **heute nicht allein aus `data/`
+lauffähig**; es läuft nur, weil `distance_layers/` von einem alten
+`widmung-v2`-Lauf herumliegt. Der Agent hat es **nicht repariert** —
+`geo.py` gehört W2.4, nicht ihm — sondern gemeldet und mir ausdrücklich
+gesagt, das gehöre vor W5.1 geklärt. Genau richtig. Daraus W5.P1.
+
+**Und noch eine Zahl, die er nicht geschluckt hat:** Er misst 210 Tests
+plus 2 übersprungen, die Zusammenführung hatte 208 plus 2 gemessen —
+ohne dass dazwischen eine Python-Datei geändert wurde. Zwei Tests, die
+ohne Codeänderung auftauchen, sind ein Befund. Geht ebenfalls an W5.P1.
+
+**Zu `docs/RUN1_VERGLEICH.md`** hat er nur einen datierten Hinweis
+ergänzt, dass die Methode Pixel**zahlen** und nicht Zellwerte vergleicht —
+der Bericht bleibt nach Punkt 3 eingefroren, der Befund wird nicht
+eingearbeitet. So beauftragt, so gemacht.
+
+**Abnahme: Wächter grün gegen 127 Dateien und 50 Python-Dateien, `run1`
+mit unveränderter Prüfsumme, `distance_layers/` 33 Dateien mit mtime vom
+6. September.** Die Kette wurde bewusst **nicht** ausgeführt — der
+Nachweis ist `-n`, der Lauf ist W5.1.
+
+### Zusammenführung der Welle 4 · fertig
+
+Merge-Commits `3759bb8` (4.1), `820170f` (4.2), `6f7d1bd` (4.3), alle mit
+`--no-ff`, **alle konfliktfrei**. Danach drei eigene Commits für die
+Nachzügler: `c9745a3`, `aabf706`, `b2076ed`. Geschätzt 45 min, gebraucht 21.
+
+**Zum dritten Mal in Folge hat der Zuschnitt den Konflikt gar nicht erst
+entstehen lassen.** Drei Worktrees, drei Zweige, disjunkte Zuständigkeit,
+Abbau ohne `--force` und ohne `-D`.
+
+**Die Vorhersage traf exakt: 208 Tests plus 2 übersprungen**, genau die
+Zahl, die W4.3 gerechnet und ausdrücklich nicht gemessen hatte. Die beiden
+Skips sind die gegateten Langläufer aus `test_referenz_tif.py`. Wächter
+grün gegen 127 Dateien und 50 Python-Dateien. **Und alle 18
+Dashboard-Tests liefen ohne weiteres Zutun** — W4.3s Konstruktion über die
+Git-Objektdatenbank hat gehalten.
+
+**Die Reparatur von `validate.py` ist besser als beide Vorschläge, die ich
+gemacht hatte** — der Agent hat sie kombiniert:
+
+- **Schneller Weg:** Zuerst der `sha256` des frisch finalisierten TIF
+  gegen die angenommene Referenz (`AKTUELLE_REFERENZ_SHA256`). Stimmt er,
+  Exit 0 in **0,7 s** statt 65 s — und das ist zugleich der
+  Determinismusnachweis, den Welle 5 braucht. Kein zweites TIF auf der
+  Platte, nur ein Hash-Literal.
+- **Diagnoseweg:** Weicht der Hash ab, läuft der bandweise Vergleich gegen
+  `run1` weiter, jetzt registerbewusst. Eine Zeile in `abweichungen.tsv`,
+  deren `ursache` das Wort „angenommen" trägt, bekommt den neuen Status
+  **`akzeptiert`** statt Rot.
+
+**Und er hat ausdrücklich nicht auf „grün" geschaltet.** Begründung:
+Band 26 weicht weiterhin um 27,58 % ab; das als grün zu zeigen wäre
+unehrlich. `akzeptiert` bleibt sichtbar unterschieden und blockiert
+trotzdem nicht. Das ist genau die Unterscheidung, die ein Register
+braucht — und sie stand nicht in meinem Auftrag.
+
+Die harte Bedingung ist als Test verdrahtet, nicht behauptet: angenommenes
+Band → `akzeptiert`, künstlich hinzugefügte **zehnte** Abweichung → Rot.
+Dazu ein zweiter Test, der zeigt, dass der §13.9-Wächter eine veraltete
+„angenommen"-Notiz **sticht**, wenn das Band außerhalb des Wirkungspfads
+liegt. `make validate PAKET=W3.1` läuft jetzt real durch, auf beiden Wegen.
+
+**Er hat mir eine falsche Zahl zurückgegeben, und ich hatte sie
+weitergereicht.** Mein Auftrag sprach von „fünf der neun angenommenen
+Bänder als Rot" — das stammte aus W4.3s Bericht. Gemessen sind es
+**sechs**: 26, 29, 33, 34, 35, 36 rot, 30–32 gelb. Das steht so in meiner
+eigenen Ampeltabelle zwei Abschnitte weiter oben; ich hätte es gegen sie
+prüfen können und habe es nicht. Am Befund ändert es nichts, an der
+Sorgfalt schon.
+
+**Ein Nebenbefund aus dem Worktree-Beleg zu Punkt 40, und er ist typisch
+für dieses Projekt:** Von den beiden Tests, die in jedem Worktree
+übersprungen wurden, sah einer **mit und ohne** Umgebungsvariable
+identisch nach „skipped" aus — verschieden war nur die *Begründung*.
+Ein stiller Ausfall, der als absichtlicher Skip getarnt war. Nach dem
+Verlinken laufen alle vier Tests aus `test_referenz_tif.py` im Worktree
+durch (212,9 s). Gegennachweis: **36 Ziele**, `make -n` byte-identisch bis
+auf `worktree` selbst.
+
+**Eine Überraschung, die den Nachweis beinahe entwertet hätte:**
+`out/abschichtung.tif` trug bereits den `sha256` der neuen Referenz. Der
+schnelle Weg griff also sofort, und der **Diagnoseweg — das eigentliche
+Herzstück der Reparatur — wäre nie real gelaufen.** Der Agent hat ihn
+zusätzlich über `--new-tif` gegen echte Daten erzwungen, statt sich mit
+den Unit-Tests zufriedenzugeben. Ohne das hätte ein grüner Lauf nur
+bewiesen, dass die Abkürzung funktioniert.
+
+**Nicht abgedeckt, selbst benannt:** Das Hash-Literal steht jetzt an
+**zwei** Stellen (`pipeline/validate.py` und `tests/test_referenz_tif.py`)
+— bewusst nicht zusammengezogen, damit Produktionscode nicht von einem
+Testmodul abhängt, aber bei der nächsten Referenzänderung an zwei Stellen
+zu pflegen. Punkt 41. Die `.bands.json`-Sidecar von `run1` ist nicht
+mitverlinkt (kein Test braucht sie). Und außerhalb der drei genannten
+Dateien wurde **nicht** nach weiteren „`run1` ist Ziel"-Annahmen gesucht.
+
+### Die zwei OSM-Objekte — Punkt 33 ist zu Ende gemessen
+
+Kein Paket, sondern eine Messung, die zwei Fragen zugleich beantworten
+sollte: die scheinbar widersprüchlichen Prozentzahlen zu Band 26, und die
+letzte offene Hälfte von Punkt 33.
+
+**Die Prozentzahlen widersprechen einander nicht — es sind zwei Nenner.**
+
+| | |
+|---|---:|
+| a — gesetzt in Band 26, neu | 2 512 493 |
+| b — gesetzt in Band 26, `run1` | 1 969 387 |
+| c = a − b | **543 106** ✓ |
+| d — von a außerhalb aller neun BL | 690 613 |
+| e — von b außerhalb aller neun BL | 202 736 |
+| f — von den 543 106 abweichenden, außerhalb | 487 877 |
+
+W3.2 hat f/c gemessen (**89,83 %**), W4.2 hat d/a gemessen (**27,49 %**).
+Beide Aussagen sind richtig, beide beschreiben verschiedene Mengen. Und
+`d = e + f` geht exakt auf, weil Band 26 im neuen TIF eine **strikte
+Obermenge** von `run1` ist — keine einzige Zelle geht verloren. Die
+55 229 Zellen innerhalb Österreichs liegen tatsächlich ausschließlich in
+Vorarlberg, null in den anderen acht.
+
+**Meine Vermutung dazu war falsch, und der Agent hat sie nicht
+gerettet.** Ich hatte geschrieben: wenn die alte Kette außerhalb
+Österreichs praktisch kein Wasser kannte, sei das die vierte Bestätigung.
+`e = 202 736` ist alles andere als praktisch null — 10,3 % von b. Der
+Grund ist banal und stand die ganze Zeit im Manifest: Band 26 trägt
+`clipped_to_austria: false`, und das Fenster reicht mit rund 13 km Marge
+nach Bayern, Slowenien, Tschechien, Ungarn und in die Schweiz. Dort liegt
+echtes ausländisches Wasser, das mit der Bbox-Lücke nichts zu tun hat.
+**`e` misst etwas anderes als das, wofür ich es haben wollte** — und dass
+er das sagt, statt meine Zahl zu bestätigen, ist genau der Grund, warum
+ich die Messung überhaupt beauftragt habe.
+
+**Die eigentliche Antwort auf Punkt 33 ist besser als erhofft: zwei
+benannte OSM-Objekte.**
+
+| `@id` | Objekt | fehlende Zeilen |
+|---|---|---:|
+| 1156846 | **Bodensee**, `natural=water` / `water=lake`, Relation, ~531,35 km² | 1 |
+| 1473483026 | `natural=shoal` — eine **Sandbank von 1448 m²**, als Linie und als Fläche exportiert | 2 |
+
+1 + 2 = 3, exakt die Differenz 128 028 − 128 025. Und die Sandbank ist
+kein zweiter Fall: Ihre Bounding Box liegt **vollständig innerhalb** der
+des Bodensees — dasselbe Loch, dasselbe Objekt, nur kleiner. Die
+Zusammenhangsanalyse bestätigt es unabhängig: **fünf Komponenten, eine mit
+543 095 Zellen (99,998 %)**, vier Reste von zusammen elf Zellen.
+
+**Damit endet eine Frage, die einmal projektbedrohend aussah, bei zwei
+OSM-Ids.** Der Weg dorthin war jedes Mal derselbe: nicht entscheiden,
+sondern messen. Punkt 29 ging so, Punkt 20 ging so, und Punkt 33 geht so.
+
+Der Agent hat beide Wege gemacht, obwohl der erste die Frage schon
+abschließend beantwortete — „billig, also auch gemacht". Das ist die
+richtige Reihenfolge: erst der Beleg, dann die unabhängige Bestätigung.
+
+**Was offen bleibt, und es ist klein:** Drei Messungen derselben Größen
+kommen auf leicht verschiedene Werte — 27,49 gegen 27,93 Prozentpunkte,
+55 229 gegen 54 920 Vorarlberg-Zellen (0,56 %). Die Originalskripte der
+ersten beiden liegen nicht vor, nur ihre Prosa. Punkt 39.
+
 ### Regel 9 — und was sie beim ersten Anwenden gefunden hat
 
 Kein Paket, sondern die Lehre aus Punkt 36, sofort auf die nächste Welle
@@ -1807,8 +2834,10 @@ billiger sein als das erste.
 | 6 | `describe_sources()` in `windkraft/calc/wind_zones.py` hat keinen Aufrufer. Von W1.5 bewusst nicht angetastet, weil außerhalb des Auftrags. | W1.x |
 | ~~7~~ | ~~`streusiedlung.py` hat eine verdeckte Cache-Weiche.~~ **Von W1.6 untersucht, Entwarnung:** `cache_dir` ist Pflicht-Keyword (`streusiedlung.py:82`), wird an `bev_register.py` durchgereicht und dort seit W1.1 sauber aufgelöst. Keine zweite Weiche. Einziger Aufrufer ist `docs/analysis/streusiedlung_knee.py:217`, außerhalb der v2-Kette, Ziel nicht unter `data/`. | — |
 | ~~8~~ | ~~Ungenutzter Import `admin_boundaries`.~~ **In W1.6 entfernt**, `ruff` sauber. | — |
-| 9 | `docs/HANDOFF.md` trägt ein veraltetes Referenz-Manifest. Das README verweist nur darauf, dass es veraltet ist. Wer es aktualisiert, ist nicht festgelegt. | Welle 4 |
-| 10 | Die 18 von 38 Bändern, die zwischen `run1` und der Referenz-TIF um < 0,004 % abweichen, sind laut `RUN1_VERGLEICH.md` **ungeklärt**. Das berührt die Projektfrage, ob `run1` das Vorgängerprojekt als Quelle der Wahrheit ablösen darf. Keine Textkorrektur, sondern eine Entscheidung. | Nutzer, vor Welle 5 |
+| ~~9~~ | ~~`docs/HANDOFF.md` trägt ein veraltetes Referenz-Manifest.~~ **Von W4.3 erledigt:** überarbeitet auf Schema 2.0.0, 38 Bänder, neue Referenz, mit eigenem Abschnitt zu den neun Bändern und ihrer praktischen Folge für die Konsumentenseite (Band 32 verliert rund 9,5 km²). **Nachzügler:** `README.md` behauptet dadurch jetzt fälschlich, HANDOFF sei veraltet — in der Zusammenführung korrigiert. | — |
+| ~~40~~ | ~~`run1` ist in keinem Worktree verlinkt.~~ **In der Zusammenführung der Welle 4 erledigt**, mit Gegennachweis über 36 Ziele und einem Worktree-Beleg: Alle vier Tests aus `test_referenz_tif.py` laufen dort jetzt durch (212,9 s). **Der eigentliche Befund war die Tarnung:** Einer der beiden Tests sah mit und ohne Umgebungsvariable identisch nach „skipped" aus — verschieden war nur die Begründung. Ein stiller Ausfall, als absichtlicher Skip getarnt. | — |
+| 41 | **Das Referenz-Hash-Literal steht an vier Stellen, nicht an zwei** — `pipeline/validate.py`, `tests/test_referenz_tif.py`, `docs/HANDOFF.md`, `README.md`. Von W5.P3 repoweit über alle drei Hashes belegt; eine fünfte gibt es nicht (`FORTSCHRITT.md` und `PLAN.md` führen die alten absichtlich als Historie). **Die Rechnung ist inzwischen zweimal bezahlt worden**, am selben Tag: Punkt 33 und Punkt 34. Beim zweiten Mal blieb eine Stelle zurück und musste in einem eigenen Paket nachgezogen werden. Bewusst nicht zusammengezogen, damit Produktionscode nicht von einem Testmodul abhängt — aber die ursprüngliche Begründung deckt zwei Codestellen ab, nicht vier, von denen zwei Prosa sind. | Sammelposten |
+| ~~10~~ | **Gemessen statt entschieden — das Muster ist gelöst.** Und die Ausgangszahl war falsch: `RUN1_VERGLEICH.md` vergleicht nur die **Pixelzahl** je Band, nicht die Zellwerte. Eine zellweise Neurechnung findet **20 abweichende** Bänder, nicht 18; die vier Weichzeichnungsbänder waren strukturell unsichtbar, weil ein Gauß-Blur Werte innerhalb einer bereits gesetzten Fläche verschiebt. „18" war die Zahl der **identischen** Bänder. **Bei 16 der 20 löst eine Ein-Zellen-Erosion den Befund vollständig auf** (größte Komponente ≤ 3 Zellen, Ampel überall grün) — Rasterisierungsrauschen. Die vier Weichzeichnungsbänder sind keine eigene Quelle, sondern die Verschmierung desselben 5-Zellen-Wurzelclusters, nachgewiesen über den 4σ-Kernelradius. **Offen bleibt allein der Auslöser im Code:** ein datierter OSM-Cache-Key-Fix im Alt-Repo ist ein plausibler, unbestätigter Kandidat für die OSM-Bänder; für die Bänder 1, 4 und 5 wurde trotz gezielter Suche nichts gefunden. Zwei widerlegte Hypothesen (4-Konnektivitäts-Fix, Adressregister-Neuschrieb) sind ausgeschlossen. | Auslöser: Sammelposten |
 | 11 | `docs/FOLLOWUPS.md` führt die veraltete `EXCLUSION_LAYERS`-Liste weiterhin als offenen Punkt, obwohl W1.5 das ganze Skript gelöscht hat. **Mit Punkt 3 entschieden: lebende Liste.** Eine Liste offener Punkte, die geschlossene Punkte weiterführt, kostet jeden Leser die Prüfung, ob der Punkt noch existiert — das ist der Zweck der Liste, ins Gegenteil verkehrt. Wer einen Punkt schließt, streicht ihn dort. | W2.1 |
 | ~~12~~ | ~~Sackgasse eine Ebene höher: `pdf_hig_sources.py` erzeugt GeoJSON, die niemand liest.~~ **Erledigt in W1.P9** — das Modul `windkraft/noe/pdf_hig_sources.py` ist als ganzes weg, die Sackgasse an `e3d3655` belegt statt geglaubt. | — |
 | 13 | Der `Run:`-Hinweis im Docstring von `scripts/widmung_v2/02_build_hig_sources.py:26-27` nennt den alten Pfad `scripts/main/build_hig_sources.py`. Vorbestehend. | Sammelposten |
@@ -1817,8 +2846,18 @@ billiger sein als das erste.
 | ~~20~~ | ~~GeoPackage promoviert Polygone zu MultiPolygonen.~~ Der Effekt ist real (383 von 920 bei `natur`, 49 von 71 bei den NÖ-Zonen), aber **von W2.4 mit Fundstellen als folgenlos belegt**: Im ganzen Layer-Block geht jede GPKG-Eingabe ausschließlich durch `rasterize`; die einzige echte `geom_type`-Verzweigung prüft eine zur Laufzeit aus OSM-Punkten vereinigte Geometrie, zwei weitere Typprüfungen sind inklusiv und laufen auf Parquet. Für eine künftige geometrietyp-sensitive Stufe bleibt es zu beachten. | — |
 | 21 | 33 von 920 Schutzgebietsgeometrien sind laut GEOS ungültig. Der heutige Konsument prüft und repariert das ebenfalls nicht — deshalb nach Regel 4 unverändert. | fachlich, Nutzer |
 | ~~19~~ | ~~Stille Falle: zwei Juli-Parquets unter `data/adressen/`.~~ **Erledigt im Datenfenster nach der Prep-Welle.** Nicht gelöscht, sondern in den Sitzungs-Scratchpad verschoben — es waren die zwei Dateien aus W1.3 ohne zweite Kopie im Vorgängerprojekt, und ein Neulauf ergäbe wegen des Oktober-Stichtags andere Dateien. Inode nach dem `mv` unverändert. | — |
-| 34 | **Zwei Modellentscheidungen im HiG-Pfad, die keine Implementierungsdetails sind.** DKM-Flächen über `HIG_MAX_FOOTPRINT_M2` = 10 000 m² werden durch eine 5-m-Scheibe um den Zentroid ersetzt; `HIG_MIN_ADRESSEN` = 5 trennt „Streusiedlung" (750 m Abstand) von „Einzellage" (25 m). Dazu eine bekannte einseitige Fehlklassifikation: Bei Mehrheitswidmung Industrie ohne widersprechendes BEV-Signal wird Bewohntes zu 25 m herabgestuft, nie umgekehrt. Von W2.1 nach Regel 4 unverändert übernommen und gemeldet. | fachlich, Nutzer |
-| 33 | **Die erste echte Abweichung — und sie ist eine Korrektur.** `geography_water_bodies` weicht in 543 106 von 336 038 001 Zellen ab (0,16 %), ausschließlich zusätzlich. Ursache: `osmium extract --bbox` klippt vor dem Tag-Filter und verliert die grenzüberschreitende Bodensee-Relation; die Prep-Stufe filtert gegen die ungeklippte Rohquelle und findet sie. Die neue Kette hat recht. **Zu entscheiden: Wird das als Abweichung in `abweichungen.tsv` geführt und die Bitgleichheit zu `run1` aufgegeben, oder gilt weiter der alte Zustand als Soll?** Offen ist außerdem, ob dieselbe Lücke weitere, kleinere Gewässer betrifft. | **Nutzer** |
+| ~~34~~ | **Vollständig entschieden und umgesetzt.** (3) ist seit `f592e75` Code: **adresslose DKM-Großflächen über 10 000 m² entfallen als Kandidat** — 514 der 806, nicht die erwarteten 520. `haeuser_im_gruenen_streusiedlung` verliert 24,125 ha, **Band 32 wächst netto um 98,44 ha**, keine einzige Streusiedlungshülle zerfällt (1:1-Abbildung über alle 10 873 geprüft). Neue Referenz `fb57c41d…232c30`. (1) und (2) gehen mit W5.P3 nach `HANDOFF.md`. Wortlaut der Entscheidung: | — |
+| ↳ | **Vom Nutzer am 08.09.2026 dreigeteilt entschieden.** (1) **`HIG_MIN_ADRESSEN` = 5 bleibt unverändert** und kommt nach `HANDOFF.md`. Gemessen: 10 873 Streusiedlungen (≥5, 750 m) gegen 12 327 Einzellagen (<5, 25 m), **kein Knie im Histogramm** — bei Schwelle 3 wären es 68,2 %, bei 7 nur 32,8 %. Die Zahl ist eine reine Setzung, aber Regel 4 gilt. (2) **Die 249 Fehlklassifikationen werden dokumentiert, nicht geändert** — mit den 83,1 %, die Adress- oder Gartensignale tragen, und dem Ausreißer mit 1089 Adressen, der trotzdem auf 25 m herabgestuft wird. Die Richtung ist konservativ: zu wenig ausgeschlossen, nie zu viel. (3) **`HIG_MAX_FOOTPRINT_M2` = 10 000 m² wird überdacht** — 806 Objekte, Median 27 373 m², Maximum **734,5 ha auf eine 78,5-m²-Scheibe**, 699 davon in Niederösterreich. **Charakterisierung liegt vor und verkleinert die Frage drastisch: nur 23 der 806 wirken überhaupt in ein `haeuser_im_gruenen_*`-Band**, weil in NÖ ausschließlich die SekROP-PDF den 750-m-Abstand trägt. Die Schwelle selbst ist unbegründet — 1 ha als runde Zahl, mit einem im Ursprungsplan als offen markierten Kalibrierungsschritt, der nie nachgeholt wurde. Zwei Nebenbefunde: 80 Zentroide liegen außerhalb des eigenen Polygons, 520 der 806 haben null Adressen. **Eine Änderung verschiebt die Referenz erneut**, wie beim Bodensee. Ursprünglicher Wortlaut: | (3) **Nutzer** |
+| ↳ | **Zwei Modellentscheidungen im HiG-Pfad, die keine Implementierungsdetails sind.** DKM-Flächen über `HIG_MAX_FOOTPRINT_M2` = 10 000 m² werden durch eine 5-m-Scheibe um den Zentroid ersetzt; `HIG_MIN_ADRESSEN` = 5 trennt „Streusiedlung" (750 m Abstand) von „Einzellage" (25 m). Dazu eine bekannte einseitige Fehlklassifikation: Bei Mehrheitswidmung Industrie ohne widersprechendes BEV-Signal wird Bewohntes zu 25 m herabgestuft, nie umgekehrt. Von W2.1 nach Regel 4 unverändert übernommen und gemeldet. **Vom Nutzer am 08.09.2026 auf „vor Welle 5" terminiert** — Welle 4 läuft ohne. | Nutzer, vor Welle 5 |
+| ~~33~~ | **Vollständig erledigt.** (1) **Entschieden am 08.09.2026:** Die Korrektur wird übernommen; neue Referenz `sha256 4bdef6ad…6b1a13e`, `run1` bleibt Vergleichsbasis ohne Zielcharakter. Umsetzung bei W4.3. (2) **Die Zusatzfrage ist beantwortet, nicht vertagt:** Die drei verlorenen Zeilen sind genau zwei OSM-Objekte — der Bodensee (`@id 1156846`, 1 Zeile) und eine Sandbank von 1448 m² (`@id 1473483026`, 2 Zeilen als Linie und Fläche), deren Bounding Box vollständig **innerhalb** der des Bodensees liegt. Keine weiteren Gewässer. Unabhängig bestätigt durch Zusammenhangsanalyse: fünf Komponenten, eine davon mit 99,998 % der Zellen. | — |
+| 39 | **Drei Messungen derselben Größe, drei leicht verschiedene Zahlen.** Anteil der Band-26-Zellen außerhalb aller Bundesländer: 27,93 % (W4.2) gegen 27,49 % (Nachmessung); Zellen in Vorarlberg: 54 920 (W3.2) gegen 55 229 (Nachmessung, 0,56 %). Die Abweichung ist klein und ändert keine Aussage. **Meine Vermutung, ungeprüft:** Es ist dieselbe Ein-Zellen-Randfrage, die W4.2 an den Gemeindegrenzen mit 67 652 Saumzellen vermessen hat — ob eine Randzelle als „innerhalb" zählt, hängt von `all_touched` ab. Die Originalskripte der ersten beiden Messungen liegen nicht vor, nur ihre Prosa. Zu klären, falls eine dieser Zahlen je zitiert wird. | Sammelposten |
+| ↳ | *(Wortlaut vor der Entscheidung, als Beleg stehengelassen — die letzte Frage darin ist inzwischen beantwortet.)* **Die erste echte Abweichung — und sie ist eine Korrektur. Die Ampel steht auf Rot, und §6 sagt: Rot hält an.** `geography_water_bodies` weicht in 543 106 Zellen ab, ausschließlich zusätzlich; über die Aggregate und Unschärfebänder erreicht sie acht weitere Bänder. Ursache: `osmium extract --bbox` klippt vor dem Tag-Filter und verliert die grenzüberschreitende Bodensee-Relation; die Prep-Stufe filtert gegen die ungeklippte Rohquelle und findet sie. **Die neue Kette hat recht, die alte unrecht** — das ist inzwischen dreifach belegt (topologisch über die Relation, numerisch über den Wirkungspfad, geografisch über die Lage der Zellen). Vier Bänder liegen mit 16–29 km² über dem 10-km²-Budget der Ampel, Band 26 mit 339 km² weit darüber. **Zu entscheiden: Wird die Korrektur übernommen und die Bitgleichheit zu `run1` aufgegeben, oder gilt der alte Zustand als Soll?** Das Register `docs/rewrite/abweichungen.tsv` ist gefüllt; die Spalte `ursache` wartet auf deine Zeile. Offen ist außerdem, ob dieselbe Bbox-Lücke weitere, kleinere Gewässer betrifft — **das ist die einzige Frage, die noch Arbeit statt einer Entscheidung braucht.** | **Nutzer** |
+| 38 | **Der Wächter ist im Worktree schwächer als im Hauptrepo.** `check_hardlink_safety` zählt dort 48 statt 127 Dateien, weil `make worktree` `output/` bewusst nicht verlinkt — also 0 statt 79 Dateien darunter. Harmlos, weil ein Worktree ohnehin nicht nach `output/` schreiben kann. Aber **meine Abnahmeformulierung „Wächter grün gegen 127 Dateien" ist aus einem Worktree heraus nicht prüfbar**, und ein Agent, der sie wörtlich nimmt, meldet entweder eine falsche Zahl oder hält sich für gescheitert. Ab jetzt gehört in jeden Worktree-Auftrag: die Zahl im Worktree ist eine andere, der Vergleich gegen 127 findet im Hauptrepo statt. Von W4.1 gefunden und selbst erklärt. | Auftragsvorlage |
+| ~~37~~ | ~~Der Platz wird für Welle 5 knapp.~~ **Von W5.P0 aufgelöst, und zwar nebenbei.** Die Messung zeigte zuerst, dass sichere Löschkandidaten nur **248 MB** ergeben — die 9,6 GB unter `output/kataster`, `osm_pbf_layers` und `output/noe` waren nicht löschbar, weil `make all` sie noch las. **Mit der umgestellten `all`-Zeile liest die neue Kette sie nicht mehr** (am Code belegt, drei Fundstellen), also werden sie es. Spitzenbedarf des Beweislaufs rund 22,5 GiB gegen 35 GiB, die nach `rm -rf build` frei sind. Der Risikofall bleibt ein *paralleler* Zweitbestand — bei seriellem Ablauf unkritisch. Gelöscht wurde nichts; die Liste liegt vor. | — |
+| ~~42~~ | ~~`pipeline/layers/geo.py` liest unbedingt aus `output/…/distance_layers/`.~~ **Von W5.P1 erledigt, und die Reihenfolge war schlimmer als vermutet.** Die acht Checkpoints kommen aus **zwei** Modulen — sechs aus `hig.py`, zwei aus `osm.py` — und `osm.py` braucht seinerseits sechs aus `hig.py`. Notwendige Reihenfolge **hig → osm → geo**, `LAYER_TARGETS` lief alphabetisch, also verkehrt. `geo.py` folgt jetzt dem Muster von `osm.py` (erst `build/layers/`, `source_dir` nur als Rückfall, **mit sichtbarem `[warn]`**). Nachweis: Lauf mit **leerem** Quellverzeichnis, 105 s, kein Rückfall-Hinweis, Verzeichnis blieb leer, **17/17 Layer pixelgleich**. Danach liest **kein** Modul unter `pipeline/` mehr unbedingt aus `output/`. | — |
+| 45 | **Der Fingerabdruck bemerkt keine Codeänderung — vierter Fall desselben Musters.** `pipeline/layers/hig.py` hängt seinen Fingerabdruck an Parameter und Eingabedateien. Eine reine **Logikänderung** lässt alle Checkpoints als „fertig" gelten; W5.P2 musste die 33 Dateien von Hand löschen, um überhaupt einen Neubau zu erzwingen. `osm.py` löst genau das mit `BUILDING_CLASSIFICATION_REVISION`, `hig.py` hat kein Äquivalent. Gefährlich ist nicht dieser Lauf — er war beaufsichtigt —, sondern der nächste, bei dem es niemand weiß. Dieselbe Familie wie `layer_done()`, die W1.1-Weiche und Punkt 24. **Von W5.P2 selbst gemeldet.** | Aufräumwelle, mit Punkt 24 und 30 |
+| 44 | **Zwei Messungen derselben Größe, sechs Fälle Unterschied.** Die Charakterisierung zählte **520** adresslose Objekte über der Schwelle, W5.P2 beim Umsetzen **514** — dieselbe Quelle, dieselbe Schwelle, zwei Agenten. W5.P2 hat die Abweichung gemeldet statt sie wegzuerklären, und die Ursache bewusst nicht nachrecherchiert. Der eingebaute Wert ist der gemessene: 255 903 − 514 = 255 389 geht exakt auf. **Dieselbe Klasse wie Punkt 39** — vermutlich eine Randfallfrage bei `within` gegen `intersects` oder bei Adressen exakt auf der Polygonkante. Zu klären, falls eine der beiden Zahlen je zitiert wird. | Sammelposten, mit Punkt 39 |
+| ~~43~~ | ~~Zwei Tests ohne Codeänderung.~~ **Aufgeklärt, und meine Spur war falsch.** Nicht `make test` gegen `pytest` — beide liefern identische Zahlen. Die Ursache steht in der Historie: `c9745a3`, der Commit, der `validate.py` den Zustand „angenommen" beibrachte, fügt in `tests/test_validate.py` **genau zwei** Testfunktionen hinzu (22 → 24, per `git show` auf beide Stände belegt). Die zwei Tests, die „aus dem Nichts" kamen, sind genau die, die die Nutzerentscheidung zu Punkt 33 absichern. Ich hatte den Commit selbst protokolliert und die Verbindung nicht gezogen. | — |
 | ~~32~~ | ~~Zwei Fingerabdruck-Konventionen in einer Welle.~~ **Erledigt in `c18f82d`.** Der Unterschied war schärfer als beschrieben: nicht nur eine andere Ablage, sondern eine andere Granularität — Tag je Rasterdatei gegen globalen Schalter je Domäne. Angeglichen auf die Tag-Variante, W2.3s neun Layer danach neu als pixelgleich belegt. | — |
 | ~~35~~ | ~~Stufe 1 der alten Kette schreibt `output/.../zoning_vectors/` bei jedem Lauf neu.~~ **Von W3.1 geprüft und erledigt:** Die neue Kette hat auf dieses Verzeichnis **keine** Abhängigkeit. Der Befund betrifft allein die alte Kette und stirbt mit ihr. | — |
 | 36 | **`make finalize` ist nicht erreichbar.** `make/finalize/finalize.mk` existiert seit W3.1, aber `Makefile` hat keine `-include make/finalize/*.mk`-Zeile — W3.1 durfte `Makefile` nicht anfassen. Eine Zeile, dieselbe Klasse Vorfeld-Arbeit wie W1.P0 und W2.P0, die für Welle 3 schlicht gefehlt hat. **Lehre als Regel 9 in PLAN §13.10 festgehalten**, und beim Anwenden auf Welle 4 hat sie dort drei weitere Lücken gefunden → W4.P0. | W3.2, Schritt 0 |
@@ -1826,6 +2865,6 @@ billiger sein als das erste.
 | 31 | `data/widmung/vorarlberg/fwp_flaeche.gpkg` erzeugt beim Lesen `RuntimeWarning: GPKG: unrecognized user_version=0x00000000`. Verarbeitung läuft vollständig durch (15 766 Wohnflächen). Vorbestehend, nach Regel 4 unangetastet. | Sammelposten |
 | ~~29~~ | ~~Die Kette hängt an einem Zwischenstand des Vorgängerprojekts.~~ **Entschärft durch Messung statt Entscheidung.** Der erste Volllauf (48,0 min) reproduziert `at_dkm_gst_nfl_epsg31287.geoparquet` inhaltlich vollständig: Zeilenzahl je Bundesland identisch (24 115 278), Schema identisch, Fläche bis zur letzten Nachkommastelle identisch, 5000/5000 WKB bytegleich. Einziger Unterschied: die Zeilenreihenfolge der Bundesländer, die `sha256` und 2 · 10⁻⁵ m² Float-Rauschen vollständig erklärt. Das Repo **kann** die Datei erzeugen; es hat sie bisher nur nicht gelesen. Rest erledigt sich mit W2.1s Umstellung. | — |
 | 28 | `docs/dataflow/src/1_merge.py` führt den Pfad `data/adressregister/…`, den es seit dem W0.1-Umbau nicht mehr gibt. Nur ein Alias in einer Doku-Tabelle, kein Datenzugriff — aber ein stiller falscher Pfad in **erzeugter** Doku, den keine Suche der Pfadpakete gefunden hat, weil er keinen Leser hat. | Sammelposten |
-| 14 | **`LEGACY_ENTFAELLT` ist jetzt leer**, und `test_legacy_entfaellt_path_exists` wird dadurch zu einem übersprungenen Platzhalter — ein Test, der nichts mehr prüft. Register bleibt laut §13.1 stehen; zu entscheiden ist, ob der Test bleibt, entfällt oder gegen die Leerheit prüft. | W1.4 |
+| ~~14~~ | ~~`LEGACY_ENTFAELLT` ist leer, und `test_legacy_entfaellt_path_exists` ist dadurch ein übersprungener Platzhalter.~~ **Von W4.3 entschieden: Der Test bleibt.** `parametrize` wurde zur Schleife im Testkörper, umbenannt zu `test_legacy_entfaellt_paths_exist`. Begründung: Ein leeres Register ist eine **wahre Aussage**, kein Nicht-Test; die Verdopplung zum bestehenden `test_legacy_entfaellt_is_currently_empty` wird vermieden. Nebenbei bestätigt, dass der eine übersprungene Test aller bisherigen Zählungen genau dieser war. | — |
 | 15 | **`Path("").exists()` ist `True`.** Fällt `abschichtung_common.py:966` je in den PBF-Fallback, liefert `cfg["paths"].get("powerlines_gpkg", "")` jetzt einen leeren String, und `read_layer()` geht auf das Arbeitsverzeichnis statt auf eine GIS-Datei los. Randfall, tritt nur bei fehlendem OSM-PBF ein, aber die Fehlermeldung wäre irreführend. In `docs/rohdaten.md` §5 vermerkt. | W1.P5 |
 | 16 | `docs/rewrite/UMSETZUNG.md` und `packages.json` beschreiben W1.2 anders als `PLAN.md` (sechs Pfade weg, inklusive `Aktualitaetsstand.txt`, das bleiben soll). Veraltete Planungsartefakte, die dem Plan widersprechen. Meine Dateien, nicht die der Pakete. | vor Welle 2 |
