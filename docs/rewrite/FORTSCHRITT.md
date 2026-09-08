@@ -30,6 +30,12 @@ Die Schätzung wird **vor** dem Paket eingetragen und danach nicht mehr
 geändert — nur so wird sichtbar, wo ich mich verschätze. „Gebraucht" ist
 Wanduhrzeit von der Beauftragung bis zum Commit.
 
+**Ein Stern hinter der Schätzung heißt: nachträglich eingetragen.** Bei
+W5.P5 habe ich das Paket gestartet, ohne vorher zu schätzen, und die
+45 min erst danach notiert. Die Zahl zählt in den Summen mit, trägt aber
+den Vermerk — sonst wäre die Statistik geschönt an genau der Stelle, für
+die es sie gibt.
+
 | Paket | Titel | Status | geschätzt | gebraucht | Abnahme |
 |---|---|---|---:|---:|---|
 | W0.1 | Rohdaten nach Thema sortieren | **fertig** | — | 49 min | bitgleich · 30/30 Inodes |
@@ -76,8 +82,8 @@ Wanduhrzeit von der Beauftragung bis zum Commit.
 | W5.P2 | Adresslose Großflächen entfallen | **fertig** | 60 min | 57 min | **514 statt 520 entfallen** · Band 32 **+98,44 ha** · keine Hülle zerfallen · 210 → **214** Tests |
 | W5.P3 | Die vier Nachzügler aus W5.P2 | **fertig** | 25 min | 10 min | Gruppen **nachgemessen statt geglaubt** · Fehler im Vertragstest gefunden · Punkt 41 beantwortet |
 | W5.P4 | Das Register kennt nur eine Ursache | **fertig** | 20 min | 13 min | Ampel 26/29 **akzeptiert** · README nachgezogen · zweiter Langläufer **173,3 s** grün · Wächter-Fix zurückgestellt → W5.P5 |
-| W5.P5 | Wirkungspfad-Wächter generalisieren | offen | — | | Manifest braucht Wirkungspfad je Ursache, nicht nur für Wasser |
-| W5.1 | Beweislauf aus Rohdaten | offen | 15 min | | **+ Vorverarbeitung** · jetzt gegen die *neue* Kette |
+| W5.P5 | Wirkungspfad-Wächter generalisieren | **fertig** | 45 min* | 25 min | **Manifest log über eine Quelle** · Pfad abgeleitet, nicht gepflegt · Schema 2.1.0 · 214 → **215** Tests |
+| W5.1 | Beweislauf aus Rohdaten | **läuft** | 150 min | | `rm -rf build && make all` · **die Abnahmebedingung des ganzen Umbaus** |
 
 ## Zeitbilanz
 
@@ -2267,6 +2273,86 @@ auffällt — dieselbe Klasse wie Punkt 38, nur eine Datei weiter. Gehört
 W4.P0, das schon geschlossen ist; geht in die Zusammenführung.
 
 ### W5.P4 — Das Register kennt nur eine Ursache · teilweise angehalten
+
+### W5.P5 — Der Wirkungspfad je Ursache · und ein Manifest, das über sich selbst log
+
+Zwei Commits: **`472fcba`** — ausschließlich meine beiden Plandateien,
+Schritt 0 des Auftrags — und **`f1d00f7`** mit der Paketarbeit über acht
+namentlich genannte Pfade. **Regel 10 hat beim ersten Einsatz gehalten:**
+kein `-A`, kein `.`, kein `commit -a`, und meine Arbeit lag nicht mehr
+ungeschützt im Arbeitsbaum. Geschätzt 45 min (nachträglich, siehe unten),
+gebraucht 25.
+
+**Der Befund von W5.P4 hat sich bestätigt, und er ist schärfer, als er
+klang.** Die fehlende Kante war nicht bloß eine Lücke — sie war eine
+**falsche Aussage**. `cableway_buildings_source` stand in `BAND_SOURCES`
+mit `["osm_pbf"]` als einziger Quelle, obwohl
+`build_osm_building_sources()` über `_official_cover_mask()`
+nachweislich `hig_hulls_source` liest, also ein Ergebnis des DKM-Scans.
+Das Manifest ist die Datei, deren **einziger Zweck** es ist zu erklären,
+woher ein Band kommt. An dieser Stelle hat es das Falsche behauptet, und
+gemerkt hat es niemand, weil nichts davon abhing — bis der Wächter zum
+ersten Mal danach fragte. Die Kante ist jetzt deklariert.
+
+**Abgeleitet, nicht aufgeschrieben — genau wie verlangt.**
+`_water_bodies_impact_path()` ist zu `_impact_path(start_names,
+band_names)` verallgemeinert, derselbe Algorithmus mit einem Satz
+Startknoten statt einem. `_dkm_geoparquet_roots()` liest die Wurzeln
+**programmatisch** aus `BAND_SOURCES`, statt eine Bandliste zu pflegen.
+Ergebnis: neuer Manifest-Schlüssel `dkm_geoparquet_wirkungspfad` mit
+**16 Bändern**; der Wasserpfad bleibt unangetastet bei seinen neun Namen,
+und sein Test blieb grün, ohne dass jemand ihn angefasst hat. Ein zweiter
+Test nagelt die 16 fest. `validate.py` bildet jetzt die Vereinigung aller
+`*_wirkungspfad`-Schlüssel über den Namenssuffix, statt fest auf Wasser
+zu zeigen.
+
+**Schema 2.1.0**, begründet als rein additiver Top-Level-Schlüssel
+derselben Konvention, kein Feld je Band verändert. Und die Prüfung, um
+die ich ausdrücklich gebeten hatte, ist gelaufen statt angenommen worden:
+`dashboard.py` erkennt den neuen Schlüssel **bereits generisch** über den
+Suffix — W4.1s Härtung gegen ein fremdes Manifest zahlt sich hier zum
+ersten Mal aus, ohne eine Zeile Anpassung.
+
+**Meine Ampel-Erwartung war falsch, und die Begründung ist lehrreich.**
+Ich hatte geschrieben, die neun DKM-Bänder würden nach dem Fix
+`akzeptiert`. Gemessen: **5 gelb, 7 rot, 8 rot, 9 rot, 10 grün, 11–13
+gelb, 27 gelb.** Zwei Gründe, beide meine Denkfehler. Erstens verlangt
+der Status `akzeptiert` zusätzlich den Marker **„angenommen"** im
+Ursachetext — die Punkt-34-Zeilen sagen „entschieden". W5.P4 hatte das
+Schlüsselwort entgegen der Zeile in seiner eigenen §7-Abnahme nie
+verbreitert. Zweitens sind drei dieser Bänder **auf die Zahl** rot, ganz
+unabhängig vom Wirkungspfad: Band 7 mit 47,94 ha gegen ein Budget von
+25 ha, Bänder 8 und 9 mit 1,03 % und 1,09 % gegen 0,1 %. Der Wächter war
+nie ihr Grund.
+
+**Die Ursache-Spalte wurde diesmal nicht überschrieben** — vorher
+gesichert, nachher bytegleich verglichen, nur die Ampel bewegte sich.
+Der Unterschied zu W5.P4 ist erklärbar: Die Zeilen liegen jetzt innerhalb
+eines bekannten Wirkungspfads und werden nicht mehr als „unerwartet"
+gestempelt.
+
+**Abnahme: 215 Tests plus 2 übersprungen** (+1, genau der neue Test).
+Vertragstest real gelaufen, 47,95 s, grün. Wächter grün. TIF unverändert
+`fb57c41d…232c30` — dieses Paket hat kein Pixel angefasst, und der Agent
+hat das selbst nachgemessen statt es zu behaupten.
+
+**Zwei Kleinigkeiten, die er gemeldet hat.** Er hat
+`out/abschichtung.bands.json` aus dem **unveränderten** TIF-Header neu
+geschrieben, weil `validate.py` den neuen Schlüssel sonst nicht hätte
+lesen können — kein Pixelzugriff, aber eine Änderung an einem der vier
+Endprodukte, und deshalb richtigerweise erwähnt. Und er hat bemerkt, dass
+ich `run1` in meinen Aufträgen als `dc58b011…9df1` abkürze, während der
+tatsächliche Suffix `…9e3df1` lautet. Meine Abkürzung war schlicht
+falsch abgeschrieben; die Plandateien führen sie korrekt. Ab jetzt der
+volle Suffix.
+
+**Was offenbleibt, aber W5.1 nicht aufhält:** Die Zeilen aus Punkt 33
+zeigen `akzeptiert`, die aus Punkt 34 nicht — allein wegen eines Wortes.
+Das ist willkürlich und gehört vereinheitlicht. Es ändert aber weder
+Code noch Endprodukt und ist nicht Teil von `make all`. **Als Punkt 46,
+nach dem Beweislauf.**
+
+### W5.P4 — Zwei von drei, und der dritte war der eigentliche
 
 Commit `e59d3d1`. Geschätzt 20 min, gebraucht rund 13. Zwei der drei
 Punkte erledigt, der dritte — der eigentliche Entwurfsfehler — bewusst
