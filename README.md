@@ -187,7 +187,7 @@ Referenz-Manifest exakt überein; offen sind nur inhaltliche
 Detailabweichungen (Caveat-Texte, 18 von 38 Bändern mit Pixelabweichungen
 < 0,004 %, siehe Abschnitt „Status” und `docs/RUN1_VERGLEICH.md`, Abschnitt
 10). `docs/HANDOFF.md` ist seit W4.3 aktuell: es zieht die neue Referenz
-(`sha256 4bdef6ad…6b1a13e`, `schema_version` `2.0.0`) und dokumentiert die
+(`sha256 fb57c41d…232c30`, `schema_version` `2.0.0`) und dokumentiert die
 neun von `run1` abweichenden Bänder aus der am 08.09.2026 angenommenen
 Bodensee-Korrektur (Punkt 33).
 
