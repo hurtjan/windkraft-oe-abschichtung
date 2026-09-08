@@ -8,8 +8,44 @@ Es **bewertet, es entscheidet nicht** (§6, Ablauf je Paket, Punkt 3: "Rot
 hält an. Dann Rückfrage, keine eigenmächtige Fortsetzung"). Es schreibt
 ``docs/rewrite/abweichungen.tsv`` vollständig (alle Spalten außer
 ``ursache``, die trägt ein Mensch ein), meldet Rot als Rot und beendet den
-Lauf mit Exit-Code 1, sobald mindestens ein Band Rot ist. Es "repariert"
-nichts, es stuft nichts herab, und es überschreibt nie ``run1`` selbst.
+Lauf mit Exit-Code 1, sobald mindestens ein Band Rot ist, es sei denn, die
+Abweichung ist bereits **angenommen** (siehe Abschnitt "Der Nutzer hat
+entschieden" unten). Es "repariert" nichts, es stuft nichts herab, und es
+überschreibt nie ``run1`` selbst.
+
+## Der Nutzer hat entschieden (Welle 4, Nachtrag zu W3.2)
+
+Am 08.09.2026 hat der Nutzer die Bodensee-Korrektur angenommen (Punkt 33,
+PLAN.md §6, Abschnitt "Die Referenz hat sich am 08.09.2026 geändert").
+Damit ist ``run1`` (``sha256 dc58b011…9e3df1``) nicht mehr das Ziel; Ziel
+ist jetzt Bitgleichheit mit der **aktuellen Referenz**
+(``sha256 4bdef6ad…6b1a13e`` - :data:`AKTUELLE_REFERENZ_SHA256`). ``run1``
+bleibt bestehen und bleibt die bandweise Vergleichsbasis für die
+Diagnose (§6-Randbedingung: es wird nichts dupliziert, kein zweites TIF
+vorgehalten), verliert aber seine Rolle als eingebaute Pass/Fail-Schranke:
+
+1. **Schneller Weg (Regelfall).** Stimmt der ``sha256`` des frisch
+   finalisierten TIFs mit :data:`AKTUELLE_REFERENZ_SHA256` überein, ist die
+   Kette bitgleich zum angenommenen Stand - keine bandweise Prüfung nötig,
+   Exit 0. Das ist zugleich der Determinismusnachweis, den Welle 5 braucht:
+   ein voller Lauf aus Rohdaten, der denselben Hash reproduziert.
+2. **Diagnoseweg (bei Abweichung vom aktuellen Stand).** Stimmt der Hash
+   nicht überein, läuft die bisherige bandweise Prüfung gegen ``run1``.
+   Dabei gilt: eine Abweichung, die in ``docs/rewrite/abweichungen.tsv``
+   bereits für dasselbe Paket und denselben Band mit einer ``ursache``
+   geführt wird, die das Wort "angenommen" enthält, wird als
+   :data:`AMPEL_AKZEPTIERT` eingestuft statt als Rot erzwungen zu werden -
+   der Lauf scheitert daran nicht mehr. Eine **neue**, bislang nicht im
+   Register geführte Abweichung ist davon nicht betroffen und bleibt Rot
+   (siehe :func:`write_register`).
+
+Der frühere Satz an dieser Stelle - "alle 38 Bänder müssen bitgleich zu
+``run1`` sein" - stammte aus der Zeit vor der Nutzerentscheidung und ist
+seit dem 08.09.2026 falsch: neun der 38 Bänder (26, 29-36) weichen
+**bewusst und angenommen** von ``run1`` ab. Die Bitgleichheits-Anforderung
+gilt unverändert, nur eben gegen die aktuelle Referenz, nicht mehr gegen
+``run1`` (siehe Abschnitt "Referenzbänder 37/38" weiter unten, der davon
+unberührt bleibt: 37/38 kennen nach wie vor keinen Grün-/Gelb-Korridor).
 
 ## Vergleichsbasis
 
@@ -63,15 +99,20 @@ Die Ampeltabelle unterscheidet zwei Gruppen nach ``band_role()`` aus
 ### Referenzbänder 37/38 - eine zweite Lücke in der Ampeltabelle, hier entschieden
 
 Die Ampeltabelle in §6 hat nur zwei Spalten (1-26, 27-36). Für die
-Referenzbänder 37/38 gibt es keine dritte Spalte - aber §6 sagt an anderer
-Stelle ausdrücklich "alle 38 Bänder müssen bitgleich zu ``run1`` sein",
-ohne Sonderfall (die frühere Steiermark-SAPRO-Ausnahme für Band 37 wurde
-von W1.7 ersatzlos gestrichen, weil die zugrunde liegende inhaltliche
-Änderung sich als nicht existent erwiesen hat). Entscheidung dieses
-Werkzeugs: jede Abweichung auf einem Referenzband ist automatisch **Rot**,
-unabhängig von Pixelzahl oder Fläche - es gibt für diese beiden Bänder
-keinen Grün-/Gelb-Korridor, weil die Ampeltabelle keinen definiert und die
-Bitgleichheits-Anforderung keine Ausnahme kennt.
+Referenzbänder 37/38 gibt es keine dritte Spalte - ohne Sonderfall (die
+frühere Steiermark-SAPRO-Ausnahme für Band 37 wurde von W1.7 ersatzlos
+gestrichen, weil die zugrunde liegende inhaltliche Änderung sich als nicht
+existent erwiesen hat). Entscheidung dieses Werkzeugs: jede Abweichung auf
+einem Referenzband ist automatisch **Rot**, unabhängig von Pixelzahl oder
+Fläche - es gibt für diese beiden Bänder keinen Grün-/Gelb-Korridor, weil
+die Ampeltabelle keinen definiert. Das gilt unverändert auch nach der
+Nutzerentscheidung vom 08.09.2026 (Abschnitt "Der Nutzer hat entschieden"
+oben): 37/38 gehören nicht zu den neun angenommenen Bändern (26, 29-36),
+für sie bleibt Bitgleichheit mit der aktuellen Referenz ohne Ausnahme
+verlangt - der frühere, hier gestrichene Satz "alle 38 Bänder müssen
+bitgleich zu ``run1`` sein" bezog sich auf ``run1`` als *Ziel*; das ist
+seit der Nutzerentscheidung nicht mehr richtig (siehe oben), die
+Referenzband-Regel selbst schon.
 
 ## §13.9-Wächter: der zehnte Fall ist ein Fehler
 
@@ -90,6 +131,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import sys
 from dataclasses import dataclass
@@ -125,6 +167,19 @@ REFERENCE_TIF = (
     / "osm_wka_distance_zones_widmung_v2_run1.tif"
 )
 
+# Die aktuelle Referenz (PLAN.md §6, "Die Referenz hat sich am 08.09.2026
+# geändert"): der sha256 des TIFs, das der Nutzer am 08.09.2026 mit der
+# Bodensee-Korrektur (Punkt 33) als Ziel angenommen hat -
+# ``pipeline.contract.PRODUCTS["abschichtung_tif"]``, sofern es bitgleich
+# ist. Es wird dafür bewusst KEIN zweites TIF vorgehalten (Plattenplatz,
+# Randbedingung dieses Auftrags) - der Nachweis ist ein Hash-Vergleich,
+# kein Datei-Duplikat. Derselbe Wert steht auch in
+# ``tests/test_referenz_tif.py`` (dort ``REFERENZ_SHA256``) - zwei Stellen,
+# bewusst nicht in ein gemeinsames Modul gezogen, weil Produktionscode
+# nicht von einem Testmodul abhängen soll; wer den einen Wert ändert, muss
+# den anderen mitziehen.
+AKTUELLE_REFERENZ_SHA256 = "4bdef6ad5e863692cef0f19cdfe959f04e439e9b17310f2f7a3c067d56b1a13e"
+
 REGISTER_PATH = contract.ROOT / "docs" / "rewrite" / "abweichungen.tsv"
 
 REGISTER_COLUMNS = [
@@ -145,6 +200,14 @@ URSACHE_UNERWARTET = (
     "gegen PLAN.md Paragraph 13.9, vor Fortsetzung klaeren"
 )
 
+# Konvention (siehe Moduldocstring, "Der Nutzer hat entschieden"): eine
+# ursache, die dieses Wort enthaelt, markiert eine vom Nutzer bereits
+# geprüfte und angenommene Abweichung - z. B. "vom Nutzer am 08.09.2026
+# angenommen (Punkt 33)", wie es die neun Zeilen aus W3.1 in
+# docs/rewrite/abweichungen.tsv bereits tragen. Gross-/Kleinschreibung
+# spielt keine Rolle.
+URSACHE_AKZEPTIERT_MARKER = "angenommen"
+
 # ---------------------------------------------------------------------------
 # Ampel-Schwellen, PLAN.md §6
 # ---------------------------------------------------------------------------
@@ -163,6 +226,13 @@ AMPEL_BITGLEICH = "bitgleich"
 AMPEL_GRUEN = "gruen"
 AMPEL_GELB = "gelb"
 AMPEL_ROT = "rot"
+# Eigener Status, bewusst nicht AMPEL_GRUEN: die automatische Ampel misst
+# nur die Groessenordnung, nicht den Entscheidungsstatus. Ein Band, das
+# ohne Annahme rot waere (z. B. 27,58 % Anteil bei geography_water_bodies),
+# bleibt auch nach der Annahme eine grosse Abweichung - nur eine, die der
+# Nutzer bereits geprueft und akzeptiert hat. Beides in "gruen" zu
+# verschmelzen wuerde die Groessenordnung verschleiern; siehe write_register().
+AMPEL_AKZEPTIERT = "akzeptiert"
 
 
 @dataclass
@@ -393,11 +463,29 @@ def _load_existing_register(path: Path) -> dict[tuple[str, str], list[str]]:
     return rows
 
 
+def _ist_akzeptiert(ursache: str) -> bool:
+    """True, wenn eine ``ursache``-Zeile aus dem Register den Nutzer bereits
+    als geprueft/angenommen ausweist (siehe URSACHE_AKZEPTIERT_MARKER)."""
+    return URSACHE_AKZEPTIERT_MARKER in ursache.lower()
+
+
 def write_register(path: Path, paket: str, results: list[BandResult], erlaubte_baender: set[str]) -> list[BandResult]:
     """Schreibt/aktualisiert das Register. Zeilen anderer Pakete bleiben
     unveraendert stehen; Zeilen desselben Pakets werden aus der aktuellen
     Messung neu gebaut - ein von Hand eingetragener ``ursache``-Text bleibt
     dabei erhalten, solange er nicht der Platzhalter ist.
+
+    **Angenommene Abweichungen (PLAN.md §6, "Die Referenz hat sich am
+    08.09.2026 geändert"):** trägt die bestehende Zeile fuer (``paket``,
+    Band) bereits eine ``ursache``, die laut :func:`_ist_akzeptiert` als vom
+    Nutzer angenommen gilt, wird die automatisch berechnete Ampel nicht als
+    Rot ins Register geschrieben, sondern als :data:`AMPEL_AKZEPTIERT` -
+    ausser das Band ist gleichzeitig "unerwartet" (§13.9-Waechter,
+    ausserhalb des erlaubten Wirkungspfads): dieser Fall bleibt immer Rot,
+    eine alte ``ursache`` darf ihn nicht stillschweigend entschaerfen. Eine
+    Abweichung, die bisher gar keine Zeile im Register hat, ist per
+    Definition nicht angenommen und wird ganz normal (moeglicherweise Rot)
+    eingestuft.
 
     Gibt die Liste der fuer dieses Paket geschriebenen BandResult-Objekte
     zurueck (mit gesetzter ``ampel``/``unerwartet``), fuer den Bericht auf
@@ -411,12 +499,18 @@ def write_register(path: Path, paket: str, results: list[BandResult], erlaubte_b
     new_rows: dict[tuple[str, str], list[str]] = {}
     for r in deviating:
         ampel, unerwartet = classify(r, erlaubte_baender)
+
+        key = (paket, r.band_name)
+        prior = existing.get(key)
+        akzeptiert = prior is not None and _ist_akzeptiert(prior[-1])
+
+        if akzeptiert and not unerwartet and ampel == AMPEL_ROT:
+            ampel = AMPEL_AKZEPTIERT
+
         r.ampel = ampel
         r.unerwartet = unerwartet
         classified.append(r)
 
-        key = (paket, r.band_name)
-        prior = existing.get(key)
         if unerwartet:
             ursache = URSACHE_UNERWARTET
         elif prior is not None and prior[-1] and prior[-1] not in (URSACHE_PLATZHALTER, URSACHE_UNERWARTET):
@@ -446,6 +540,18 @@ def write_register(path: Path, paket: str, results: list[BandResult], erlaubte_b
         writer.writerows(ordered)
 
     return classified
+
+
+# ---------------------------------------------------------------------------
+# Hash-Kurzweg gegen die aktuelle Referenz (siehe Moduldocstring)
+# ---------------------------------------------------------------------------
+
+def _sha256(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
 
 
 # ---------------------------------------------------------------------------
@@ -481,6 +587,24 @@ def main(argv: list[str] | None = None) -> int:
         raise FileNotFoundError(f"{new_tif} fehlt - 'make finalize' zuerst laufen lassen.")
     if not reference_tif.exists():
         raise FileNotFoundError(f"{reference_tif} fehlt - die run1-Vergleichsbasis ist nicht da.")
+
+    # Schneller Weg (Moduldocstring, "Der Nutzer hat entschieden"): stimmt
+    # der frisch finalisierte Stand bitgenau mit der aktuellen, vom Nutzer
+    # angenommenen Referenz ueberein, ist die bandweise Pruefung gegen run1
+    # nicht noetig - und liefert ohnehin nur dieselben, bereits im Register
+    # dokumentierten neun Zeilen. Nur beim Default-new-tif sinnvoll: wer
+    # --new-tif explizit auf ein anderes Artefakt zeigt, will vermutlich
+    # genau die bandweise Diagnose.
+    if args.new_tif is None:
+        new_sha256 = _sha256(new_tif)
+        if new_sha256 == AKTUELLE_REFERENZ_SHA256:
+            print(
+                f"{new_tif.name} ist bitgleich mit der aktuellen Referenz "
+                f"({AKTUELLE_REFERENZ_SHA256[:8]}…{AKTUELLE_REFERENZ_SHA256[-6:]}, "
+                "PLAN.md Paragraph 6, vom Nutzer am 08.09.2026 angenommen) - "
+                "keine bandweise Pruefung noetig."
+            )
+            return 0
 
     manifest_path = manifest_path_for(new_tif)
     if not manifest_path.exists():

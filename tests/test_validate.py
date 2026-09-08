@@ -34,6 +34,7 @@ from windkraft.calc.band_manifest import (  # noqa: E402
 
 import pipeline.validate as validate_module  # noqa: E402
 from pipeline.validate import (  # noqa: E402
+    AMPEL_AKZEPTIERT,
     AMPEL_BITGLEICH,
     AMPEL_GELB,
     AMPEL_GRUEN,
@@ -415,3 +416,107 @@ def test_write_register_frisches_band_bekommt_todo_platzhalter(tmp_path):
     write_register(path, "W1.0", [_band(1, "band_a")], erlaubte_baender={"band_a"})
     rows = _load_existing_register(path)
     assert rows[("W1.0", "band_a")][-1] == URSACHE_PLATZHALTER
+
+
+# ---------------------------------------------------------------------------
+# Nutzerentscheidung vom 08.09.2026 (PLAN.md §6, "Die Referenz hat sich
+# geändert"): eine bereits angenommene Abweichung darf den Lauf nicht mehr
+# scheitern lassen, eine neue, bislang unbekannte schon - das ist der Bruch,
+# den W4.3 gemeldet und dieses Paket (W4-Zusammenführung) behoben hat.
+# ---------------------------------------------------------------------------
+
+def _grosse_abweichung(nr: int, name: str) -> BandResult:
+    """Ein Band, das nach der Ampel klar Rot waere - grosser Anteil UND
+    grosse Flaeche, wie das reale geography_water_bodies (27,58 %,
+    33 943 ha) aus docs/rewrite/abweichungen.tsv."""
+    return BandResult(
+        band_nr=nr,
+        band_name=name,
+        role=ROLE_BEDINGUNG,
+        pixel_abs=543_106,
+        gesetzte_pixel_referenz=1_969_000,
+        anteil_prozent=27.58,
+        anteil_prozent_kontrolle=0.16,
+        groesste_flaeche_ha=33_943.44,
+        flaeche_km2=0.0,
+        schwerpunkt_bundesland="Vorarlberg",
+    )
+
+
+def test_akzeptierte_abweichung_wird_nicht_mehr_rot_eine_neue_zehnte_bleibt_rot(tmp_path):
+    path = tmp_path / "abweichungen.tsv"
+    erlaubte_baender = {"geography_water_bodies", "voellig_neues_band"}
+
+    # Erster Lauf: die Abweichung ist noch nicht geprueft, die Ampel stuft
+    # sie - korrekt - als Rot ein (weit ueber den Gelb-Schwellen).
+    erster_lauf = write_register(
+        path, "W3.1", [_grosse_abweichung(26, "geography_water_bodies")], erlaubte_baender
+    )
+    assert erster_lauf[0].ampel == AMPEL_ROT
+
+    # Der Nutzer prueft die Zeile und nimmt sie an - von Hand in die
+    # ursache-Spalte eingetragen, wie es die Kopfzeile von
+    # docs/rewrite/abweichungen.tsv vorsieht ("ursache wird von der Person
+    # eingetragen, die das Paket abschliesst").
+    rows = _load_existing_register(path)
+    rows[("W3.1", "geography_water_bodies")][-1] = (
+        "Bodensee-Relation; Korrektur der neuen Kette, vom Nutzer am "
+        "08.09.2026 angenommen (Punkt 33)."
+    )
+    with path.open("w", encoding="utf-8", newline="") as f:
+        import csv
+
+        writer = csv.writer(f, delimiter="\t", lineterminator="\n")
+        writer.writerow(REGISTER_COLUMNS)
+        writer.writerows(rows.values())
+
+    # Zweiter Lauf: dieselbe (weiterhin objektiv grosse) Abweichung, PLUS
+    # eine bislang voellig unbekannte zehnte Abweichung auf einem anderen
+    # Band. Das angenommene Band darf den Lauf nicht mehr scheitern lassen,
+    # das neue muss es.
+    zweiter_lauf = write_register(
+        path,
+        "W3.1",
+        [
+            _grosse_abweichung(26, "geography_water_bodies"),
+            _grosse_abweichung(99, "voellig_neues_band"),
+        ],
+        erlaubte_baender,
+    )
+
+    by_name = {r.band_name: r for r in zweiter_lauf}
+    assert by_name["geography_water_bodies"].ampel == AMPEL_AKZEPTIERT
+    assert by_name["voellig_neues_band"].ampel == AMPEL_ROT
+
+    # Das ist die eigentliche Bedingung des Auftrags: genau die neue,
+    # unbekannte Abweichung haelt den Lauf an - die angenommene nicht mehr.
+    rot = [r for r in zweiter_lauf if r.ampel == AMPEL_ROT]
+    assert [r.band_name for r in rot] == ["voellig_neues_band"]
+
+
+def test_akzeptierte_abweichung_bleibt_rot_wenn_zugleich_ausserhalb_des_wirkungspfads(tmp_path):
+    """Der §13.9-Waechter sticht eine alte 'angenommen'-ursache: wird ein
+    Band nachtraeglich aus dem erlaubten Wirkungspfad genommen (z. B. weil
+    sich das Manifest geaendert hat), darf eine frueher eingetragene
+    Annahme das nicht stillschweigend uebertoenen."""
+    path = tmp_path / "abweichungen.tsv"
+
+    write_register(
+        path, "W3.1", [_grosse_abweichung(26, "geography_water_bodies")], erlaubte_baender={"geography_water_bodies"}
+    )
+    rows = _load_existing_register(path)
+    rows[("W3.1", "geography_water_bodies")][-1] = "vom Nutzer angenommen (Punkt 33)."
+    with path.open("w", encoding="utf-8", newline="") as f:
+        import csv
+
+        writer = csv.writer(f, delimiter="\t", lineterminator="\n")
+        writer.writerow(REGISTER_COLUMNS)
+        writer.writerows(rows.values())
+
+    # Zweiter Lauf: dasselbe Band, aber das Manifest fuehrt es jetzt NICHT
+    # mehr im Wirkungspfad - erlaubte_baender ist leer.
+    zweiter_lauf = write_register(
+        path, "W3.1", [_grosse_abweichung(26, "geography_water_bodies")], erlaubte_baender=set()
+    )
+    assert zweiter_lauf[0].ampel == AMPEL_ROT
+    assert zweiter_lauf[0].unerwartet is True
