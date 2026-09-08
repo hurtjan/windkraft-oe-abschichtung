@@ -68,7 +68,7 @@ def test_detects_compound_path_write():
             ROOT = Path("/irgendwo")
 
             def cache_it(frame):
-                target = ROOT / "data" / "adressregister" / "cache.parquet"
+                target = ROOT / "data" / "adressen" / "cache.parquet"
                 frame.to_parquet(target)
             """,
         )
