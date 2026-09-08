@@ -32,22 +32,22 @@ Bänder (``settlement_buffer_<variante>`` u.a.) stehen NICHT in
 per Default aus; sie gehören weder zu den 17 Pflicht-Checkpoints noch zur
 Endkomposition dieses Pakets.
 
-## Eingaben: build/prep/ statt data/
+## Eingaben: derived/prep/ statt data/
 
 Vier der sieben Gruppen lasen bisher Rohdaten direkt: Verwaltungsgrenzen
 (VGD-Shapefile), amtlicher Naturschutz (NSG-ZIP), amtliche Windzonen (fünf
 Quellen) und drei OSM-Objektgruppen (nature/water/windpower, per Osmium
 gegen die PBF-Rohquelle). Diese Datei liest sie jetzt aus der Prep-Stufe:
 
-    admin_boundaries()        -> build/prep/admin/bundesland_masken.gpkg
+    admin_boundaries()        -> derived/prep/admin/bundesland_masken.gpkg
                                   (pipeline/prep/admin.py, W1.P1)
-    _build_official_nature_mask -> build/prep/natur/schutzgebiete.gpkg
+    _build_official_nature_mask -> derived/prep/natur/schutzgebiete.gpkg
                                   (pipeline/prep/natur.py, W1.P7)
-    official_wind_zoning      -> build/prep/zonen/{Stmk,Sbg,Bgld,RED3,NOE}.gpkg
+    official_wind_zoning      -> derived/prep/zonen/{Stmk,Sbg,Bgld,RED3,NOE}.gpkg
                                   (pipeline/prep/zonen.py, W1.P8)
     osm_nature_protection_areas,
     geography_water_bodies,
-    wka_bestand_ausserhalb_zonen -> build/prep/osm/b_layers/{nature,water,
+    wka_bestand_ausserhalb_zonen -> derived/prep/osm/b_layers/{nature,water,
                                   windpower}.parquet (pipeline/prep/osm.py, W1.P5)
 
 ``geography_*`` (Hangneigung/Höhe/Wind) ist die Ausnahme: W1.P6
@@ -56,7 +56,7 @@ umgeformte Ableitung der beiden Rohraster (DGM/Leistungsdichte), nur einen
 Prüfbericht - "keine Umformung" steht da wörtlich. ``build_geography_masks()``
 wird deshalb UNVERÄNDERT aus ``abschichtung_common`` importiert und liest
 weiter über ``cfg["paths"]["dgm"]``/``["wind_pd_150"]`` (die laut
-``windkraft/config.py`` ohnehin schon auf ``contract.RAW["gelaende"]``
+``calc/config.py`` ohnehin schon auf ``contract.RAW["gelaende"]``
 zeigen) - es gibt keinen Prep-Pfad, auf den umgestellt werden könnte.
 
 ## Zwei getrennte Checkpoint-Verzeichnisse
@@ -69,7 +69,7 @@ zeigen) - es gibt keinen Prep-Pfad, auf den umgestellt werden könnte.
   lesen. Diese Stufe schreibt hierhin NIE.
   W5.P1 (PLAN.md §13.6, dieselbe Entscheidung wie ``pipeline/layers/
   osm.py:_cover_layer_path()``): ``_source_layer_path()`` prüfte für jeden
-  dieser acht Namen ZUERST ``contract.LAYERS[name]`` unter ``build/layers/``
+  dieser acht Namen ZUERST ``contract.LAYERS[name]`` unter ``derived/layers/``
   (out_dir von W2.1/W2.3, falls die in DIESER Kette schon gelaufen sind)
   und fiel erst danach - laut meldend, siehe dort - auf ``source_dir``
   zurück (Default: ``output/abschichtung_widmung_v2/distance_layers``, run1
@@ -78,8 +78,8 @@ zeigen) - es gibt keinen Prep-Pfad, auf den umgestellt werden könnte.
   ``_source_layer_path()`` bricht jetzt laut ab, statt auf ein
   Verzeichnis zurückzufallen, das es nicht mehr gibt - ``source_dir`` bleibt
   nur noch für die Fehlermeldung erhalten.
-- ``out_dir`` (Default: ``pipeline.contract.BUILD_LAYERS``, also
-  ``build/layers/`` - privat in diesem Worktree, nicht symlinkt) - die 17
+- ``out_dir`` (Default: ``pipeline.contract.DERIVED_LAYERS``, also
+  ``derived/layers/`` - privat in diesem Worktree, nicht symlinkt) - die 17
   eigenen Checkpoints dieser Stufe. Innerhalb derselben Gruppe gelesene,
   bereits von dieser Stufe selbst geschriebene Bänder (z. B. liest
   ``build_v2_buffers()`` die vier HiG-Familienbänder, die
@@ -152,9 +152,9 @@ from pipeline.prep import admin as prep_admin  # noqa: E402
 from pipeline.prep import natur as prep_natur  # noqa: E402
 from pipeline.prep import zonen as prep_zonen  # noqa: E402
 
-from windkraft.config import load_config  # noqa: E402
-from windkraft.calc.wind_zones import WIND_ZONE_SOURCES  # noqa: E402
-from windkraft.calc.abschichtung_common import (  # noqa: E402
+from calc.config import load_config  # noqa: E402
+from calc.wind_zones import WIND_ZONE_SOURCES  # noqa: E402
+from calc.abschichtung_common import (  # noqa: E402
     CABLEWAY_BUILDING_BUFFER_M,
     GENERAL_BUILDING_BUFFER_M,
     GEOGRAPHY_BANDS,
@@ -210,10 +210,10 @@ BUFFER_BANDS = [
 ]
 
 # ---------------------------------------------------------------------------
-# I/O-Adapter: build/prep/ statt data/ (siehe Moduldocstring)
+# I/O-Adapter: derived/prep/ statt data/ (siehe Moduldocstring)
 # ---------------------------------------------------------------------------
 
-# key -> Bundesland, wortgleich aus windkraft.calc.wind_zones.WIND_ZONE_SOURCES
+# key -> Bundesland, wortgleich aus calc.wind_zones.WIND_ZONE_SOURCES
 # übernommen (dort die Quelle der Wahrheit für Band official_wind_zoning;
 # hier nur die vier Schlüssel gebraucht, die pipeline/prep/zonen.py als
 # eigene GPKGs ablegt - NOE läuft separat, siehe unten).
@@ -243,7 +243,7 @@ def _read_prep_vector(path: Path, bounds=None) -> gpd.GeoDataFrame:
 
 def _admin_boundaries(bounds=None) -> gpd.GeoDataFrame:
     """Ersetzt ``abschichtung_common.admin_boundaries()`` für diese Stufe:
-    liest ``build/prep/admin/bundesland_masken.gpkg`` (9 Bundesländer,
+    liest ``derived/prep/admin/bundesland_masken.gpkg`` (9 Bundesländer,
     bereits nach ``BL`` dissolviert - pipeline/prep/admin.py) statt der
     VGD-Rohquelle. Einziger Layer-Konsument der Verwaltungsgrenzen, der
     tatsächlich Bundesland-spezifisch PUFFERT (``province_buffer_cell_mask``),
@@ -258,7 +258,7 @@ def _admin_boundaries(bounds=None) -> gpd.GeoDataFrame:
 
 def _clean_zone_geometries(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     """Wortgleich aus pipeline/prep/zonen.py:_clean_geometries übernommen -
-    dieselbe Nachbereinigung, die ``windkraft.calc.wind_zones.load_zones()``
+    dieselbe Nachbereinigung, die ``calc.wind_zones.load_zones()``
     nach dem Klippen auf die zuständige Bundesland-Grenze anwendet (leere/
     Null-Geometrien raus, ungültige per ``buffer(0)`` reparieren)."""
     out = gdf[gdf.geometry.notnull() & ~gdf.geometry.is_empty].copy()
@@ -271,7 +271,7 @@ def _clean_zone_geometries(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 
 def _clip_to_bundesland(gdf: gpd.GeoDataFrame, bundesland: str, bl: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-    """Portierung von ``windkraft.calc.wind_zones._clip_to_bundesland()``
+    """Portierung von ``calc.wind_zones._clip_to_bundesland()``
     (dort ~Zeile 178-190) auf die bereits von pipeline/prep/zonen.py
     aufbereiteten Zonen-Quellen. Grund unverändert: eine Landesverordnung
     hat außerhalb ihres Bundeslands keine Wirkung (siehe dortiger Docstring,
@@ -322,7 +322,7 @@ def _source_layer_path(name: str, source_dir: Path) -> Path:
     (``official_settlement_source`` usw. - siehe ``_check_required_sources()``).
 
     Ausschließlich der Zielort dieser Pipeline (``contract.LAYERS[name]``
-    unter ``build/layers/``, von W2.1/W2.3 geschrieben) - genau das Muster
+    unter ``derived/layers/``, von W2.1/W2.3 geschrieben) - genau das Muster
     aus ``pipeline/layers/osm.py:_cover_layer_path()`` (W5.P1: dieselbe
     Entscheidung, zweimal getroffen, siehe PLAN.md §13.6).
 
@@ -331,14 +331,14 @@ def _source_layer_path(name: str, source_dir: Path) -> Path:
     distance_layers``, run1) ist entfernt - dieses Verzeichnis existiert seit
     W6.1 nicht mehr im Repo (``output/`` wurde nach
     ``~/Documents/master_windkraft/archiv/`` herausbewegt). Fehlt der Layer
-    unter ``build/layers/``, bricht dieser Aufruf jetzt sofort mit benannter
+    unter ``derived/layers/``, bricht dieser Aufruf jetzt sofort mit benannter
     Meldung ab, statt still auf ein Verzeichnis zurückzufallen, das es nicht
     mehr gibt. ``source_dir`` bleibt Parameter (für die Fehlermeldung und
     CLI-Kompatibilität von ``--source-dir``), wird aber nicht mehr gelesen."""
     build_path = contract.LAYERS[name]
     if not build_path.exists():
         raise FileNotFoundError(
-            f"'{name}' fehlt unter {build_path} (build/layers/, W2.1/W2.3 noch "
+            f"'{name}' fehlt unter {build_path} (derived/layers/, W2.1/W2.3 noch "
             "nicht gelaufen) - der Rueckfall auf die alte Kette "
             f"({source_dir}) ist seit W6.1 entfernt, dieses Verzeichnis "
             "existiert nicht mehr im Repo. Erst 'make layer-hig layer-osm' "
@@ -353,7 +353,7 @@ def build_hig_family_sources(grid: dict, source_dir: Path) -> dict[str, np.ndarr
     f1d00f7:scripts/widmung_v2/04_create_distance_zones.py), Eingabe
     ``admin_boundaries()`` jetzt über ``_admin_boundaries()`` (Prep statt
     VGD-Rohquelle); die vier Quell-Checkpoints (ferienhaus_tourismus_source
-    usw.) kommen aus ``build/layers/`` (W2.1), mit Rückfall auf das externe,
+    usw.) kommen aus ``derived/layers/`` (W2.1), mit Rückfall auf das externe,
     geteilte Checkpoint-Verzeichnis (source_dir) - siehe
     ``_source_layer_path()``."""
 
@@ -379,7 +379,7 @@ def build_v2_buffers(grid: dict, source_dir: Path, out_dir: Path) -> dict[str, n
     HiG-Familienbänder aus ``out_dir`` (von build_hig_family_sources() in
     DERSELBEN Ausführung geschrieben), die übrigen Quell-Checkpoints
     (official_settlement_source, nonresidential_hulls_source,
-    cableway_buildings_source, general_buildings_source) aus ``build/layers/``
+    cableway_buildings_source, general_buildings_source) aus ``derived/layers/``
     (W2.1/W2.3), mit Rückfall auf den externen ``source_dir`` - siehe
     ``_source_layer_path()``."""
 
@@ -412,7 +412,7 @@ def _build_official_nature_mask(grid: dict) -> np.ndarray:
     """Wie 04_create_distance_zones.py:_build_official_nature_mask() (seit
     W6.1 aus dem Repo entfernt, letzter Stand im Commit f1d00f7 - git show
     f1d00f7:scripts/widmung_v2/04_create_distance_zones.py), Eingabe
-    jetzt ``build/prep/natur/schutzgebiete.gpkg`` (920 Flächen, geometrieonly,
+    jetzt ``derived/prep/natur/schutzgebiete.gpkg`` (920 Flächen, geometrieonly,
     schon EPSG:31287) statt des NSG-ZIPs. Der notnull/not-empty-Filter ist
     hier ein No-op (Prep garantiert das schon beim Schreiben), bleibt aber
     stehen - dieselbe Prüfung wie im Original, nicht mehr und nicht weniger."""
@@ -428,7 +428,7 @@ def _build_osm_nature_mask(grid: dict) -> np.ndarray:
     """Wie 04_create_distance_zones.py:_build_osm_nature_mask() (seit W6.1
     aus dem Repo entfernt, letzter Stand im Commit f1d00f7 - git show
     f1d00f7:scripts/widmung_v2/04_create_distance_zones.py), Eingabe
-    jetzt ``build/prep/osm/b_layers/nature.parquet`` statt eines frischen
+    jetzt ``derived/prep/osm/b_layers/nature.parquet`` statt eines frischen
     Osmium-Exports gegen die PBF-Rohquelle. Tag-/Text-Heuristik wortgleich."""
     path = contract.PREP["osm"]["b_layers"] / "nature.parquet"
     osm = _read_prep_vector(path, bounds=grid["bounds"])
@@ -468,7 +468,7 @@ def build_water_masks(grid: dict) -> dict[str, np.ndarray]:
     """Wie 04_create_distance_zones.py:build_water_masks() (seit W6.1 aus
     dem Repo entfernt, letzter Stand im Commit f1d00f7 - git show
     f1d00f7:scripts/widmung_v2/04_create_distance_zones.py), Eingabe jetzt
-    ``build/prep/osm/b_layers/water.parquet``. ``water_bodies_mask()`` selbst
+    ``derived/prep/osm/b_layers/water.parquet``. ``water_bodies_mask()`` selbst
     (Fußabdruck + Mindestfläche über verbundene Rasterflächen) unverändert
     aus abschichtung_common importiert - reine Rechenlogik, kein I/O."""
     path = contract.PREP["osm"]["b_layers"] / "water.parquet"
@@ -486,9 +486,9 @@ def build_official_zoning_masks(grid: dict) -> dict[str, np.ndarray]:
     """Wie 04_create_distance_zones.py:build_official_zoning_masks() (seit
     W6.1 aus dem Repo entfernt, letzter Stand im Commit f1d00f7 - git show
     f1d00f7:scripts/widmung_v2/04_create_distance_zones.py). Die
-    fünfte Quelle (NÖ) kommt jetzt aus ``build/prep/zonen/NOE.gpkg`` statt
+    fünfte Quelle (NÖ) kommt jetzt aus ``derived/prep/zonen/NOE.gpkg`` statt
     ``--official-zoning-geojson``; die vier ``WIND_ZONE_SOURCES``-Quellen aus
-    ``build/prep/zonen/{Stmk,Sbg,Bgld,RED3}.gpkg`` statt
+    ``derived/prep/zonen/{Stmk,Sbg,Bgld,RED3}.gpkg`` statt
     ``load_wind_zones()`` (das wiederum roh Shapefiles/ZIPs liest). Das
     Klippen auf die zuständige Bundesland-Grenze (per ``_clip_to_bundesland``)
     bleibt Sache dieser Stufe - pipeline/prep/zonen.py klippt laut eigenem
@@ -538,7 +538,7 @@ def build_wka_bestand_hulls(grid: dict, out_dir: Path, valid_area: np.ndarray) -
     """Wie 04_create_distance_zones.py:build_wka_bestand_hulls() (seit W6.1
     aus dem Repo entfernt, letzter Stand im Commit f1d00f7 - git show
     f1d00f7:scripts/widmung_v2/04_create_distance_zones.py). Eingabe
-    ``windpower``-OSM-Layer jetzt aus ``build/prep/osm/b_layers/
+    ``windpower``-OSM-Layer jetzt aus ``derived/prep/osm/b_layers/
     windpower.parquet`` statt frischem Osmium-Export; ``official_wind_zoning``
     kommt aus ``out_dir`` (von build_official_zoning_masks() in DERSELBEN
     Ausführung geschrieben - muss deshalb vor dieser Gruppe laufen, siehe
@@ -588,23 +588,29 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "Checkpoints aus scripts/widmung_v2/04_create_distance_zones.py "
             "(seit W6.1 aus dem Repo entfernt, letzter Stand im Commit "
             "f1d00f7: git show f1d00f7:scripts/widmung_v2/04_create_distance_zones.py), "
-            "Eingaben aus build/prep/ statt data/. Keine Endkomposition "
+            "Eingaben aus derived/prep/ statt data/. Keine Endkomposition "
             "(GeoTIFF/Manifest) - das ist W3.1."
         )
     )
     p.add_argument("--config", default="config.json")
     p.add_argument(
         "--source-dir",
-        default="output/abschichtung_widmung_v2/distance_layers",
-        help="Seit W6.1 wirkungslos: der Rueckfall auf dieses (nicht mehr existierende) "
-             "Verzeichnis ist entfernt, die acht externen Quell-Checkpoints kommen "
-             "ausschliesslich aus build/layers/ (W2.1/W2.3) - fehlender Checkpoint dort "
-             "bricht laut ab. Parameter bleibt nur fuer die Fehlermeldung erhalten.",
+        default="(seit W6.1 wirkungslos - kein echter Pfad, siehe --help)",
+        help="Seit W6.1 wirkungslos: der Rueckfall auf das frühere "
+             "output/abschichtung_widmung_v2/distance_layers ist entfernt, die acht "
+             "externen Quell-Checkpoints kommen ausschliesslich aus derived/layers/ "
+             "(W2.1/W2.3) - fehlender Checkpoint dort bricht laut ab. Parameter bleibt "
+             "nur fuer die Fehlermeldung erhalten. W6.2: der Default trug bis hierher "
+             "weiterhin output/abschichtung_widmung_v2/distance_layers, obwohl dieses "
+             "Verzeichnis seit W6.1 nicht mehr im Repo existiert und der Wert nirgends "
+             "mehr gelesen wird (Punkt aus dem W6.2-Auftrag: 'wirkungslos, aber sie "
+             "luegen') - der neue Default behauptet keinen Pfad mehr, sondern benennt "
+             "sich selbst als Platzhalter.",
     )
     p.add_argument(
         "--out-dir",
         default=None,
-        help="Ziel für die 17 eigenen Checkpoints. Default: pipeline.contract.BUILD_LAYERS (build/layers/).",
+        help="Ziel für die 17 eigenen Checkpoints. Default: pipeline.contract.DERIVED_LAYERS (derived/layers/).",
     )
     p.add_argument("--bbox", default=None, help="EPSG:31287 bbox minx,miny,maxx,maxy für Smoke-Tests")
     p.add_argument("--force-layers", action="store_true")
@@ -625,13 +631,13 @@ def _check_required_sources(source_dir: Path) -> None:
     Baufunktionen (build_hig_family_sources, build_v2_buffers) tatsächlich
     LESEN - eine engere, aber für diesen Auftrag vollständige Vorbedingung.
 
-    W5.P1: prüfte zuerst ``build/layers/`` (W2.1/W2.3 in DIESER Kette
+    W5.P1: prüfte zuerst ``derived/layers/`` (W2.1/W2.3 in DIESER Kette
     gelaufen) und erst danach ``source_dir`` - genau das Muster aus
     ``pipeline/layers/osm.py:_require_hig_layers()``. **W6.1:** der
     Rückfall auf ``source_dir`` (Default: ``output/abschichtung_widmung_v2/
     distance_layers``) ist entfernt, dieses Verzeichnis existiert seit W6.1
     nicht mehr im Repo - diese Funktion prüft jetzt ausschließlich
-    ``build/layers/`` und bricht laut ab, wenn dort etwas fehlt.
+    ``derived/layers/`` und bricht laut ab, wenn dort etwas fehlt.
     ``source_dir`` bleibt Parameter (für die Fehlermeldung und
     CLI-Kompatibilität), wird aber nicht mehr gelesen."""
     required = [
@@ -648,7 +654,7 @@ def _check_required_sources(source_dir: Path) -> None:
     if missing:
         raise FileNotFoundError(
             f"Fehlende externe Quell-Checkpoints: {', '.join(missing)}. "
-            f"Unter {contract.BUILD_LAYERS} nicht gefunden - diese kommen aus "
+            f"Unter {contract.DERIVED_LAYERS} nicht gefunden - diese kommen aus "
             "W2.1/W2.3 (pipeline/layers/hig.py, osm.py; heute: "
             "'make layer-hig layer-osm'). Der Rueckfall auf einen frueheren "
             f"Kettenlauf unter {source_dir} ist seit W6.1 entfernt."
@@ -661,7 +667,7 @@ def main(argv: list[str] | None = None) -> None:
     grid = load_grid(cfg, args.bbox)
 
     source_dir = Path(args.source_dir)
-    out_dir = Path(args.out_dir) if args.out_dir else contract.BUILD_LAYERS
+    out_dir = Path(args.out_dir) if args.out_dir else contract.DERIVED_LAYERS
     runtime.ensure_dir(out_dir)
 
     _check_required_sources(source_dir)

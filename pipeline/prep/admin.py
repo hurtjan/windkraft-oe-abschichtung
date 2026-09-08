@@ -10,7 +10,7 @@ w01p1/``) genau einmal und schreibt zwei Ableitungen nach
   PB/BKZ je GKZ konstant sind (geprüft, siehe Bericht zu W1.P1) - "first"
   beim Dissolve nimmt also nichts Uneindeutiges weg.
 - ``bundesland_masken.gpkg`` - Dissolve nach ``BL``: dieselbe Operation,
-  die ``windkraft/calc/abschichtung_common.py`` heute bei *jedem* Aufruf
+  die ``calc/abschichtung_common.py`` heute bei *jedem* Aufruf
   von ``official_wind_zoning_mask`` erneut auf einem bounds-gefilterten
   Ausschnitt rechnet (Zeile ~1351: ``bl.dissolve(by="BL").reset_index()``).
   Hier einmalig auf dem vollen Datensatz vorgerechnet - Rasterisierung

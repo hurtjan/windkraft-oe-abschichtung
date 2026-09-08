@@ -3,7 +3,7 @@ CONFIG = config.json
 
 .PHONY: check-hardlinks check-raw-only check-guards prep all test worktree
 .PHONY: layers
-.PHONY: verify
+.PHONY: export
 
 # Ohne dieses .DEFAULT_GOAL würde make(1) das erste im File stehende Ziel
 # nehmen (check-hardlinks), nicht die volle Kette. Siehe docs/rewrite/PLAN.md
@@ -34,9 +34,10 @@ check-raw-only:
 check-guards: check-hardlinks check-raw-only
 
 ## --- Neues Gerüst (docs/rewrite/PLAN.md §3, §7 Paket W0.3) ---------------
-## Fünf-Stufen-Modell: Roh -> Prep -> Layer -> Finalize -> verify. `all` ist
-## seit W5.P0 (docs/rewrite/PLAN.md §13.10, Regel 9) die neue Kette selbst:
-## prep -> layers -> finalize -> verify, siehe deren Definition weiter unten.
+## Fünf-Stufen-Modell: Roh -> Prep -> Layer -> Finalize -> Export (bis W6.2
+## hiess diese fünfte Stufe verify). `all` ist seit W5.P0 (docs/rewrite/PLAN.md
+## §13.10, Regel 9) die neue Kette selbst: prep -> layers -> finalize ->
+## export, siehe deren Definition weiter unten.
 ## Bis W6.1 lief `make` (ohne Argument) stattdessen die alte Kette
 ## (scripts/widmung_v2/01…05_*.py, Ziel `widmung-v2`) - seit W6.1 ist diese
 ## Kette aus dem Repo entfernt (letzter Stand je Skript im Commit f1d00f7)
@@ -112,26 +113,26 @@ endif
 
 ## Vorpaket W4.P0 (docs/rewrite/PLAN.md §13.10, Regel 9): dasselbe Muster
 ## wie oben bei Prep und Layers, diesmal für die zwei parallelen
-## Verify-Pakete (W4.1 Dashboard, W4.2 Gemeindegrenzen-Export). Jedes
-## bekommt seine eigene Datei make/verify/<domäne>.mk mit dem Ziel
-## `verify-<domäne>`. Siehe make/verify/README.md für die Konvention. Das
+## Export-Pakete (W4.1 Dashboard, W4.2 Gemeindegrenzen-Export). Jedes
+## bekommt seine eigene Datei make/export/<domäne>.mk mit dem Ziel
+## `export-<domäne>`. Siehe make/export/README.md für die Konvention. Das
 ## führende "-" lässt make weiterlaufen, solange noch keine einzige Datei
 ## existiert (kein Fehler, kein Abbruch).
--include make/verify/*.mk
+-include make/export/*.mk
 
 # Namen aller so eingelesenen Ziele, aus den Dateinamen abgeleitet -
-# make/verify/dashboard.mk ergibt verify-dashboard. Leer, solange kein
-# make/verify/*.mk existiert.
-VERIFY_TARGETS := $(addprefix verify-,$(basename $(notdir $(wildcard make/verify/*.mk))))
-.PHONY: $(VERIFY_TARGETS)
+# make/export/dashboard.mk ergibt export-dashboard. Leer, solange kein
+# make/export/*.mk existiert.
+EXPORT_TARGETS := $(addprefix export-,$(basename $(notdir $(wildcard make/export/*.mk))))
+.PHONY: $(EXPORT_TARGETS)
 
-## Ruft alle zwei (bzw. die bereits vorhandenen) verify-<domäne>-Ziele auf.
+## Ruft alle zwei (bzw. die bereits vorhandenen) export-<domäne>-Ziele auf.
 ## Bewusst kein stiller Erfolg und kein Fehler, solange noch keines
 ## existiert - nur die Auskunft, dass hier noch nichts läuft. Rückgabewert
 ## in jedem Fall 0.
-verify: $(VERIFY_TARGETS)
-ifeq ($(strip $(VERIFY_TARGETS)),)
-	@echo "verify: noch keine Verify-Pakete vorhanden - die entstehen erst in Welle 4 (docs/rewrite/PLAN.md §7, W4.1/W4.2)."
+export: $(EXPORT_TARGETS)
+ifeq ($(strip $(EXPORT_TARGETS)),)
+	@echo "export: noch keine Export-Pakete vorhanden - die entstehen erst in Welle 4 (docs/rewrite/PLAN.md §7, W4.1/W4.2)."
 endif
 
 ## Der Beweislauf aus Rohdaten (Welle 5: W5.1, Vorfeld W5.P0,
@@ -142,11 +143,12 @@ endif
 ## Beweislauf der Welle 5 die alte Kette bewiesen, nicht die vier Wellen
 ## Umbau. Jetzt die fünf Stufen aus §3 in ihrer vorgeschriebenen
 ## Reihenfolge ("Jede Stufe darf nur aus der vorigen lesen"): Roh (data/,
-## keine eigene Stufe - dafür steht `rm -rf build` vor diesem Ziel im
+## keine eigene Stufe - dafür steht `rm -rf derived` vor diesem Ziel im
 ## Beweislauf selbst, nicht hier), Prep (inkl. Prep II - Kataster/OSM/
 ## NÖ-SekROP sind innerhalb ihres eigenen prep-<domäne>-Ziels bereits
 ## zweistufig, siehe make/prep/README.md), Layer, Finalize, danach
-## verify (Dashboard + Gemeindegrenzen, §3 Stufe 5 wörtlich: "Danach
+## export (Dashboard + Gemeindegrenzen, bis W6.2 hiess diese Stufe verify;
+## §3 Stufe 5 wörtlich, unveraendert seit damals: "Danach
 ## verify"). `validate` ABSICHTLICH NICHT Teil dieser Kette: es prüft
 ## (Abweichung gegen run1 nach der Ampel aus §6), erzeugt aber kein
 ## Produkt aus §3 und ist keine der fünf Stufen dort; es verlangt ein
@@ -161,7 +163,7 @@ endif
 ## (run1 selbst liegt seither im Archiv, siehe
 ## ~/Documents/master_windkraft/archiv/README.md) - sie war ohnehin nie Teil
 ## von `all`.
-all: prep layers finalize verify
+all: prep layers finalize export
 
 ## Verdrahtet die 131 heute unerreichbaren Tests (kein `make test` bisher,
 ## siehe PLAN.md Ausgangslage: "12 unerreichbare Skripte, davon 8 Tests
@@ -181,9 +183,9 @@ test:
 ##
 ## W6.1: die frühere Verlinkung von output/abschichtung_widmung_v2/
 ## (distance_layers/ + die run1-Vergleichsbasis) ist ersatzlos entfernt,
-## nicht auf build/ bzw. out/ umgehängt - beide Zwecke sind bereits durch
+## nicht auf derived/ bzw. out/ umgehängt - beide Zwecke sind bereits durch
 ## andere, spätere Symlinks in diesem Ziel abgedeckt: distance_layers/ war
-## der Checkpoint-Ordner der alten Kette, dessen Nachfolger build/layers/
+## der Checkpoint-Ordner der alten Kette, dessen Nachfolger derived/layers/
 ## unten (W4.P0) ohnehin schon read-only verlinkt wird; die run1.tif liegt
 ## seit W6.1 nicht mehr im Repo, sondern im Archiv
 ## (~/Documents/master_windkraft/archiv/output/run1.tif) und wird nur noch
@@ -257,22 +259,22 @@ worktree:
 	if ! grep -qxF '/data' "$$COMMON_DIR/info/exclude" 2>/dev/null; then \
 		echo '/data' >> "$$COMMON_DIR/info/exclude"; \
 	fi; \
-	mkdir -p "$$WT_DIR/build"; \
-	if [ -L "$$WT_DIR/build/prep" ]; then \
+	mkdir -p "$$WT_DIR/derived"; \
+	if [ -L "$$WT_DIR/derived/prep" ]; then \
 		: schon ein Symlink - unveraendert uebernehmen; \
-	elif [ ! -e "$$WT_DIR/build/prep" ]; then \
-		ln -s $(CURDIR)/build/prep "$$WT_DIR/build/prep"; \
+	elif [ ! -e "$$WT_DIR/derived/prep" ]; then \
+		ln -s $(CURDIR)/derived/prep "$$WT_DIR/derived/prep"; \
 	else \
-		echo "Abbruch: $$WT_DIR/build/prep existiert bereits, ist aber kein Symlink - unerwarteter Zustand, nichts geloescht."; \
+		echo "Abbruch: $$WT_DIR/derived/prep existiert bereits, ist aber kein Symlink - unerwarteter Zustand, nichts geloescht."; \
 		echo "$$CLEANUP"; \
 		exit 1; \
 	fi; \
-	if [ -L "$$WT_DIR/build/layers" ]; then \
+	if [ -L "$$WT_DIR/derived/layers" ]; then \
 		: schon ein Symlink - unveraendert uebernehmen; \
-	elif [ ! -e "$$WT_DIR/build/layers" ]; then \
-		ln -s $(CURDIR)/build/layers "$$WT_DIR/build/layers"; \
+	elif [ ! -e "$$WT_DIR/derived/layers" ]; then \
+		ln -s $(CURDIR)/derived/layers "$$WT_DIR/derived/layers"; \
 	else \
-		echo "Abbruch: $$WT_DIR/build/layers existiert bereits, ist aber kein Symlink - unerwarteter Zustand, nichts geloescht."; \
+		echo "Abbruch: $$WT_DIR/derived/layers existiert bereits, ist aber kein Symlink - unerwarteter Zustand, nichts geloescht."; \
 		echo "$$CLEANUP"; \
 		exit 1; \
 	fi; \
@@ -289,13 +291,13 @@ worktree:
 		fi; \
 	done; \
 	echo "Angelegt: $$WT_DIR auf Zweig $(PAKET). data/ ist ein Symlink auf dieses Repo (read-only, kein Kopieraufwand)."; \
-	echo "WARNUNG: ein Lauf mit --force-layers dort schreibt in das GETEILTE build/layers/ und zerstört die Arbeit aller anderen Worktrees - nicht verwenden."; \
-	echo "Zusaetzlich (W2.P0, docs/rewrite/PLAN.md §13.8): build/prep/ ist ebenfalls ein Symlink auf dieses Repo (read-only, kein Kopieraufwand - die Prep-Ausgaben muessten sonst je Worktree neu gerechnet werden, allein Kataster 45-70 Minuten)."; \
-	echo "WARNUNG: build/prep/ ist GETEILT und nur zum Lesen gedacht - ein Schreibzugriff (z.B. ein erneutes 'make prep' aus diesem Worktree) trifft alle Layer-Worktrees gleichzeitig; nur die Prep-Stufe im Hauptrepo darf dort schreiben."; \
-	echo "Zusaetzlich (W4.P0, docs/rewrite/PLAN.md §13.10): build/layers/ ist ebenfalls ein Symlink auf dieses Repo (read-only, kein Kopieraufwand - die 33 Checkpoints muessten sonst je Worktree neu gerechnet werden, dazu rund 165 s Finalisierung fuer das TIF)."; \
-	echo "WARNUNG: build/layers/ ist GETEILT und nur zum Lesen gedacht - ein Schreibzugriff (z.B. ein erneutes 'make layers' aus diesem Worktree) trifft alle Verify-Worktrees gleichzeitig; nur die Layer-Stufe im Hauptrepo darf dort schreiben."; \
+	echo "WARNUNG: ein Lauf mit --force-layers dort schreibt in das GETEILTE derived/layers/ und zerstört die Arbeit aller anderen Worktrees - nicht verwenden."; \
+	echo "Zusaetzlich (W2.P0, docs/rewrite/PLAN.md §13.8): derived/prep/ ist ebenfalls ein Symlink auf dieses Repo (read-only, kein Kopieraufwand - die Prep-Ausgaben muessten sonst je Worktree neu gerechnet werden, allein Kataster 45-70 Minuten)."; \
+	echo "WARNUNG: derived/prep/ ist GETEILT und nur zum Lesen gedacht - ein Schreibzugriff (z.B. ein erneutes 'make prep' aus diesem Worktree) trifft alle Layer-Worktrees gleichzeitig; nur die Prep-Stufe im Hauptrepo darf dort schreiben."; \
+	echo "Zusaetzlich (W4.P0, docs/rewrite/PLAN.md §13.10): derived/layers/ ist ebenfalls ein Symlink auf dieses Repo (read-only, kein Kopieraufwand - die 33 Checkpoints muessten sonst je Worktree neu gerechnet werden, dazu rund 165 s Finalisierung fuer das TIF)."; \
+	echo "WARNUNG: derived/layers/ ist GETEILT und nur zum Lesen gedacht - ein Schreibzugriff (z.B. ein erneutes 'make layers' aus diesem Worktree) trifft alle Export-Worktrees gleichzeitig; nur die Layer-Stufe im Hauptrepo darf dort schreiben."; \
 	echo "out/ selbst ist KEIN Symlink, sondern ein echtes, privates Verzeichnis in diesem Worktree - nur out/abschichtung.tif und out/abschichtung.bands.json darin sind Symlinks auf das fertige TIF samt Bandmanifest im Hauptrepo (read-only, falls dort schon finalisiert)."; \
-	echo "WARNUNG: out/abschichtung.tif und out/abschichtung.bands.json sind GETEILT und nur zum Lesen gedacht - ein Schreibzugriff (z.B. ein erneutes 'make finalize' aus diesem Worktree) trifft alle Verify-Worktrees gleichzeitig; nur die Finalize-Stufe im Hauptrepo darf dort schreiben. Alles andere unter out/ (z.B. out/dashboard/, out/gemeinden.geojson) ist frei beschreibbar, ohne das Hauptrepo oder ein Geschwister-Worktree zu beruehren."; \
+	echo "WARNUNG: out/abschichtung.tif und out/abschichtung.bands.json sind GETEILT und nur zum Lesen gedacht - ein Schreibzugriff (z.B. ein erneutes 'make finalize' aus diesem Worktree) trifft alle Export-Worktrees gleichzeitig; nur die Finalize-Stufe im Hauptrepo darf dort schreiben. Alles andere unter out/ (z.B. out/dashboard/, out/gemeinden.geojson) ist frei beschreibbar, ohne das Hauptrepo oder ein Geschwister-Worktree zu beruehren."; \
 	echo "git status ist absichtlich sauber: data/ ist seit W1.2 ohne jede versionierte Datei (kein --skip-worktree mehr noetig), der Symlink 'data' selbst steht in .git/info/exclude (geteilt ueber alle Worktrees, nicht versioniert)."; \
-	echo "build/ und out/ sind zusaetzlich ueber .gitignore repoweit ausgeschlossen - fuer die Symlinks unter build/ und out/ ist kein weiterer Eintrag in .git/info/exclude noetig."; \
+	echo "derived/ und out/ sind zusaetzlich ueber .gitignore repoweit ausgeschlossen - fuer die Symlinks unter derived/ und out/ ist kein weiterer Eintrag in .git/info/exclude noetig."; \
 	echo "Entfernen mit: git worktree remove $$WT_DIR && git branch -d $(PAKET)"

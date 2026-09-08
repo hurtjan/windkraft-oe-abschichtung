@@ -33,7 +33,7 @@ def test_clean_tree_passes():
         root = Path(tmp)
         _write(
             root,
-            "windkraft/calc/ok.py",
+            "calc/ok.py",
             """
             from pathlib import Path
             from pipeline import contract
@@ -61,7 +61,7 @@ def test_detects_compound_path_write():
         root = Path(tmp)
         _write(
             root,
-            "windkraft/calc/bad_compound.py",
+            "calc/bad_compound.py",
             """
             from pathlib import Path
 
@@ -84,7 +84,7 @@ def test_detects_contract_raw_write():
         root = Path(tmp)
         _write(
             root,
-            "windkraft/calc/bad_contract.py",
+            "calc/bad_contract.py",
             """
             from pipeline import contract
 
@@ -105,7 +105,7 @@ def test_detects_default_value_weiche():
         root = Path(tmp)
         _write(
             root,
-            "windkraft/calc/bad_default.py",
+            "calc/bad_default.py",
             """
             from pipeline.contract import DATA
 

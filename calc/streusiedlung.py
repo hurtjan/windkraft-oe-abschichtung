@@ -26,7 +26,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from windkraft.calc.abschichtung_common import (
+from calc.abschichtung_common import (
     HIG_ADDRESS_RADIUS_M,
     HIG_FILTER_BUFFER_M,
     HIG_GARDEN_RADIUS_M,
@@ -34,8 +34,8 @@ from windkraft.calc.abschichtung_common import (
     timed,
     uniform_buffer_cell_mask,
 )
-from windkraft.calc.bev_register import load_address_points, load_building_points
-from windkraft.calc.hig_detection import (
+from calc.bev_register import load_address_points, load_building_points
+from calc.hig_detection import (
     HULL_CLASS_BEWOHNT,
     aggregate_hulls,
     build_hulls,
@@ -46,7 +46,7 @@ from windkraft.calc.hig_detection import (
     sample_labels,
     scan_dkm_candidates,
 )
-from windkraft.calc.hig_source_masks import (
+from calc.hig_source_masks import (
     candidate_filter_mask,
     noe_pdf_mask,
     zoning_masks,

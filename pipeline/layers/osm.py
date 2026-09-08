@@ -11,7 +11,7 @@ road_motorway_trunk, road_federal_state, rail_main, cableway_people_150m,
 military_restricted_area (Infrastrukturmasken) sowie airport_area_major,
 airport_runway_corridor_5km (Flughafen-Korridorbänder). Fachliche Regeln
 (Distanzen, Fahrzeugtypen, Militärflächen-Typenliste usw.) sind Regel 4
-gemäß UNVERÄNDERT aus ``windkraft/calc/abschichtung_common.py`` übernommen
+gemäß UNVERÄNDERT aus ``calc/abschichtung_common.py`` übernommen
 - teils per Import der dortigen (auch privaten) Hilfsfunktionen, um zwei
 Kopien derselben Regel zu vermeiden (Muster wie
 ``pipeline/prep/adressen.py``), teils als direkter Nachbau der drei
@@ -20,7 +20,7 @@ Erzeuger-Funktionen ``build_osm_building_sources``/
 einer Änderung: wo das Original ``osm_layer_path()`` (ruft ``osmium``
 gegen die PBF-Rohdatei) + ``read_layer()`` aufruft, liest diese Stufe
 stattdessen aus den bereits von der Prep-Stufe erzeugten Parquet-Dateien
-unter ``build/prep/osm/b_layers/`` (``pipeline/prep/osm.py``, Paket
+unter ``derived/prep/osm/b_layers/`` (``pipeline/prep/osm.py``, Paket
 W1.P5) - siehe ``_read_prep_layer()`` unten. fclass/type-Ableitung und
 Reprojektion nach EPSG:31287 sind bereits Teil der Prep-Stufe
 (``pipeline/prep/osm.py:_read_exported()``, wortgleich zu
@@ -50,14 +50,14 @@ siehe Abschlussbericht zu W2.3 (nicht hier entschieden - Regel 4).
 ``pipeline/fingerprint.py`` als Nebenbefund offene Frage, PLAN.md §12)
 
 Ja: diese Stufe prüft den Fingerabdruck ihrer tatsächlich gelesenen
-Prep-Eingaben (die acht ``build/prep/osm/b_layers/*.parquet``-Dateien, die
+Prep-Eingaben (die acht ``derived/prep/osm/b_layers/*.parquet``-Dateien, die
 ``build_osm_building_sources``/``build_infrastructure_masks``/
 ``build_airport_corridor_masks`` lesen - ``buildings``, ``windpower``,
 ``aerialways``, ``powerlines``, ``roads``, ``railways``, ``military``,
 ``transport``; NICHT ``nature``/``water``, die diese Stufe nie liest),
 bevor sie einen vorhandenen Checkpoint beim Wiederaufsetzen als fertig
 akzeptiert. Begründung: ``layer_done()``
-(``windkraft/calc/abschichtung_common.py:1421``) prüft nur Form/CRS/
+(``calc/abschichtung_common.py:1421``) prüft nur Form/CRS/
 Transform/Bandname des *Ausgabe*-Rasters - das erkennt zuverlässig einen
 Gitterwechsel, aber nicht, dass sich die *Eingabe* (ein erneuter
 Prep-Lauf mit geänderter PBF-Stichtagsversion o.ä.) seit dem Bau des
@@ -74,7 +74,7 @@ Ablage: EIN Tag ``PREP_FINGERPRINT`` (SHA-256 über
 geprüft über den ``extra_ok``/``extra_tags``-Mechanismus von
 ``layer_done()`` - **nicht** eine separate Fingerabdruck-Datei. So ursprünglich
 (vor dem Zusammenführen von W2.1/W2.3/W2.4) in diesem Modul umgesetzt:
-``FP_DIR = contract.BUILD_LAYERS / "_fingerprints" / "osm"`` plus
+``FP_DIR = contract.DERIVED_LAYERS / "_fingerprints" / "osm"`` plus
 ``fingerprint.matches()``/``.write()`` gegen eine
 ``.fingerprint.json``-Datei, entkoppelt vom eigentlichen Ausgabe-Raster.
 W2.1 (``pipeline/layers/hig.py``) und W2.4 (``pipeline/layers/geo.py``)
@@ -138,8 +138,8 @@ from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
 
 from pipeline import contract, fingerprint, runtime
-from windkraft.config import load_config
-from windkraft.calc.abschichtung_common import (
+from calc.config import load_config
+from calc.abschichtung_common import (
     AIRPORT_CORRIDOR_HALF_ANGLE_DEG,
     AIRPORT_CORRIDOR_LENGTH_M,
     AIRPORT_RUNWAY_MIN_LENGTH_M,
@@ -166,7 +166,9 @@ from windkraft.calc.abschichtung_common import (
 )
 
 # ---------------------------------------------------------------------------
-# Wortgleich aus scripts/widmung_v2/03_build_osm_layers.py (Zeilen 78-101).
+# Wortgleich aus scripts/widmung_v2/03_build_osm_layers.py übernommen
+# (Zeilen 78-101). Seit W6.1 aus dem Repo entfernt, letzter Stand im Commit
+# f1d00f7 - git show f1d00f7:scripts/widmung_v2/03_build_osm_layers.py.
 # ---------------------------------------------------------------------------
 
 # Von build_hig_sources.py (bzw. künftig pipeline/layers/hig.py, Paket W2.1)
@@ -222,7 +224,7 @@ def _fingerprint_tag() -> str:
     Moduldocstring "Fingerabdruck-Konvention"), an die diese Stufe beim
     Zusammenführen von W2.1/W2.3/W2.4 angeglichen wurde. Ersetzt die
     ursprüngliche, hier verworfene Variante mit einer separaten
-    ``.fingerprint.json`` unter ``build/layers/_fingerprints/osm/``: ein Tag
+    ``.fingerprint.json`` unter ``derived/layers/_fingerprints/osm/``: ein Tag
     wandert mit der Rasterdatei, eine Nebendatei kann von ihr getrennt
     verlorengehen."""
     data = fingerprint.compute(_prep_inputs())
@@ -264,24 +266,24 @@ def _cover_layer_path(name: str, legacy_cover_dir: Path) -> Path:
     HIG-Paket W2.1, ``pipeline/layers/hig.py``).
 
     Ausschließlich der Zielort dieser Pipeline (``contract.LAYERS[name]``
-    unter ``build/layers/``, von W2.1 geschrieben).
+    unter ``derived/layers/``, von W2.1 geschrieben).
 
     **W6.1:** der frühere Rückfall auf den geteilten, NUR LESEND
     zugänglichen ``output/abschichtung_widmung_v2/distance_layers/``
     (Symlink auf das Hauptrepo, run1) ist entfernt - dieses Verzeichnis
     existiert seit W6.1 nicht mehr im Repo (``output/`` wurde nach
     ``~/Documents/master_windkraft/archiv/`` herausbewegt). Fehlt der Layer
-    unter ``build/layers/``, bricht dieser Aufruf jetzt sofort mit benannter
+    unter ``derived/layers/``, bricht dieser Aufruf jetzt sofort mit benannter
     Meldung ab, statt still auf ein Verzeichnis zurückzufallen, das es nicht
     mehr gibt. ``legacy_cover_dir`` bleibt Parameter (für die Fehlermeldung
     und CLI-Kompatibilität von ``--legacy-cover-dir``), wird aber nicht mehr
     gelesen; diese Stufe schrieb ohnehin NIE dorthin, nur nach
-    ``contract.BUILD_LAYERS`` (siehe main()).
+    ``contract.DERIVED_LAYERS`` (siehe main()).
     """
     build_path = contract.LAYERS[name]
     if not build_path.exists():
         raise FileNotFoundError(
-            f"'{name}' fehlt unter {build_path} (build/layers/) - der Rueckfall "
+            f"'{name}' fehlt unter {build_path} (derived/layers/) - der Rueckfall "
             f"auf die alte Kette ({legacy_cover_dir}) ist seit W6.1 entfernt, "
             "dieses Verzeichnis existiert nicht mehr im Repo. HIG-Quellen "
             "zuerst bauen (Paket W2.1, pipeline/layers/hig.py; heute: "
@@ -299,7 +301,7 @@ def _require_hig_layers(legacy_cover_dir: Path) -> None:
     if missing:
         raise FileNotFoundError(
             f"Missing checkpoint(s): {', '.join(missing)}. "
-            f"Unter {contract.BUILD_LAYERS} nicht gefunden - der Rueckfall auf "
+            f"Unter {contract.DERIVED_LAYERS} nicht gefunden - der Rueckfall auf "
             f"die alte Kette ({legacy_cover_dir}) ist seit W6.1 entfernt, dieses "
             "Verzeichnis existiert nicht mehr. HIG-Quellen zuerst bauen "
             "(Paket W2.1, pipeline/layers/hig.py; heute: 'make layer-hig')."
@@ -321,7 +323,9 @@ def _as_mask(gdf: gpd.GeoDataFrame, grid: dict, label: str) -> np.ndarray:
 
 def build_osm_building_sources(cfg: dict, grid: dict, args: argparse.Namespace) -> dict[str, np.ndarray]:
     """Zwei disjunkte OSM-Gebäudeklassen unter den amtlich nicht abgedeckten
-    Gebäuden. Fachlich unverändert aus 03_build_osm_layers.py:
+    Gebäuden. Fachlich unverändert aus ``03_build_osm_layers.py``
+    (seit W6.1 aus dem Repo entfernt; letzter Stand im Commit ``f1d00f7``,
+    abrufbar mit ``git show f1d00f7:scripts/widmung_v2/03_build_osm_layers.py``):
     build_osm_building_sources (Zeilen 126-200) - einzige Änderung: OSM-Lesen
     über ``_read_prep_layer()`` statt ``osm_layer_path()``+``read_layer()``.
     """
@@ -391,7 +395,9 @@ def build_osm_building_sources(cfg: dict, grid: dict, args: argparse.Namespace) 
 
 def _cover_fingerprint(legacy_cover_dir: Path) -> str:
     """Content fingerprint of the HIG sources' outputs, for checkpoint
-    invalidation. Unverändert aus 03_build_osm_layers.py:_cover_fingerprint
+    invalidation. Unverändert aus ``03_build_osm_layers.py:_cover_fingerprint``
+    (seit W6.1 aus dem Repo entfernt; letzter Stand im Commit ``f1d00f7``,
+    abrufbar mit ``git show f1d00f7:scripts/widmung_v2/03_build_osm_layers.py``)
     - einzige Änderung: Pfadauflösung über _cover_layer_path() statt
     layer_path(layer_dir, name), siehe dort."""
     parts = []
@@ -526,16 +532,21 @@ def build_airport_corridor_masks(cfg: dict, grid: dict, args: argparse.Namespace
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(
         description="OSM-Restlayer (Seilbahnen, sonstige Gebäude) + Infrastruktur/Flughäfen für "
-        "die Widmungs-Abschichtung v2 - Layer-Stufe, liest aus build/prep/osm/b_layers/."
+        "die Widmungs-Abschichtung v2 - Layer-Stufe, liest aus derived/prep/osm/b_layers/."
     )
     p.add_argument("--config", default="config.json")
     p.add_argument(
-        "--legacy-cover-dir", default="output/abschichtung_widmung_v2/distance_layers",
-        help="Seit W6.1 wirkungslos: der Rueckfall auf dieses (nicht mehr existierende) "
-        "Verzeichnis ist entfernt, die HIG-Vorbedingungs-Checkpoints "
-        "(OFFICIAL_COVER_LAYERS) kommen ausschliesslich aus build/layers/ (Paket W2.1) "
-        "- fehlender Checkpoint dort bricht laut ab. Parameter bleibt nur fuer die "
-        "Fehlermeldung erhalten.",
+        "--legacy-cover-dir", default="(seit W6.1 wirkungslos - kein echter Pfad, siehe --help)",
+        help="Seit W6.1 wirkungslos: der Rueckfall auf das frühere "
+        "output/abschichtung_widmung_v2/distance_layers ist entfernt, die "
+        "HIG-Vorbedingungs-Checkpoints (OFFICIAL_COVER_LAYERS) kommen ausschliesslich "
+        "aus derived/layers/ (Paket W2.1) - fehlender Checkpoint dort bricht laut ab. "
+        "Parameter bleibt nur fuer die Fehlermeldung erhalten. W6.2: der Default trug "
+        "bis hierher weiterhin output/abschichtung_widmung_v2/distance_layers, obwohl "
+        "dieses Verzeichnis seit W6.1 nicht mehr im Repo existiert und der Wert nirgends "
+        "mehr gelesen wird (Punkt aus dem W6.2-Auftrag: 'wirkungslos, aber sie luegen') - "
+        "der neue Default behauptet keinen Pfad mehr, sondern benennt sich selbst als "
+        "Platzhalter.",
     )
     p.add_argument("--bbox", default=None, help="EPSG:31287 bbox minx,miny,maxx,maxy für Smoke-Tests")
     p.add_argument(
@@ -574,7 +585,7 @@ def main(argv: list[str] | None = None) -> None:
         return lambda tags: all(tags.get(k) == v for k, v in expected.items())
 
     # Die Revision muss mit in die Checkpoint-Tags: sonst gelten vorhandene
-    # build/layers/*.tif weiter als gültig und eine geänderte Klassifikation
+    # derived/layers/*.tif weiter als gültig und eine geänderte Klassifikation
     # würde stillschweigend nicht wirksam. Unverändert aus dem Original,
     # jetzt zusätzlich zu PREP_FINGERPRINT statt an dessen Stelle.
     osm_tags = {
@@ -583,26 +594,26 @@ def main(argv: list[str] | None = None) -> None:
         "BUILDING_CLASSIFICATION_REVISION": BUILDING_CLASSIFICATION_REVISION,
     }
 
-    runtime.ensure_dir(contract.BUILD_LAYERS)
-    with timed("build/update checkpoint layers"):
+    runtime.ensure_dir(contract.DERIVED_LAYERS)
+    with timed("derived/update checkpoint layers"):
         ensure_group_layers(
-            contract.BUILD_LAYERS, OSM_LAYER_NAMES, "v2 OSM building classification",
+            contract.DERIVED_LAYERS, OSM_LAYER_NAMES, "v2 OSM building classification",
             lambda: build_osm_building_sources(cfg, grid, args), grid, args.force_layers,
             extra_ok=_tags_ok(osm_tags), extra_tags=osm_tags,
         )
         if not args.skip_infra:
             ensure_group_layers(
-                contract.BUILD_LAYERS, INFRA_LAYER_NAMES, "infrastructure masks",
+                contract.DERIVED_LAYERS, INFRA_LAYER_NAMES, "infrastructure masks",
                 lambda: build_infrastructure_masks(cfg, grid, args), grid, args.force_layers,
                 extra_ok=_tags_ok(derived_tags), extra_tags=derived_tags,
             )
             ensure_group_layers(
-                contract.BUILD_LAYERS, AIRPORT_LAYER_NAMES, "airport corridor masks",
+                contract.DERIVED_LAYERS, AIRPORT_LAYER_NAMES, "airport corridor masks",
                 lambda: build_airport_corridor_masks(cfg, grid, args), grid, args.force_layers,
                 extra_ok=_tags_ok(derived_tags), extra_tags=derived_tags,
             )
 
-    print(f"Checkpoint layers updated in {contract.BUILD_LAYERS}.")
+    print(f"Checkpoint layers updated in {contract.DERIVED_LAYERS}.")
 
 
 if __name__ == "__main__":

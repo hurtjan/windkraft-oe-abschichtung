@@ -16,7 +16,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from windkraft.calc.abschichtung_common import TARGET_CRS, uncertainty_blur  # noqa: E402
+from calc.abschichtung_common import TARGET_CRS, uncertainty_blur  # noqa: E402
 
 CELL_M = 25.0
 

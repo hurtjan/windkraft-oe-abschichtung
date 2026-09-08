@@ -33,8 +33,8 @@ from scipy import ndimage
 from shapely.geometry import LineString, Polygon, box
 from shapely.ops import linemerge, unary_union
 
-from windkraft.calc.distance_engine import fft_circle_dilation
-from windkraft.calc.wind_zones import load_wind_zones
+from calc.distance_engine import fft_circle_dilation
+from calc.wind_zones import load_wind_zones
 
 TARGET_CRS = "EPSG:31287"
 
@@ -104,7 +104,7 @@ SETTLEMENT_BUFFER_VARIANTS = {
 # they keep the OSM address-seed settlement/greenland detection as a fallback.
 WIEN_BGLD_FALLBACK_BL = {"Wien", "Burgenland"}
 
-# Die amtlichen Windkraft-Zonen je Bundesland sind in windkraft/calc/wind_zones.py
+# Die amtlichen Windkraft-Zonen je Bundesland sind in calc/wind_zones.py
 # registriert (WIND_ZONE_SOURCES) und werden über load_wind_zones() geladen.
 
 GREENLAND_BUILDING_TYPES = {
@@ -142,7 +142,7 @@ ADDRESS_CLUSTER_MIN_BUILDINGS = 3
 
 # ---------------------------------------------------------------------------
 # Häuser-im-Grünen v2 (amtliche Quellen statt OSM-Adress-Cluster)
-# See plans/haeuser-im-gruenen-v2.md and windkraft/calc/hig_detection.py.
+# See plans/haeuser-im-gruenen-v2.md and calc/hig_detection.py.
 # ---------------------------------------------------------------------------
 
 # Kandidaten-Filter: DKM-Bauflächen innerhalb dieses Radius um amtliche Siedlung,
@@ -175,7 +175,7 @@ HIG_GARDEN_RADIUS_M = 150.0
 # Zentroid ersetzt. Seit W5.P2 (08.09.2026, Punkt 34, Nutzerentscheidung):
 # nur noch, wenn der Footprint mindestens eine BEV-Adresse im EIGENEN Polygon
 # trägt. Ohne eine solche Adresse entfällt der Kandidat vollständig - keine
-# Scheibe, keine Hüllen-Mitgliedschaft (windkraft/calc/hig_detection.py:
+# Scheibe, keine Hüllen-Mitgliedschaft (calc/hig_detection.py:
 # scan_dkm_candidates(), address_xy-Parameter). Kein representative_point(),
 # kein neuer Schwellwert - siehe dortiger Docstring.
 HIG_MAX_FOOTPRINT_M2 = 10_000.0
@@ -1332,7 +1332,7 @@ def build_official_zoning_masks(cfg: dict, grid: dict, args) -> dict[str, np.nda
     """One merged reference overlay of all official wind zones.
 
     NÖ zoning geojson unioned with the Bundesland zones registered in
-    ``windkraft.calc.wind_zones`` (Stmk/Sbg Vorrang, Bgld Eignung, Ktn RED III).
+    ``calc.wind_zones`` (Stmk/Sbg Vorrang, Bgld Eignung, Ktn RED III).
 
     `args` needs: official_zoning_geojson, vorrangzonen_dir, vorrangzonen.
     """

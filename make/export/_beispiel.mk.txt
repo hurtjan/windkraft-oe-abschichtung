@@ -1,0 +1,11 @@
+# Vorlage für make/export/<domäne>.mk — siehe README.md in diesem Verzeichnis.
+#
+# Diese Datei trägt bewusst die Endung ".mk.txt", nicht ".mk": das
+# Haupt-Makefile liest nur "make/export/*.mk" per -include ein
+# (docs/rewrite/PLAN.md §13.10), diese Vorlage soll dabei NICHT mitgelesen
+# werden. Zum Anlegen deines eigenen Ziels: Datei nach
+# make/export/<domäne>.mk kopieren, "dashboard" durch deine Domäne ersetzen.
+
+.PHONY: export-dashboard
+export-dashboard:
+	uv run python -m pipeline.export.dashboard

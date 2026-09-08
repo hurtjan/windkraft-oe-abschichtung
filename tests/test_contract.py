@@ -2,7 +2,7 @@
 RAW-Pfad muss auf eine tatsächlich vorhandene Datei zeigen, die vier
 Abschnitte (RAW/PREP/LAYERS/PRODUCTS) müssen überschneidungsfrei sein, die
 Layernamen müssen mit denen der Kette übereinstimmen, und
-``windkraft.config.load_config()`` muss trotz der Umstellung auf den
+``calc.config.load_config()`` muss trotz der Umstellung auf den
 Vertrag dieselben ``paths``-Werte wie vor W0.2 liefern.
 
 Siehe docs/rewrite/PLAN.md §8 (Regel 2: "Der Vertrag wird gelesen, nicht
@@ -21,7 +21,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 import pipeline.contract as contract  # noqa: E402
-from windkraft.config import load_config  # noqa: E402
+from calc.config import load_config  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -193,7 +193,7 @@ def test_all_paths_are_absolute_and_within_root():
 
 # ---------------------------------------------------------------------------
 # 4. RAW/PREP/LAYERS/PRODUCTS sind überschneidungsfrei und liegen im
-#    richtigen Bereich (build/ bzw. out/)
+#    richtigen Bereich (derived/ bzw. out/)
 # ---------------------------------------------------------------------------
 
 def test_sections_do_not_overlap():
@@ -210,11 +210,11 @@ def test_sections_do_not_overlap():
             assert not overlap, f"{name_a} und {name_b} überschneiden sich: {overlap}"
 
 
-def test_prep_and_layers_live_under_build():
+def test_prep_and_layers_live_under_derived():
     for path in _iter_leaf_paths(contract.PREP):
-        assert contract.BUILD in path.parents, f"PREP-Pfad nicht unter build/: {path}"
+        assert contract.DERIVED in path.parents, f"PREP-Pfad nicht unter derived/: {path}"
     for path in contract.LAYERS.values():
-        assert contract.BUILD in path.parents, f"LAYERS-Pfad nicht unter build/: {path}"
+        assert contract.DERIVED in path.parents, f"LAYERS-Pfad nicht unter derived/: {path}"
 
 
 # ---------------------------------------------------------------------------
@@ -338,7 +338,7 @@ def test_layer_names_match_existing_checkpoints():
 
 def test_layers_derive_path_from_name():
     for name in contract.LAYER_NAMES:
-        assert contract.LAYERS[name] == contract.BUILD_LAYERS / f"{name}.tif"
+        assert contract.LAYERS[name] == contract.DERIVED_LAYERS / f"{name}.tif"
 
 
 # ---------------------------------------------------------------------------
@@ -346,8 +346,8 @@ def test_layers_derive_path_from_name():
 # ---------------------------------------------------------------------------
 
 # Wörtlich der Stand vor der Umstellung (siehe git-Historie von config.json /
-# windkraft/config.py) - bewusst hier als Konstante festgehalten, damit dieser
-# Test trägt, auch wenn config.json und windkraft/config.py künftig
+# calc/config.py) - bewusst hier als Konstante festgehalten, damit dieser
+# Test trägt, auch wenn config.json und calc/config.py künftig
 # gemeinsam driften.
 EXPECTED_PATHS_BEFORE_W02 = {
     "data_dir": "data",

@@ -3,7 +3,7 @@
 Erzeugt ``out/gemeinden.geojson`` (eines der vier Endprodukte, §3) aus den
 2093 politischen Gemeinden, die ``pipeline/prep/admin.py`` (W1.P1) bereits
 verlustfrei aus der VGD-Rohquelle dissolviert hat
-(``build/prep/admin/gemeinden.gpkg``), und weist danach die
+(``derived/prep/admin/gemeinden.gpkg``), und weist danach die
 Abnahmebedingung aus §7 nach: "Grenzen im Rasterbezug; Deckungsabweichung
 gegen das TIF ausgewiesen und unter Schwellwert."
 
@@ -38,7 +38,7 @@ stillschweigend zu vertrauen.
 
 ## Die Deckungsabweichung: Vektorfläche der 2093 Gemeinden vs. Rasterzellen
 
-``raster_mask()`` (``windkraft/calc/abschichtung_common.py``, von
+``raster_mask()`` (``calc/abschichtung_common.py``, von
 ``_build_valid_area_mask()`` benutzt) rasterisiert mit
 ``all_touched=True`` - jede von einer Geometrie auch nur berührte Zelle
 zählt als "innerhalb". Das ist eine bewusste, im ganzen Projekt
@@ -65,7 +65,7 @@ statt ihn zu verschweigen:
    Zelle breit an jeder Außengrenze, wenn es reine Rasterisierung ist.
    Zusammenhangskomponenten dieses Saums (4er-Nachbarschaft, dieselbe
    Konvention wie ``pipeline/validate.py:_largest_connected_component_px``
-   und ``windkraft.calc.abschichtung_common.min_area_filter`` - "nur
+   und ``calc.abschichtung_common.min_area_filter`` - "nur
    Kantenkontakt verbindet") zeigen, ob die Abweichung gleichmäßig verteilt
    ist (viele kleine Komponenten) oder an wenigen Stellen konzentriert
    (wenige große). Eine einzige 1-Zellen-Erosion (4er-Nachbarschaft) des
@@ -128,13 +128,13 @@ from pipeline import contract, runtime  # noqa: E402
 from pipeline.prep import admin as prep_admin  # noqa: E402
 from pipeline.layers.geo import _build_valid_area_mask  # noqa: E402
 
-from windkraft.calc.abschichtung_common import TARGET_CRS  # noqa: E402
+from calc.abschichtung_common import TARGET_CRS  # noqa: E402
 
 EXPECTED_GEMEINDEN = 2093
 EXPECTED_BUNDESLAENDER = 9
 
 # 4er-Nachbarschaft ("nur Kantenkontakt verbindet") - dieselbe Konvention
-# wie pipeline/validate.py und windkraft.calc.abschichtung_common.min_area_filter.
+# wie pipeline/validate.py und calc.abschichtung_common.min_area_filter.
 _CONNECTIVITY = ndimage.generate_binary_structure(2, 1)
 
 
@@ -143,7 +143,7 @@ _CONNECTIVITY = ndimage.generate_binary_structure(2, 1)
 # ---------------------------------------------------------------------------
 
 def load_gemeinden() -> gpd.GeoDataFrame:
-    """Liest ``build/prep/admin/gemeinden.gpkg`` (W1.P1, 2093 Gemeinden).
+    """Liest ``derived/prep/admin/gemeinden.gpkg`` (W1.P1, 2093 Gemeinden).
 
     Defensiver ``to_crs()`` wie überall sonst in dieser Kette (Punkt 18,
     siehe ``pipeline/layers/geo.py:_read_prep_vector``) - auch wenn

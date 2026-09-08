@@ -14,7 +14,8 @@ Parquet-Export für die acht SHP-Bundesländer getrennt bleibt
   von ``a_noe_polygonize`` (ohne es erneut zu berechnen) und vereinigt
   beides zum kombinierten Kataster-GeoParquet unter
   ``contract.PREP["kataster"]["b_export_parquet"]`` — Feldschema identisch
-  zum bisherigen ``output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet``.
+  zum bisherigen ``output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet``
+  (historisch, existiert seit W6.1 nicht mehr im Repo).
 
 ``common.py`` enthält die von beiden Stufen geteilte Verarbeitungslogik
 (NS-Symbol-Lookup, Geometriebereinigung, GeoParquet-Batch-Schreiber,

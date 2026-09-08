@@ -3,7 +3,7 @@
 # verdrahteten Konstante HIG_CHAIN_M = 200 (Meter Verkettungsdistanz) und wird
 # nur von docs/analysis/streusiedlung_knee.py benutzt.
 # Verwendet wird die Konstante heute in:
-#   windkraft/calc/abschichtung_common.py:159  (Definition HIG_CHAIN_M = 200.0)
+#   calc/abschichtung_common.py:159  (Definition HIG_CHAIN_M = 200.0)
 #   scripts/widmung_v2/02_build_hig_sources.py:205  (Default fuer --chain-m)
 #   scripts/widmung_v2/04_create_distance_zones.py:477  (GeoTIFF-Metadatum)
 """DBSCAN-artige Parametersuche für die Streusiedlungs-Erkennung.

@@ -26,7 +26,7 @@ entschieden: **die Bodensee-Korrektur wird übernommen.** Damit verliert
 ``run1`` seinen Status als bitgenaues Soll. Am selben Tag hat er außerdem
 Punkt 34 entschieden: adresslose DKM-Großflächen über 10 000 m² entfallen
 als Kandidat. Neues Soll ist das aus den 33 Checkpoints unter
-``build/layers/`` finalisierte GeoTIFF nach BEIDEN Entscheidungen
+``derived/layers/`` finalisierte GeoTIFF nach BEIDEN Entscheidungen
 (``pipeline.contract.PRODUCTS["abschichtung_tif"]``):
 
 * ``sha256`` ``fb57c41d…232c30``, 124 597 421 Bytes,
@@ -106,7 +106,7 @@ Nichts Geteiltes. Die Finalisierung schreibt in ein ``tmp_path`` des Tests,
 **nie** nach ``out/abschichtung.tif`` — in einem Worktree ist das ein
 Symlink auf das Hauptrepo, und ein Schreibzugriff dorthin träfe alle
 Verify-Worktrees gleichzeitig (siehe die Warnungen des ``worktree``-Ziels
-im ``Makefile``). ``build/layers/`` und ``run1`` werden ausschließlich
+im ``Makefile``). ``derived/layers/`` und ``run1`` werden ausschließlich
 gelesen.
 """
 from __future__ import annotations
@@ -128,7 +128,7 @@ from pipeline import contract  # noqa: E402
 # Der run1-Pfad wird gelesen, nicht kopiert (PLAN.md §8, Regel 2): er ist in
 # pipeline/validate.py verankert, das ihn als Vergleichsbasis besitzt.
 from pipeline.validate import REFERENCE_TIF as RUN1_TIF  # noqa: E402
-from windkraft.calc.band_manifest import manifest_path_for  # noqa: E402
+from calc.band_manifest import manifest_path_for  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Die Zahlen des Vertrags
@@ -356,8 +356,8 @@ def test_abweichung_gegen_run1_betrifft_genau_achtzehn_baender():
 
 @pytest.mark.skipif(not LANGLAEUFER_AN, reason=LANGLAEUFER_GRUND)
 @pytest.mark.skipif(
-    not contract.BUILD_LAYERS.is_dir(),
-    reason=f"{contract.BUILD_LAYERS} fehlt - 'make layers' zuerst (33 Checkpoints).",
+    not contract.DERIVED_LAYERS.is_dir(),
+    reason=f"{contract.DERIVED_LAYERS} fehlt - 'make layers' zuerst (33 Checkpoints).",
 )
 def test_finalisierung_aus_checkpoints_reproduziert_die_referenz(tmp_path):
     """Aus denselben 33 Checkpoints entsteht wieder bitgenau dieselbe Referenz.
@@ -365,7 +365,7 @@ def test_finalisierung_aus_checkpoints_reproduziert_die_referenz(tmp_path):
     Rund 165 s. Schreibt bewusst nach ``tmp_path`` und **nicht** nach
     ``out/abschichtung.tif``: in einem Worktree ist das ein Symlink auf das
     Hauptrepo, und ein Lauf von hier aus träfe alle Verify-Worktrees
-    gleichzeitig. ``build/layers/`` wird nur gelesen.
+    gleichzeitig. ``derived/layers/`` wird nur gelesen.
 
     Der Dateiname des Ziels geht ausschließlich ins Sidecar-Manifest
     (``raster_file``), nicht in das GeoTIFF selbst - der abweichende
@@ -374,7 +374,7 @@ def test_finalisierung_aus_checkpoints_reproduziert_die_referenz(tmp_path):
     from pipeline import finalize  # noqa: PLC0415  (schwerer Import, nur hier nötig)
 
     ziel = tmp_path / "abschichtung.tif"
-    finalize.main(["--output", str(ziel), "--layer-dir", str(contract.BUILD_LAYERS)])
+    finalize.main(["--output", str(ziel), "--layer-dir", str(contract.DERIVED_LAYERS)])
 
     assert ziel.exists(), "pipeline.finalize hat kein GeoTIFF geschrieben."
     assert ziel.stat().st_size == REFERENZ_BYTES, (
@@ -383,5 +383,5 @@ def test_finalisierung_aus_checkpoints_reproduziert_die_referenz(tmp_path):
     assert _sha256(ziel) == REFERENZ_SHA256, (
         "Die Finalisierung aus denselben Checkpoints ergibt nicht mehr "
         f"{REFERENZ_SHA256}. Entweder ist sie nicht mehr deterministisch, oder die "
-        "Checkpoints unter build/layers/ haben sich geändert."
+        "Checkpoints unter derived/layers/ haben sich geändert."
     )

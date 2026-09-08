@@ -3,7 +3,7 @@
 Single source of truth for the polygons behind the reference band
 ``official_wind_zoning`` (Positivzonen). Both Abschichtung pipelines
 (``scripts/main/create_osm_wka_distance_zones.py`` and
-``windkraft/calc/abschichtung_common.py``) load through :func:`load_wind_zones`,
+``calc/abschichtung_common.py``) load through :func:`load_wind_zones`,
 so a new Bundesland only has to be registered in :data:`WIND_ZONE_SOURCES`.
 
 Das Band ist ein reines Referenz-Overlay — es schränkt die berechnete

@@ -12,7 +12,7 @@ Namen, unverändert:
 
 ## Warum "Widmung" und "Häuser im Grünen" EIN Paket sind, nicht zwei
 
-``windkraft/calc/hig_source_masks.py:widmung_seed()`` (Zeile ~70-75)
+``calc/hig_source_masks.py:widmung_seed()`` (Zeile ~70-75)
 verundet die drei Widmungs-Buckets (``official_settlement_source``,
 ``official_hig_source``, ``ferienhaus_tourismus_source``) zu einer
 Vereinigung. Diese Vereinigung geht als Eingabe in
@@ -33,38 +33,39 @@ wie im Originalskript.
 
 Anders als W2.3 (``pipeline/layers/osm.py``) und W2.4
 (``pipeline/layers/geo.py``) liest ``build_sources()`` unten KEINEN der 33
-Checkpoints aus ``output/abschichtung_widmung_v2/distance_layers`` - alle
-Eingaben sind entweder Prep-Ausgaben oder zur Laufzeit berechnete
-Zwischenwerte derselben Ausführung. Diese Datei kennt deshalb nur EIN
-Ausgabeverzeichnis (``--out-dir``, Default ``pipeline.contract.BUILD_LAYERS``
-= ``build/layers/``), keine ``--source-dir``/``--layer-dir``-Zweiteilung wie
+Checkpoints aus einem separaten Quellverzeichnis (vormals
+``output/abschichtung_widmung_v2/distance_layers``, seit W6.1 nicht mehr im
+Repo) - alle Eingaben sind entweder Prep-Ausgaben oder zur Laufzeit
+berechnete Zwischenwerte derselben Ausführung. Diese Datei kennt deshalb nur EIN
+Ausgabeverzeichnis (``--out-dir``, Default ``pipeline.contract.DERIVED_LAYERS``
+= ``derived/layers/``), keine ``--source-dir``/``--layer-dir``-Zweiteilung wie
 bei W2.3/W2.4.
 
-## Der eigentliche Zweck: build/prep/ statt eines fremden Zwischenstands
+## Der eigentliche Zweck: derived/prep/ statt eines fremden Zwischenstands
 
 ``02_build_hig_sources.py`` liest heute vier Rohquellen, die diese Datei
 jetzt aus der Prep-Stufe bezieht:
 
-    zoning_masks()          -> build/prep/widmung/{wohn_misch,
+    zoning_masks()          -> derived/prep/widmung/{wohn_misch,
                                haeuser_im_gruenen,industrie_negativ}_combined.gpkg
                                (pipeline/prep/widmung.py, W1.P4) statt
                                --zoning-dir (vormals
                                output/abschichtung_widmung_v2/zoning_vectors,
                                ein Zwischenstand aus 01_build_official_zoning_layers.py)
-    noe_pdf_mask()           -> build/prep/noe_sekrop/b_vectorize/pdf_750m_*.geojson
+    noe_pdf_mask()           -> derived/prep/noe_sekrop/b_vectorize/pdf_750m_*.geojson
                                (pipeline/prep/noe_sekrop.py, W1.P9) statt
                                --noe-dir (vormals output/noe)
-    scan_dkm_candidates()    -> build/prep/kataster/b_export_parquet/
+    scan_dkm_candidates()    -> derived/prep/kataster/b_export_parquet/
                                at_dkm_gst_nfl_epsg31287.geoparquet
                                (pipeline/prep/kataster/b_export_parquet.py,
                                W1.P2) statt --dkm-parquet (vormals
                                output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet)
     load_address_points(),
-    load_building_points()   -> build/prep/adressen/{adressen_31287,
+    load_building_points()   -> derived/prep/adressen/{adressen_31287,
                                bev_gebaeude_31287}.parquet
                                (pipeline/prep/adressen.py, W1.P3) statt
                                data/adressen direkt - der --cache-dir-Default
-                               war schon vor diesem Paket build/prep/adressen
+                               war schon vor diesem Paket derived/prep/adressen
                                (Fix aus W1.1, siehe dortiger Bericht), ändert
                                sich hier nicht.
 
@@ -84,7 +85,7 @@ Ein Tag ``PREP_FINGERPRINT`` in jedem der sieben Checkpoints, SHA-256 über
 (``_prep_inputs()`` unten: die drei Widmungs-GPKGs, die drei NÖ-PDF-
 GeoJSONs, das Kataster-GeoParquet, die beiden BEV-Parquet-Caches - neun
 Dateien insgesamt). Geprüft über den ``extra_ok``/``extra_tags``-Mechanismus
-von ``layer_done()`` (``windkraft/calc/abschichtung_common.py``), genau wie
+von ``layer_done()`` (``calc/abschichtung_common.py``), genau wie
 bei den neun Prep-Stufen - siehe PLAN.md §12 "Nebenbefund mit Folgen für
 Welle 2" und der Kommentar dazu in ``04_create_distance_zones.py:446-447``.
 Bei Abweichung: neu bauen (die sieben Checkpoints landen in ``missing``,
@@ -101,12 +102,12 @@ Wiederverwendung.
 Nein. ``widmung_sources._ensure_ktn_gpkg()`` (die Cache-Weiche, die nur
 prüft OB die entpackte Datei existiert, nicht ob sich
 ``data/widmung/kaernten/flawi_ktn_gpkg.zip`` seither geändert hat) wird
-ausschließlich von ``windkraft/calc/widmung_sources.py`` selbst aufgerufen,
+ausschließlich von ``calc/widmung_sources.py`` selbst aufgerufen,
 und zwar nur über ``pipeline/prep/widmung.py`` (Paket W1.P4, bereits
 abgeschlossen). Diese Datei hier importiert ``widmung_sources`` nicht und
 ruft auch nichts auf, was es täte - ``zoning_masks()`` (aus
 ``hig_source_masks.py``) liest ausschließlich die bereits fertigen
-``*_combined.gpkg``-Bündel aus ``build/prep/widmung/``. Der eigene
+``*_combined.gpkg``-Bündel aus ``derived/prep/widmung/``. Der eigene
 ``PREP_FINGERPRINT``-Tag dieser Stufe erfasst diese drei GPKGs über
 Größe/Änderungszeit (siehe ``pipeline/fingerprint.py``); sollte die
 Kärnten-Cache-Lücke die Prep-Stufe dazu bringen, ein GPKG mit falschem
@@ -127,7 +128,7 @@ vs. unbewohnt) und jede Sonderbehandlung (NÖ-PDF-Zonen sind bereits
 Objekt+750m und gehen ungepuffert ins Ergebnis) bleibt unangetastet.
 Einzige Änderung: die vier I/O-Vorgabewerte oben (``--zoning-dir``,
 ``--noe-dir``, ``--dkm-parquet``, ``--cache-dir`` zeigen jetzt auf
-``build/prep/`` statt auf Roh-/Zwischenstände) sowie die Zusammenlegung von
+``derived/prep/`` statt auf Roh-/Zwischenstände) sowie die Zusammenlegung von
 ``--layer-dir``/``--out-dir`` zu einem einzigen ``--out-dir`` (siehe oben,
 "Kein externes Quell-Checkpoint-Verzeichnis nötig").
 
@@ -142,7 +143,7 @@ jetzt als Kandidat vollständig - keine Scheibe, keine Hüllen-Mitgliedschaft.
 Riesenflächen MIT mindestens einer eigenen BEV-Adresse behalten das
 bisherige Verhalten unverändert (Scheibe um den Zentroid, kein
 ``representative_point()``). Umgesetzt in
-``windkraft/calc/hig_detection.py:scan_dkm_candidates()`` über den neuen
+``calc/hig_detection.py:scan_dkm_candidates()`` über den neuen
 ``address_xy``-Parameter; ``HIG_MAX_FOOTPRINT_M2`` selbst (10 000 m²) und
 ``HIG_MIN_ADRESSEN`` (5) bleiben unverändert.
 """
@@ -164,8 +165,8 @@ from pipeline import contract, fingerprint, runtime  # noqa: E402
 from pipeline.prep import widmung as prep_widmung  # noqa: E402
 from pipeline.prep.kataster.b_export_parquet import DEFAULT_OUTPUT as KATASTER_PARQUET  # noqa: E402
 
-from windkraft.config import load_config  # noqa: E402
-from windkraft.calc.abschichtung_common import (  # noqa: E402
+from calc.config import load_config  # noqa: E402
+from calc.abschichtung_common import (  # noqa: E402
     HIG_ADDRESS_RADIUS_M,
     HIG_CHAIN_M,
     HIG_FILTER_BUFFER_M,
@@ -178,13 +179,13 @@ from windkraft.calc.abschichtung_common import (  # noqa: E402
     load_grid,
     timed,
 )
-from windkraft.calc.bev_register import (  # noqa: E402
+from calc.bev_register import (  # noqa: E402
     ADDRESS_CACHE_NAME,
     BUILDING_CACHE_NAME,
     load_address_points,
     load_building_points,
 )
-from windkraft.calc.hig_detection import (  # noqa: E402
+from calc.hig_detection import (  # noqa: E402
     HULL_CLASS_BEWOHNT,
     HULL_CLASS_INDUSTRIE,
     HULL_CLASS_UNBEWOHNT,
@@ -198,8 +199,8 @@ from windkraft.calc.hig_detection import (  # noqa: E402
     sample_labels,
     scan_dkm_candidates,
 )
-from windkraft.calc.streusiedlung import chain_hull_params  # noqa: E402
-from windkraft.calc.hig_source_masks import (  # noqa: E402
+from calc.streusiedlung import chain_hull_params  # noqa: E402
+from calc.hig_source_masks import (  # noqa: E402
     NOE_PDF_LAYER_NAMES,
     candidate_filter_mask,
     noe_pdf_mask,
@@ -209,7 +210,9 @@ from windkraft.calc.hig_source_masks import (  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Wortgleich aus scripts/widmung_v2/02_build_hig_sources.py übernommen
-# (Regel 4) - dort Zeilen 76-86.
+# (Regel 4) - dort Zeilen 76-86. Seit W6.1 aus dem Repo entfernt, letzter
+# Stand im Commit f1d00f7 - git show
+# f1d00f7:scripts/widmung_v2/02_build_hig_sources.py.
 # ---------------------------------------------------------------------------
 
 SOURCE_LAYER_NAMES = [
@@ -259,10 +262,13 @@ def _fingerprint_tag() -> str:
 # ---------------------------------------------------------------------------
 # Wortgleich aus 02_build_hig_sources.py:build_sources() übernommen (Regel
 # 4) - einzige Änderung: liest zoning_dir/noe_dir/dkm_parquet/address_dir/
-# cache_dir jetzt aus den (auf build/prep/ umgestellten) Vorgabewerten in
-# parse_args(), statt hartkodierter output/-/data/-Pfade; hig_huellen.gpkg
+# cache_dir jetzt aus den (auf derived/prep/ umgestellten) Vorgabewerten in
+# parse_args(), statt hartkodierter output/-/data/-Pfade (dieses output/
+# existiert seit W6.1 nicht mehr im Repo); hig_huellen.gpkg
 # geht nach ``out_dir`` statt einem separaten ``--out-dir``, siehe
-# Moduldocstring.
+# Moduldocstring. 02_build_hig_sources.py selbst ist seit W6.1 aus dem Repo
+# entfernt, letzter Stand im Commit f1d00f7 - git show
+# f1d00f7:scripts/widmung_v2/02_build_hig_sources.py.
 # ---------------------------------------------------------------------------
 
 
@@ -378,7 +384,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         description=(
             "Layer-Stufe W2.1: Widmung und Häuser im Grünen - die sieben "
             "Checkpoints aus scripts/widmung_v2/02_build_hig_sources.py, "
-            "Eingaben aus build/prep/ statt output/kataster/ bzw. output/noe/ "
+            "Eingaben aus derived/prep/ statt output/kataster/ bzw. output/noe/ "
             "bzw. dem Widmungs-Zwischenstand."
         )
     )
@@ -409,7 +415,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--out-dir",
         default=None,
         help="Ziel für die sieben eigenen Checkpoints + hig_huellen.gpkg. "
-             "Default: pipeline.contract.BUILD_LAYERS (build/layers/).",
+             "Default: pipeline.contract.DERIVED_LAYERS (derived/layers/).",
     )
     p.add_argument("--bbox", default=None, help="EPSG:31287 bbox minx,miny,maxx,maxy für Smoke-Tests")
     p.add_argument("--bl", action="append", default=None, help="Nur diese Bundesländer scannen (wiederholbar)")
@@ -429,7 +435,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 
 def _params_tag(args: argparse.Namespace) -> dict[str, str]:
-    """Wortgleich aus 02_build_hig_sources.py:_params_tag() (Regel 4)."""
+    """Wortgleich aus ``02_build_hig_sources.py:_params_tag()`` (Regel 4;
+    seit W6.1 aus dem Repo entfernt; letzter Stand im Commit ``f1d00f7``,
+    abrufbar mit ``git show f1d00f7:scripts/widmung_v2/02_build_hig_sources.py``)."""
     return {
         "HIG_FILTER_BUFFER_M": f"{args.filter_buffer_m:g}",
         "HIG_CHAIN_M": f"{args.chain_m:g}",
@@ -451,7 +459,7 @@ def main(argv: list[str] | None = None) -> None:
         cfg = load_config(args.config)
         grid = load_grid(cfg, args.bbox)
 
-    out_dir = Path(args.out_dir) if args.out_dir else contract.BUILD_LAYERS
+    out_dir = Path(args.out_dir) if args.out_dir else contract.DERIVED_LAYERS
     runtime.ensure_dir(out_dir)
 
     tags = {**_params_tag(args), "PREP_FINGERPRINT": _fingerprint_tag()}
@@ -459,7 +467,7 @@ def main(argv: list[str] | None = None) -> None:
     def _tags_ok(existing: dict) -> bool:
         return all(existing.get(k) == v for k, v in tags.items())
 
-    with timed("build/update HiG checkpoint layers"):
+    with timed("derived/update HiG checkpoint layers"):
         ensure_group_layers(
             out_dir,
             SOURCE_LAYER_NAMES,

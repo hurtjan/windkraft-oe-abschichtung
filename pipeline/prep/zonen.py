@@ -4,7 +4,7 @@ Quelle NÖ erweitert - Punkt 22 in ``docs/rewrite/FORTSCHRITT.md``, ebenfalls
 
 Liest die fünf Positivzonen-Quellen, die heute in Band
 ``official_wind_zoning`` einfließen - vier über
-``windkraft.calc.wind_zones.WIND_ZONE_SOURCES`` (siehe dessen Moduldocstring:
+``calc.wind_zones.WIND_ZONE_SOURCES`` (siehe dessen Moduldocstring:
 die frühere Ausschlusszonen-Registrierung - Negativband
 ``official_wind_exclusion_zoning``, ``load_wind_exclusion_zones()``,
 ``WIND_EXCLUSION_ZONE_SOURCES`` - ist in W1.5 entfernt worden, weil das Band
@@ -48,7 +48,7 @@ laufende Funktion nicht hat, wäre eine Verbesserung und keine Überführung
 (Regel 4).
 
 Die Lese-/Filter-/CRS-Logik der vier ``WIND_ZONE_SOURCES``-Quellen ist hier
-bewusst UNABHÄNGIG von ``windkraft/calc/wind_zones.py`` nachgebaut (kein
+bewusst UNABHÄNGIG von ``calc/wind_zones.py`` nachgebaut (kein
 Import von dort) - der Gleichheitsnachweis in der Abnahme vergleicht zwei
 getrennte Lesungen derselben Rohdaten, nicht dieselbe Funktion mit sich
 selbst. Für die NÖ-Quelle war der stärkere Nachweis möglich (vgl. W1.P1 vs.
@@ -100,7 +100,7 @@ from pipeline import contract, fingerprint, runtime
 
 TARGET_CRS = "EPSG:31287"
 
-# Muss zu windkraft.calc.wind_zones.WIND_ZONE_SOURCES (Bgld-Eintrag) passen -
+# Muss zu calc.wind_zones.WIND_ZONE_SOURCES (Bgld-Eintrag) passen -
 # absichtlich hier neu erklärt statt importiert, siehe Moduldocstring.
 BGLD_FILTER_FIELD = "Status"
 BGLD_KEEP_PREFIX = "Eignungszone"

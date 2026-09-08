@@ -7,7 +7,7 @@ PLAN.md §4) genau einmal und schreibt die Ableitung nach
 (``schutzgebiete.gpkg``) mit den Geometrien der vier Schutzgebietslayer,
 in EPSG:31287.
 
-Was heute tatsächlich gelesen wird (``windkraft/calc/abschichtung_common.py``,
+Was heute tatsächlich gelesen wird (``calc/abschichtung_common.py``,
 ``_build_official_nature_mask``, Zeile ~1160-1194) - dieses Modul baut
 GENAU das nach, nicht mehr:
 

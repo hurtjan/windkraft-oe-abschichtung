@@ -1,4 +1,4 @@
-"""Erzeugt build/- und out/-Verzeichnisse bei Bedarf.
+"""Erzeugt derived/- und out/-Verzeichnisse bei Bedarf.
 
 ``pipeline/contract.py`` beschreibt nur - kein Dateizugriff, kein ``mkdir``
 beim Import (siehe dessen Modul-Docstring). Das Anlegen der Verzeichnisse
@@ -8,7 +8,7 @@ auslöst, weil dieses Modul nur beim tatsächlichen Schreiben importiert wird.
 Aufrufer (Prep-, Layer- und Finalize-Stufen ab Welle 1) rufen ``ensure_dir``
 bzw. ``ensure_parent`` für jeden Pfad, in den sie tatsächlich schreiben -
 nicht pauschal für den ganzen Baum. Heute (W0.3) hat noch niemand einen
-Schreibzugriff auf ``build/`` oder ``out/``; dieses Modul legt nur die
+Schreibzugriff auf ``derived/`` oder ``out/``; dieses Modul legt nur die
 Grundlage, die die späteren Pakete nutzen.
 """
 

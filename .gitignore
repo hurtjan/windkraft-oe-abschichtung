@@ -1,9 +1,10 @@
 /data/*
 
-# Erzeugte Bäume der neuen Kette (docs/rewrite/PLAN.md §3): build/ ist
+# Erzeugte Bäume der neuen Kette (docs/rewrite/PLAN.md §3): derived/ ist
 # jederzeit löschbar, out/ enthält genau vier Produkte. Beides entsteht
 # zur Laufzeit über pipeline/runtime.py, nicht als leerer .gitkeep-Ordner.
-/build/
+# (bis W6.2 hiess dieses Verzeichnis build/)
+/derived/
 /out/
 
 __pycache__/

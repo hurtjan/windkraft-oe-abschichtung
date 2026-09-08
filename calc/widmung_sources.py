@@ -35,7 +35,11 @@ from pathlib import Path
 import geopandas as gpd
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[2]
+# W6.2: parents[1], nicht mehr parents[2] - diese Datei lag bis W6.2 unter
+# windkraft/calc/ (zwei Ebenen unter der Repo-Wurzel), seit der inneren
+# Ebene aufgeloest liegt sie unter calc/ (nur noch eine Ebene). Ohne diese
+# Korrektur zeigt ROOT eine Ebene zu hoch, ausserhalb des Repos.
+ROOT = Path(__file__).resolve().parents[1]
 WIDMUNG = ROOT / "data" / "widmung"
 
 WORK_CRS = "EPSG:31287"

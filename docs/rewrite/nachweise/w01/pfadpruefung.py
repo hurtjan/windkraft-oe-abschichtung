@@ -87,7 +87,7 @@ print("=" * 70)
 import sys
 sys.path.insert(0, str(ROOT))
 try:
-    from windkraft.calc import widmung_sources as ws
+    from calc import widmung_sources as ws
     print(f"  WIDMUNG root = {ws.WIDMUNG}")
     for key in ws.DATASETS:
         if key == "ktn":

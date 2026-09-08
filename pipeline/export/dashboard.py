@@ -7,7 +7,7 @@ Der eigentliche interaktive Viewer für das Widmung-v2-Ergebnis lebt nicht
 in diesem Repo, sondern auf der Konsumentenseite ("Dashboard-Repo",
 ``scripts/band_manifest.py`` auf Branch ``feat/band-manifest`` dort - siehe
 ``docs/HANDOFF.md``). Dieses Modul ist die **Prüfstufe** der Welle 4
-(``pipeline/verify/``): es liest ``out/abschichtung.bands.json`` und
+(``pipeline/export/``): es liest ``out/abschichtung.bands.json`` und
 schreibt einen Bericht (JSON + HTML) unter ``out/dashboard/``, der zeigt,
 was im Manifest steht, gruppiert nach ``rolle`` (WAS ein Band ist -
 Bedingung, Aggregat, Verfügbarkeit, Unschärfe, Referenz) und nach
@@ -149,7 +149,7 @@ def _validate_manifest_shape(manifest: dict) -> list[str]:
 
 def _impact_path_keys(manifest: dict) -> list[str]:
     """Alle Top-Level-Schlüssel, die der ``..._wirkungspfad``-Konvention aus
-    dem Manifest-Schema folgen (siehe windkraft/calc/band_manifest.py,
+    dem Manifest-Schema folgen (siehe calc/band_manifest.py,
     Schema-Historie - Schema 2.0.0 führte den ersten dieser Schlüssel ein,
     2.1.0 einen zweiten; der heutige Manifest-Erzeuger trägt dort inzwischen
     zwei solcher Schlüssel ein). Über das Namens-SUFFIX gefunden, nicht über

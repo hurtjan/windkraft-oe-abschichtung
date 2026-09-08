@@ -4,7 +4,7 @@
 # Keine Umformung, nur Gitterprüfung: pipeline/prep/terrain.py liest die
 # beiden Rohraster aus contract.RAW["gelaende"], schreibt einen
 # menschenlesbaren Prüfbericht und den gemeinsamen Fingerabdruck nach
-# contract.PREP["gelaende"] (build/prep/gelaende/) - kein neues TIF.
+# contract.PREP["gelaende"] (derived/prep/gelaende/) - kein neues TIF.
 
 .PHONY: prep-gelaende
 prep-gelaende:

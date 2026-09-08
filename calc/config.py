@@ -46,8 +46,9 @@ def load_config(path=None):
         paths[key] = os.path.relpath(abs_path, start=config_dir)
 
     # data_dir/output_dir bleiben JSON-Literale: kein Konsument (siehe
-    # PLAN.md §11.1) und kein Teil des Vertrags - output_dir ist der
-    # bestehende output/-Baum, nicht das künftige out/ aus
+    # PLAN.md §11.1) und kein Teil des Vertrags - output_dir zeigte
+    # historisch auf den damaligen output/-Baum (seit W6.1 nicht mehr im
+    # Repo), nicht auf das inzwischen tatsächliche out/ aus
     # pipeline.contract.PRODUCTS.
     for key in ("data_dir", "output_dir"):
         paths[key] = str(config_dir / paths[key])

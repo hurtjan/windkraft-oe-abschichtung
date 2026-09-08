@@ -1,13 +1,13 @@
 """Prep: Adressregister (Paket W1.P3, docs/rewrite/PLAN.md §7, §4).
 
-Vorgeschichte (siehe Docstring von ``windkraft/calc/bev_register.py`` und
+Vorgeschichte (siehe Docstring von ``calc/bev_register.py`` und
 PLAN.md §7, Paket W1.1): Bis W1.1 hatte ``bev_register.py`` eine
 Cache-Weiche, die den aus ``cache_dir`` berechneten Pfad überschrieb, sobald
 die Cache-Datei direkt in ``data_dir`` lag - nach dem ersten produktiven
 Lauf also immer. ``cache_dir`` war damit wirkungslos, der Cache landete
 still im Rohdatenbaum. Seit W1.1 gilt ``cache_dir or
 contract.PREP["adressen"]`` - der Parameter wirkt tatsächlich, und beide
-Parquet-Dateien entstehen unter ``build/prep/adressen/``.
+Parquet-Dateien entstehen unter ``derived/prep/adressen/``.
 
 Was bis hierher fehlte: ein **eigener, aufrufbarer Schritt**. Ohne dieses
 Paket entsteht der Cache nur als Nebenprodukt des ersten Kettenlaufs, der
@@ -15,7 +15,7 @@ zufällig ``load_address_points``/``load_building_points`` aufruft - kein
 Fingerabdruck, kein Nachweis, dass die Eingabe seither unverändert ist.
 
 Diese Stufe ruft deshalb genau die **tatsächlich laufenden** Funktionen aus
-``windkraft/calc/bev_register.py`` auf (``load_address_points``,
+``calc/bev_register.py`` auf (``load_address_points``,
 ``load_building_points``, unverändert - siehe Abgrenzung im Bericht zu
 W1.P3) - mit ``rebuild=True``, damit ein Prep-Lauf den Cache-Stand
 tatsächlich neu erzeugt statt nur einen vorhandenen Treffer zu lesen - und

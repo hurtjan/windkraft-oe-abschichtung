@@ -3,12 +3,13 @@
 # Fingerabdruck-Konvention, Kopplung Widmung/Häuser-im-Grünen).
 #
 # Anders als W2.3/W2.4 kennt diese Stufe kein geteiltes, read-only
-# Quell-Checkpoint-Verzeichnis - sie liest ausschließlich aus build/prep/
+# Quell-Checkpoint-Verzeichnis - sie liest ausschließlich aus derived/prep/
 # (widmung/, kataster/, adressen/, noe_sekrop/) und schreibt ihre sieben
-# eigenen Checkpoints nach pipeline.contract.BUILD_LAYERS (build/layers/),
+# eigenen Checkpoints nach pipeline.contract.DERIVED_LAYERS (derived/layers/),
 # privat in diesem Worktree. Kein --force-layers berührt jemals
-# output/abschichtung_widmung_v2/distance_layers/ (das geteilte
-# Referenzverzeichnis) - dorthin schreibt dieses Ziel nie.
+# output/abschichtung_widmung_v2/distance_layers/ (historisch das geteilte
+# Referenzverzeichnis, seit W6.1 nicht mehr im Repo) - dorthin schreibt
+# dieses Ziel nie.
 
 .PHONY: layer-hig
 layer-hig:

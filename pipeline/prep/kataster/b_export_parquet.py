@@ -9,7 +9,8 @@ Salzburg, Steiermark, Tirol, Vorarlberg, Wien) direkt aus
 wiederholen - genau die Trennung, die PLAN.md §4 für diese Domäne nennt:
 "billigerer Parquet-Export" getrennt von der teuren NÖ-Rekonstruktion).
 Schreibt das kombinierte GeoParquet - Feldschema identisch zum bisherigen
-``output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet`` - unter
+``output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet`` (historisch,
+existiert seit W6.1 nicht mehr im Repo) - unter
 ``contract.PREP["kataster"]["b_export_parquet"]``.
 
 Verschoben, unverändert in der Verarbeitungslogik, aus
@@ -45,9 +46,10 @@ from pipeline.prep.kataster.common import (
 )
 
 PREP_DIR = contract.PREP["kataster"]["b_export_parquet"]
-# Gleicher Dateiname wie das bisherige Ziel (output/kataster/…) - nur der
-# Ort hat sich geändert (PLAN.md §8 Regel 2: Prep-Ausgaben liegen unter
-# build/prep/, nicht mehr unter output/).
+# Gleicher Dateiname wie das bisherige Ziel (output/kataster/…, historisch,
+# existiert seit W6.1 nicht mehr im Repo) - nur der Ort hat sich geändert
+# (PLAN.md §8 Regel 2: Prep-Ausgaben liegen unter derived/prep/, nicht mehr
+# unter output/).
 DEFAULT_OUTPUT = PREP_DIR / "at_dkm_gst_nfl_epsg31287.geoparquet"
 DEFAULT_SUMMARY_CSV = PREP_DIR / "at_dkm_gst_nfl_epsg31287_summary.csv"
 DEFAULT_OVERVIEW_MD = PREP_DIR / "at_dkm_gst_nfl_epsg31287_overview.md"

@@ -8,7 +8,7 @@ A  **Filter** - ``dilate(amtl. Siedlung ∪ HiG-Widmung ∪ Ferienhaus-Widmung, 
 
 B  **Hüllen** - DKM-Bauflächen außerhalb des Filters werden rasterisiert und
    morphologisch geschlossen (100 m Dilation, 65 m Erosion ≙ 200-m-Verkettung,
-   Default HIG_CHAIN_M in windkraft/calc/abschichtung_common.py, per
+   Default HIG_CHAIN_M in calc/abschichtung_common.py, per
    --chain-m/chain_hull_params() konfigurierbar). Bewusst OHNE Mindestgröße:
    auch ein einzelnes Haus bildet eine Hülle.
 
@@ -47,8 +47,8 @@ from scipy import ndimage
 from scipy.spatial import cKDTree
 from shapely import from_wkb
 
-from windkraft.calc.bev_register import industrial_flags, residential_flags
-from windkraft.calc.distance_engine import fft_circle_dilation, ns_kind
+from calc.bev_register import industrial_flags, residential_flags
+from calc.distance_engine import fft_circle_dilation, ns_kind
 
 # DKM-Layer und Nutzungsschlüssel der Bauflächen/Gärten. NFL_DXF_POLYGONIZED ist
 # die NÖ-Variante (aus DXF polygonisiert) - siehe MAX_FOOTPRINT_M2 unten.
@@ -458,7 +458,7 @@ def hull_polygons(labels: np.ndarray, hull_mask: np.ndarray, hull_frame: pd.Data
     from rasterio.features import shapes as rio_shapes
     from shapely.geometry import shape as shapely_shape
 
-    from windkraft.calc.abschichtung_common import TARGET_CRS
+    from calc.abschichtung_common import TARGET_CRS
 
     if not hull_mask.any() or hull_frame.empty:
         return gpd.GeoDataFrame(geometry=[], crs=TARGET_CRS)

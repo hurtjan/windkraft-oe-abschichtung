@@ -10,7 +10,7 @@ Regel, wortgleich aus dem Auftrag:
 * Unter der Schwelle -> in jeder Hinsicht unveraendert, unabhaengig von
   Adressen.
 
-Getestet direkt gegen scan_dkm_candidates() (windkraft/calc/hig_detection.py)
+Getestet direkt gegen scan_dkm_candidates() (calc/hig_detection.py)
 - derselbe DKM-Scan, den pipeline/layers/hig.py::build_sources() aufruft,
   seit W5.P2 mit dem neuen address_xy-Parameter.
 """
@@ -31,8 +31,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from windkraft.calc.abschichtung_common import TARGET_CRS  # noqa: E402
-from windkraft.calc.hig_detection import scan_dkm_candidates  # noqa: E402
+from calc.abschichtung_common import TARGET_CRS  # noqa: E402
+from calc.hig_detection import scan_dkm_candidates  # noqa: E402
 
 CELL_M = 25.0
 MAX_FOOTPRINT_M2 = 10_000.0  # HIG_MAX_FOOTPRINT_M2, unveraendert (Regel 4)
