@@ -70,6 +70,7 @@ unverändert miterzeugt, wie die Abnahme in PLAN.md §7 es verlangt
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 import fitz  # PyMuPDF
@@ -139,7 +140,7 @@ def _shapefile_sidecars(shp_path: Path) -> list[Path]:
 # ---------------------------------------------------------------------------
 
 
-def run_align() -> Path:
+def run_align(force: bool = False) -> Path:
     """Georeferenziert die Kartenseite: vier GPTS-Eckpunkte (MGI) ->
     EPSG:31287, affine Pixel<->Geo-Transformation. Schreibt
     ``alignment_mindestabstand.json`` nach ``contract.PREP["noe_sekrop"]
@@ -148,8 +149,21 @@ def run_align() -> Path:
     Rendert das PDF absichtlich NICHT als Bild (siehe Moduldokstring,
     Abweichung 1) - die Zahlen unten hängen nur an ``page.rect.height``
     und der festen Viewport-BBox.
+
+    Selbst-Ueberspringer, gleiches Muster wie pipeline/prep/osm.py
+    (run_extract/run_layers): ein wiederholter `make all` ohne
+    Eingabeaenderung soll diese Stufe nicht neu rechnen (Punkt 52,
+    docs/rewrite/PLAN.md). `--force` erzwingt einen Neulauf.
     """
     runtime.ensure_dir(ALIGN_DIR)
+
+    out_path = ALIGN_DIR / ALIGNMENT_FILENAME
+    if not force and out_path.exists() and fingerprint.matches(ALIGN_DIR, [PDF_PATH]):
+        print(
+            f"[skip]  prep-noe-sekrop a_align: Fingerabdruck unveraendert -> {out_path}",
+            flush=True,
+        )
+        return out_path
 
     doc = fitz.open(PDF_PATH)
     page = doc[0]
@@ -209,7 +223,6 @@ def run_align() -> Path:
         "pixel_corners": [list(p) for p in pixel_corners],
     }
 
-    out_path = ALIGN_DIR / ALIGNMENT_FILENAME
     out_path.write_text(
         json.dumps(alignment_data, indent=2, ensure_ascii=False), encoding="utf-8"
     )
@@ -419,7 +432,7 @@ def _load_align(align: dict | None) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def run_vectorize(align: dict | None = None) -> Path:
+def run_vectorize(align: dict | None = None, force: bool = False) -> Path:
     """Filtert die PDF-Vektorpfade nach Farbe, rekonstruiert Geometrie,
     clippt auf NÖ und schreibt sechs GeoJSON-Layer nach
     ``contract.PREP["noe_sekrop"]["b_vectorize"]``.
@@ -428,8 +441,37 @@ def run_vectorize(align: dict | None = None) -> Path:
     durchgereicht) - ohne Vorgabe wird das Ergebnis von Stufe a von der
     Platte gelesen (harte Vorbedingung, siehe ``_load_align``), damit die
     Stufe auch unabhängig aufrufbar bleibt.
+
+    Selbst-Ueberspringer, gleiches Muster wie pipeline/prep/osm.py
+    (run_extract/run_layers): ein wiederholter `make all` ohne
+    Eingabeaenderung soll diese Stufe nicht neu rechnen (Punkt 52,
+    docs/rewrite/PLAN.md). `--force` erzwingt einen Neulauf. Der
+    Fingerabdruck deckt neben PDF und NÖ-Grenze auch das Alignment-Ergebnis
+    von Stufe a ab (``ALIGN_DIR / ALIGNMENT_FILENAME``) - eine geaenderte
+    Stufe-a-Ausgabe hebt den Ueberspringer hier also mit auf, obwohl sie
+    nicht unter ``data/`` liegt.
     """
     runtime.ensure_dir(VECTORIZE_DIR)
+
+    vectorize_inputs = [
+        PDF_PATH, VGD_PATH, *_shapefile_sidecars(VGD_PATH), ALIGN_DIR / ALIGNMENT_FILENAME,
+    ]
+    output_paths = []
+    for _key, (_color, base, _dissolve) in LAYERS.items():
+        output_paths.append(VECTORIZE_DIR / f"{base}.geojson")
+        output_paths.append(VECTORIZE_DIR / f"{base}_wgs84.geojson")
+
+    if (
+        not force
+        and all(p.exists() for p in output_paths)
+        and fingerprint.matches(VECTORIZE_DIR, vectorize_inputs)
+    ):
+        print(
+            f"[skip]  prep-noe-sekrop b_vectorize: Fingerabdruck unveraendert -> {VECTORIZE_DIR}",
+            flush=True,
+        )
+        return VECTORIZE_DIR
+
     align = _load_align(align)
     crs = align["crs"]
     scale = align["render_dpi"] / 72.0
@@ -464,10 +506,7 @@ def run_vectorize(align: dict | None = None) -> Path:
             written.append(out_path)
     doc.close()
 
-    fingerprint.write(
-        VECTORIZE_DIR,
-        [PDF_PATH, VGD_PATH, *_shapefile_sidecars(VGD_PATH), ALIGN_DIR / ALIGNMENT_FILENAME],
-    )
+    fingerprint.write(VECTORIZE_DIR, vectorize_inputs)
     print(
         f"[done]  prep-noe-sekrop b_vectorize: {len(written)} Layer -> {VECTORIZE_DIR}",
         flush=True,
@@ -475,15 +514,15 @@ def run_vectorize(align: dict | None = None) -> Path:
     return VECTORIZE_DIR
 
 
-def run() -> tuple[Path, Path]:
+def run(force: bool = False) -> tuple[Path, Path]:
     """Beide Stufen nacheinander (Stufe b liest das Alignment direkt aus dem
     Rückgabewert von Stufe a, nicht erneut von der Platte - beide laufen
     hier im selben Prozess)."""
-    run_align()
+    run_align(force=force)
     align = json.loads((ALIGN_DIR / ALIGNMENT_FILENAME).read_text(encoding="utf-8"))
-    run_vectorize(align)
+    run_vectorize(align, force=force)
     return ALIGN_DIR, VECTORIZE_DIR
 
 
 if __name__ == "__main__":
-    run()
+    run(force="--force" in sys.argv[1:])

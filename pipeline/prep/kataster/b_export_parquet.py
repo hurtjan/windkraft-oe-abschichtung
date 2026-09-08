@@ -99,11 +99,37 @@ def main() -> None:
     output_path = runtime.ensure_parent(Path(args.output))
     summary_csv = Path(args.summary_csv)
     overview_md = Path(args.overview_md)
-    for path in (output_path, summary_csv, overview_md):
-        if path.exists() and not args.overwrite:
-            raise SystemExit(f"{path} already exists; pass --overwrite")
-
     noe_stage_output = Path(args.noe_stage_output)
+    symbol_csv = contract.RAW["kataster"]["symbol_csv"]
+    shp_inputs = [contract.RAW["kataster"][archive.raw_key] for archive in DEFAULT_SHP_ARCHIVES]
+
+    # Selbst-Ueberspringer, gleiches Muster wie pipeline/prep/osm.py
+    # (run_extract/run_layers): ein wiederholter `make all` ohne
+    # Eingabeaenderung soll diese Stufe nicht neu rechnen, statt hart
+    # abzubrechen (Punkt 52, docs/rewrite/PLAN.md). Nur auf einem
+    # vollstaendigen Lauf (keine der Teillauf-Flags) - ein Teillauf schreibt
+    # ohnehin keinen Fingerabdruck (siehe unten).
+    full_run = not (args.only_bundesland or args.max_inner_zips_per_archive or args.skip_shp or args.skip_noe)
+    if (
+        not args.overwrite
+        and full_run
+        and output_path.exists()
+        and summary_csv.exists()
+        and overview_md.exists()
+        and fingerprint.matches(PREP_DIR, [*shp_inputs, symbol_csv, noe_stage_output])
+    ):
+        print(f"[skip]  prep-kataster-b: Fingerabdruck unveraendert -> {output_path}", flush=True)
+        return
+
+    # Kein "already exists"-Abbruch mehr an dieser Stelle (vor Punkt 52
+    # `raise SystemExit(... pass --overwrite)`): der Selbst-Ueberspringer
+    # oben hat bereits entschieden, ob ein Neulauf noetig ist - wer bis
+    # hierher kommt, WILL neu rechnen (geaenderter Fingerabdruck,
+    # --overwrite, oder ein Teillauf), und genau das ist der Zweck von
+    # "make all laeuft wiederholt ohne manuelles Eingreifen" (Punkt 52). Ein
+    # zusaetzlicher, manueller --overwrite waere hier ein Widerspruch zum
+    # Selbst-Ueberspringer, keine zusaetzliche Sicherheit.
+
     if not args.skip_noe and not noe_stage_output.exists():
         raise SystemExit(
             f"Stufe a (a_noe_polygonize) ist noch nicht gelaufen - {noe_stage_output} fehlt. "
@@ -120,9 +146,6 @@ def main() -> None:
             "möglicherweise nicht vollständig/aktuell.",
             flush=True,
         )
-
-    symbol_csv = contract.RAW["kataster"]["symbol_csv"]
-    shp_inputs = [contract.RAW["kataster"][archive.raw_key] for archive in DEFAULT_SHP_ARCHIVES]
 
     t0 = time.time()
     summary = Summary()

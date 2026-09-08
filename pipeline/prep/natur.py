@@ -59,6 +59,7 @@ Umstellung auf dieses Prep-Ergebnis ist Aufgabe von Welle 2 (PLAN.md §3).
 from __future__ import annotations
 
 import json
+import sys
 import tempfile
 import zipfile
 from pathlib import Path
@@ -93,10 +94,26 @@ def _read_gpkg_member_and_layers() -> tuple[str, list[str]]:
     return paths["nsg_gpkg"], list(paths["nsg_layers"])
 
 
-def run() -> Path:
+def run(force: bool = False) -> Path:
     zip_path = contract.RAW["natur"]["nsg_zip"]
     out_dir = contract.PREP["natur"]
     runtime.ensure_dir(out_dir)
+
+    # CONFIG_PATH zaehlt zum Fingerabdruck mit, nicht nur zip_path: diese
+    # Stufe liest daraus tatsaechlich ``nsg_gpkg``/``nsg_layers`` (siehe
+    # ``_read_gpkg_member_and_layers``) - aendert sich die Layerauswahl dort,
+    # ohne dass sich das ZIP aendert, waere ein reiner zip_path-Fingerabdruck
+    # blind dafuer.
+    inputs = [zip_path, CONFIG_PATH]
+    out_path = out_dir / OUTPUT_FILENAME
+
+    # Selbst-Ueberspringer, gleiches Muster wie pipeline/prep/osm.py
+    # (run_extract/run_layers): ein wiederholter `make all` ohne
+    # Eingabeaenderung soll diese Stufe nicht neu rechnen (Punkt 52,
+    # docs/rewrite/PLAN.md). `--force` erzwingt einen Neulauf.
+    if not force and out_path.exists() and fingerprint.matches(out_dir, inputs):
+        print(f"[skip]  prep-natur: Fingerabdruck unveraendert -> {out_dir}", flush=True)
+        return out_dir
 
     gpkg_member, layer_names = _read_gpkg_member_and_layers()
 
@@ -118,10 +135,9 @@ def run() -> Path:
     ]
     schutzgebiete = schutzgebiete.to_crs(TARGET_CRS)
 
-    out_path = out_dir / OUTPUT_FILENAME
     schutzgebiete.to_file(out_path, driver="GPKG")
 
-    fingerprint.write(out_dir, [zip_path])
+    fingerprint.write(out_dir, inputs)
 
     print(
         f"[done]  prep-natur: {len(schutzgebiete)} Schutzgebietsflächen "
@@ -132,4 +148,4 @@ def run() -> Path:
 
 
 if __name__ == "__main__":
-    run()
+    run(force="--force" in sys.argv[1:])

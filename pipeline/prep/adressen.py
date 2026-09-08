@@ -38,10 +38,11 @@ dieser Welle - die Konsumenten bleiben, wie W1.1 sie hinterlassen hat) und
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 from pipeline import contract, fingerprint, runtime
-from windkraft.calc import bev_register
+from calc import bev_register
 
 
 def _resolved_csv_input(data_dir: Path, name: str) -> Path:
@@ -63,13 +64,10 @@ def _resolved_csv_input(data_dir: Path, name: str) -> Path:
     return archive
 
 
-def run() -> Path:
+def run(force: bool = False) -> Path:
     data_dir = contract.RAW["adressen"]["address_dir"]
     out_dir = contract.PREP["adressen"]
     runtime.ensure_dir(out_dir)
-
-    address_points = bev_register.load_address_points(data_dir, cache_dir=out_dir, rebuild=True)
-    building_points = bev_register.load_building_points(data_dir, cache_dir=out_dir, rebuild=True)
 
     inputs = sorted(
         {
@@ -77,6 +75,26 @@ def run() -> Path:
             _resolved_csv_input(data_dir, bev_register.BUILDING_CSV),
         }
     )
+    address_path = out_dir / bev_register.ADDRESS_CACHE_NAME
+    building_path = out_dir / bev_register.BUILDING_CACHE_NAME
+
+    # Selbst-Ueberspringer, gleiches Muster wie pipeline/prep/osm.py
+    # (run_extract/run_layers): ein wiederholter `make all` ohne
+    # Eingabeaenderung soll diese Stufe nicht neu rechnen - insbesondere
+    # nicht das teure ``rebuild=True`` unten (Punkt 52, docs/rewrite/
+    # PLAN.md). `--force` erzwingt einen Neulauf.
+    if (
+        not force
+        and address_path.exists()
+        and building_path.exists()
+        and fingerprint.matches(out_dir, inputs)
+    ):
+        print(f"[skip]  prep-adressen: Fingerabdruck unveraendert -> {out_dir}", flush=True)
+        return out_dir
+
+    address_points = bev_register.load_address_points(data_dir, cache_dir=out_dir, rebuild=True)
+    building_points = bev_register.load_building_points(data_dir, cache_dir=out_dir, rebuild=True)
+
     fingerprint.write(out_dir, inputs)
 
     print(
@@ -88,4 +106,4 @@ def run() -> Path:
 
 
 if __name__ == "__main__":
-    run()
+    run(force="--force" in sys.argv[1:])

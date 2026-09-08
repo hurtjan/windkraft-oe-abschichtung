@@ -205,12 +205,18 @@ def build_report(profiles: dict[str, RasterProfile]) -> str:
     return "\n".join(header) + "\n" + "\n".join(sections)
 
 
-def run() -> Path:
+def run(force: bool = False) -> Path:
     """Liest beide Rohraster aus ``contract.RAW["gelaende"]``, schreibt den
     Prüfbericht und den Fingerabdruck nach ``contract.PREP["gelaende"]``.
 
     Schreibt nirgends nach ``data/`` - nur lesender Zugriff auf die
-    Rohraster, alle Schreibzugriffe gehen nach ``build/prep/gelaende/``.
+    Rohraster, alle Schreibzugriffe gehen nach ``derived/prep/gelaende/``.
+
+    Selbst-Ueberspringer, gleiches Muster wie pipeline/prep/osm.py
+    (run_extract/run_layers): ein wiederholter `make all` ohne
+    Eingabeaenderung soll diese Stufe nicht neu rechnen (Punkt 52,
+    docs/rewrite/PLAN.md). `force=True` (CLI: `--force`) erzwingt einen
+    Neulauf.
     """
     out_dir = contract.PREP["gelaende"]
     runtime.ensure_dir(out_dir)
@@ -219,17 +225,23 @@ def run() -> Path:
         "DGM_R25.tif (Digitales Geländemodell)": contract.RAW["gelaende"]["dgm"],
         "AUT_power-density_150m.tif (Leistungsdichte 150 m)": contract.RAW["gelaende"]["wind_pd_150"],
     }
+    input_paths = list(inputs.values())
+    report_path = out_dir / REPORT_FILENAME
+
+    if not force and report_path.exists() and fingerprint.matches(out_dir, input_paths):
+        print(f"[skip]  prep-gelaende: Fingerabdruck unveraendert -> {out_dir}", flush=True)
+        return report_path
+
     profiles = {label: read_profile(path) for label, path in inputs.items()}
 
     report_text = build_report(profiles)
-    report_path = out_dir / REPORT_FILENAME
     report_path.write_text(report_text, encoding="utf-8")
 
-    fingerprint.write(out_dir, list(inputs.values()))
+    fingerprint.write(out_dir, input_paths)
 
     return report_path
 
 
 if __name__ == "__main__":
-    path = run()
+    path = run(force="--force" in sys.argv[1:])
     print(f"Prüfbericht geschrieben: {path}")
