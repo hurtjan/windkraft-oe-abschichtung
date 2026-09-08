@@ -330,9 +330,13 @@ def test_cross_check_raster_meldet_fehlende_datei_statt_zu_brechen(tmp_path, fre
 # 5. CLI-Rauchtest (Vorschlag 5).
 # ---------------------------------------------------------------------------
 
-def test_cli_schreibt_json_und_html_und_endet_mit_null(tmp_path, fremdes_manifest):
+def test_cli_schreibt_json_und_endet_mit_null(tmp_path, fremdes_manifest):
     """``main()`` von Anfang bis Ende, ohne Raster und ohne die echten
-    Produktpfade anzufassen: eigenes ``--manifest``, eigenes ``--out``."""
+    Produktpfade anzufassen: eigenes ``--manifest``, eigenes ``--out``.
+
+    Seit Paket W6.7 schreibt dashboard.py kein index.html mehr - das
+    uebernimmt pipeline/export/viewer.py (siehe dessen Docstring und
+    tests/test_export_viewer.py). Diese Pruefstufe bleibt bei report.json."""
     manifest_pfad = tmp_path / "fremd.bands.json"
     manifest_pfad.write_text(json.dumps(fremdes_manifest, ensure_ascii=False), encoding="utf-8")
     out_dir = tmp_path / "dashboard"
@@ -345,9 +349,10 @@ def test_cli_schreibt_json_und_html_und_endet_mit_null(tmp_path, fremdes_manifes
     bericht = json.loads((out_dir / "report.json").read_text(encoding="utf-8"))
     assert bericht["validation"]["ok"] is True
     assert bericht["source_manifest"]["band_count"] == 5
-    html_text = (out_dir / "index.html").read_text(encoding="utf-8")
-    assert html_text.lstrip().startswith("<!DOCTYPE html>")
-    assert "zutat_mehl" in html_text, "Die Bandnamen aus dem Manifest fehlen im HTML."
+    assert not (out_dir / "index.html").exists(), (
+        "dashboard.py soll seit W6.7 kein index.html mehr schreiben - das "
+        "uebernimmt der Viewer."
+    )
 
 
 def test_cli_meldet_ein_kaputtes_manifest_mit_exit_code_1(tmp_path, fremdes_manifest):
