@@ -99,40 +99,60 @@ def test_raw_and_legacy_do_not_overlap():
     )
 
 
-@pytest.mark.parametrize(
-    "path",
-    list(contract.LEGACY_ENTFAELLT.values()),
-    ids=list(contract.LEGACY_ENTFAELLT.keys()),
-)
-def test_legacy_entfaellt_path_exists(path):
-    # Diese Pfade werden heute noch tatsächlich gelesen (siehe Kommentar je
-    # Eintrag, welches Welle-1-Paket sie entfernt) - bis dahin gilt für sie
-    # dieselbe Zusicherung wie für RAW.
-    assert path.exists(), f"LEGACY_ENTFAELLT-Pfad existiert nicht: {path}"
+def test_legacy_entfaellt_paths_exist():
+    """Jeder LEGACY_ENTFAELLT-Eintrag muss auf eine vorhandene Datei zeigen.
+
+    Diese Pfade werden bis zu ihrer Entfernung tatsächlich gelesen (siehe
+    Kommentar je Eintrag in contract.py, welches Welle-1-Paket sie
+    entfernt) - bis dahin gilt für sie dieselbe Zusicherung wie für RAW.
+
+    **Punkt 14 (W4.3), hier entschieden: der Test bleibt, verliert aber
+    seine leere Parametrisierung.** Bis W1.2 stand hier ein
+    ``@pytest.mark.parametrize`` über ``LEGACY_ENTFAELLT.values()``. Seit
+    die Sektion leer ist (der einzige Eintrag, "powerlines_gpkg", ist mit
+    der gelöschten Datei entfallen), erzeugte pytest daraus keinen
+    bestandenen, sondern genau einen **übersprungenen** Fall ("NOTSET") -
+    ein Test, der nichts prüft und dabei dauerhaft eine Skip-Zeile im
+    Protokoll belegt. Ein Skip ist ein Signal ("hier wurde etwas nicht
+    geprüft"); als Dauerzustand entwertet er jedes echte Skip daneben.
+
+    Entfallen darf der Test trotzdem nicht: contract.py hält
+    LEGACY_ENTFAELLT bewusst als Register für künftige Funde offen
+    (PLAN.md §13.1). Als Schleife über die Sektion deckt er neue Einträge
+    weiterhin automatisch ab, meldet dann **alle** fehlenden auf einmal
+    (statt beim ersten abzubrechen, wie parametrize es je Fall täte), und
+    ist im heutigen leeren Zustand ein bestandener statt eines
+    übersprungenen Falls: die Aussage "jeder deklarierte Pfad existiert"
+    ist für null Deklarationen wahr, nicht unbekannt. Dass die Liste
+    heute leer *ist*, hält der Companion-Test darunter fest.
+    """
+    fehlend = [
+        f"{name} -> {path}"
+        for name, path in contract.LEGACY_ENTFAELLT.items()
+        if not path.exists()
+    ]
+    assert not fehlend, "LEGACY_ENTFAELLT-Pfade existieren nicht: " + ", ".join(fehlend)
 
 
 def test_legacy_entfaellt_is_currently_empty():
-    """Companion zu test_legacy_entfaellt_path_exists (W1.4): Seit W1.2 ist
+    """Companion zu test_legacy_entfaellt_paths_exist (W1.4): Seit W1.2 ist
     LEGACY_ENTFAELLT leer (der einzige Eintrag, "powerlines_gpkg", ist mit
     der gelöschten Datei entfallen - siehe Kommentar in contract.py und
-    Bericht zu W1.2). Ein leeres parametrize(...) erzeugt in pytest keinen
-    bestandenen, sondern einen einzigen übersprungenen Testfall ("NOTSET")
-    - der prüft dann nichts mehr, er dokumentiert nur die leere Liste.
+    Bericht zu W1.2).
 
     contract.py hält LEGACY_ENTFAELLT bewusst als Register für künftige
     Welle-1-Funde offen (§13.1), statt die Sektion ganz zu entfernen - die
-    Parametrisierung oben deckt solche künftigen Einträge automatisch ab,
-    ohne dass dieser Testcode sich ändern müsste. Aber "bleibt als
-    Vorbereitung stehen" darf nicht heißen "prüft bis dahin gar nichts":
-    dieser Test läuft immer (keine Parametrisierung) und hält aktiv fest,
-    dass die Liste leer ist. Wird sie befüllt, schlägt genau diese Zeile
-    fehl - ein bewusster Anstoß, das neu Gefundene zu sichten, statt dass
-    es beiläufig durchrutscht.
+    Schleife oben deckt solche künftigen Einträge automatisch ab, ohne dass
+    dieser Testcode sich ändern müsste. Aber "bleibt als Vorbereitung
+    stehen" darf nicht heißen "prüft bis dahin gar nichts": dieser Test
+    hält aktiv fest, dass die Liste leer ist. Wird sie befüllt, schlägt
+    genau diese Zeile fehl - ein bewusster Anstoß, das neu Gefundene zu
+    sichten, statt dass es beiläufig durchrutscht.
     """
     assert contract.LEGACY_ENTFAELLT == {}, (
-        "LEGACY_ENTFAELLT ist nicht mehr leer - test_legacy_entfaellt_path_exists "
-        "deckt die neuen Einträge automatisch ab (Parametrisierung), aber diese "
-        "Zusicherung hier ist jetzt überholt und muss bewusst aktualisiert werden."
+        "LEGACY_ENTFAELLT ist nicht mehr leer - test_legacy_entfaellt_paths_exist "
+        "deckt die neuen Einträge automatisch ab (Schleife über die Sektion), aber "
+        "diese Zusicherung hier ist jetzt überholt und muss bewusst aktualisiert werden."
     )
 
 
