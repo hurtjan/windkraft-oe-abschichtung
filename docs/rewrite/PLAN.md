@@ -311,7 +311,7 @@ Zwischen den Wellen wird synchronisiert, innerhalb einer Welle nicht.
 | 3 | Finalisierung | 2 | nein — nacheinander |
 | 4 | Prüfung | 4 | Vorfeld zuerst, dann drei gleichzeitig |
 | 5 | Beweis | 7 | Vorfeld in sechs Stufen, dann der Lauf |
-| 6 | Aufräumen und Abschluss | 8 | **Vorschlag, noch nicht beauftragt** — Vorfeld zuerst, dann teils gleichzeitig |
+| 6 | Aufräumen und Abschluss | 4 | nein — nacheinander, weil nichts kollidiert und nichts sich beschleunigen lässt |
 
 „Besitzt" heißt: nur dieses Paket darf diese Pfade anfassen. Zwei Pakete
 derselben Welle teilen sich niemals eine Datei.
@@ -357,9 +357,9 @@ derselben Welle teilen sich niemals eine Datei.
 | W5.P5 | 5 | Beweis | Wirkungspfad-Wächter generalisieren | `windkraft/calc/band_manifest.py`; `pipeline/validate.py` | W5.P4 | Der Wächter aus §13.9 prüft jede Zeile gegen den Wirkungspfad **ihrer eigenen** `ursache`, nicht mehr fest gegen `geography_water_bodies_wirkungspfad`. Dafür muss das Manifest einen Wirkungspfad für die DKM-Ursache (Punkt 34) hergeben — dazu erst die fehlende `OFFICIAL_COVER_LAYERS`-Kante (HIG-Zwischenschicht in `pipeline/layers/osm.py`) im Manifest-Graphen nachbilden. Abnahme: Bänder 5, 7–13, 27 werden bei akzeptierter Ursache korrekt grün/akzeptiert, kein anderer Wirkungspfad ändert sich. **So nicht eingetroffen, und die Abnahmebedingung war der Fehler, nicht das Paket:** „akzeptiert" setzt das Schlüsselwort „angenommen" voraus, die Punkt-34-Texte sagen „entschieden" (Punkt 46), und die Bänder 7, 8, 9 überschreiten das Budget der Sache nach. Gemessen: 5 gelb, 7/8/9 rot, 10 grün, 11–13 gelb, 27 gelb. Der zweite Halbsatz — kein anderer Wirkungspfad ändert sich — traf zu. |
 | W5.1 | 5 | Beweis | Beweislauf aus Rohdaten | — (nur Ausführung) | W5.P5 | `rm -rf build && make all` erzeugt das TIF vollständig neu; Abnahmebedingung erfüllt; Laufzeiten je Stufe protokolliert. |
 
-### Welle 6 — Aufräumen und Abschluss (Vorschlag)
+### Welle 6 — Aufräumen und Abschluss
 
-**Noch nicht beauftragt.** Die Welle steht hier, weil das Zielbild aus §3
+**Beauftragt am 08.09.2026.** Die Welle steht hier, weil das Zielbild aus §3
 seit Beginn ein aufgeräumtes Repo verlangt und §7 bis eben mit W5.1
 endete — es gab kein Paket, das dorthin führt, und keine
 Abnahmebedingung für „aufgeräumt". Diese Lücke ist genau die Sorte, die
@@ -376,29 +376,75 @@ Rohdaten allein läuft — er sagt nichts darüber, ob die *alte* noch
 gebraucht wird. Das ist eine Architekturentscheidung, kein Aufräumen, und
 sie gehört dem Nutzer.
 
-**Zwei Entscheidungen vor W6.2, beide nicht meine:**
+### Die Entscheidungen des Nutzers, 08.09.2026
 
-1. Bleibt `run1.tif` (119 MB) als einziger erhaltener Zeuge der alten
-   Kette? *Empfehlung: ja.* Er ist die Vergleichsbasis jeder
-   Abweichungszeile im Register; ohne ihn wird das Register unprüfbar.
-2. Bleibt der **Code** unter `scripts/widmung_v2/` (232 kB) als
-   eingefrorene Zitatquelle stehen, während die **Daten** unter `output/`
-   (11 GB) entfallen? *Empfehlung: ja.* `pipeline/finalize.py` und
-   `pipeline/layers/geo.py` berufen sich an über zwanzig Stellen wörtlich
-   auf diesen Quelltext („wortgleich übernommen"). Ihn zu löschen
-   entwertet den Übernahmenachweis; die Daten dagegen sind entweder
-   reproduzierbar oder entbehrlich.
+Ich hatte acht Pakete und fünf Entscheidungen vorgelegt. Der Nutzer hat
+den Zuschnitt in drei Fragen auf die Hälfte gekürzt, und jede der drei war
+berechtigt.
+
+**„Wieso dauert Aufräumen 5 h?"** — Zwei Drittel meiner Schätzung waren
+Bürokratie. Die Wellen-Disziplin (ein Pfad ein Besitzer, Abnahme je Paket)
+gibt es, damit **parallel** arbeitende Agenten kollidieren können und ein
+Umbau, der Zahlen ändert, nicht unbemerkt driftet. Hier arbeitet niemand
+parallel, und **kein einziger Zahlenwert ändert sich** — alles, was
+entfernt wird, hat nachweislich keinen Leser. Sechsmal dieselbe Abnahme zu
+fahren ist Ritual, kein Nachweis. Dazu hatte ich den vollen Beweislauf
+angesetzt (75 min), obwohl die Vorverarbeitung von keiner Änderung berührt
+wird: `rm -rf build/layers out && make all` unter Wiederverwendung von
+`build/prep/` prüft dasselbe in **9 Minuten**. Und in derselben Datei, in
+der mein Korrekturfaktor von −49 % steht, hatte ich eine ungerechnete Zahl
+hingeschrieben.
+
+**„Aber hast du nicht gerade den Rewrite vollendet?"** — Ja. Was übrig
+ist, ist Löschen, und Löschen dauert Sekunden. Was dauert, ist Beweisen —
+aber eben einmal, nicht sechsmal.
+
+**„Für was muss `run1` erhalten bleiben?"** — Mein „dringend" war
+überzogen. Das Register dokumentiert einen **abgeschlossenen** Übergang,
+den der Nutzer selbst abgenommen hat. Die Auflösung liegt in seinem
+eigenen Grundsatz: *nicht Platz sparen, sondern Struktur.* `run1` muss
+nicht gelöscht werden, um `output/` aus dem Baum zu bekommen — es muss nur
+**heraus**. Es liegt seither in `~/Documents/master_windkraft/archiv/`,
+zusammen mit den alten Caches, die der Nutzer erhalten wissen wollte.
+Damit bleibt alles nachmessbar und die Struktur ist trotzdem sauber.
+
+**Entschieden:**
+
+| | |
+|---|---|
+| `scripts/widmung_v2/` | **entfernt** — nicht umgezogen. Die Historie behält den Quelltext; die Zitatkommentare nennen künftig Commit `f1d00f7` statt eines Pfades. |
+| `run1.tif` und die alten Caches | **ins Archiv neben dem Repo**, nicht gelöscht |
+| `output/` | **aus dem Baum**, restlos |
+| `main` | bekommt die Arbeit, als letzter Schritt |
+| Doku | **hinten nach** — eigenes Paket, blockiert nichts |
+
+**Drei Namen, vom Nutzer angestoßen.** Er hat drei Verzeichnisnamen als
+schlecht bezeichnet, und alle drei zu Recht:
+
+- **`windkraft/`** sagt in einem Windkraft-Repo genau so viel wie
+  `stuff/`. Der richtige Name lag längst eine Ebene tiefer: `windkraft/calc/`.
+  → **`calc/`**, innere Ebene aufgelöst.
+- **`build/`** verspricht das Falsche. Da wird nichts kompiliert, da liegen
+  abgeleitete Daten — und der Name liest sich wie „gefahrlos wegwerfbar",
+  während darin **66 Minuten Kataster-Vorverarbeitung** stecken. Dass in
+  diesem Plan ein eigener Satz „`build/` bleibt" mit Begründung nötig war,
+  ist der Beweis. → **`derived/`**, in der Kette `data/ → derived/ → out/`.
+- **`verify/`** verifiziert nichts. Darin liegen `dashboard.py` und
+  `gemeinden.py` — sie **erzeugen zwei der vier Endprodukte**. Der Name
+  stammt aus der Zeit, als das Dashboard zum Draufschauen gedacht war;
+  inzwischen ist es Liefergegenstand. Daneben prüft `validate.py`
+  tatsächlich. Zwei fast gleichbedeutende Wörter für zwei völlig
+  verschiedene Aufgaben. → **`export/`**, `validate.py` bleibt.
+
+Danach liest sich die Kette von selbst:
+`prep/ → layers/ → finalize.py → validate.py → export/`.
 
 | Paket | Welle | Gruppe | Titel | Besitzt | Braucht | Abnahme |
 |---|---|---|---|---|---|---|
-| W6.P0 | 6 | Vorfeld | `make` baut die neue Kette | `Makefile` (nur `.DEFAULT_GOAL`) | W5.1 | Nach Regel 9 (§13.10): die eine Zeile, die alles zusammenhält, bekommt einen Besitzer, bevor die Welle sie anfasst. `.DEFAULT_GOAL := all` statt `widmung-v2`. Abnahme: `make -n` für jedes **benannte** Ziel byte-identisch; nur das Verhalten von `make` **ohne Argument** ändert sich, und zwar nachweislich von der alten auf die neue Kette. Kein Bandwert ändert sich — es wird keine Rechnung berührt. |
-| W6.1 | 6 | Aufräumen | Werkzeugmüll und leere Skriptverzeichnisse | löschen: `scripts/noe/`, `scripts/preprocessing/`, `scripts/webmap/` (enthalten nur noch `__pycache__` ohne Quelldatei); `**/.DS_Store`; `.gitignore` | W6.P0 | Risikofrei, weil die Migration im Quellcode längst vollzogen ist. Abnahme: `git status` sauber, 215 Tests grün, `make all -n` unverändert. |
-| W6.2 | 6 | Abschluss | Die alte Kette stilllegen | `output/**` (Löschung, **außer** `run1.tif`); `Makefile` (die `widmung-v2-*`-Ziele, **von W6.P0 übernommen**); `tests/test_contract.py` (nur die drei Direktimporte); `scripts/widmung_v2/**` (nur die falschen Docstring-Verweise auf `scripts/main/`, `scripts/analysis/`) | W6.1, **plus beide Entscheidungen oben** | Das eigentliche Paket der Welle: 11 GB → 119 MB. Abnahme in dieser Reihenfolge: (1) `run1.tif` unverändert, Prüfsumme `dc58b011…9e3df1` vorher und nachher; (2) der gegatete Referenztest läuft weiter und ist grün; (3) `make all` aus vorhandenem `build/` reproduziert das TIF bitgleich; (4) 215 Tests grün, wobei die drei Altketten-Importe **entweder** umgebaut **oder** ausdrücklich als Altketten-Tests gekennzeichnet und übersprungen sind — nicht stillschweigend gelöscht. |
-| W6.3 | 6 | Aufräumen | Der Rückfall auf `output/` entfällt | `pipeline/layers/geo.py`; `pipeline/layers/osm.py` | W6.2 | Der in W5.P1 bewusst stehengelassene Fallback (`geo.py:569`, `osm.py:262-278,516`) zeigt nach W6.2 ins Leere. Nach Regel 8 wird er nicht stillschweigend entfernt, sondern **durch einen lauten Abbruch ersetzt**: fehlt `build/layers/`, bricht der Lauf ab, statt still auf nichts zurückzufallen. Abnahme: Lauf mit leerem `build/layers/` bricht mit benannter Meldung ab; Lauf mit vollem `build/layers/` liefert bitgleich; keine Zeichenkette `output/` mehr unter `pipeline/`. |
-| W6.4 | 6 | Aufräumen | Code ohne Aufrufer | `windkraft/util/admin.py`; `windkraft/calc/wind_zones.py`; `windkraft/calc/streusiedlung.py`; `windkraft/calc/abschichtung_common.py`; `windkraft/noe/pdf_align.py` | W6.P0 | Punkte 6 und 17 plus fünf neu gefundene Funktionen. **„Kein Aufrufer gefunden" ist nicht „tot":** mehrere sind im Moduldocstring ausdrücklich als Lesereferenz angelegt. Abnahme: je Fundstelle eine von zwei Entscheidungen, schriftlich — gelöscht, oder als Referenz behalten **und im Docstring als solche markiert**. Keine dritte Möglichkeit, kein stilles Stehenlassen. Bitgleich, 215 Tests. |
-| W6.5 | 6 | Doku | Die Doku beschreibt den neuen Baum | `docs/rohdaten.md`; `docs/dataflow/**`; `docs/rewrite/README.md`; `docs/rewrite/packages.tsv`/`.json`; `docs/rewrite/UMSETZUNG.md`; `docs/FOLLOWUPS.md`; `docs/widmung_v2_provenance.md`; `docs/widmung_v2.md` | W6.2 | `docs/rohdaten.md` behauptet in Zeile 365–420, `data/widmung/` existiere nicht — es existiert seit W0.1 mit neun Domänen. `docs/dataflow/` bildet 417-mal `scripts/` ab und **kein einziges Mal** `pipeline/`, wird aber von `docs/rewrite/README.md` als „Faktengrundlage" zitiert. `packages.tsv` kennt 30 Pakete, es sind 39 (bzw. 47 mit Welle 6). Abnahme: keine Doku behauptet mehr etwas, das die laufende Kette widerlegt; jede gelöschte Datei hat einen benannten Ersatz oder einen niedergeschriebenen Grund. **`docs/rohdaten.md` wird korrigiert, nicht gelöscht** — es ist die einzige Provenienz- und Lizenzangabe der Rohdaten im Repo. |
-| W6.6 | 6 | Abschluss | Der Beweis bekommt einen Beleg | `tools/nachweis.py` (neu); `make/nachweis.mk` (neu); `Makefile` (nur ein `-include`, **von W6.2 übernommen**); `docs/rewrite/nachweise/` | W6.3 | Punkt 49: Das wichtigste Ergebnis des Projekts existiert nur als Prosa, und `nachweise/` schläft seit Welle 1. Abnahme: **`make nachweis` erzeugt den Beleg aus dem laufenden System** — Prüfsummen, Bandtabelle, Ampelstand, Laufzeiten —, statt dass jemand ihn abtippt. Der erzeugte Beleg deckt sich mit den in `FORTSCHRITT.md` protokollierten Zahlen; wo nicht, gilt der erzeugte, und die Differenz wird benannt. |
-| W6.7 | 6 | Abschluss | Schlussbeweis, dann `main` | — (nur Ausführung, dann Zusammenführung) | W6.4, W6.5, W6.6 | Zwei Schritte, in dieser Reihenfolge. (1) `rm -rf build out && make all` aus den Rohdaten, nach dem Aufräumen: TIF bitgleich zur Referenz `fb57c41d…232c30`, alle 38 Bänder, alle vier Endprodukte da. (2) Erst dann `docs/audit-und-plan` → `main` (Punkt 51). Abnahme: ein frischer Klon von `main` plus `data/` läuft `make` ohne Argument bis zu den vier Produkten durch. **Das ist die Abnahmebedingung für das Zielbild aus §3** — und die erste, die es je gab. |
+| W6.1 | 6 | Abschluss | Die alte Kette entfällt | löschen: `scripts/**` (komplett), `windkraft/util/` · herausbewegen: `output/**` → `~/Documents/master_windkraft/archiv/` · ändern: `Makefile` (`.DEFAULT_GOAL`, die fünf `widmung-v2-*`-Ziele), `pipeline/layers/geo.py`, `pipeline/layers/osm.py`, `pipeline/contract.py`, `pipeline/validate.py`, `pipeline/finalize.py` (nur Zitatkommentare), `tests/test_contract.py`, `tests/test_referenz_tif.py`, `docs/analysis/streusiedlung_knee.py`, `.gitignore` | W5.1 | Ein Paket statt sechs, weil nichts parallel läuft und keine Zahl sich ändert. **Sicherheitsnetz zuerst:** `output/` wird verschoben, nicht gelöscht — ein Umbenennen auf derselben Platte, sofort und umkehrbar. Der Rückfall auf `output/` in den Layer-Modulen wird **lauter Abbruch** statt stillem Nichts. `run1` bleibt über `ABSCHICHTUNG_RUN1` erreichbar — dasselbe Muster, das `test_distance_engine_equivalence.py` für `ABSCHICHTUNG_ALTREPO` benutzt —, damit `validate.py` und der 18-Bänder-Test wieder laufen, wenn jemand die Datei aus dem Archiv zurückholt. Abnahme: `rm -rf build/layers out && make all` (**9 min**, `build/prep/` unberührt) → TIF bitgleich `fb57c41d…232c30`, alle 38 Bänder, vier Produkte, Tests grün mit **benannter Begründung je Testdifferenz**, keine Zeichenkette `output/` mehr unter `pipeline/`, `windkraft/`, `tests/`, `make/`, und `make` ohne Argument baut die neue Kette. |
+| W6.2 | 6 | Abschluss | Drei Namen, die die Struktur erklären | `windkraft/` → `calc/`; `build/` → `derived/`; `pipeline/verify/` → `pipeline/export/`; dazu jeder Importpfad im Repo, `pipeline/contract.py`, `pyproject.toml`, `.gitignore`, `make/**`, `Makefile` | W6.1 | Reines Umbenennen, kein Zahlenwert ändert sich. Nach W6.1, nicht davor — sonst würden Dateien umbenannt, die zwei Minuten später gelöscht werden, und der Diff wäre unlesbar. Der Pfadvertrag aus W0.2 macht `build/` → `derived/` zu einer Zeile in `contract.py`; teuer ist nur `windkraft/` → `calc/`, weil es jeden Import berührt. Abnahme wie W6.1, plus: kein Vorkommen von `windkraft.`, `build/` oder `verify` mehr als Pfad oder Modulname, außer in erklärten historischen Erwähnungen. |
+| W6.3 | 6 | Abschluss | Zusammenführung nach `main` | `main` | W6.2 | Punkt 51. Ein frischer Klon von `main` plus `data/` läuft `make` ohne Argument bis zu den vier Produkten durch. **Das ist die Abnahmebedingung für das Zielbild aus §3** — und die erste, die es je gab. |
+| W6.4 | 6 | Doku | Die Doku beschreibt den neuen Baum | `docs/rohdaten.md`; `docs/dataflow/**`; `docs/rewrite/README.md`; `docs/rewrite/packages.tsv`/`.json`; `docs/rewrite/UMSETZUNG.md`; `docs/FOLLOWUPS.md`; `docs/widmung_v2_provenance.md`; `docs/widmung_v2.md` | W6.2 | **Vom Nutzer bewusst nach hinten gestellt** („Struktur und Doku dann hinten nach") — es blockiert nichts und ist Prosa, kein Aufräumen. `docs/rohdaten.md` behauptet in Zeile 365–420, `data/widmung/` existiere nicht; es existiert seit W0.1 mit neun Domänen. `docs/dataflow/` bildet 417-mal `scripts/` ab und **kein einziges Mal** `pipeline/`, wird aber von `docs/rewrite/README.md` als „Faktengrundlage" zitiert — nach W6.1 beschreibt es einen Baum, den es nicht mehr gibt. `packages.tsv` kennt 30 Pakete. Abnahme: keine Doku behauptet mehr etwas, das die laufende Kette widerlegt; jede gelöschte Datei hat einen benannten Ersatz oder einen niedergeschriebenen Grund. **`docs/rohdaten.md` wird korrigiert, nicht gelöscht** — es ist die einzige Provenienz- und Lizenzangabe der Rohdaten im Repo. |
 
 ## 8. Regeln der Parallelität
 
