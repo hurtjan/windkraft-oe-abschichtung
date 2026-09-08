@@ -13,9 +13,11 @@ W0.1 in dessen §11. Die Belege liegen unter
 | | |
 |---|---|
 | Abgeschlossen | **38 von 39** — Welle 0 bis 5 vollständig. Neun Pakete kamen unterwegs dazu (W2.P0, W2.4, W4.P0, W5.P0 bis W5.P5), eines entfiel (W2.2 → W2.1). Der Plan ist damit **abgearbeitet**: §7 endet mit W5.1, und W5.1 ist grün. |
-| Als Nächstes | **Nichts Geplantes — und das ist der Befund.** Der Beweislauf hat gezeigt, dass die neue Kette aus Rohdaten allein läuft; damit ist der Grund weggefallen, aus dem die alte Kette bisher stehenbleiben musste. Aufgeräumt ist das Repo deswegen nicht: `output/`, `scripts/widmung_v2/` und die alten Doku-Stände stehen unverändert da. Das Ziel aus PLAN §3 (`[Rohdaten] → [Skripte] → [Ergebnisse]`) ist **beschrieben, aber nicht abgenommen** — es gibt kein Paket dafür. Vorschlag **Welle 6 (Aufräumen und Abschluss)** liegt beim Nutzer, zusammen mit zwei Entscheidungen, die nicht meine sind: ob `run1` als einziger Zeuge der alten Kette erhalten bleibt (ich plädiere dringend dafür), und ob das Aufräumen jetzt kommt oder der bewiesene Zustand als Zwischenstand genügt. |
+| **Der Umbau liegt auf `main`** | Seit `65b97ac` zeigen `main` und `docs/audit-und-plan` auf denselben Commit, Divergenz `0 0`. Die Zusammenführung war ein sauberer Fast-Forward, `make test` und `sha256` danach auf `main` geprüft. **41 Pakete, und zum ersten Mal steht der Umbau dort, wo ihn ein frischer Klon findet.** |
+| Als Nächstes | **W6.4 — der Fingerabdruck wird ortsunabhängig.** Der Klontest in W6.3 ist gescheitert (Punkt 53) und hat dabei das echte `derived/prep/` überschrieben (Punkt 55). Ein voller Lauf heilt beides und beweist zugleich, dass der Zwischenstand noch dasselbe TIF liefert — rund 90 min, davon 75 unbeaufsichtigt. Danach die Doku (W6.5), die der Nutzer bewusst nach hinten gestellt hat. Der Absatz darunter beschreibt den Stand **vor** Welle 6 und bleibt stehen, weil er den Befund festhält, der zu ihr geführt hat. |
+| ~~Als Nächstes, vor dem 08.09.2026~~ | **Nichts Geplantes — und das war der Befund.** Der Beweislauf hat gezeigt, dass die neue Kette aus Rohdaten allein läuft; damit ist der Grund weggefallen, aus dem die alte Kette bisher stehenbleiben musste. Aufgeräumt ist das Repo deswegen nicht: `output/`, `scripts/widmung_v2/` und die alten Doku-Stände stehen unverändert da. Das Ziel aus PLAN §3 (`[Rohdaten] → [Skripte] → [Ergebnisse]`) ist **beschrieben, aber nicht abgenommen** — es gibt kein Paket dafür. Vorschlag **Welle 6 (Aufräumen und Abschluss)** liegt beim Nutzer, zusammen mit zwei Entscheidungen, die nicht meine sind: ob `run1` als einziger Zeuge der alten Kette erhalten bleibt (ich plädiere dringend dafür), und ob das Aufräumen jetzt kommt oder der bewiesene Zustand als Zwischenstand genügt. |
 | **Referenz** | Seit `f592e75` **`sha256 fb57c41d…232c30`** — **zweite Wanderung an einem Tag.** Erst die Bodensee-Korrektur (Punkt 33, `4bdef6ad…`), dann der Wegfall adressloser Großflächen (Punkt 34, `fb57c41d…`). Beides Nutzerentscheidungen vom 08.09.2026. `run1` (`dc58b011…`) bleibt Vergleichsbasis und historischer Zeuge; **18 der 38 Bänder weichen inzwischen davon ab**, aus zwei benannten Ursachen. |
-| Zweig | `docs/audit-und-plan`, Kopf **`581470e`**, keine offenen Worktrees. Daneben liegt `main` als unberührter Vorzustand — die Welle-0-bis-5-Arbeit ist **nie nach `main` zurückgeflossen**. Auch das gehört in Welle 6. |
+| Zweig | `docs/audit-und-plan`, letzter **Code**-Commit **`f1d00f7`** (W5.P5) — darüber liegen nur noch Commits dieser beiden Plandateien, die hier absichtlich nicht mitgezählt werden: eine Datei kann den Commit nicht nennen, der sie festhält. Keine offenen Worktrees. Daneben liegt `main` als unberührter Vorzustand — die Welle-0-bis-5-Arbeit ist **nie nach `main` zurückgeflossen**. Auch das gehört in Welle 6. |
 | **W5.1 hat keinen Commit** | Der Beweislauf ändert keine verfolgte Datei — `build/` und `out/` sind ignoriert —, deshalb steht der Kopf noch auf dem Protokoll-Commit *vor* dem Lauf. Folge: **das wichtigste Abnahmeergebnis des ganzen Projekts liegt nur als Prosa in dieser Datei**, nicht als Beleg unter `nachweise/`. Punkt 49. |
 | Die Kette läuft neu | 33 Layer aus `pipeline/layers/` (Reihenfolge **hig → osm → geo**) → `pipeline/finalize.py` (rund 165 s) → `pipeline/validate.py` → `pipeline/verify/` (Dashboard, Gemeindegrenzen). **Kein Skript aus `scripts/widmung_v2/` mehr im Weg, und kein Modul liest mehr aus `output/`.** |
 | Tests | **215 plus 2 übersprungen** — von 129 zu Beginn der Welle 1. Beide gegateten Langläufer sind nachweislich je einmal real gelaufen (46,5 s und 173,3 s). Einer der beiden übersprungenen ist der Vergleich gegen das Vorgängerrepo (`test_distance_engine_equivalence.py`, überspringt sauber, wenn das alte Repo fehlt); welcher der zweite ist, steht nirgends — kleine Lücke, Punkt 50. |
@@ -87,6 +89,11 @@ die es sie gibt.
 | W5.P5 | Wirkungspfad-Wächter generalisieren | **fertig** | 45 min* | 25 min | **Manifest log über eine Quelle** · Pfad abgeleitet, nicht gepflegt · Schema 2.1.0 · 214 → **215** Tests |
 | — | W5.1, erster Anlauf — **angehalten** | — | 4 min | zwei Halte-Bedingungen ausgelöst, **beide von mir falsch formuliert** |
 | W5.1 | Beweislauf aus Rohdaten | **fertig** | 150 min | 75 min | **TIF bitgleich, 38/38 Bänder** · kein Rückfall auf `output/` · `data/` unberührt · Laufzeiten je Stufe erstmals gemessen |
+| W6.1 | Die alte Kette entfällt | **fertig** | 45 min | 40 min | **TIF bitgleich, 38/38** · `scripts/` und `output/` weg · **213 + 4 Tests, exakt wie vorhergesagt** · Worktree an einem echten Wegwerfbaum geprüft · Punkt 52 gefunden |
+| W6.2 | Drei Namen und ein wiederholbares `make` | **fertig** | 70 min* | 94 min | **Zweiter Lauf: 3 min statt 66** · alle zehn Prep-Stufen überspringen · TIF bitgleich · 213 + 4 Tests · Punkt 52 erledigt · zwei stille Fehler gefunden |
+| W6.3 | README auf den neuen Baum, dann `main` | **fertig, mit Vorbehalt** | 25 min | 80 min | README `65b97ac` · **Zusammenführung nach `main` sauber, Fast-Forward** · `make test` und `sha256` auf `main` grün · **Klontest gescheitert — und er hat Schaden angerichtet** |
+| W6.4 | Der Fingerabdruck wird ortsunabhängig | offen | 90 min | — | Klon mit denselben Daten überspringt · voller Lauf heilt und beweist zugleich |
+| W6.5 | Die Doku beschreibt den neuen Baum | offen | 40 min | — | vom Nutzer nach hinten gestellt |
 
 ## Zeitbilanz
 
@@ -281,6 +288,117 @@ Volllauf mit Vorabprüfung), 48,0 min (isoliert), 65,8 min (im Kettenlauf)
 plausibel an Cache-Zustand und Plattenlast, gemessen ist das nicht.
 
 ## Protokoll
+
+### Welle 6 — das Aufräumen, und was es zutage gefördert hat
+
+Vier Pakete, alle am 08.09.2026, ausgelöst von einer Beobachtung des
+Nutzers: das Verzeichnis sei unaufgeräumt, ein `out` und ein `output`,
+mehrere Skriptordner. Die Antwort auf seine Frage, ob das noch Teil des
+Plans sei, war **nein** — und das war die Lücke.
+
+| Paket | Ergebnis |
+|---|---|
+| **W6.1** | `scripts/` komplett und `output/` (11 GB) aus dem Repo, ins Archiv neben dem Repo. `make` ohne Argument baut die neue Kette. Der Rückfall auf `output/` in den Layer-Modulen wurde lauter Abbruch. TIF bitgleich, 213 + 4 Tests, 1642 gelöschte Zeilen. |
+| **W6.2** | `windkraft/` → `calc/`, `build/` → `derived/`, `pipeline/verify/` → `pipeline/export/`. Dazu Punkt 52: **`make all` ist wiederholbar**, zweiter Lauf 182 Sekunden statt 66 Minuten. |
+| **W6.3** | README auf den neuen Baum, **Zusammenführung nach `main`**. Der Klontest scheiterte. |
+
+**Was der Nutzer an diesem Tag dreimal richtig bemerkt hat**, und was
+davon zu lernen ist:
+
+*„Wieso dauert Aufräumen 5 h?"* — Zwei Drittel meiner Schätzung waren
+Ritual. Ich hatte sechs Pakete geschnitten, wo eins genügt, weil ich die
+Wellen-Disziplin angewandt habe, ohne zu prüfen, wofür es sie gibt: für
+**parallele** Arbeit an einem System, das Zahlen ändert. Hier war nichts
+parallel und keine Zahl änderte sich. Dazu hatte ich den vollen Beweislauf
+angesetzt, obwohl keine Änderung die Vorverarbeitung berührte — 9 Minuten
+hätten gereicht. Und in derselben Datei, in der mein Korrekturfaktor von
+−49 % steht, hatte ich eine ungerechnete Zahl hingeschrieben.
+
+*„Wieso braucht W6.2 so lange?"* — Dieselbe Polsterung, zwei Stunden
+später, nachdem ich sie eingeräumt hatte.
+
+*„Windkraft ist ein schlechter Ordnername."* — Alle drei Namen, die er
+nannte, waren falsch, und der dritte war der schärfste Befund des Tages:
+**`pipeline/verify/` verifiziert nichts.** Darin liegen `dashboard.py` und
+`gemeinden.py`, die **zwei der vier Endprodukte erzeugen**. Daneben prüft
+`validate.py` tatsächlich. Zwei fast gleichbedeutende Wörter für zwei
+gegensätzliche Aufgaben — vier Wellen lang, ohne dass es jemandem auffiel,
+der täglich damit arbeitete.
+
+#### Punkt 52 — was „wiederholbar" wirklich kostete
+
+Ich hatte gemeldet: neun Module überspringen sich selbst, eines bricht ab,
+das Muster muss nur kopiert werden, 15 Minuten. **Ungeprüft und falsch.**
+Gemessen beantworten die zehn Prep-Module die Frage „was tun, wenn meine
+Ausgabe schon da ist" auf drei Arten: **einmal richtig** (`prep/osm.py`),
+**zweimal mit hartem Abbruch**, **siebenmal gar nicht**. Der zweite
+Abbruch war vom ersten verdeckt und wäre erst nach dessen Behebung
+sichtbar geworden.
+
+Der Nutzer hat entschieden, alle neun mitzunehmen statt nur der zwei
+zwingenden. Das war der Unterschied zwischen „`make` läuft" und „`make`
+ist benutzbar": Der Mindestfix hätte einen zweiten Lauf ermöglicht, der
+**66 Minuten lang neu rechnet, was schon dasteht.**
+
+Der Makefile-Weg wurde geprüft und **verworfen**: `.PHONY`-Ziele haben
+keine Dateiabhängigkeiten, die Make prüfen könnte, also wäre die Lösung
+zeitstempelbasiert geworden. Ein `touch` hätte einen Neulauf ausgelöst,
+eine echte Änderung womöglich nicht. Stattdessen das vorhandene
+inhaltsbasierte Muster, neunmal kopiert — und der Gegenbeweis dazu
+geführt: ein `touch` auf eine Nicht-`data/`-Eingabe hebt den Überspringer
+auf, danach greift er wieder.
+
+#### Zwei stille Fehler, die beim Umbenennen hochkamen
+
+`tests/test_export_dashboard.py` setzte seinen Zielpfad zusammen —
+`Path(...) / "pipeline" / "verify" / "dashboard.py"` — statt ihn als
+Zeichenkette zu schreiben. Die Umbenennung lief über Literalsuche und
+übersah ihn. Die Datei hat danach **alle 18 Tests stillschweigend
+übersprungen**: 199 statt 217 gesammelt, kein einziger Fehlschlag.
+Beunruhigend ist nicht der Fehler, sondern dass **nichts im Repo ihn
+bemerkt hätte** — es gibt keine Untergrenze für die Testzahl (Punkt 54).
+
+`calc/widmung_sources.py` zeigte nach dem Auflösen der inneren Ebene eine
+Verzeichnisebene zu hoch, aus dem Repo hinaus. Gefunden, korrigiert,
+repoweit als einzige Stelle dieser Art verifiziert.
+
+#### Der Klontest — gescheitert, und lehrreicher als ein Erfolg
+
+Der letzte Schritt sollte beweisen, was nie geprüft war: **reicht das, was
+im Git liegt, überhaupt aus?** Nicht „rechnet die Kette dasselbe" — das
+war an diesem Tag viermal bitgleich —, sondern „ist das Repo
+selbstgenügsam".
+
+Im Klon hat **keine einzige** Prep-Stufe übersprungen. Der Grund steht in
+Punkt 53: Der Fingerabdruck schlüsselt über den nicht aufgelösten
+absoluten Pfad, der Klon hat ein anderes `ROOT`, also passt nie etwas —
+auch wenn die Dateien über den Symlink buchstäblich dieselben sind.
+
+**Und dabei ist Schaden entstanden, den ich verursacht habe.** Mein
+Auftrag ließ `derived/prep/` als Symlink in den Klon legen, mit der
+Begründung, das entspreche `make worktree`. Es entspricht dem nicht: dort
+wird derselbe Symlink nur **gelesen**. Weil nichts übersprang, haben alle
+neun Domänen durch den Symlink in das echte `derived/prep/`
+zurückgeschrieben. §13.2 dieses Plans heißt wörtlich „**Der geteilte
+Checkpoint-Ordner ist beschreibbar, und das ist gefährlich**". Ich habe
+den Abschnitt geschrieben und bin drei Wellen später hineingelaufen, weil
+ich ein Vorbild zitiert habe, statt zu prüfen, worin es sich unterscheidet
+(Punkt 55).
+
+**Die Lehre ist nicht „vorsichtiger sein".** Sie ist konkreter: Ein
+Symlink, der in einem Zusammenhang nur gelesen wird, ist in einem anderen
+ein Schreibweg. Wer ihn überträgt, überträgt die Schreibbarkeit mit — und
+muss sie ausdrücklich entziehen, nicht voraussetzen.
+
+#### Dreimal derselbe Agentenfehler an einem Tag
+
+Drei Subagenten haben ihre Runde beendet, während ein Lauf offen war —
+„ich warte auf die Fertigmeldung". Diese Meldung gibt es für einen
+Subagenten nicht; er steht dann still, bis jemand ihn anstößt. In jedem
+Auftrag steht ein eigener Absatz dagegen. Einer der drei hat die Regel,
+die er gerade brach, **wörtlich zitiert** und die Runde trotzdem beendet.
+Kosten: reine Wartezeit, kein verlorener Fortschritt — aber es hat meine
+Zeitangaben an den Nutzer verfälscht, und darauf hat er sich verlassen.
 
 ### Bestandsaufnahme vor Welle 6 — was im Verzeichnis wirklich steht
 
@@ -3205,6 +3323,11 @@ billiger sein als das erste.
 | 38 | **Der Wächter ist im Worktree schwächer als im Hauptrepo.** `check_hardlink_safety` zählt dort 48 statt 127 Dateien, weil `make worktree` `output/` bewusst nicht verlinkt — also 0 statt 79 Dateien darunter. Harmlos, weil ein Worktree ohnehin nicht nach `output/` schreiben kann. Aber **meine Abnahmeformulierung „Wächter grün gegen 127 Dateien" ist aus einem Worktree heraus nicht prüfbar**, und ein Agent, der sie wörtlich nimmt, meldet entweder eine falsche Zahl oder hält sich für gescheitert. Ab jetzt gehört in jeden Worktree-Auftrag: die Zahl im Worktree ist eine andere, der Vergleich gegen 127 findet im Hauptrepo statt. Von W4.1 gefunden und selbst erklärt. | Auftragsvorlage |
 | ~~37~~ | ~~Der Platz wird für Welle 5 knapp.~~ **Von W5.P0 aufgelöst, und zwar nebenbei.** Die Messung zeigte zuerst, dass sichere Löschkandidaten nur **248 MB** ergeben — die 9,6 GB unter `output/kataster`, `osm_pbf_layers` und `output/noe` waren nicht löschbar, weil `make all` sie noch las. **Mit der umgestellten `all`-Zeile liest die neue Kette sie nicht mehr** (am Code belegt, drei Fundstellen), also werden sie es. Spitzenbedarf des Beweislaufs rund 22,5 GiB gegen 35 GiB, die nach `rm -rf build` frei sind. Der Risikofall bleibt ein *paralleler* Zweitbestand — bei seriellem Ablauf unkritisch. Gelöscht wurde nichts; die Liste liegt vor. | — |
 | ~~42~~ | ~~`pipeline/layers/geo.py` liest unbedingt aus `output/…/distance_layers/`.~~ **Von W5.P1 erledigt, und die Reihenfolge war schlimmer als vermutet.** Die acht Checkpoints kommen aus **zwei** Modulen — sechs aus `hig.py`, zwei aus `osm.py` — und `osm.py` braucht seinerseits sechs aus `hig.py`. Notwendige Reihenfolge **hig → osm → geo**, `LAYER_TARGETS` lief alphabetisch, also verkehrt. `geo.py` folgt jetzt dem Muster von `osm.py` (erst `build/layers/`, `source_dir` nur als Rückfall, **mit sichtbarem `[warn]`**). Nachweis: Lauf mit **leerem** Quellverzeichnis, 105 s, kein Rückfall-Hinweis, Verzeichnis blieb leer, **17/17 Layer pixelgleich**. Danach liest **kein** Modul unter `pipeline/` mehr unbedingt aus `output/`. | — |
+| 55 | **Ich habe die Falle gestellt, vor der mein eigener Plan seit Welle 1 warnt.** Mein Auftrag für den Klontest sagte, `derived/prep/` solle als Symlink in den Wegwerfklon — „damit der Test nicht 66 Minuten braucht, das entspricht dem, was `make worktree` tut". Es entspricht dem **nicht**: bei `make worktree` wird dieser Symlink nur **gelesen**. Weil im Klon keine Prep-Stufe übersprang, haben alle neun Domänen **durch den Symlink in das echte `derived/prep/` zurückgeschrieben**, samt Fingerabdruck-Dateien, die jetzt Klon-Pfade als Schlüssel tragen. Das Original passt damit nicht mehr zu sich selbst. **§13.2 heißt wörtlich „Der geteilte Checkpoint-Ordner ist beschreibbar, und das ist gefährlich"** — ich habe den Abschnitt geschrieben und bin drei Wellen später hineingelaufen, weil ich ein Vorbild zitiert habe, statt zu prüfen, worin es sich unterscheidet. Die Nutzdaten sind **vermutlich** identisch, weil die Vorverarbeitung deterministisch ist; vermutlich, nicht geprüft. Der volle Lauf in W6.4 prüft es. | W6.4 |
+| 54 | **Die Testzahl kann still schrumpfen, und nichts merkt es.** `tests/test_export_dashboard.py` setzte seinen Zielpfad zusammen — `Path(...) / "pipeline" / "verify" / "dashboard.py"` — statt ihn als Zeichenkette zu schreiben. Die Umbenennung `verify/` → `export/` in W6.2 lief über Literalsuche und übersah ihn deshalb; die Datei übersprang danach **alle 18 Tests stillschweigend**, gesammelt wurden 199 statt 217. Der Agent hat es bemerkt und behoben. **Aber nichts im Repo hätte es bemerkt:** es gibt keine Zusicherung über die Zahl gesammelter Tests und keine, dass keine Testdatei auf null fällt. Eine Suite, die leise kleiner wird, ist gefährlicher als eine, die rot wird. Zwei Lehren: Literalsuche findet Literale, und **`make test` braucht eine Untergrenze.** | Sammelposten |
+| 53 | **Der Fingerabdruck hängt am absoluten Pfad — und damit rechnet jeder Klon alles neu.** `pipeline/fingerprint.py:45` bildet `{str(p): _stat(p) for p in inputs}`; Schlüssel ist der **nicht aufgelöste** absolute Pfad. `matches()` vergleicht die Wörterbücher **samt Schlüsseln**. `pipeline/contract.py:39` leitet `ROOT` aus `__file__` ab, also hat jeder Klon andere Schlüssel — und damit nie einen Treffer, **auch wenn die Dateien über einen Symlink buchstäblich dieselben sind**: `_stat()` läse durch den Symlink identische Größe und Zeitstempel, aber der Vergleich scheitert schon an den Schlüsseln. Ich hatte hier zuerst „wenn jemand das Repo verschiebt" stehen. Der Klontest in W6.3 hat gezeigt, dass es schärfer ist: **das Repo ist nicht portabel, sondern nur an seinem Platz schnell.** In W6.2 war derselbe Mechanismus schon einmal sichtbar (27 min Neulauf nach `build/` → `derived/`), und ich habe ihn als einmalig abgetan statt zu Ende gedacht. Behebung: Schlüssel **relativ zu `ROOT`** statt absolut. | W6.4 |
+| 52 | ~~**`make all` läuft kein zweites Mal**~~ — **erledigt in W6.2.** Alle zehn Prep-Stufen bekamen den inhaltsbasierten Selbst-Überspringer, den bis dahin nur `prep/osm.py` hatte; die beiden harten `--overwrite`-Schranken fielen, weil sie nach dem Umbau jeden gewollten Neulauf blockiert hätten. **Gemessen: zweiter Lauf 182 Sekunden statt 66 Minuten**, alle zehn Stufen `[skip]`. Der Makefile-Weg wurde geprüft und verworfen — er wäre zeitstempelbasiert gewesen. Der Nachweis, dass der Überspringer sich auch wieder **aufhebt**, wurde dynamisch geführt: ein `touch` auf eine Nicht-`data/`-Eingabe ließ die Stufe wieder rechnen und danach wieder überspringen. Ursprünglicher Text: | erledigt |
+| — | **`make all` läuft kein zweites Mal — und die Prep-Stufe beantwortet dieselbe Frage auf drei Arten.** Die Frage lautet „was tun, wenn meine Ausgabe schon da ist", und die zehn Prep-Einstiegsmodule beantworten sie so: **einmal richtig** (`pipeline/prep/osm.py:262,310` — Fingerabdruck prüfen, überspringen), **zweimal mit hartem Abbruch** (`kataster/a_noe_polygonize.py:317-319` und `kataster/b_export_parquet.py:102-104`, beide `raise SystemExit(… already exists; pass --overwrite)`), **siebenmal gar nicht** (`admin`, `adressen`, `natur`, `terrain`, `widmung`, `zonen`, `noe_sekrop` rechnen bedingungslos neu und überschreiben still — sie rufen `fingerprint.write()` am Ende, aber nie `fingerprint.matches()` davor). Folge: Ein zweiter `make all`-Lauf bricht nach 17 s bei `prep-kataster-a` ab. Wäre der behoben, käme sofort `prep-kataster-b`. Wären beide behoben, liefe er durch — würde aber **66 Minuten lang neu rechnen, was schon dasteht**. **§13.6 in Reinform, und schlimmer als ich es zuerst aufgeschrieben hatte:** ich hatte hier „neunmal überspringen, einmal abbrechen" stehen. Das war falsch, ungeprüft von mir behauptet, und W6.1 hat es nachgemessen widerlegt. Verdacht für die eigentliche Wurzel: der Makefile benutzt die Fingerabdrücke nicht, die er schreiben lässt. **Warum es 38 Pakete lang niemand merkte:** W5.1 begann mit `rm -rf build`, jeder frische Klon ebenso. Der Fehler zeigt sich nur beim **zweiten** Lauf — und den hat bis W6.1 niemand gemacht. | W6.2, Mindestumfang: wiederholbar |
 | 51 | **Der Zweig `main` hat von 38 Paketen nichts gesehen.** Die gesamte Arbeit liegt auf `docs/audit-und-plan`; `main` steht unverändert auf dem Vorzustand. Solange das so ist, zeigt jeder, der das Repo frisch klont, die alte Kette. Das ist **kein Versehen** — der Zweigname sagt „Audit und Plan", und das war er anfangs auch —, aber es ist inzwischen falsch beschriftet: dort liegt der Umbau. Gehört nach Welle 6, als letzter Schritt und nicht als erster. | Welle 6 |
 | 50 | **Zwei Tests werden übersprungen, benannt ist nur einer.** `test_distance_engine_equivalence.py` überspringt sauber, wenn das Vorgängerrepo fehlt — das steht überall. Welcher der zweite ist, steht nirgends; ich habe die Zahl „plus 2 übersprungen" 38 Pakete lang fortgeschrieben, ohne sie je aufzulösen. Kleine Lücke, aber genau die Sorte, die später als Überraschung zurückkommt. | Sammelposten |
 | 49 | **Der wichtigste Beweis des Projekts hat keinen Beleg.** W5.1 hat die Kette aus Rohdaten bitgleich reproduziert — und **keine einzige Datei im Repo hinterlassen**: kein Commit (der Lauf ändert nichts Verfolgtes), kein Verzeichnis unter `nachweise/`, kein Lauf-Log. Die Zahlen stehen ausschließlich als Prosa in dieser Datei, von mir abgeschrieben aus einem Agentenbericht, den niemand nachprüfen kann. Dahinter steckt ein größeres Versäumnis: **`nachweise/` hat drei Verzeichnisse — `w01`, `w12`, `w13` — und dann hört es auf.** Die Praxis ist nach Welle 1 klanglos eingeschlafen, und mir ist es 35 Pakete lang nicht aufgefallen, obwohl der Kopf dieser Datei sie als Verweis führt. **Die Lehre ist nicht „mehr Belege", sondern: eine Praxis, die nicht in der Abnahmebedingung steht, stirbt.** | Welle 6, mit Punkt 48 |
