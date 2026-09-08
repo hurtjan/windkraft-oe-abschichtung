@@ -75,6 +75,11 @@ def run(force: bool = False) -> Path:
             _resolved_csv_input(data_dir, bev_register.BUILDING_CSV),
         }
     )
+    # Path(__file__) zaehlt zum Fingerabdruck mit (W6.4, Punkt 45): eine
+    # Aenderung an dieser Datei soll den Selbst-Ueberspringer aufheben, nicht
+    # nur eine Aenderung an data/. Konservativ - nur die eigene Quelldatei,
+    # nicht die Importe (siehe pipeline/fingerprint.py).
+    inputs.append(Path(__file__))
     address_path = out_dir / bev_register.ADDRESS_CACHE_NAME
     building_path = out_dir / bev_register.BUILDING_CACHE_NAME
 

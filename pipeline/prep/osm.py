@@ -263,7 +263,13 @@ def run_extract(force: bool = False) -> Path:
     out_dir = contract.PREP["osm"]["a_extract"]
     runtime.ensure_dir(out_dir)
 
-    if not force and fingerprint.matches(out_dir, [pbf_path]) and all(
+    # Path(__file__) zaehlt zum Fingerabdruck mit (W6.4, Punkt 45): eine
+    # Aenderung an dieser Datei soll den Selbst-Ueberspringer aufheben, nicht
+    # nur eine Aenderung an data/. Konservativ - nur die eigene Quelldatei,
+    # nicht die Importe (siehe pipeline/fingerprint.py). Gilt fuer beide
+    # Stufen in diesem Modul (a_extract UND b_layers weiter unten).
+    extract_inputs = [pbf_path, Path(__file__)]
+    if not force and fingerprint.matches(out_dir, extract_inputs) and all(
         (out_dir / f"{key}.geojsonseq").exists() for key in LAYER_KEYS
     ):
         print(f"[skip]  prep-osm a_extract: Fingerabdruck unveraendert -> {out_dir}", flush=True)
@@ -274,7 +280,7 @@ def run_extract(force: bool = False) -> Path:
         _extract_one(pbf_path, key, out_dir)
         print(f"[done]  prep-osm a_extract {key}", flush=True)
 
-    fingerprint.write(out_dir, [pbf_path])
+    fingerprint.write(out_dir, extract_inputs)
     return out_dir
 
 
@@ -311,6 +317,9 @@ def run_layers(force: bool = False) -> Path:
     runtime.ensure_dir(b_dir)
 
     inputs = [a_dir / f"{key}.geojsonseq" for key in LAYER_KEYS]
+    # Path(__file__) zaehlt zum Fingerabdruck mit (W6.4, Punkt 45) - siehe
+    # Kommentar in run_extract() oben.
+    inputs.append(Path(__file__))
     if not force and fingerprint.matches(b_dir, inputs) and all(
         (b_dir / f"{key}.parquet").exists() for key in LAYER_KEYS
     ):

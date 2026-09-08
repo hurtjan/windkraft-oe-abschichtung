@@ -92,6 +92,12 @@ VECTORIZE_DIR = contract.PREP["noe_sekrop"]["b_vectorize"]
 
 ALIGNMENT_FILENAME = "alignment_mindestabstand.json"
 
+# Zaehlt zum Fingerabdruck beider Stufen mit (W6.4, Punkt 45): eine
+# Aenderung an dieser Datei soll den jeweiligen Selbst-Ueberspringer
+# aufheben, nicht nur eine Aenderung an data/. Konservativ - nur die eigene
+# Quelldatei, nicht die Importe (siehe pipeline/fingerprint.py).
+MODULE_PATH = Path(__file__)
+
 # --- Stufe a: Alignment-Konstanten -----------------------------------------
 # Unverändert aus scripts/noe/align_pdf_shapefile.py. VP_BBOX ist die feste
 # Viewport-BBox der Kartenseite in PDF-Punkten, LPTS die Eckpunkt-Reihenfolge
@@ -158,7 +164,7 @@ def run_align(force: bool = False) -> Path:
     runtime.ensure_dir(ALIGN_DIR)
 
     out_path = ALIGN_DIR / ALIGNMENT_FILENAME
-    if not force and out_path.exists() and fingerprint.matches(ALIGN_DIR, [PDF_PATH]):
+    if not force and out_path.exists() and fingerprint.matches(ALIGN_DIR, [PDF_PATH, MODULE_PATH]):
         print(
             f"[skip]  prep-noe-sekrop a_align: Fingerabdruck unveraendert -> {out_path}",
             flush=True,
@@ -227,7 +233,7 @@ def run_align(force: bool = False) -> Path:
         json.dumps(alignment_data, indent=2, ensure_ascii=False), encoding="utf-8"
     )
 
-    fingerprint.write(ALIGN_DIR, [PDF_PATH])
+    fingerprint.write(ALIGN_DIR, [PDF_PATH, MODULE_PATH])
     print(
         f"[done]  prep-noe-sekrop a_align: Kartenausschnitt {img_w}x{img_h} px -> {out_path}",
         flush=True,
@@ -455,6 +461,7 @@ def run_vectorize(align: dict | None = None, force: bool = False) -> Path:
 
     vectorize_inputs = [
         PDF_PATH, VGD_PATH, *_shapefile_sidecars(VGD_PATH), ALIGN_DIR / ALIGNMENT_FILENAME,
+        MODULE_PATH,
     ]
     output_paths = []
     for _key, (_color, base, _dissolve) in LAYERS.items():

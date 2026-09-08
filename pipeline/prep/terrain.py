@@ -225,7 +225,14 @@ def run(force: bool = False) -> Path:
         "DGM_R25.tif (Digitales Geländemodell)": contract.RAW["gelaende"]["dgm"],
         "AUT_power-density_150m.tif (Leistungsdichte 150 m)": contract.RAW["gelaende"]["wind_pd_150"],
     }
-    input_paths = list(inputs.values())
+    # Path(__file__) zaehlt zum Fingerabdruck mit (W6.4, Punkt 45): eine
+    # Aenderung an dieser Datei soll den Selbst-Ueberspringer aufheben, nicht
+    # nur eine Aenderung an data/. Konservativ - nur die eigene Quelldatei,
+    # nicht die Importe (siehe pipeline/fingerprint.py). Nicht Teil von
+    # ``inputs`` (das ist die beschriftete Anzeige-Zuordnung fuer den
+    # Bericht), sondern erst in ``input_paths``, dem tatsaechlichen
+    # Fingerabdruck-Datensatz.
+    input_paths = list(inputs.values()) + [Path(__file__)]
     report_path = out_dir / REPORT_FILENAME
 
     if not force and report_path.exists() and fingerprint.matches(out_dir, input_paths):

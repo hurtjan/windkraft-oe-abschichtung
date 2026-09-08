@@ -210,6 +210,11 @@ def _fingerprint_inputs() -> list[Path]:
     ]
     for stem in ("Stmk", "Sbg"):
         inputs.extend(sorted(p for p in luca_dir.glob(stem + ".*") if p.is_file()))
+    # Path(__file__) zaehlt zum Fingerabdruck mit (W6.4, Punkt 45): eine
+    # Aenderung an dieser Datei soll den Selbst-Ueberspringer aufheben, nicht
+    # nur eine Aenderung an data/. Konservativ - nur die eigene Quelldatei,
+    # nicht die Importe (siehe pipeline/fingerprint.py).
+    inputs.append(Path(__file__))
     return sorted(inputs)
 
 

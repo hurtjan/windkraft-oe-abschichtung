@@ -104,7 +104,11 @@ def run(force: bool = False) -> Path:
     # ``_read_gpkg_member_and_layers``) - aendert sich die Layerauswahl dort,
     # ohne dass sich das ZIP aendert, waere ein reiner zip_path-Fingerabdruck
     # blind dafuer.
-    inputs = [zip_path, CONFIG_PATH]
+    # Path(__file__) zaehlt zum Fingerabdruck mit (W6.4, Punkt 45): eine
+    # Aenderung an dieser Datei soll den Selbst-Ueberspringer aufheben, nicht
+    # nur eine Aenderung an data/. Konservativ - nur die eigene Quelldatei,
+    # nicht die Importe (siehe pipeline/fingerprint.py).
+    inputs = [zip_path, CONFIG_PATH, Path(__file__)]
     out_path = out_dir / OUTPUT_FILENAME
 
     # Selbst-Ueberspringer, gleiches Muster wie pipeline/prep/osm.py
