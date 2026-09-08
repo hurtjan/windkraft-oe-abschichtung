@@ -80,6 +80,30 @@ durchzulassen").
              zusätzlich gepflegt - eine zweite, von Hand synchron zu
              haltende Liste wäre genau die stille Drift, die dieses Feld
              verhindern soll.
+  ``2.1.0``  W5.P5 generalisiert den §13.9-Wächter auf eine zweite,
+             unabhängige Ursache (Punkt 34, Wegfall adressloser
+             DKM-Großflächen, Paket W5.P2) und trägt dafür einen weiteren
+             Top-Level-Schlüssel nach, ``dkm_geoparquet_wirkungspfad`` -
+             derselben ``..._wirkungspfad``-Konvention wie oben, nur mit
+             einem STARTKNOTENSATZ statt eines einzelnen Startbands: alle
+             Bänder, deren ``quelle`` ``dkm_geoparquet`` referenziert
+             (:func:`_dkm_geoparquet_roots`, aus ``BAND_SOURCES``
+             abgelesen, nicht gepflegt), plus deren transitiver Abschluss
+             über ``abgeleitet_von`` (:func:`_impact_path`, die
+             Verallgemeinerung von dem, was bis ``2.0.0`` als
+             ``_water_bodies_impact_path()`` nur den Wasserpfad konnte).
+             Nebenversion, nicht Hauptversion: die neue Zeile ist additiv,
+             ändert weder ``bands[]`` noch ein bestehendes Feld je Band,
+             und folgt einer bereits generisch entdeckbaren Konvention
+             (``pipeline/verify/dashboard.py:_impact_path_keys()`` findet
+             jeden Schlüssel, der auf ``_wirkungspfad`` endet und eine
+             Liste ist, unabhängig vom Namen - siehe dort). Der bestehende
+             ``geography_water_bodies_wirkungspfad`` bleibt unverändert:
+             derselbe Startknoten, derselbe Algorithmus, dieselben neun
+             Namen. Auch am dokumentierten Vertrag (``band_count``,
+             ``bands[].index``/``name``/``rolle``, siehe
+             ``docs/HANDOFF.md``) ändert sich nichts - ``..._wirkungspfad``
+             gehört dort ausdrücklich nicht dazu.
 """
 
 from __future__ import annotations
@@ -95,7 +119,7 @@ from windkraft.viz.band_metadata import (
     layer_color,
 )
 
-SCHEMA_VERSION = "2.0.0"
+SCHEMA_VERSION = "2.1.0"
 MANIFEST_SUFFIX = ".bands.json"
 
 # Fallbacks, falls die Tags einmal ohne diese Schlüssel kommen. Der Regelfall
@@ -575,7 +599,19 @@ BAND_SOURCES: dict[str, list[str]] = {
     "haeuser_im_gruenen_streusiedlung": ["bev_adressregister", "dkm_geoparquet", "verwaltungsgrenzen_vgd"],
     "haeuser_im_gruenen_noe_pdf": ["noe_sekrop_mindestabstandszonen"],
     "nonresidential_hulls_source": ["dkm_geoparquet", "osm_pbf"],
-    "cableway_buildings_source": ["osm_pbf"],
+    # dkm_geoparquet trotz "osm_pbf-only" auf den ersten Blick: die
+    # Gebäudeklassifikation in build_osm_building_sources()
+    # (pipeline/layers/osm.py) verundet OFFICIAL_COVER_LAYERS zu
+    # covered_mask und liest darüber hig_hulls_source direkt noch einmal
+    # für die NÖ-Streusiedlungs-Fußabdrücke - beides HIG-Zwischenschichten
+    # (pipeline/layers/hig.py), die aus scan_dkm_candidates() (siehe
+    # dortiges Modul, "Warum Widmung und Häuser im Grünen EIN Paket sind")
+    # und damit letztlich aus dkm_geoparquet stammen. Ohne diese Kante
+    # bleibt cableway_buildings_source (und seine buffer) außerhalb jedes
+    # DKM-Wirkungspfads, obwohl Punkt 34 (W5.P2) es nachweislich verändert
+    # hat (siehe docs/rewrite/abweichungen.tsv, Bänder 10/11) - genau die
+    # fehlende Kante, die W5.P4 gefunden und W5.P5 hier nachträgt.
+    "cableway_buildings_source": ["osm_pbf", "dkm_geoparquet"],
     "general_buildings_source": ["osm_pbf", "dkm_geoparquet", "bev_adressregister"],
     "road_motorway_trunk": ["osm_pbf"],
     "road_federal_state": ["osm_pbf"],
@@ -682,14 +718,25 @@ def band_derived_from(name: str) -> list[str]:
     return list(BAND_DERIVED_FROM.get(name, []))
 
 
-def _water_bodies_impact_path(band_names: list[str]) -> list[str]:
-    """Transitiver Abschluss über band_derived_from(), ab
-    ``geography_water_bodies`` - die einzigen Bänder, die laut PLAN.md
-    §13.9/Regel 8 von run1 abweichen DÜRFEN. Reine Graphsuche über die
-    ``abgeleitet_von``-Kanten der tatsächlich im Raster vorhandenen Bänder;
-    kein Sonderwissen über einzelne Bandnamen außer dem Startpunkt selbst."""
+def _impact_path(start_names: list[str], band_names: list[str]) -> list[str]:
+    """Transitiver Abschluss über ``band_derived_from()``, ab einem
+    STARTKNOTENSATZ (nicht nur einem einzelnen Band) - die Verallgemeinerung
+    von dem, was bis Schema ``2.0.0`` nur ``_water_bodies_impact_path()``
+    konnte (siehe Schema-Historie im Moduldocstring, ``2.1.0``, W5.P5).
+    Reine Graphsuche über die ``abgeleitet_von``-Kanten der tatsächlich im
+    Raster vorhandenen Bänder; kein Sonderwissen über einzelne Bandnamen
+    außer den Startpunkten selbst - die wiederum aus BAND_SOURCES/
+    BAND_DERIVED_FROM abgeleitet werden, nicht von Hand gepflegt (siehe
+    z. B. :func:`_dkm_geoparquet_roots`).
+
+    ``start_names``, die im Raster nicht vorkommen, werden stillschweigend
+    ignoriert (wie zuvor bei ``geography_water_bodies`` selbst) - ein
+    Manifest mit weniger Bändern (anderes Schema/Testfixture) bricht daran
+    nicht.
+    """
     present = set(band_names)
-    if "geography_water_bodies" not in present:
+    starts = [n for n in start_names if n in present]
+    if not starts:
         return []
     # Rückwärtskanten: welche Bänder haben X in ihrem abgeleitet_von?
     dependents: dict[str, list[str]] = {}
@@ -697,17 +744,47 @@ def _water_bodies_impact_path(band_names: list[str]) -> list[str]:
         for upstream in band_derived_from(name):
             dependents.setdefault(upstream, []).append(name)
 
-    reached = {"geography_water_bodies"}
-    frontier = ["geography_water_bodies"]
+    reached = set(starts)
+    frontier = list(starts)
     while frontier:
         current = frontier.pop()
         for nxt in dependents.get(current, []):
             if nxt not in reached:
                 reached.add(nxt)
                 frontier.append(nxt)
-    # Reihenfolge wie im Raster, Startband zuerst.
-    ordered = [n for n in band_names if n in reached and n != "geography_water_bodies"]
-    return ["geography_water_bodies", *ordered]
+    # Reihenfolge wie im Raster - bei einem einzelnen Startband (Wasserpfad)
+    # identisch zur früheren "Startband zuerst, Rest in Rasterreihenfolge",
+    # weil das Startband dort ohnehin das früheste erreichte Band ist.
+    return [n for n in band_names if n in reached]
+
+
+def _water_bodies_impact_path(band_names: list[str]) -> list[str]:
+    """Die einzigen Bänder, die laut PLAN.md §13.9/Regel 8 von run1
+    abweichen DÜRFEN (Bodensee-Korrektur, Punkt 33) - Sonderfall von
+    :func:`_impact_path` mit einem einzigen Startband."""
+    return _impact_path(["geography_water_bodies"], band_names)
+
+
+def _dkm_geoparquet_roots(band_names: list[str]) -> list[str]:
+    """Startknotensatz für den DKM-Wirkungspfad: alle im Raster
+    vorhandenen Bänder, deren ``quelle`` (:func:`band_sources`)
+    ``dkm_geoparquet`` referenziert - aus ``BAND_SOURCES`` abgelesen, nicht
+    als Bandliste gepflegt (siehe Kommentar dort zu
+    ``cableway_buildings_source``)."""
+    return [n for n in band_names if "dkm_geoparquet" in band_sources(n)]
+
+
+def _dkm_geoparquet_impact_path(band_names: list[str]) -> list[str]:
+    """Die Bänder, die laut PLAN.md §13.9/Regel 8 von run1 abweichen
+    DÜRFEN wegen der zweiten Ursache (Punkt 34, Wegfall adressloser
+    DKM-Großflächen, Paket W5.P2) - transitiver Abschluss ab
+    :func:`_dkm_geoparquet_roots`. Überschneidet sich mit
+    :func:`_water_bodies_impact_path` an den gemeinsamen
+    Aggregat-/Verfügbarkeitsbändern (``all_exclusions`` u. a.) - beide
+    Ursachen überlagern sich dort tatsächlich (siehe
+    ``docs/rewrite/abweichungen.tsv``, Bänder 30-36); das ist beabsichtigt,
+    keine Dopplung, die vermieden werden müsste."""
+    return _impact_path(_dkm_geoparquet_roots(band_names), band_names)
 
 
 # --------------------------------------------------------------------------
@@ -851,10 +928,12 @@ def build_band_manifest(
         "parameters": dict(tags),
         "sources": {key: dict(value) for key, value in SOURCES.items()},
         "caveats": caveats,
-        # PLAN.md §13.9/Regel 8: die transitive Ausbreitung der einzigen
-        # erklärten Abweichung zu run1, berechnet aus abgeleitet_von, nicht
-        # von Hand gepflegt (siehe Schema-Historie im Moduldocstring).
+        # PLAN.md §13.9/Regel 8: die transitive Ausbreitung der beiden
+        # erklärten Abweichungen zu run1, je berechnet aus abgeleitet_von,
+        # nicht von Hand gepflegt (siehe Schema-Historie im Moduldocstring,
+        # ``2.1.0`` für den zweiten Schlüssel).
         "geography_water_bodies_wirkungspfad": _water_bodies_impact_path(band_names),
+        "dkm_geoparquet_wirkungspfad": _dkm_geoparquet_impact_path(band_names),
     }
 
 

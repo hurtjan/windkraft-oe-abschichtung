@@ -183,6 +183,38 @@ EXPECTED_WATER_BODIES_IMPACT_PATH = [
     "available_blur_sigma_300m",
 ]
 
+# Die transitive Ausbreitung der zweiten §13.9-Ursache (Punkt 34, Wegfall
+# adressloser DKM-Großflächen, Paket W5.P2) - Schema 2.1.0, W5.P5. Vorher
+# genannt aus der tatsächlichen Verschaltung: Startknotensatz sind alle
+# Bänder, deren quelle dkm_geoparquet referenziert
+# (haeuser_im_gruenen_streusiedlung, nonresidential_hulls_source,
+# cableway_buildings_source, general_buildings_source - letzteres über
+# BAND_SOURCES, erstere drei über die HIG-Zwischenschicht hig_hulls_source/
+# OFFICIAL_COVER_LAYERS, siehe Kommentar bei "cableway_buildings_source" in
+# BAND_SOURCES), dann derselbe transitive Abschluss über abgeleitet_von wie
+# beim Wasserpfad. Überschneidet sich mit EXPECTED_WATER_BODIES_IMPACT_PATH
+# an den gemeinsamen Aggregat-/Verfügbarkeitsbändern (all_exclusions u. a.)
+# - beide Ursachen überlagern sich dort tatsächlich (siehe
+# docs/rewrite/abweichungen.tsv, Bänder 30-36).
+EXPECTED_DKM_GEOPARQUET_IMPACT_PATH = [
+    "haeuser_im_gruenen_streusiedlung",
+    "haeuser_im_gruenen",
+    "nonresidential_hulls_source",
+    "nonresidential_hulls_buffer",
+    "cableway_buildings_source",
+    "cableway_buildings_buffer",
+    "general_buildings_source",
+    "general_buildings_buffer",
+    "exclusion_human",
+    "all_exclusions",
+    "available_after_all_exclusions_raw",
+    "available_cleaned_min_10ha",
+    "available_blur_sigma_100m",
+    "available_blur_sigma_200m",
+    "available_blur_sigma_250m",
+    "available_blur_sigma_300m",
+]
+
 
 @pytest.fixture(scope="module")
 def manifest() -> dict:
@@ -263,7 +295,7 @@ def test_raster_block_matches_grid(manifest):
 
 
 def test_top_level_shape(manifest):
-    assert manifest["schema_version"] == "2.0.0"
+    assert manifest["schema_version"] == "2.1.0"
     assert manifest["pipeline"] == "widmung_v2"
     assert manifest["band_schema"] == "clean-38-ohne-wichtige-objekte-aug-2026"
     assert manifest["raster_file"] == "osm_wka_distance_zones_widmung_v2.tif"
@@ -368,6 +400,13 @@ def test_geography_water_bodies_wirkungspfad_is_the_predicted_nine_bands(manifes
     # (die geography_water_bodies-Korrektur, 543.106 Zellen, ausschließlich
     # zusätzlich). Vorab genannt, nicht nachträglich gepasst.
     assert manifest["geography_water_bodies_wirkungspfad"] == EXPECTED_WATER_BODIES_IMPACT_PATH
+
+
+def test_dkm_geoparquet_wirkungspfad_is_the_predicted_sixteen_bands(manifest):
+    # PLAN.md §13.9/Regel 8, zweite Ursache (Punkt 34, W5.P2/W5.P5): genau
+    # diese 16 Bänder dürfen zusätzlich von run1 abweichen. Vorab genannt,
+    # nicht nachträglich gepasst - siehe EXPECTED_DKM_GEOPARQUET_IMPACT_PATH.
+    assert manifest["dkm_geoparquet_wirkungspfad"] == EXPECTED_DKM_GEOPARQUET_IMPACT_PATH
 
 
 def test_pixel_size_accepts_plain_affine_tuple():

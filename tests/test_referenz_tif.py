@@ -10,9 +10,14 @@ Wechsel selbst gemeldet, aber die Neunerliste
 (``ABWEICHENDE_BANDNUMMERN``/``-NAMEN``) und den zugehörigen Langläufer
 bewusst nicht mitgezogen (Regel 4) - der Lauf schlug seitdem fehl, weil
 real 18 Bänder von ``run1`` abweichen, nicht neun. W5.P3 zieht das jetzt
-nach: zwei Ursachen liegen inzwischen übereinander, und nur eine davon -
-die Bodensee-Korrektur - ist in ``geography_water_bodies_wirkungspfad``
-vorab genannt.
+nach: zwei Ursachen liegen inzwischen übereinander, und (Stand W5.P2/W5.P3)
+war nur eine davon - die Bodensee-Korrektur - in
+``geography_water_bodies_wirkungspfad`` vorab genannt. **Seit W5.P5** hat
+auch die zweite Ursache ihr eigenes Manifestfeld
+(``dkm_geoparquet_wirkungspfad``) - der folgende Abschnitt beschreibt noch
+den Stand VOR W5.P5, die Tests unten prüfen nur den bis dahin geltenden
+Teil des Vertrags (``geography_water_bodies_wirkungspfad``) unverändert
+weiter; siehe ``tests/test_band_manifest.py`` für die DKM-Gegenprobe.
 
 ## Was hier vertraglich ist (Stand W5.P2/W5.P3)
 
@@ -143,8 +148,9 @@ RUN1_BYTES = 124_685_819
 
 # Genau 18, keines mehr, keines weniger - zwei überlagerte Ursachen seit
 # Punkt 34/W5.P2 (PLAN.md §13.9 fuer die Bodensee-Teilmenge; die adresslosen
-# DKM-Grossflaechen sind eine zweite, unabhaengige Ursache ohne eigenes
-# Manifestfeld). Nummern und Namen beide festgehalten: die Nummer allein
+# DKM-Grossflaechen sind eine zweite, unabhaengige Ursache - bis W5.P5 ohne
+# eigenes Manifestfeld, seither in dkm_geoparquet_wirkungspfad). Nummern
+# und Namen beide festgehalten: die Nummer allein
 # verschoebe sich still, wenn sich die Bandreihenfolge je aenderte. Herkunft
 # je Band steht in docs/rewrite/abweichungen.tsv, Paket W5.P2, Spalte
 # ursache.
@@ -313,12 +319,17 @@ def test_abweichung_gegen_run1_betrifft_genau_achtzehn_baender():
     assert len(treffer) == 18, f"{len(treffer)} abweichende Bänder statt 18: {protokoll}"
 
     # Die Bodensee-Teilmenge (9 Bänder) steht vorab im Manifest des TIFs -
-    # vorher genannt, dann gemessen (PLAN.md §13.9, Regel 8). Die anderen
-    # neun Bänder (adresslose DKM-Großflächen, Punkt 34) haben kein
-    # entsprechendes Manifestfeld - der Wirkungspfad ist deshalb eine ECHTE
-    # TEILMENGE der tatsächlich abweichenden Bänder, keine Gleichheit mehr
-    # (das war die alte, jetzt falsche Annahme aus der Zeit vor Punkt 34,
-    # als es nur eine Ursache gab).
+    # vorher genannt, dann gemessen (PLAN.md §13.9, Regel 8). Geprüft wird
+    # hier bewusst nur dieses eine, ursprüngliche Feld
+    # (geography_water_bodies_wirkungspfad) unveraendert weiter - seit
+    # W5.P5 kennt das Manifest zusätzlich dkm_geoparquet_wirkungspfad fuer
+    # die anderen neun Bänder (adresslose DKM-Großflächen, Punkt 34); dessen
+    # exakte Namensmenge nagelt tests/test_band_manifest.py fest
+    # (test_dkm_geoparquet_wirkungspfad_is_the_predicted_sixteen_bands), auf
+    # einem synthetischen Manifest, nicht hier am echten Artefakt. Der
+    # Wasserpfad allein bleibt eine ECHTE TEILMENGE der 18 tatsächlich
+    # abweichenden Bänder, keine Gleichheit - das war schon vor W5.P5 so und
+    # ist unveraendert richtig.
     manifest_pfad = manifest_path_for(FINALES_TIF)
     if manifest_pfad.exists():
         manifest = json.loads(manifest_pfad.read_text(encoding="utf-8"))
