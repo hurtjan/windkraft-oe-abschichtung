@@ -312,7 +312,7 @@ Zwischen den Wellen wird synchronisiert, innerhalb einer Welle nicht.
 | 4 | Prüfung | 4 | Vorfeld zuerst, dann drei gleichzeitig |
 | 5 | Beweis | 7 | Vorfeld in sechs Stufen, dann der Lauf |
 | 6 | Aufräumen und Abschluss | 7 | nein — nacheinander, weil nichts kollidiert und nichts sich beschleunigen lässt |
-| 7 | Layer-Struktur v4 | 2 | ja — drei Bahnen im Produzentenpaket und das Dashboard gleichzeitig; siehe den Nachtrag zum Neuzuschnitt |
+| 7 | Layer-Struktur v4 | 4 | teils — W7.1 und W7.3 liefen gleichzeitig; W7.4 und W7.5 kommen danach und teilen sich einen Lauf |
 
 „Besitzt" heißt: nur dieses Paket darf diese Pfade anfassen. Zwei Pakete
 derselben Welle teilen sich niemals eine Datei.
@@ -594,6 +594,41 @@ notiert.
 | W7.1 | 7 | Struktur v4 | **Der Produzent in einem Zug** — Zuschnitt, Punkte-Export, sechs Bänder, Manifest 2.2.0 (Besitz je Bahn: siehe die Tabelle im Neuzuschnitt) | neu: `pipeline/export/wka_bestand.py`, `tests/test_export_wka_bestand.py`, `make/export/wka_bestand.mk` · ändern: `pipeline/layers/geo.py` (nur `build_wka_bestand_hulls`), `calc/band_manifest.py` (nur die Beschreibung von Band 38), `pipeline/contract.py` (nur `PRODUCTS`), `docs/HANDOFF.md`, `tests/test_referenz_tif.py` und `pipeline/validate.py` (nur das Hash-Literal) | W6.7 | Wörtlich aus dem Auftrag: „Band 38 AND Band 37 = leer; jede Anlage mit `in_zone=false` liegt außerhalb Band 37; Anzahl Hüllen und Anlagen im Report." Dazu aus diesem Plan: Der Befund, den das Paket behebt, ist ein **Geometriefehler, kein Zählfehler** — `geo.py:556` prüft „in Zone" als Punktabfrage am Raster, die konvexe Hülle plus 200-m-Rand wird danach ohne `difference()` gegen `official_wind_zoning` rasterisiert (`geo.py:567-576`), sodass ein grenznaher Cluster in eine amtliche Zone hineinragen kann, obwohl jede einzelne Anlage außerhalb liegt. Lauf: `make layers finalize validate export`, kein voller `make all`. Zu berichten sind die drei Zählungen gegen die Referenz **1595 gesamt / 807 in Zone / 788 außerhalb** und der **neue Referenz-Hash neben dem alten**. |
 | ~~W7.2~~ | 7 | Struktur v4 | ~~Sechs Bänder und Manifest 2.2.0~~ — **in W7.1 aufgegangen** (Neuzuschnitt oben). Die Zeile bleibt vollständig stehen, weil sie die Arbeit beschreibt, die W7.1 jetzt mitträgt — nach Regel 8 wird eine erklärte Abweichung mitgeführt, nicht gelöscht | `pipeline/contract.py` (`LAYER_NAMES`), `pipeline/finalize.py` (`BANDS`), `calc/band_manifest.py`, `calc/viz/band_metadata.py` (`CATEGORY_TOTALS`, Farben), `pipeline/layers/geo.py`, `pipeline/layers/osm.py`, `pipeline/validate.py` (die hartkodierten Indexbereiche in Zeile 44, 108–121, 473) · neu: `pipeline/export/layer_doc.py` → `out/LAYER.md`, Kopie `docs/layer.md` · Tests: `test_band_metadata.py`, `test_band_manifest.py`, `test_export_dashboard.py`, `test_export_viewer.py`, `conftest.py` · `docs/HANDOFF.md` | W7.1 | Wörtlich aus dem Auftrag: „44 Bänder, Manifest validiert, alle 217+ Tests grün, `LAYER.md` listet 44 Bänder." Dazu aus diesem Plan: **217 ist der Stand vor W6.7 — die Abnahme läuft gegen 226 gesammelte Tests**, und die Untergrenze in `conftest.py` wird mitgezogen. Die sechs Bänder entstehen aus bereits vorhandenen In-Memory-Arrays (`hig_family` liegt als lokale Variable in `geo.py:393` und wird heute nur gepuffert weiterverwendet), es wird **kein neuer Rohdatenzugriff** eröffnet. Der Schema-String `clean-38-…` trägt die Bandzahl im Namen und muss an allen vier Fundstellen mit — wer ihn stehen lässt, hat ein Manifest, das sich selbst widerspricht. **Zweiter neuer Referenz-Hash, wieder neben dem abgelösten.** |
 | W7.3 | 7 | Struktur v4 | Das Dashboard baut den Baum aus dem Manifest — **ab 09.09.2026 nicht mehr hier.** Die zweite Sitzung führt es selbst aus und arbeitet dabei parallel zum Produzenten; diese Seite fasst `winddashboard/` **nicht** an und schuldet nur das Paar aus TIF, Manifest und Punktdatei. Die Abnahme unten bleibt stehen, weil sie beschreibt, wogegen unser Manifest sich bewähren muss | **Fremdes Repo** `~/Documents/master_windkraft/winddashboard`, Zweig `feat/manifest-integration` (`c69121c`): `src/lib/config/bands.ts`, `src/lib/config/legend.ts`, `src/lib/components/MapControlPanel.svelte`, `src/routes/methodik/+page.svelte`, `scripts/extract_band_geojson.py`, `scripts/extract_possible_zones.py`, neu `scripts/merge_turbine_attributes.py`, `PIPELINE.md`, die neue Punktdatei unter `geodata/` | W7.2 | Wörtlich aus dem Auftrag: „40 Layer im Baum, Reihenfolge wie v4, Bestandsanlagen außerhalb überlappen weder Band 37 noch die Vektor-Zonen sichtbar, keine neuen svelte-check-Fehler." Dazu aus diesem Plan: Das Paket arbeitet **außerhalb dieses Repos** — Regel 10 (Plandateien nach jedem Paket committen) betrifft nur diese Seite, und nichts unter `geodata/` wird gelöscht. Es ist zugleich die Gegenprobe auf W7.2: Die 16 Handeinträge entfallen ersatzlos, der Baum kommt aus `familie`/`stufe`/`dashboard_layer`. Fällt dabei ein Band durch, ist der Fehler im Manifest, nicht im Dashboard. |
+
+### W7.4 und W7.5 — was Welle 7 selbst ausgelöst hat, und was der Nutzer verlangt
+
+**Zwei Pakete, ein Lauf.** W7.4 ändert **kein einziges Pixel**, W7.5 ändert
+welche — die Zuordnung ist damit von der Struktur her eindeutig, und beide
+dürfen sich einen Lauf teilen, ohne dass die Nachvollziehbarkeit leidet.
+Das ist der Unterschied zur Zusammenlegung in W7.1, wo beide Teile Pixel
+berührten und die Zuordnung erst nachgemessen werden musste. Zwei Commits,
+ein Zweig.
+
+**Die Reihenfolge ist erzwungen, nicht gewählt.** `pipeline/validate.py`
+bricht bei ungleicher Bandzahl hart ab; seit W7.1 bleibt das nur deshalb
+unsichtbar, weil ein Schnellweg bei bitgleichem TIF vorher aussteigt.
+**W7.5 ist das erste Paket, das diesen Schnellweg verlässt** — ohne W7.4
+stürbe es an einer Stelle, die mit Seilbahnen nichts zu tun hat. Umgekehrt
+lässt sich W7.4 **nur** an einem TIF beweisen, das von der Referenz
+abweicht. Die beiden brauchen einander.
+
+**Zum Befund hinter W7.5, weil er größer ist als die Frage war.** Drei
+Verbraucher lesen dieselbe Rohtabelle `aerialways.parquet` mit **drei
+verschiedenen Regeln**: Band 17 filtert auf zehn Typen — einschließlich
+fünf Schlepplift-Varianten und `magic_carpet`, dem Förderband im
+Anfängergelände —, Band 10 und das neue Band 42 filtern **gar nicht** und
+sehen damit 503 Materialseilbahnen, 55 Ziplines, 107 Lawinensprengbahnen,
+16 577 Masten und 5 617 Stationen. **Doku und Code widersprechen einander
+hier nicht** — `docs/widmung_v2.md:137` beschreibt Band 17 genau so, wie es
+gebaut ist. Der Widerspruch liegt zwischen beiden und dem, was
+„Personenseilbahn" bedeuten soll. Der Nutzer hat das am 09.09.2026
+entschieden: **eine gemeinsam definierte Liste, wirksam an allen drei
+Stellen.**
+
+| Paket | Welle | Gruppe | Titel | Besitzt | Braucht | Abnahme |
+|---|---|---|---|---|---|---|
+| W7.4 | 7 | Struktur v4 | Das Register verträgt 44 Bänder | `pipeline/validate.py`; `docs/rewrite/abweichungen.tsv`; die zugehörigen Tests | W7.1 | Punkt 65. `measure_bands()` vergleicht die **38 überlappenden** Bänder gegen `run1` und weist die sechs neuen als **„ohne Gegenstück"** aus, statt abzubrechen. **Kein Pixel ändert sich** — das TIF wird nicht neu gebaut. Abnahme: `make validate` läuft gegen ein TIF mit 44 Bändern **auf dem Diagnoseweg** (nicht über den Schnellweg) mit Rückgabewert 0 durch, und das Register nennt die sechs neuen Bänder ausdrücklich. Der Nachweis ist erst mit dem TIF aus W7.5 zu führen — deshalb steht die Abnahme dieses Pakets bewusst hinter dem nächsten. |
+| W7.5 | 7 | Struktur v4 | Personenseilbahnen sind Gondeln, Seilbahnen, Sessel- und Kombibahnen | `calc/abschichtung_common.py` (`PEOPLE_CARRYING_AERIALWAY_TYPES`); `pipeline/layers/osm.py` (Band 10 und 17); `pipeline/layers/geo.py` (Band 42); `calc/band_manifest.py` (Beschreibungen); `docs/widmung_v2.md`, `docs/layer.md`, `docs/HANDOFF.md`; das Hash-Literal in `tests/test_referenz_tif.py` und `pipeline/validate.py` | W7.4 | Punkt 64. **Eine** Typenliste — `gondola`, `cable_car`, `chair_lift`, `mixed_lift` — an **einer** Stelle definiert und von allen drei Verbrauchern gelesen; sie kommt im Code danach genau einmal vor. Die Wirkung auf **Band 10, 17 und 42** wird **je Band in Zellen gemessen und berichtet**, nicht geschätzt (die Vorabschätzung lautete rund 184 km² für Band 17 allein, rund 380 km² über alle drei — Schätzungen aus Länge mal Pufferbreite, keine Rasterrechnung). Die nachgelagerten Aggregate ändern sich **nur** über diesen Pfad; jedes andere geänderte Band ist ein Fehler und hält an. `abweichungen.tsv` bekommt die Eingrenzung als **dritte benannte Ursache**. Doku und Bandbeschreibungen sagen danach dasselbe wie der Code. **Ausdrücklich zu berichten, nicht still zu entscheiden:** ob der Wegfall von `station` und `pylon` die Gebäudeerkennung in Band 10 verändert — das sind die Bauwerke der Personenseilbahnen selbst. |
 
 ## 8. Regeln der Parallelität
 
