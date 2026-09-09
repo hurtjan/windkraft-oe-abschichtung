@@ -312,7 +312,7 @@ Zwischen den Wellen wird synchronisiert, innerhalb einer Welle nicht.
 | 4 | Prüfung | 4 | Vorfeld zuerst, dann drei gleichzeitig |
 | 5 | Beweis | 7 | Vorfeld in sechs Stufen, dann der Lauf |
 | 6 | Aufräumen und Abschluss | 7 | nein — nacheinander, weil nichts kollidiert und nichts sich beschleunigen lässt |
-| 7 | Layer-Struktur v4 | 4 | teils — W7.1 und W7.3 liefen gleichzeitig; W7.4 und W7.5 kommen danach und teilen sich einen Lauf |
+| 7 | Layer-Struktur v4 | 8 | teils — W7.1 und W7.3 liefen gleichzeitig; W7.4 und W7.5 teilen sich einen Lauf; W7.6 und W7.7 stehen hintereinander in der Schlange, weil alle drei dieselbe Datei anfassen |
 
 „Besitzt" heißt: nur dieses Paket darf diese Pfade anfassen. Zwei Pakete
 derselben Welle teilen sich niemals eine Datei.
@@ -627,8 +627,218 @@ Stellen.**
 
 | Paket | Welle | Gruppe | Titel | Besitzt | Braucht | Abnahme |
 |---|---|---|---|---|---|---|
-| W7.4 | 7 | Struktur v4 | Das Register verträgt 44 Bänder | `pipeline/validate.py`; `docs/rewrite/abweichungen.tsv`; die zugehörigen Tests | W7.1 | Punkt 65. `measure_bands()` vergleicht die **38 überlappenden** Bänder gegen `run1` und weist die sechs neuen als **„ohne Gegenstück"** aus, statt abzubrechen. **Kein Pixel ändert sich** — das TIF wird nicht neu gebaut. Abnahme: `make validate` läuft gegen ein TIF mit 44 Bändern **auf dem Diagnoseweg** (nicht über den Schnellweg) mit Rückgabewert 0 durch, und das Register nennt die sechs neuen Bänder ausdrücklich. Der Nachweis ist erst mit dem TIF aus W7.5 zu führen — deshalb steht die Abnahme dieses Pakets bewusst hinter dem nächsten. |
+| W7.4 | 7 | Struktur v4 | Das Register verträgt 44 Bänder | `pipeline/validate.py`; `docs/rewrite/abweichungen.tsv`; die zugehörigen Tests | W7.1 | Punkt 65. `measure_bands()` vergleicht die **38 überlappenden** Bänder gegen `run1` und weist die sechs neuen als **„ohne Gegenstück"** aus, statt abzubrechen. **Kein Pixel ändert sich** — das TIF wird nicht neu gebaut. Abnahme: `make validate` läuft gegen ein TIF mit 44 Bändern **auf dem Diagnoseweg** (nicht über den Schnellweg) **ohne Absturz** durch, und das Register weist die sechs neuen Bänder ausdrücklich als **„ohne Gegenstück"** aus. Der Nachweis ist erst mit dem TIF aus W7.5 zu führen — deshalb steht die Abnahme dieses Pakets bewusst hinter dem nächsten. **Korrektur vom 09.09.2026, mein Fehler:** Hier stand ursprünglich „mit Rückgabewert 0 durch". Das war **unerfüllbar**, und zwar seit langem. Der Diagnoseweg meldet 1, sobald eine Abweichung gegen `run1` eine Ursache trägt, die als **„entschieden"** und nicht als „angenommen" eingetragen ist — so stehen die DKM-Abweichungen aus W5.P2 seit Welle 5 in `abweichungen.tsv`. Gesehen hat das niemand, weil `validate` seither **immer** den Schnellweg nahm: bitgleiches TIF, sofortiger Ausstieg mit 0. **Der erste Lauf, der den Diagnoseweg überhaupt betreten hat, war der W7.5-Lauf vom 09.09.2026** — und er hat prompt gezeigt, dass der Rückgabewert nichts über die Bandzahl-Toleranz aussagt, sondern über offene Annahmeentscheidungen. Beides gehört getrennt: Die Toleranz ist erfüllt (kein Absturz bei 44 gegen 38, sechs Bänder als „ohne Gegenstück" benannt), der Rückgabewert ist eine andere, ältere Frage. |
 | W7.5 | 7 | Struktur v4 | Personenseilbahnen sind Gondeln, Seilbahnen, Sessel- und Kombibahnen | `calc/abschichtung_common.py` (`PEOPLE_CARRYING_AERIALWAY_TYPES`); `pipeline/layers/osm.py` (Band 10 und 17); `pipeline/layers/geo.py` (Band 42); `calc/band_manifest.py` (Beschreibungen); `docs/widmung_v2.md`, `docs/layer.md`, `docs/HANDOFF.md`; das Hash-Literal in `tests/test_referenz_tif.py` und `pipeline/validate.py` | W7.4 | Punkt 64. **Eine** Typenliste — `gondola`, `cable_car`, `chair_lift`, `mixed_lift` — an **einer** Stelle definiert und von allen drei Verbrauchern gelesen; sie kommt im Code danach genau einmal vor. Die Wirkung auf **Band 10, 17 und 42** wird **je Band in Zellen gemessen und berichtet**, nicht geschätzt (die Vorabschätzung lautete rund 184 km² für Band 17 allein, rund 380 km² über alle drei — Schätzungen aus Länge mal Pufferbreite, keine Rasterrechnung). Die nachgelagerten Aggregate ändern sich **nur** über diesen Pfad; jedes andere geänderte Band ist ein Fehler und hält an. `abweichungen.tsv` bekommt die Eingrenzung als **dritte benannte Ursache**. Doku und Bandbeschreibungen sagen danach dasselbe wie der Code. **Ausdrücklich zu berichten, nicht still zu entscheiden:** ob der Wegfall von `station` und `pylon` die Gebäudeerkennung in Band 10 verändert — das sind die Bauwerke der Personenseilbahnen selbst. |
+| W7.6 | 7 | Struktur v4 | Kategorien und Familien bekommen Titel und Text — und der Konsumentenvertrag zieht zum Produzenten | `calc/band_manifest.py` (`kategorien`, `description_de` je Familie, optional `stufen`, `schema_version` 2.2.1); `docs/layer.md` und die Kopie `out/LAYER.md`; **neu `docs/LAYER-MANIFEST.md`** und die Kopie `out/LAYER-MANIFEST.md`; `make/export/**` (dasselbe Kopierziel wie `LAYER.md`); `pipeline/contract.py` (`PRODUCTS`, sechs → sieben); ein neuer Test; ein Verweis in `docs/HANDOFF.md` | **W7.5** | Am 09.09.2026 vom Nutzer freigegeben. Rein **additiv**: Top-Level `kategorien` als geordnetes Array in der Reihenfolge von `category_order`, je Eintrag `key` (Maschinenschlüssel), `category` (Join-String), `label_de`, `description_de`; dazu `description_de` je Eintrag in `familien`. **Der Grund für `key` neben `category`** ist Jans Grundsatz „alles im Produzenten definiert" — das Dashboard leitet den Schlüssel heute selbst aus dem Anzeige-String ab und soll das nicht mehr müssen. **Die eigentliche Abnahme ist der Hash — aber Bitgleichheit allein beweist seit dem 09.09.2026 nichts mehr.** Punkt 68 hat gezeigt, dass ein bitgleiches TIF auch bedeuten kann, dass der Lauf die Änderung nie enthielt. Die Abnahme ist deshalb **dreiteilig und nur zusammen gültig**: (1) das Manifest hat sich nachweislich geändert — Schema 2.2.1, `kategorien` vorhanden; (2) das TIF ist inhaltlich **bitgleich**; (3) sein **Zeitstempel stammt aus diesem Lauf**, es wurde also neu geschrieben und nicht übersprungen. Fehlt eines der drei, ist nichts bewiesen. Weicht das TIF inhaltlich ab, war der Zusatz nicht additiv oder die Kette nicht deterministisch — beides hält an. Die zweite Sitzung hat auf diese Lücke hingewiesen, bevor sie uns aufgefallen wäre. **Warum es warten muss:** W7.5 besitzt `calc/band_manifest.py` für die Bandbeschreibungen; zwei Pakete teilen sich keine Datei (Regel 1). **Zweiter Teil, am 09.09.2026 vom Nutzer dazugegeben:** `LAYER-MANIFEST.md` — der Vertrag, gegen den die Konsumentenseite entwickelt — gehört nicht ins Dashboard, sondern neben das Manifest. Quelle unter `docs/`, Kopie nach `out/` über dasselbe Kopierziel wie `LAYER.md`, damit ist es das **siebte** Endprodukt und die fünfte Datei im Handover. Die Datei wird aus dem Dashboard-Repo übernommen (199 Zeilen), dort ist sie bereits entfernt und nichts verweist mehr darauf — es gibt also ein Fenster, in dem der Vertrag **nirgends** liegt, und das ist der Grund, warum es hier hängt und nicht wartet. **Der Haken, der beim Übernehmen zu lösen ist:** Abschnitt 6 der Datei beschreibt das End-Set aus W7.8, also einen Zustand, den der Produzent zum Zeitpunkt von W7.6 noch **nicht** erreicht hat. Die übernommene Fassung bekommt deshalb einen datierten Kopf, der sagt, welche Abschnitte den **Zielzustand** beschreiben und welche Pakete dafür noch ausstehen — dieselbe Behandlung, die `docs/dataflow/` in W6.5 bekommen hat. W7.8 zieht Abschnitt 6 auf den erreichten Stand nach. Was die Datei über den Produzenten sagt (Abschnitte 2, 4, 5), wird gegen den Code geprüft und wo nötig korrigiert; jede Korrektur, die die Ableitung im Dashboard (Abschnitt 3) berührt, wird der zweiten Sitzung **gemeldet**, nicht still vorgenommen. **Dritter Teil, am 09.09.2026 aus W7.8 vorgezogen, weil er kein einziges gerechnetes Pixel braucht:** die Label- und Beschreibungskorrekturen an **bestehenden** Bändern — 25 `label_de` „Wind zu gering"; 32 „Eignungsflächen (verfügbar, ≥ 10 ha)"; 28 „Σ Ausschluss Natur (Schutzgebiete)"; deutsche Beschreibungen mit den Schwellenwerten **aus der Konfiguration** für 23, 24 und 25; neue deutsche Beschreibungen für 18, 26, 27, 29, 30; dazu die Übersetzung der noch englischen Beschreibungen von 14–17, 21 und 22. Bandnummern und Konfigschlüssel verschwinden aus den sichtbaren Beschreibungen. In W7.8 bleibt nur, was an **neuen** Bändern hängt: die Texte zu 45–47. **Nachtrag vom Abend des 09.09.2026 — auch `dashboard_layer` und `default_visible` kommen nach W7.6, und der Grund ist keine Bequemlichkeit.** Beide Felder hängen nachweislich **nicht** an den Bändern 45–47 und lassen sich heute setzen; ließe man sie stehen, trüge das Manifest mit `dashboard_layer` 40-mal `true` und `default_visible` 21-mal `true` einen Stand, den der Nutzer am selben Nachmittag verworfen hat, und die Konsumentenseite müsste beim Einbau **lokal nachziehen**. Dann stünden wieder zwei Fassungen nebeneinander — dieselbe Zweitwahrheit, deren Beseitigung heute schon einmal Mühe gekostet hat. Gesetzt wird: `default_visible` **nur** für 27, 28, 29, 32, 37 (die drei Kategoriesummen, die Eignungsflächen, die amtlichen Zonen), die bisher ableitende Regel entfällt zugunsten der ausdrücklichen Liste; `dashboard_layer` für **23** Bänder — 2, 7, 9, 11, 13, 14, 15, 16, 17, 18, 19, 20, 23, 24, 25, 26, 27, 28, 29, 30, 32, 37, 38 —, die übrigen 21 auf `false`, womit die Quell-, Roh- und Aggregatstufen sowie die rohe verfügbare Fläche verschwinden. **Zwei Invarianten sind dabei vor dem Schreiben zu prüfen**, nicht danach: `default_visible` muss vollständig in `dashboard_layer` enthalten sein — ein Band, das beim Start an sein soll, muss anzeigbar sein —, und 23 plus 21 muss 44 ergeben. W7.8 macht aus den 23 später die 17, sobald 45–47 die Einzelzonen ablösen. **Eine Falle, die dabei zu vermeiden ist:** W7.5 schreibt die Beschreibung von **Band 17** neu, weil es die Seilbahntypen eingrenzt. W7.6 baut darauf auf und ersetzt sie **nicht** durch die Vorlage aus dem W7.8-Brief, die älter ist als diese Änderung — sonst nimmt eine Textkorrektur eine fachliche Änderung zurück, und im Diff sieht es aus wie eine Formulierung. **Und eine Regel für alle Beschreibungen dieses Pakets: Kein Text behauptet einen Filter, der im Code nicht wirkt.** Konkret zu prüfen ist die Zusage „Tunnel ausgenommen" bei den Seilbahnbändern — `aerialways.parquet` hat keine `tunnel`-Spalte, der Tunnelfilter läuft dort ins Leere. Trifft das zu, fällt der Halbsatz weg, statt eine Sorgfalt zu versprechen, die nicht stattfindet. **Vierter Teil, vom Nutzer am 09.09.2026 festgelegt — die Namensregel:** `label_de` **benennt nur**. Zwei bis drei Wörter, keine Meterangaben, keine Schwellenwerte, keine Aufzählungen, keine Klammerzusätze; alles Quantitative und jede Aufzählung gehört in `description_de`. Aus „Eignungsflächen (verfügbar, ≥ 10 ha)" wird „Eignungsflächen", aus „Siedlungsabstand (NÖ 1.200 m, sonst 1.000 m)" wird „Siedlungsabstand". Die Regel gilt für **alle** Bänder, auch die mit heute schon kurzem Namen, und wandert als Abschnitt 4a in `LAYER-MANIFEST.md` mit. Sie ist **mechanisch prüfbar** und gehört als Test hinterlegt: Ein `label_de` mit Ziffer, Klammer oder Komma ist ein Fehler, keine Geschmacksfrage. **Der Geltungsbereich des Tests ist am 09.09.2026 erweitert worden, und ich nehme dafür meine eigene Festlegung zurück.** Hier stand: Der Test gilt nur für Bänder mit `dashboard_layer: true`, für ausgeblendete **gar nicht**, auch nicht als Warnung — „Eine Warnung, die dauerhaft anliegt, wird zu Rauschen." Diese Begründung war richtig, aber sie hing an einer Voraussetzung, die inzwischen nicht mehr gilt: dass die ausgeblendeten Bänder die Regel **nicht erfüllen können**. Ich hielt das für zwingend, weil die vier Unschärfebänder sich ausschließlich durch ihre Zahl unterscheiden — nimmt man ihnen die Zahl, hießen vier Bänder gleich. Die zweite Sitzung hat den dritten Weg gezeigt, den ich übersehen hatte: **Die Bänder heißen nach ihrer Stärke, das Sigma steht in der Beschreibung.** Wo Quelle und Zone derselben Familie sonst gleich hießen, bekommt die Zone das Wort „Ausschluss" davor. Damit genügen **alle 47** Bänder der Regel, es liegt keine Warnung dauerhaft an, und mein Einwand ist gegenstandslos — nicht überstimmt, sondern erledigt. **Der Test läuft deshalb über alle 47 Bänder, ohne Sonderfall und ohne Ausnahmeliste.** Das ist die bessere Fassung: Eine Regel mit einer Ausnahme für unsichtbare Fälle wird beim nächsten Sichtbarschalten stillschweigend verletzt; eine ohne Ausnahme kann das nicht. Damit entfällt auch meine frühere Aussage, Band 6 bleibe unangetastet, weil es ausgeblendet ist. **Nachtrag vom selben Tag:** Auch das Summenzeichen Σ verschwindet aus sichtbaren Namen — es ist ein Symbol, kein Wort. Damit lautet der Test schärfer: In `label_de` sichtbarer Bänder stehen **nur Buchstaben, Leerzeichen und Bindestriche**. Aus „Σ Ausschluss Mensch" wird „Ausschluss Mensch", aus „Quellen Mensch (ungepuffert)" wird „Quellen Mensch". **Ein Einwand dazu geht zurück an die Konsumentenseite, bevor es umgesetzt wird:** Die drei Familienbezeichnungen „Σ Mensch", „Σ Natur", „Σ Geografie" sollen alle drei zu „Gesamt" werden, weil die Kategorie darübersteht. Damit trügen **drei verschiedene Familien denselben `label_de`** — genau das Problem, das dieselbe Seite bei den Unschärfebändern zu Recht benannt hat, nur eine Ebene höher. In der Anzeige ist es durch die Verschachtelung eindeutig, im Manifest nicht: Wer die Familien flach auflistet, sieht dreimal „Gesamt". **Ein Beschreibungstext hat dabei Vorrang vor der Vorlage:** Der Windgrenzwert lautet konfiguriert 150 W/m² in 130 m Höhe, verglichen wird aber gegen das 150-m-Raster mit dem per Windprofil hochgerechneten Wert von rund 160 W/m². Die Beschreibung nennt **beide** Größen; „150 W/m²" allein wäre falsch. **Der Befund dahinter ist größer als der Text.** Die Beschreibungen der Bänder 23, 24 und 25 nennen im Manifest heute **überhaupt keine Zahl** — „above configured threshold" —, und das `parameters`-Feld trägt die Schwellen ebenfalls nicht, anders als bei den Pufferbändern, wo `puffer_m` steht. Wer nur das Manifest auswertet und nicht `docs/widmung_v2.md` daneben legt, kann **keinen** der drei Grenzwerte rekonstruieren. W7.6 trägt sie deshalb **doppelt** nach: als Prosa in `description_de` **und maschinenlesbar in `parameters`** — `slope_max_deg` 15, `elevation_max` 2500, `pd_min` 150 bei 130 m, `pd_min_150` 159,5 —, jeweils **aus der Konfiguration gelesen**, nicht als Literal gepflegt. Am 09.09.2026 unabhängig nachgerechnet und bestätigt: tan(15°)·100 = 26,79 %; 150·(150/130)^(3·0,143) = 159,50 W/m², Exponent 3·α, weil die Leistungsdichte mit der dritten Potenz der Geschwindigkeit skaliert. **Abgeschlossen am 09.09.2026** in `bc73e60`, Nachtrag `0cfabe6`, auf `feat/w76-manifest-texte`. Die dreiteilige Abnahme ist erfüllt, und Teil (2) ist **stärker geführt worden als hier verlangt**: statt sich auf Bitgleichheit zu verlassen, ist die alte `finalize.py` zurückgeholt, aus **denselben** Checkpoints neu gebaut und **bandweise** verglichen worden — 44 von 44 mit `diff=0`. Der Nachbau traf dabei die W7.5-Referenz exakt und hat als Nebenprodukt die Determiniertheit der Kette belegt. **Teil (2) war, wie hier formuliert, zu eng:** Die Datei ist **nicht** bitgleich — `c1809c4c…416f37`, +461 Bytes —, weil die fünf neuen `parameters` auch als GDAL-Datei-Tags in den Kopf wandern. „Inhaltlich gleich" und „dateigleich" fallen auseinander, sobald ein additiver Zusatz die Kopfdaten berührt; wer nur den Hash prüft, hätte hier eine Änderung gesehen, die keine ist. **Der Einwand gegen den dreifachen `label_de` „Gesamt" ist erledigt:** Die Familien heißen „Gesamt Mensch", „Gesamt Natur", „Gesamt Geografie" — keine Kollision. **Ausdrücklich nicht erledigt:** die Beschreibungen von **Band 12** und **Band 41** sind ungeprüft übernommen worden und stehen weiter offen, siehe Punkt 72. |
+
+### Die Grenze zwischen Textfehler und Codefehler
+
+**Aus der Textprüfung zu W7.6 ist eine Unterscheidung entstanden, die
+weiter reicht als das Paket.** Die zweite Sitzung hat am 09.09.2026 darauf
+hingewiesen, und sie hat recht: Von den vier Einstufungen einer falschen
+Bandbeschreibung ist **eine grundsätzlich anders**.
+
+- **falsch**, **ungenau**, **veraltet** — der Text irrt, der Code stimmt.
+  Repariert wird der Text. Das ist W7.6.
+- **wirkungslos** — der Text beschreibt, was gemeint war; **der Code führt
+  es nicht aus**. Hier ist der Text nicht der Fehler, sondern der Zeuge.
+
+Der Unterschied ist nicht akademisch. Läuft ein Tunnelfilter ins Leere,
+dann wird heute Fläche ausgeschlossen, weil eine Straße dort **unterirdisch**
+verläuft. Den Satz zu streichen macht das Manifest ehrlich **und lässt die
+Karte falsch**. Den Filter zu reparieren ändert Pixel und ist eine
+**Entscheidung**, keine Aufräumarbeit — sie gehört dem Nutzer, nicht einem
+Textpaket. Genau die Trennung, die Regel 4 meint: Eine Auffälligkeit wird
+aufgeschrieben, nicht nebenbei geändert. Neu daran ist nur die Einsicht,
+dass **auch das Anpassen einer Beschreibung** eine stille Änderung sein
+kann — sie segnet den Defekt ab, statt ihn zu zeigen.
+
+**Wie W7.6 damit umgeht, in drei Schritten.** Erstens sagt die
+`description_de` die **tatsächliche Wirkung**, nie die beabsichtigte —
+sonst bleibt das Manifest unwahr. Zweitens trägt das betroffene Band einen
+**Caveat** mit der Nummer des Registerpunkts; das Manifest hat den
+Mechanismus bereits (Blur-Bleed, NÖ-DKM). Damit liest sich der Befund als
+**bekannter Defekt** und nicht als Entwurfsentscheidung — der Unterschied,
+den eine bloß angepasste Beschreibung verwischt. Drittens bekommt jeder
+solche Befund eine **geschätzte Flächenwirkung**, damit der Nutzer
+entscheiden kann, ob daraus ein eigenes Paket wird.
+
+**Die Unterscheidung `tunnel` gegen `layer < 0` gegen `covered` gehört in
+denselben Befund.** Wird bei den Bändern 14 bis 16 nur eines davon geprüft,
+sagt der Text künftig genau das — und die Lücke steht als Registerpunkt,
+nicht als Fußnote.
+
+### W7.7 — alle Zonen enden an der Staatsgrenze
+
+**Vom Nutzer am 09.09.2026 verlangt, nachdem er es auf der Karte gesehen
+hat:** „es gibt jetzt auch zonen außerhalb von ö. alle zonen (ausschluss
+usw) sollen auf ö beschränkt sein."
+
+**Der Befund: 34 der 44 Bänder sind ungeklippt.** Zugeschnitten sind genau
+zehn — 27 bis 36 —, und zwar an **einer** Stelle, der Aggregation:
+`human/nature/geography &= valid_area` (27–29),
+`all_exclusions = (…) & valid_area` (30),
+`available_raw = (~all_exclusions) & valid_area` (31). Band 32 erbt den
+Zuschnitt, weil `min_area_filter` rein subtraktiv ist — es entfernt Zellen,
+es fügt nie welche hinzu. Alles davor (1–26) und alles danach (37–44) trägt
+die volle Marge und ragt sichtbar über die Grenze.
+
+**Die Marge ist Absicht, keine Panne.** Der OSM-Rohextrakt hat
+`PBF_CLIP_MARGIN_M = 13000`, und das Grid-Template reicht seitlich 12,5–14,6 km,
+oben und unten 25,5–29,6 km über die Staatsgrenze hinaus. Genau in diesem
+Streifen liegt, was der Nutzer auf der Karte sieht.
+
+**Die Reihenfolgefalle ist benannt, und der Code fällt nicht hinein: erst
+puffern, dann zuschneiden.** Eine bayerische Siedlung erzeugt einen
+1000-m-Abstandspuffer, der auf österreichischem Boden gilt. Wer die
+Quellobjekte **vor** dem Puffern auf Österreich beschränkt, verkleinert
+grenznahe Ausschlussflächen **innerhalb** Österreichs — ein fachlicher
+Fehler, der sich als Aufräumen tarnt. Der heutige Code puffert auf dem
+vollen Fenster und klippt erst bei der Aggregation. **Deshalb ist der
+Zuschnitt der Anzeigebänder gefahrlos — und deshalb gehört er ans Ende der
+Kette, nicht an ihren Anfang.**
+
+**Was sich dadurch nicht ändert, ist das Ergebnis — gemessen, nicht
+hergeleitet.** Die Sicherungskopie des 44-Band-TIF fehlte, gemessen wurde
+deshalb am 09.09.2026 an der 38-Band-Referenz `fb57c41d…` aus dem Archiv,
+mit der **importierten** Maskenfunktion `_build_valid_area_mask` auf dem
+Grid des TIF selbst. Plausibilitätsanker: Die Maske umfasst
+**83 921,3 km²** — der Ausgangswert, von dem die Abschichtung abzieht.
+
+| Band | Zellen außerhalb Österreichs |
+|---|---|
+| 27 `exclusion_human`, 28 `exclusion_nature`, 29 `exclusion_geography` | **0** |
+| 30 `all_exclusions` | **0** |
+| 31 `available_after_all_exclusions_raw` | **0** |
+| 32 `available_cleaned_min_10ha` | **0** |
+| 37 `official_wind_zoning` | **0** |
+
+**Die veröffentlichte Potenzialfläche enthält keine einzige Zelle jenseits
+der Staatsgrenze.** Die Herleitung aus dem Quelltext war richtig und ist
+jetzt belegt. Damit ändert W7.7 am Ergebnis nichts — es ändert, was man
+sieht.
+
+**Was hinausragt, und wie viel.** Ein Band trägt fast alles:
+
+| Band | Fläche außerhalb Ö |
+|---|---|
+| 25 `geography_wind_too_low` | **122 368 km²** |
+| 23 `geography_slope_too_steep` | 1 855 km² |
+| 22 `osm_nature_protection_areas` | 1 506 km² |
+| 36 / 35 / 34 / 33 (Unschärfe) | 535 / 439 / 346 / 165 km² |
+| 26 `geography_water_bodies` | 432 km² |
+| 2 `settlement_buffer` | 338 km² |
+| 24 `geography_elevation_too_high` | 265 km² |
+| 7 `haeuser_im_gruenen` | 146 km² |
+| 15 `road_federal_state` | 111 km² |
+| alle übrigen 20 Bänder zusammen | rund 117 km² |
+
+Band 25 allein ist **das Anderthalbfache Österreichs** — „zu wenig Wind"
+trifft im gesamten Randstreifen zu, und der Randstreifen ist groß. Wer sich
+fragt, warum die Karte so massiv über die Grenze läuft: das ist die
+Antwort, und der Rest ist Beiwerk. Die vier Unschärfebänder bestätigen
+zugleich den vermuteten Blutungseffekt: Sie gelten als zugeschnitten und
+liegen trotzdem mit 165 bis 535 km² im Ausland, wachsend mit Sigma.
+
+**Eine Zahl aus meinem eigenen Auftrag war falsch.** Ich hatte dem
+Messagenten „rund 202 736 Zellen außerhalb Österreichs in Band 26, bekannt
+aus run1" mitgegeben. Gemessen sind **690 613** außerhalb bei 2 512 493
+gesetzten insgesamt — die Zahl passt zu keiner der beiden Größen. Sie
+stammt aus einem älteren Zusammenhang, an ihr hängt keine Entscheidung, und
+sie wird deshalb **verworfen statt nachverfolgt**.
+
+**Vier Bänder ändern sich trotzdem, obwohl sie „geklippt" heißen.** Die
+Unschärfebänder 33–36 erben den Zuschnitt von Band 31 und werden
+**danach** weichgezeichnet — der Weichzeichner blutet über die Grenze. Das
+steht heute als eigener Caveat im Manifest. Ein Zuschnitt am Ende der Kette
+fängt auch das ein.
+
+**Zwei Sonderfälle.** Band 37 klippt jede Nicht-NÖ-Quelle schon einzeln auf
+ihr eigenes Bundesland; ein zusätzlicher Zuschnitt ist dort vermutlich
+wirkungslos, aber nicht schädlich. Band 38 filtert die WKA-**Punkte** an der
+Österreich-Maske, verschneidet die daraus gebaute **Hüllenfläche** danach
+aber nicht mehr — ein grenznaher Cluster wölbt sich über die Grenze.
+
+**Eine Stelle, ein Besitzer.** Der Zuschnitt gehört genau dorthin, wo der
+Bandstapel fertig ist und geschrieben wird — nicht 34-mal einzeln in die
+Builder. Die Checkpoints unter `derived/layers/` bleiben **ungeklippt**:
+dort liegt die Marge, die eine spätere Pufferrechnung braucht. Geklippt wird
+das TIF, nicht die Zwischenstände.
+
+| Paket | Welle | Gruppe | Titel | Besitzt | Braucht | Abnahme |
+|---|---|---|---|---|---|---|
+| W7.7 | 7 | Struktur v4 | Alle Zonen enden an der Staatsgrenze | die **eine** Stelle am Ende der Bandkette (`calc/abschichtung_common.py:compose_exclusion_geotiff` **oder** `pipeline/finalize.py` — eine davon, nicht beide); `calc/band_manifest.py` (`clipped_to_austria` je Band, Caveat-Text); das Hash-Literal in `pipeline/validate.py` und `tests/test_referenz_tif.py`; `docs/HANDOFF.md`, `docs/layer.md`; ein neuer Test | **W7.6** | Vom Nutzer am 09.09.2026 verlangt. **Die schärfste Abnahme, die dieses Paket haben kann: innerhalb Österreichs ändert sich kein einziges Pixel.** Je Band gilt `(alt XOR neu) ∧ Österreich-Maske = leer`; für die Bänder **27 bis 32 und 37** gilt zusätzlich `alt XOR neu = leer` überhaupt — für sie ist am 09.09.2026 **gemessen** worden, dass dort null Zellen im Ausland liegen, also kann der Zuschnitt sie nicht anfassen. Ändert sich dort etwas, ist der Zuschnitt an der falschen Stelle gelandet, und das Paket hält an. Berichtet wird **je Band die entfernte Fläche in km² und die entfernte Zellzahl** — die Zellzahl auf Bitte der zweiten Sitzung vom 09.09.2026, damit dort im Dashboard-Commit nachvollziehbar wird, warum sich die Zonen-Kacheln am Rand ändern —, dazu ausdrücklich der Satz, dass `available_after_all_exclusions_raw` und `available_cleaned_min_10ha` unverändert sind. **Dritter neuer Referenz-Hash der Welle**, wieder neben dem abgelösten genannt. Die Checkpoints unter `derived/layers/` werden nicht neu gebaut; der Lauf ist `make finalize export`, kein voller `make all`. **Warum es warten muss:** W7.6 besitzt `calc/band_manifest.py` — zwei Pakete teilen sich keine Datei (Regel 1). |
+
+### W7.8 — ein Layer je Familie im End-Dashboard
+
+**Am 09.09.2026 vorangekündigt, am selben Tag vom Nutzer entschieden und
+damit geschnitten.** Im End-Dashboard steht je Familie **ein**
+zusammenfassender Layer statt Quell-, Detail- und Zonenstufen. Drei neue
+ODER-Bänder werden angehängt, gebaut wie 42–44: **45** `gebaeude_zone`
+= 9 ∪ 11 ∪ 13, **46** `verkehr_zone` = 14 ∪ 15 ∪ 16 ∪ 17, **47**
+`luftfahrt_zone` = 19 ∪ 20. Sichtbar bleiben **17 von 47** Bändern, die
+übrigen 30 tragen `dashboard_layer: false`. **Alle 47 Bänder bleiben im TIF
+und im Manifest** — es schrumpft die Auswahl im Dashboard, nicht der
+Datenbestand. **Vierter Hash der Welle**, und die Bandzahl steigt zum
+zweiten Mal: W7.4 muss auch 47 gegen 38 tragen.
+
+**Die drei offenen Wahlpunkte sind entschieden.** Gebäude werden
+zusammengefasst (Band 45). Militär und Luftfahrt bleiben **getrennt** — 18
+steht für sich, 47 fasst nur die Luftfahrt. Die Σ-Layer bleiben: 27, 28, 29
+und 30 sind sichtbar, 27 bis 29 sogar beim Laden an. `default_visible` wird
+dabei von einer abgeleiteten Stufenregel zu einer **ausdrücklichen Liste**
+— 27, 28, 29, 32, 37 —, und die Ableitung entfällt ersatzlos.
+
+**Was jetzt schon feststeht.** Angehängt wird, nicht eingefügt: Die neuen
+Bänder werden 45 bis 47, die Bänder 1 bis 44 behalten Name und Index —
+dieselbe Regel wie in W7.1. **W7.7 muss dafür nichts vorbereiten**, denn
+beides liegt seit W7.1 schon an je einer Stelle: das Anhängen an
+`APPENDED_BAND_NAMES` und `contract.LAYER_NAMES`, die über `trailing_bands`
+in `finalize.py` zusammenlaufen, und `dashboard_layer` wird je Band in
+`calc/band_manifest.py` abgeleitet. W7.8 steht **hinter** W7.7 in derselben
+Schlange, weil auch es `calc/band_manifest.py` anfasst — Regel 1.
+
+**Eine Prüfung gehört in die Abnahme, sobald sie geschrieben wird:** Vor dem
+Anhängen wird **gemessen**, ob eines der neuen ODER-Bänder **pixelgleich**
+mit einem bestehenden ist. Die Bänder 43 und 44 sind es mit 28 und 29 — das
+war eine bewusste v4-Entscheidung, aber es zeigt, wie beiläufig so ein Band
+entsteht. Ein Band, das ein anderes verdoppelt, kostet einen Hash, rund
+4 MB und einen Kachelsatz, ohne etwas zu zeigen.
+
+| Paket | Welle | Gruppe | Titel | Besitzt | Braucht | Abnahme |
+|---|---|---|---|---|---|---|
+| W7.8 | 7 | Struktur v4 | Ein Layer je Familie im End-Dashboard | `pipeline/layers/geo.py` (die drei neuen ODER-Bänder), `pipeline/contract.py` (`LAYER_NAMES`), `pipeline/finalize.py` (`APPENDED_BAND_NAMES`, Schema-String), `calc/band_manifest.py` (`dashboard_layer`, `default_visible`, `familie`, Labels, Beschreibungen), `docs/layer.md`, `docs/HANDOFF.md`, das Hash-Literal in `pipeline/validate.py` und `tests/test_referenz_tif.py`, die zugehörigen Tests | **W7.9** | Vom Nutzer am 09.09.2026 entschieden. Labels, Texte und die vollständige Ausblendliste stehen im Brief der zweiten Sitzung (`…/5eabba92-…/scratchpad/paket-w78-brief.md`, **nur lesen**). **Punkt 4 des Briefs ist nach W7.6 vorgezogen** — die Texte an bestehenden Bändern brauchen kein Pixel und sollen früh sichtbar sein; hier bleiben nur die Texte der neuen Bänder 45–47, `dashboard_layer` und `default_visible`. Angehängt, nicht eingefügt — 1 bis 44 behalten Name und Index. **Die schärfste Abnahme ist eine Mengengleichung:** `45 ∪ 46 ∪ 47 ∪ 2 ∪ 7 ∪ 18` muss **zellgenau gleich Band 27** sein. Sie prüft in einem Zug, ob die drei Vereinigungen vollständig sind **und** ob W7.7 den Zuschnitt einheitlich gesetzt hat — **vor W7.7 wäre sie zwangsläufig falsch**, weil 27 zugeschnitten ist und die Quellbänder es nicht sind. Schlägt sie fehl, hält das Paket an, und der Fehler ist **zuerst in W7.7 zu suchen**, nicht in W7.8. Dazu je neuem Band die **Zellzahl** und der Nachweis, dass es kein bestehendes Band verdoppelt — 43 und 44 sind mit 28 und 29 pixelgleich, das war Absicht, zeigt aber, wie beiläufig so ein Band entsteht. Die Schwellenwerte in den Beschreibungen von 23, 24 und 25 werden **aus der Konfiguration gelesen, nicht aus dem Brief abgeschrieben** — sonst driften Text und Code beim nächsten Wert auseinander. Bandnummern und Konfigschlüssel verschwinden aus den sichtbaren Beschreibungen. Nach Regel 11 gehört eine positive Spur in den Bericht, dass der Lauf die Änderung trug. |
+
+### W7.9 — die Layer-Stufe nimmt ihren eigenen Quelltext in den Fingerabdruck auf
+
+**Geschnitten am 09.09.2026, läuft vor W7.8.** Die Nummer sagt, wann ein
+Paket geschnitten wurde, nicht wann es läuft — dieselbe Ausnahme wie bei
+W6.6, aus demselben Grund: Der Endzustand soll der geprüfte sein.
+
+Behebt Punkt 68. `_fingerprint_tag()` in `pipeline/layers/osm.py` und
+`pipeline/layers/geo.py` bildet sich heute allein aus den Prep-Parquets;
+die Layer-Module und `calc/abschichtung_common.py` gehen nicht ein. Die
+zehn Prep-Einstiegsmodule machen es seit W6.6 richtig — hier fehlt es.
+
+**Der eigentliche Gewinn ist nicht die Reparatur, sondern was sie
+erzwingt.** Ein erweiterter Abdruck macht jeden vorhandenen
+Layer-Checkpoint ungültig; der nächste Lauf rechnet alles neu, rund 25
+Minuten. Damit entsteht der Vergleich, der bisher nicht möglich war:
+**Kommt das vollständig neu gerechnete TIF bitgleich mit dem inkrementell
+erzeugten heraus, ist rückwirkend bewiesen, dass keine Stufe veralteten
+Quelltext getragen hat** — für Welle 6 und 7 zusammen. Weicht es ab, ist
+die Abweichung der Fund und wird bandweise zugeordnet. Beide Ausgänge sind
+wertvoll; ein Ergebnis ohne Vergleich wäre es nicht.
+
+**Was den Verdacht schon jetzt eingrenzt.** Die 38-Band-Referenz
+`fb57c41d…` ist **nicht** inkrementell entstanden: Die Abnahme von W6.1
+lautete wörtlich `rm -rf build/layers out && make all`, und W6.4 wie W6.6
+haben sie mit vollem Lauf bestätigt. Der Zweifel betrifft also nur, was
+seit W7.1 inkrementell darauf gesetzt wurde — nicht die Grundlage.
+
+| Paket | Welle | Gruppe | Titel | Besitzt | Braucht | Abnahme |
+|---|---|---|---|---|---|---|
+| W7.9 | 7 | Struktur v4 | Die Layer-Stufe nimmt ihren eigenen Quelltext in den Fingerabdruck auf | `pipeline/layers/osm.py` und `pipeline/layers/geo.py` (`_fingerprint_tag()`), bei Bedarf `pipeline/fingerprint.py`; die zugehörigen Tests | W7.7 | Punkt 68. **Läuft vor W7.8**, damit das Anhängen der Familien-Zonen bereits auf einem Abdruck sitzt, der Codeänderungen bemerkt. Abnahme in drei Teilen: (1) Eine Änderung an der Layer-Logik führt nachweislich zu einem **Neubau statt zu „[skip] … already done"** — einmal probehalber ausgelöst, dann zurückgenommen, wie die Test-Untergrenze in W6.6. (2) Der erste Lauf danach rechnet **alle** Layer neu; das Log zeigt **keinen einzigen** Skip. (3) Das Ergebnis wird **bitweise gegen das zuletzt inkrementell erzeugte TIF** verglichen, jede Abweichung bandweise benannt und begründet. **Dieser Lauf liefert den sha256, der ins Dashboard geht** — er entsteht ohne vorhandene Layer-Checkpoints, damit die Frage nach Punkt 68 dort gar nicht erst aufkommt. Auf Bitte der zweiten Sitzung vom 09.09.2026; sie hatte um einen checkpointfreien Abschlusslauf gebeten, und die Reparatur erzwingt ihn ohnehin. |
 
 ## 8. Regeln der Parallelität
 
@@ -668,6 +878,72 @@ Stellen.**
    Schutz, den eine Prosa-Regel nicht leisten kann. Pakete stagen
    ausschließlich mit namentlich genannten Pfaden, nie mit `-A`, `.`
    oder `commit -a`.
+
+   **Grenze der Regel, benannt am 09.09.2026 statt sie stillschweigend zu
+   dehnen.** „Nach jedem Paket" lässt sich nicht einhalten, wenn das
+   nächste Paket bereits im **selben Arbeitsbaum** läuft: Der Plan-Commit
+   und das laufende Paket teilen sich Index und `HEAD`, und ein Commit
+   von außen mitten in dessen Staging ist genau die Sorte Kollision, die
+   Regel 10 verhindern soll. Nach W7.4/W7.5 ist der Fall zum ersten Mal
+   eingetreten, weil W7.6 sofort startete, damit die Konsumentenseite
+   nicht wartet. **Entschieden: Der Plan-Commit wird nachgeholt, sobald
+   das laufende Paket committet hat, und deckt dann beide Pakete ab.**
+   Das ist eine Verzögerung, kein Verzicht — der Schutz, den Regel 10
+   liefert (ein sauberer Arbeitsbaum, den kein `git add -A` einsammeln
+   kann), hängt daran, dass die Pakete namentlich stagen, und das tun sie
+   weiterhin. Wer die Regel wörtlich nimmt und trotzdem committet,
+   tauscht ein kleines Risiko gegen ein größeres.
+
+**Regel 11 — ein Lauf beweist nichts, solange nicht gezeigt ist, dass er
+die Änderung enthalten hat.** Bis zum 09.09.2026 galt stillschweigend: Wer
+die Kette laufen lässt, prüft damit seinen Code. Punkt 68 hat das
+widerlegt — die Layer-Stufe nimmt ihren eigenen Quelltext nicht in den
+Fingerabdruck auf, meldet „[skip] … already done" und liefert ein TIF ohne
+die Änderung. In W7.5 kam ein **bitgleiches** TIF heraus, obwohl die
+Änderung Pixel ändern muss; aufgefallen ist es nur, weil der Nutzer sah,
+dass das Dashboard älter war als das TIF.
+
+Daraus folgt für **jedes** Paket dieser Welle und der folgenden: Der
+Bericht nennt **eine positive Spur**, an der erkennbar ist, dass der Lauf
+die Änderung trug — eine Zellzahl vorher/nachher, ein neu gerechneter
+Checkpoint mit Zeitstempel, eine Logzeile, die die Stufe **rechnend** statt
+überspringend zeigt. **Bitgleichheit ist ab jetzt zweideutig** und darf nur
+noch zusammen mit einem solchen Beleg als Abnahme gelten. Für Pakete, die
+absichtlich nichts am Raster ändern (W7.4, W7.6), heißt das: Manifest oder
+Register müssen sich messbar geändert haben **und** das TIF muss aus diesem
+Lauf stammen, nicht aus dem vorherigen.
+
+**Regel 12 — zwei Fassungen, die aus derselben Quelle stammen, prüfen
+einander nicht.** Am Abend des 09.09.2026 wurde dieselbe Textvorlage
+zweimal unabhängig übertragen: von der Konsumentenseite von Hand, von
+unserem Paket maschinell. Der Plan war, beide gegeneinander zu vergleichen.
+Der Vergleich hätte die Beschreibung von Band 40 **bestätigt** — sie war in
+beiden Fassungen gleich und in beiden falsch, weil beide aus derselben
+fehlerhaften Vorlage stammten. Gefunden wurde der Fehler nur, weil eine
+Behauptung gegen den **Quelltext** gehalten wurde, nicht gegen ihr eigenes
+Abbild. Der Fehler war da bereits **dreimal in Folge** weitergereicht
+worden: von der alten Beschreibung an einen Agentenbericht („eine dritte
+Kategorie"), von dort in dieses Register („der Code kennt drei"), von dort
+in die korrigierte Vorlage. Jede Stufe hat die vorige für vollständig
+gehalten. Tatsächlich sind es sechs.
+
+Daraus folgt: **Übereinstimmung zweier Fassungen ist ein Hinweis, kein
+Beweis.** Ein Abgleich zweier Übertragungen findet Abschreibfehler und
+nichts sonst; Fehler der gemeinsamen Quelle bestätigt er. Als
+**zusätzliche** Prüfung bleibt er wertvoll und wird beibehalten — als
+**alleinige** taugt er nicht. Beweiskraft hat nur der Rückgriff auf die
+Quelle: bei Texten der Quelltext, bei Zahlen die Konfiguration, bei
+Bandwerten das Raster.
+
+**Zwei Feinheiten, die die Regel praktikabel halten.** Erstens ist eine
+**wörtliche Abschrift** etwas anderes als eine Behauptung: Wer eine Liste
+aus dem Quelltext zitiert, hat sie nicht interpretiert, und das
+Gegenprüfen ist dann ein Nachzählen statt einer Neuherleitung — billiger,
+aber nicht entbehrlich. Zweitens sitzt der Fehler erfahrungsgemäß **nicht
+bei den Zahlen**, die ohnehin jeder gegen die Konfiguration hält, sondern
+bei **Aufzählungen** — von Objekttypen, Quellen und Ausnahmen —, die
+plausibel klingen und deshalb durchgereicht werden. Dort wird zuerst
+gesucht.
 
 ## 9. Bekannte Grenzen
 
