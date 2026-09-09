@@ -176,7 +176,14 @@ BANDS = [
     Band("haeuser_im_gruenen", "Aggregat: 750 m um Ferienhaus + Widmung + Streusiedlung, vereinigt mit den NÖ-PDF-Zonen"),
     Band("nonresidential_hulls_source", "Industriegebietartige und unbewohnte DKM-Hüllen"),
     Band("nonresidential_hulls_buffer", "25 m um nonresidential_hulls_source (praktisch nur der Fußabdruck)"),
-    Band("cableway_buildings_source", "OSM-Gebäude nahe einer Aerialway-Linie (Liftstationen etc.)"),
+    # W7.5 (09.09.2026): Text ergänzt ggü. dem historischen Original
+    # ("OSM-Gebäude nahe einer Aerialway-Linie") - der BANDS-Kommentar oben
+    # ("wortgleich aus ...04_create_distance_zones.py") gilt ab hier
+    # bewusst NICHT mehr fuer diese eine Zeile, weil sich der Filter selbst
+    # inhaltlich geaendert hat (build_osm_building_sources() in
+    # pipeline/layers/osm.py filtert seither auf
+    # PEOPLE_CARRYING_AERIALWAY_TYPES statt jede aerialway-Linie zu nehmen).
+    Band("cableway_buildings_source", "OSM-Gebäude nahe einer Personenseilbahnlinie (Liftstationen etc.)"),
     Band("cableway_buildings_buffer", "50 m um cableway_buildings_source"),
     Band("general_buildings_source", "Übrige OSM-Gebäude (Garagen, Schuppen, Ställe, Industrie, untypisiert) + bewohnte Einzellagen und NÖ-Streusiedlungs-Bauflächen (DKM/BEV)"),
     Band("general_buildings_buffer", "25 m um general_buildings_source (praktisch nur der Fußabdruck)"),

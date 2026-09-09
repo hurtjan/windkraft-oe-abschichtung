@@ -212,7 +212,17 @@ REFERENCE_TIF = contract.RUN1_TIF
 # Wert ``fb57c41dca0642225a8115e3ed95297ede47b56d56c00fdddf8caa445e232c30``
 # bleibt in ``docs/rewrite/FORTSCHRITT.md``/``PLAN.md`` als historischer
 # Zeuge dokumentiert, ist aber - wie zuvor ``run1`` - kein Ziel mehr.
-AKTUELLE_REFERENZ_SHA256 = "a905c0563696c8af4a2fd3b1407521c81ccdc3c0b373d14ce8a6429196ab5c9f"
+#
+# Vierter Wechsel (09.09.2026, W7.5, Personenseilbahnen enger gefasst):
+# PEOPLE_CARRYING_AERIALWAY_TYPES (calc/abschichtung_common.py) auf gondola/
+# cable_car/chair_lift/mixed_lift eingeengt - Nutzerentscheidung 09.09.2026,
+# angenommen. Betrifft Bänder 10/11/12/13/17/27/30/31/32/33-36 (siehe
+# cableway_typ_wirkungspfad im Manifest, calc/band_manifest.py) - Kopfzahl
+# des Bandvergleichs: +9,8763 km² bei available_cleaned_min_10ha (Band 32).
+# Der vorherige Wert
+# ``a905c0563696c8af4a2fd3b1407521c81ccdc3c0b373d14ce8a6429196ab5c9f``
+# bleibt ebenso als historischer Zeuge dokumentiert.
+AKTUELLE_REFERENZ_SHA256 = "99d522239dc499b833cab3080c810b9568ac3078a66b81a470e37228b55a96ac"
 
 REGISTER_PATH = contract.ROOT / "docs" / "rewrite" / "abweichungen.tsv"
 

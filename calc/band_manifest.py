@@ -271,6 +271,14 @@ DESCRIPTIONS_DE = {
         "die Hüllen innerhalb Niederösterreichs; der Kataster-Anteil von "
         "general_buildings_source."
     ),
+    # "Personenseilbahnen" hier war schon vor W7.5 der Wortlaut - der
+    # dazugehörige fclass-Filter auf aerialways in
+    # build_appended_source_aggregates() (pipeline/layers/geo.py) fehlte
+    # bis dahin aber tatsächlich (jede aerialway-Linie ging ein, nicht nur
+    # Personenseilbahnen). W7.5 (09.09.2026) hat den Filter nachgezogen -
+    # dieser Text war insofern vorher zu optimistisch, ist es jetzt nicht
+    # mehr. Dieselbe Konstante wie Band 10/17:
+    # calc.abschichtung_common.PEOPLE_CARRYING_AERIALWAY_TYPES.
     "sources_human": (
         "ODER aller ungepufferten Quellen der Kategorie Mensch: Wohnbauland, die "
         "vier HiG-Quellen, Nicht-Wohn-Hüllen, Seilbahn-Gebäude, sonstige Gebäude, "
@@ -906,6 +914,47 @@ def _dkm_geoparquet_impact_path(band_names: list[str]) -> list[str]:
     return _impact_path(_dkm_geoparquet_roots(band_names), band_names)
 
 
+# W7.5 (09.09.2026, Nutzerentscheidung): Startknotensatz für den dritten
+# Wirkungspfad. Anders als bei _dkm_geoparquet_roots() KEIN aus BAND_SOURCES
+# abgeleiteter Satz - PEOPLE_CARRYING_AERIALWAY_TYPES
+# (calc/abschichtung_common.py) ist kein Rohdatenmerkmal, das band_sources()
+# sehen könnte, sondern ein Typ-Filter, der im Code an genau vier Stellen
+# angewendet wird bzw. dessen Restmenge betrifft:
+#   cableway_buildings_source (10)  direkter Filter auf aerialways
+#   general_buildings_source  (12)  komplementäre Restmenge (is_general in
+#                                    build_osm_building_sources(),
+#                                    pipeline/layers/osm.py) - Gebäude, die
+#                                    wegen des engeren Typfilters nicht mehr
+#                                    als Seilbahn-Gebäude zählen, fallen hier
+#                                    hinein, nicht weg (Nutzerentscheidung,
+#                                    keine Nebenwirkung).
+#   general_buildings_roh_osm (40)  OSM-Anteil derselben Restmenge
+#   cableway_people_150m      (17)  direkter Filter in
+#                                    build_infrastructure_masks()
+# Deshalb hier von Hand benannt statt algorithmisch aus BAND_SOURCES
+# abgelesen.
+_CABLEWAY_TYP_WIRKUNGSPFAD_ROOTS = [
+    "cableway_buildings_source",
+    "general_buildings_source",
+    "general_buildings_roh_osm",
+    "cableway_people_150m",
+]
+
+
+def _cableway_typ_impact_path(band_names: list[str]) -> list[str]:
+    """Die Bänder, die laut PLAN.md §13.9/Regel 8 von run1 abweichen DÜRFEN
+    wegen der dritten Ursache (W7.5: Personenseilbahnen auf gondola,
+    cable_car, chair_lift, mixed_lift eingeengt, Nutzerentscheidung
+    09.09.2026) - transitiver Abschluss ab
+    _CABLEWAY_TYP_WIRKUNGSPFAD_ROOTS. general_buildings_buffer (13) und
+    sources_human (42) kommen darüber automatisch mit (abgeleitet_von
+    general_buildings_source bzw. general_buildings_source UND
+    cableway_buildings_source), ohne hier zusätzlich benannt werden zu
+    müssen - wie bei den beiden anderen Wirkungspfaden ist die Liste
+    berechnet, nicht von Hand synchron gehalten."""
+    return _impact_path(_CABLEWAY_TYP_WIRKUNGSPFAD_ROOTS, band_names)
+
+
 # --------------------------------------------------------------------------
 # Familie, Stufe, Dashboard-Sichtbarkeit je Band (Schema 2.2.0, Paket W7.1,
 # Bahn 2). Verbindliche Quelle: schnittstelle-manifest-2.2.md §1/§2 - Werte
@@ -1221,12 +1270,15 @@ def build_band_manifest(
         "parameters": dict(tags),
         "sources": {key: dict(value) for key, value in SOURCES.items()},
         "caveats": caveats,
-        # PLAN.md §13.9/Regel 8: die transitive Ausbreitung der beiden
+        # PLAN.md §13.9/Regel 8: die transitive Ausbreitung der drei
         # erklärten Abweichungen zu run1, je berechnet aus abgeleitet_von,
         # nicht von Hand gepflegt (siehe Schema-Historie im Moduldocstring,
-        # ``2.1.0`` für den zweiten Schlüssel).
+        # ``2.1.0`` für den zweiten Schlüssel; der dritte,
+        # ``cableway_typ_wirkungspfad``, kam mit W7.5 dazu, siehe
+        # _cableway_typ_impact_path()).
         "geography_water_bodies_wirkungspfad": _water_bodies_impact_path(band_names),
         "dkm_geoparquet_wirkungspfad": _dkm_geoparquet_impact_path(band_names),
+        "cableway_typ_wirkungspfad": _cableway_typ_impact_path(band_names),
     }
 
 

@@ -142,8 +142,19 @@ from calc.band_manifest import manifest_path_for  # noqa: E402
 # W5.P2, 08.09.2026): sha256 fb57c41d…232c30, 124 597 421 Bytes - bleibt
 # als historischer Zeuge in docs/rewrite/FORTSCHRITT.md/PLAN.md
 # dokumentiert.
-REFERENZ_SHA256 = "a905c0563696c8af4a2fd3b1407521c81ccdc3c0b373d14ce8a6429196ab5c9f"
-REFERENZ_BYTES = 152_669_124
+#
+# Vierter Wechsel (W7.5, Personenseilbahnen enger gefasst, 09.09.2026):
+# PEOPLE_CARRYING_AERIALWAY_TYPES (calc/abschichtung_common.py) auf
+# gondola/cable_car/chair_lift/mixed_lift eingeengt - Nutzerentscheidung
+# 09.09.2026, angenommen; siehe docs/rewrite/abweichungen.tsv, Paket W7.5,
+# und cableway_typ_wirkungspfad im Manifest (calc/band_manifest.py). Datei
+# wird KLEINER (weniger Pufferfläche => mehr Bytes an gleichen Werten,
+# tatsächlich minimal kleiner durch die TIFF-Kompression), nicht größer.
+# Vorheriger Wert (W7.1, 09.09.2026 vormittags):
+# sha256 a905c056…ab5c9f, 152 669 124 Bytes - bleibt ebenso als
+# historischer Zeuge dokumentiert.
+REFERENZ_SHA256 = "99d522239dc499b833cab3080c810b9568ac3078a66b81a470e37228b55a96ac"
+REFERENZ_BYTES = 152_656_278
 
 # Bisheriges Soll, ab 08.09.2026 nur noch Vergleichsbasis - aber als solche
 # unveränderlich.

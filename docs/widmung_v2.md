@@ -122,7 +122,7 @@ eigenes Band; Band 7 ist das gemeinsame Abstands-Aggregat.
 |---|---|---|
 | 8 | `nonresidential_hulls_source` | Unbewohnte bzw. industriegebietartige DKM-Hüllen (Almen, Ställe, Hallen, Betriebsareale): BEV-Wohnanteil < 0,1 oder ≥ 50 % der Gebäude in Betriebs-/Industriewidmung. |
 | 9 | `nonresidential_hulls_buffer` | 25 m um Band 8 — reiner Objektschutz, kein Immissionsabstand. |
-| 10 | `cableway_buildings_source` | OSM-Gebäude im 100-m-Umkreis einer Seilbahnlinie (Liftstationen etc.). |
+| 10 | `cableway_buildings_source` | OSM-Gebäude im 100-m-Umkreis einer Personenseilbahnlinie (Liftstationen etc.) — seit 09.09.2026 (W7.5) auf die vier Personenseilbahn-Typen `gondola`/`cable_car`/`chair_lift`/`mixed_lift` eingegrenzt (vorher jede `aerialway`-Linie); Schlepplifte und Materialseilbahnen zählen nicht mehr als Seilbahnlinie im Sinne dieses Bandes. |
 | 11 | `cableway_buildings_buffer` | 50 m um Band 10. |
 | 12 | `general_buildings_source` | Alle übrigen OSM-Gebäude (Garagen, Schuppen, Ställe, Industrie, untypisiert, auch Kirchen und Kapellen) **plus** die bewohnten Einzellagen (< 5 adressierte Objekte) aus DKM/BEV. Jedes OSM-Gebäude landet in genau einer der beiden Kategorien 10/12 — und nur, wenn es nicht schon von einer amtlichen Quelle (Bänder 1, 3–6, 8) abgedeckt ist. Windkraftanlagen, die in OSM zusätzlich als Gebäude eingetragen sind, werden vorab entfernt, damit sie nicht ihren eigenen Standort ausschließen. |
 | 13 | `general_buildings_buffer` | 25 m um Band 12 — praktisch nur der Gebäude-Fußabdruck. |
@@ -134,7 +134,7 @@ eigenes Band; Band 7 ist das gemeinsame Abstands-Aggregat.
 | 14 | `road_motorway_trunk` | 150 m um Autobahnen und Schnellstraßen (OSM, Tunnelabschnitte ausgenommen). |
 | 15 | `road_federal_state` | 150 m um das übrige überörtliche Straßennetz (primary/secondary/tertiary, Tunnel ausgenommen). |
 | 16 | `rail_main` | 150 m um Normal- und Schmalspurbahnen (Tunnel ausgenommen). |
-| 17 | `cableway_people_150m` | 150 m um personenbefördernde Seilbahnen und Lifte (OSM). |
+| 17 | `cableway_people_150m` | 150 m um personenbefördernde Seilbahnen und Lifte (OSM) — genau vier `aerialway`-Typen: `gondola`, `cable_car`, `chair_lift`, `mixed_lift` (Nutzerentscheidung 09.09.2026, W7.5). **Keine** Schlepplifte (`drag_lift`, `t-bar`, `j-bar`, `platter`, `rope_tow`), kein `magic_carpet`, nichts aus `goods`/`zip_line`/`explosive`/`avalanche`/`pylon`/`station`/`yes`/`proposed`/`abandoned`/`deflection_roller`. |
 | 18 | `military_restricted_area` | Militärische Sperr- und Übungsflächen (OSM), Fußabdruck ohne Zusatzabstand. |
 
 Stromleitungen sind **kein** Ausschlusskriterium.

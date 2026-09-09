@@ -351,6 +351,18 @@ def build_osm_building_sources(cfg: dict, grid: dict, args: argparse.Namespace) 
     buildings = drop_wind_power_buildings(buildings, wind_power)
 
     aerialways = _read_prep_layer("aerialways", source_bounds)
+    # W7.5: nur Personenseilbahnen (PEOPLE_CARRYING_AERIALWAY_TYPES) zählen
+    # als Seilbahngebäude - Warengondeln/Materialseilbahnen (fclass "goods"
+    # u.ä.) sollen dieses Band nicht speisen. Bisher ungefiltert (alle
+    # aerialway-fclass-Werte); dieselbe Konstante wie
+    # cableway_people_150m (build_infrastructure_masks() unten) und
+    # sources_human (pipeline/layers/geo.py) - eine Liste, drei Leser.
+    af = (
+        aerialways.get("fclass", pd.Series("", index=aerialways.index)).fillna("").astype(str).str.lower()
+        if not aerialways.empty
+        else pd.Series([], dtype=str)
+    )
+    aerialways = aerialways[af.isin(PEOPLE_CARRYING_AERIALWAY_TYPES)] if not aerialways.empty else aerialways
 
     # Bewohnte Einzellagen (< 5 adressierte Objekte) und die Bauflächen der
     # NÖ-Streusiedlungs-Hüllen zählen zu den allgemeinen Gebäuden (25 m).
@@ -427,9 +439,11 @@ def _cover_fingerprint(legacy_cover_dir: Path) -> str:
 
 
 def build_infrastructure_masks(cfg: dict, grid: dict, args: argparse.Namespace) -> dict[str, np.ndarray]:
-    """Roads/rail/power/cableway/military masks. Fachlich unverändert aus
-    abschichtung_common.py:build_infrastructure_masks (Zeilen 958-1013) -
-    einzige Änderungen: OSM-Lesen über ``_read_prep_layer()`` statt
+    """Roads/rail/power/cableway/military masks. Fachlich unverändert aus der
+    (seit W7.5 entfernten) toten Kopie abschichtung_common.py:
+    build_infrastructure_masks - siehe dort für die Begründung der
+    Entfernung; diese Fassung hier ist die einzige aktive, aufgerufene -
+    einzige Änderungen ggü. der entfernten Kopie: OSM-Lesen über ``_read_prep_layer()`` statt
     ``osm_layer_path()``+``read_layer()``, und die tote
     ``powerlines_gpkg``-Rückfallkette entfällt (siehe Moduldocstring - der
     Zweig griff schon im Original nie, ``cfg["paths"]`` kennt den Schlüssel
