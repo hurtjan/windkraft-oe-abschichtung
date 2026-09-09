@@ -52,6 +52,18 @@ DEFAULT_COLORS = {
     "available_after_all_exclusions_raw": [0, 220, 120, 150],
     "available_cleaned_min_10ha": [0, 255, 0, 185],
     "official_wind_zoning": [0, 90, 255, 190],
+    # Bänder 39-44, Schema 2.2.0 (W7.1). Farbe ist ausdrücklich Kosmetik
+    # (siehe Auftrag) - hier je Familie derselbe Grundton wie das
+    # zugehörige Quell-/Zonenband, nur etwas heller/blasser für die neue
+    # roh/aggregat/summe_quellen-Stufe. TODO(W7.x): Helligkeit systematisch
+    # nach `stufe` abstufen (z. B. eine Funktion über STUFE_ORDER in
+    # calc/band_manifest.py), statt jede Farbe einzeln von Hand zu setzen.
+    "haeuser_im_gruenen_source": [255, 150, 90, 160],
+    "general_buildings_roh_osm": [190, 130, 220, 150],
+    "general_buildings_roh_dkm": [170, 100, 210, 150],
+    "sources_human": [255, 90, 90, 110],
+    "sources_nature": [90, 200, 90, 110],
+    "sources_geography": [110, 140, 220, 110],
 }
 
 GEO_WIND_COLOR = [80, 160, 255, 145]
@@ -110,6 +122,11 @@ CATEGORY_TOTALS = {
     "tot_exclusion_geography": "Geografie",
     "all_exclusions": "Total & Ergebnis",
     "tot_exclusion_all": "Total & Ergebnis",
+    # Bänder 42-44, Schema 2.2.0 (W7.1): Σ Quellen je Kategorie, dieselbe
+    # is_total-Behandlung (fett am Ende der Sektion) wie die Σ-Zonen-Bänder.
+    "sources_human": "Mensch",
+    "sources_nature": "Natur",
+    "sources_geography": "Geografie",
 }
 
 # official_settlement_/official_hig_ MÜSSEN vor dem generischen "official_"-Fang
@@ -139,4 +156,9 @@ def categorize_layer(name: str) -> tuple[str, bool]:
     return "Sonstige", False
 
 
+# Seit Schema 2.2.0 (W7.1) NICHT mehr die Quelle für band["default_visible"]
+# im Manifest - das leitet calc.band_manifest.band_default_visible() jetzt
+# aus der Stufe ab (zone + available_cleaned_min_10ha). Diese Konstante
+# bleibt unverändert stehen (additiv, kein bestehendes Feld verschwindet)
+# und wird von tests/test_band_metadata.py weiter geprüft.
 DEFAULT_VISIBLE = {"all_exclusions", "available_cleaned_min_10ha"}

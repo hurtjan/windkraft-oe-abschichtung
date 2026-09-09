@@ -198,6 +198,60 @@ bleiben unverändert. Genau die Fälle, die `2.0.0` zur Hauptversion machten
 (Feldmenge je Band exakt zählen oder auf Gleichheit prüfen), sind hier
 nicht betroffen.
 
+### `2.2.0` (Paket W7.1, Struktur v4) — sechs neue Bänder, drei neue Felder je Band
+
+**TODO(W7.x):** Dieser Abschnitt beschreibt das Schema, nicht das
+Referenzartefakt — die Beispielwerte weiter oben im Dokument (`band_count:
+38`, `schema_version: 2.0.0`, die `sha256`-Referenzzeile, die 18-Bänder-
+Tabelle) stammen noch aus dem 38-Bänder-Stand und werden erst nach dem
+nächsten echten `pipeline/finalize.py`-Lauf (Integration aller drei Bahnen
+von W7.1) auf 44 Bänder / `2.2.0` nachgezogen. Prosa hier ist bewusst knapp
+gehalten, nicht poliert — siehe Auftrag.
+
+`band_count` steigt additiv von 38 auf 44: sechs neue Bänder 39–44
+(`haeuser_im_gruenen_source`, `general_buildings_roh_osm`,
+`general_buildings_roh_dkm`, `sources_human`, `sources_nature`,
+`sources_geography`) werden ans Ende angehängt, Bedeutung und Index der
+Bänder 1–38 ändern sich nicht. `band_schema` wechselt von
+`clean-38-ohne-wichtige-objekte-aug-2026` auf
+`clean-44-ohne-wichtige-objekte-aug-2026`. Details je neuem Band (Label,
+Beschreibung, Quelle, `abgeleitet_von`) stehen im Manifest selbst, siehe
+`calc/band_manifest.py`.
+
+Drei neue Pflichtfelder je Band:
+
+| Feld | Bedeutung |
+|---|---|
+| `familie` | Gruppierungsschlüssel innerhalb einer Kategorie (z. B. `siedlung`, `haeuser_im_gruenen`, `gebaeude`, `summe`). Reihenfolge und Anzeigelabel je Familie stehen im neuen Top-Level-Feld `familien`. |
+| `stufe` | Pipeline-Stufe des Bandes, einer von sieben Werten (siehe `stufe_order`): `roh`, `quelle`, `aggregat`, `zone`, `summe_quellen`, `summe_zonen`, `ergebnis`. |
+| `dashboard_layer` | `false` nur für die vier Unschärfebänder 33–36, sonst `true` — ob ein Band als eigener Layer im Dashboard auftauchen soll. |
+
+Zwei neue Top-Level-Felder:
+
+- **`stufe_order`** — die feste Stufenreihenfolge
+  (`["roh","quelle","aggregat","zone","summe_quellen","summe_zonen","ergebnis"]`).
+- **`familien`** — geordnetes Array `{key, category, label_de}`, ein
+  Eintrag je Familie und Kategorie (der Schlüssel `summe` kommt bewusst
+  dreimal vor, einmal je Kategorie Mensch/Natur/Geografie). Anzeigereihenfolge
+  im Baum: Kategorie (`category_order`) → Familie (`familien`) → Stufe
+  (`stufe_order`) → Index.
+
+**`default_visible` ändert seine Herleitung**, nicht seine Bedeutung: ab
+`2.2.0` gilt `default_visible = (stufe == "zone") oder name ==
+"available_cleaned_min_10ha"` statt eines von Hand gepflegten Namenssets.
+Praktisch heißt das: `all_exclusions` und die drei Kategorie-Summenbänder
+(`exclusion_human`/`_nature`/`_geography`) sind ab `2.2.0` **nicht mehr**
+`default_visible` (sie sind `summe_zonen`, keine `zone`) — wer sich beim
+initialen Rendern auf `default_visible` statt auf eine eigene Layer-Auswahl
+verlässt, sieht diese vier Bänder künftig nicht mehr automatisch.
+
+Der Quellschlüssel `amtliche_windzonen_stmk_sbg` (in `sources`) ist in
+`amtliche_windzonen_stmk` und `amtliche_windzonen_sbg` getrennt — Steiermark
+und Salzburg sind zwei unterschiedliche Shapefiles.
+
+`familie`, `stufe` und `dashboard_layer` sind **informativ**, wie `puffer_m`
+und `quelle` — nicht Teil des Vertrags (siehe nächster Abschnitt).
+
 ## Vertrag vs. Dokumentation
 
 **Vertrag** — das dürft ihr euch verlassen, solange `schema_version`

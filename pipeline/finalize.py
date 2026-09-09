@@ -131,11 +131,28 @@ PIPELINE_TAG = "widmung_v2"
 # muss über alle drei Stellen hinweg gleich bleiben, sonst würde
 # layer_done() (Fingerabdruck-Vergleich) Checkpoints fälschlich als veraltet
 # ansehen.
-BAND_SCHEMA = "clean-38-ohne-wichtige-objekte-aug-2026"
+BAND_SCHEMA = "clean-44-ohne-wichtige-objekte-aug-2026"
 
 WKA_BESTAND_BAND = "wka_bestand_ausserhalb_zonen"
 WKA_CLUSTER_CHAIN_M = 750.0
 WKA_HULL_MARGIN_M = 200.0
+
+# W7.1 (Neuzuschnitt, schnittstelle-manifest-2.2.md §2): Bänder 39-44,
+# angehängt hinter den beiden bisherigen trailing_bands (37/38). NICHT Teil
+# von BANDS unten (den 26 condition_bands) - BANDS wird VOR den Kategorie-/
+# Ergebnisaggregaten (Index 27-32) geschrieben, ein Eintrag dort würde die
+# Indizes 27-38 verschieben. Diese sechs sind reine Checkpoint-Durchreichen
+# wie official_wind_zoning/wka_bestand_ausserhalb_zonen selbst (siehe deren
+# trailing_bands-Verwendung unten) - sie kommen deshalb an dieselbe Stelle,
+# nur danach. Reihenfolge = contract.LAYER_NAMES[-6:], siehe dort.
+APPENDED_BAND_NAMES = [
+    "haeuser_im_gruenen_source",
+    "general_buildings_roh_osm",
+    "general_buildings_roh_dkm",
+    "sources_human",
+    "sources_nature",
+    "sources_geography",
+]
 
 
 @dataclass(frozen=True)
@@ -316,7 +333,7 @@ def main(argv: list[str] | None = None) -> None:
             geography_band_names=[*GEOGRAPHY_BANDS, *WATER_BANDS],
             valid_area=valid_area,
             min_fragment_area_ha=args.min_fragment_area_ha,
-            trailing_bands=[*OFFICIAL_ZONING_BANDS, WKA_BESTAND_BAND],
+            trailing_bands=[*OFFICIAL_ZONING_BANDS, WKA_BESTAND_BAND, *APPENDED_BAND_NAMES],
             variant_source_band=None,
             variants={},
             tags=tags,
@@ -336,7 +353,8 @@ def main(argv: list[str] | None = None) -> None:
         f"Wrote {output} from checkpoint layers in {layer_dir} "
         f"({len(BANDS)} condition bands + 3 category aggregates + all/raw/cleaned + "
         f"{len(UNCERTAINTY_BLUR_SIGMAS_M)} uncertainty blur bands + "
-        f"official_zoning + wka_bestand = {len(band_names)} bands), shape={grid['shape']}"
+        f"official_zoning + wka_bestand + {len(APPENDED_BAND_NAMES)} angehängte Bänder "
+        f"(W7.1) = {len(band_names)} bands), shape={grid['shape']}"
     )
     print(f"Wrote {manifest_path} ({len(band_names)} bands, schema {tags['BAND_SCHEMA']})")
 

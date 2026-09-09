@@ -189,6 +189,14 @@ OSM_LAYER_NAMES = [
     "general_buildings_source",
 ]
 
+# W7.1 (Schnittstelle-Manifest 2.2 §2, Bänder 40/41): die rohen OSM-/DKM-
+# Teilmengen, aus denen general_buildings_source (oben) sich zusammensetzt -
+# angehängt ans Ende von contract.LAYER_NAMES, NICHT Teil von
+# OSM_LAYER_NAMES (das bleibt die unveränderte 33er/38er-Kette, siehe
+# tests/test_contract.py). Beide entstehen als Nebenprodukt derselben
+# build_osm_building_sources()-Berechnung, hier nur zusätzlich benannt.
+APPENDED_OSM_BAND_NAMES = ["general_buildings_roh_osm", "general_buildings_roh_dkm"]
+
 # power_380_400kv fehlt bewusst: Stromleitungen sind seit dem Clean-Schema
 # (Aug 2026) kein Ausschlusskriterium der v2-Kette mehr. Siehe Punkt 27 im
 # Moduldocstring - build_infrastructure_masks() (unten) berechnet die Maske
@@ -360,6 +368,11 @@ def build_osm_building_sources(cfg: dict, grid: dict, args: argparse.Namespace) 
         return {
             "cableway_buildings_source": zero,
             "general_buildings_source": dkm_footprints,
+            # W7.1, Bänder 40/41: kein OSM-Gebäudebestand gelesen -> die
+            # OSM-Teilmenge ist leer, general_buildings_source besteht in
+            # diesem Fall vollständig aus dem DKM-Fußabdruck.
+            "general_buildings_roh_osm": zero,
+            "general_buildings_roh_dkm": dkm_footprints,
         }
 
     points = building_points(buildings)
@@ -378,7 +391,11 @@ def build_osm_building_sources(cfg: dict, grid: dict, args: argparse.Namespace) 
     # 2) Alles Übrige ist geringfügig/unklassifiziert - plus die DKM/BEV-
     #    Fußabdrücke (Einzellagen + NÖ-Streusiedlungs-Bauflächen).
     is_general = remaining & (~is_cableway)
-    general_source = _as_mask(buildings.loc[is_general, ["geometry"]], grid, "general_buildings_source") | dkm_footprints
+    # W7.1, Bänder 40/41: general_buildings_roh_osm (nur der OSM-Teil) und
+    # general_buildings_roh_dkm (nur der DKM/BEV-Fußabdruck) - die beiden
+    # rohen Teilmengen, deren Union general_buildings_source (Band 12) ist.
+    general_osm_only = _as_mask(buildings.loc[is_general, ["geometry"]], grid, "general_buildings_source")
+    general_source = general_osm_only | dkm_footprints
 
     print(
         "[info]  v2 OSM-Gebäudeklassifikation: "
@@ -390,6 +407,8 @@ def build_osm_building_sources(cfg: dict, grid: dict, args: argparse.Namespace) 
     return {
         "cableway_buildings_source": cableway_source,
         "general_buildings_source": general_source,
+        "general_buildings_roh_osm": general_osm_only,
+        "general_buildings_roh_dkm": dkm_footprints,
     }
 
 
@@ -597,7 +616,8 @@ def main(argv: list[str] | None = None) -> None:
     runtime.ensure_dir(contract.DERIVED_LAYERS)
     with timed("derived/update checkpoint layers"):
         ensure_group_layers(
-            contract.DERIVED_LAYERS, OSM_LAYER_NAMES, "v2 OSM building classification",
+            contract.DERIVED_LAYERS, [*OSM_LAYER_NAMES, *APPENDED_OSM_BAND_NAMES],
+            "v2 OSM building classification + angehängte Bänder 40/41",
             lambda: build_osm_building_sources(cfg, grid, args), grid, args.force_layers,
             extra_ok=_tags_ok(osm_tags), extra_tags=osm_tags,
         )
