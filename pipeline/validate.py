@@ -222,7 +222,26 @@ REFERENCE_TIF = contract.RUN1_TIF
 # Der vorherige Wert
 # ``a905c0563696c8af4a2fd3b1407521c81ccdc3c0b373d14ce8a6429196ab5c9f``
 # bleibt ebenso als historischer Zeuge dokumentiert.
-AKTUELLE_REFERENZ_SHA256 = "99d522239dc499b833cab3080c810b9568ac3078a66b81a470e37228b55a96ac"
+#
+# Fünfter Wechsel (09.09.2026, W7.6, Kategorie-/Familien-/Stufentexte, drei
+# neue Geografie-Schwellenwerte in ``parameters``): die Datei-Prüfsumme
+# ändert sich, die Pixel nicht. pipeline/finalize.py schreibt fünf neue
+# Schlüssel in ``tags`` (SLOPE_MAX_DEG, ELEVATION_MAX_M, PD_MIN_W_M2,
+# PD_MIN_REFERENCE_HEIGHT_M, PD_MIN_AT_150M_W_M2) - dieselben Werte landen
+# als GDAL-Datei-Tags im TIF (siehe ``compose_exclusion_geotiff()``s
+# ``update_tags``), was die Datei-Bytes ändert, obwohl kein Band abweicht.
+# Nachgewiesen durch zwei unabhängige Läufe: (1) dieselben
+# ``derived/layers/``-Checkpoints mit dem UNVERÄNDERTEN
+# ``pipeline/finalize.py`` (git stash) reproduzieren exakt den vorherigen
+# Wert (Determinismus bestätigt); (2) ein bandweiser Vergleich (rasterio,
+# alle 44 Bänder einzeln gelesen) zwischen diesem Lauf und dem W7.6-Lauf
+# ergibt ``diff=0`` für jedes Band, ``a.descriptions == b.descriptions``,
+# und der einzige Unterschied in den Datei-Tags sind exakt die fünf neu
+# hinzugekommenen Schlüssel (siehe ``tests/test_referenz_tif.py``, dortiger
+# Kommentar "Fünfter Wechsel", derselbe Nachweis). Der vorherige Wert
+# ``99d522239dc499b833cab3080c810b9568ac3078a66b81a470e37228b55a96ac``
+# bleibt ebenso als historischer Zeuge dokumentiert.
+AKTUELLE_REFERENZ_SHA256 = "c1809c4cf9cb243d420efc949ff5543130ef3c5a75db9e948d2ea53c94416f37"
 
 REGISTER_PATH = contract.ROOT / "docs" / "rewrite" / "abweichungen.tsv"
 
