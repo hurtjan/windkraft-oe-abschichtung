@@ -41,10 +41,10 @@ den Pfad ein zweites Mal hinzuschreiben.
 | | |
 |---|---|
 | Datei | `out/abschichtung.tif` |
-| `sha256` | `a905c0563696c8af4a2fd3b1407521c81ccdc3c0b373d14ce8a6429196ab5c9f` |
-| Größe | 152.669.124 Bytes |
+| `sha256` | `c1809c4cf9cb243d420efc949ff5543130ef3c5a75db9e948d2ea53c94416f37` |
+| Größe | 152.656.739 Bytes |
 | Bänder | 44 |
-| Manifest-`schema_version` | `2.2.0` |
+| Manifest-`schema_version` | `2.2.1` |
 
 Diese Prüfsumme ist verdrahtet: `tests/test_referenz_tif.py` prüft sie bei
 jedem `make test` (siehe dort auch, wie der langlaufende Reproduktionstest
