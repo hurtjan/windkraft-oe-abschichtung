@@ -273,8 +273,9 @@ def test_products_live_under_out():
     for path in contract.PRODUCTS.values():
         assert contract.OUT in path.parents, f"PRODUCTS-Pfad nicht unter out/: {path}"
     # 4 ursprüngliche Endprodukte + Punkte-Export und LAYER.md (W7.1,
-    # schnittstelle-manifest-2.2.md §3) - siehe Kommentar bei contract.PRODUCTS.
-    assert len(contract.PRODUCTS) == 6
+    # schnittstelle-manifest-2.2.md §3) + LAYER-MANIFEST.md (W7.6, siebtes
+    # Endprodukt) - siehe Kommentar bei contract.PRODUCTS.
+    assert len(contract.PRODUCTS) == 7
 
 
 def test_raw_lives_under_data():

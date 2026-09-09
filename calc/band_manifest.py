@@ -124,6 +124,47 @@ durchzulassen").
              sind unterschiedliche Shapefiles mit womöglich unterschiedlichem
              Stand). Verbindliche Schnittstelle:
              ``schnittstelle-manifest-2.2.md`` (Paket W7.1, Bahn 2).
+  ``2.2.1``  W7.6 (09.09.2026, reine Textänderung - kein Pixel, kein neues
+             Band, keine Indexverschiebung): drei neue Top-Level-Schlüssel
+             ``kategorien`` (sieben Einträge, je ``category_order``-Eintrag
+             einer, auch für die beiden heute leeren Kategorien
+             "Siedlungsabstand-Varianten"/"Sonstige") und ``stufen`` (sieben
+             Einträge, deckt ``stufe_order`` vollständig ab); ``familien[]``
+             bekommt ein neues Feld ``description_de`` je Eintrag, drei
+             Labels verlieren das Summenzeichen ("Σ Mensch" ->
+             "Gesamt Mensch", ebenso Natur/Geografie). Alle ``label_de``
+             folgen ab hier ausnahmslos der Namensregel (nur Buchstaben,
+             Leerzeichen, Bindestriche - keine Ziffer, Klammer, Komma, kein
+             Σ), auch die vier vormals sigma-benannten Unschärfebänder
+             (``_blur_description``/Fallback in ``band_label_de()``) und das
+             bereinigte Verfügbarkeitsband (Fallback in ``band_label_de()``,
+             vormals "Verfügbare Fläche, bereinigt (≥ 10 ha)"). Ein dritter
+             ``caveats``-Eintrag (``tunnelfilter_unvollstaendig``,
+             Registerpunkt 70): der Tunnelfilter der Bänder 14-16 prüft nur
+             die Spalte ``tunnel``, nie ``layer``/``covered`` - die
+             Beschreibungen sagen seither die tatsächliche Wirkung, nicht
+             eine Absicht, die der Code nicht einlöst. Fünf neue
+             ``parameters``-Schlüssel (``SLOPE_MAX_DEG``, ``ELEVATION_MAX_M``,
+             ``PD_MIN_W_M2``, ``PD_MIN_REFERENCE_HEIGHT_M``,
+             ``PD_MIN_AT_150M_W_M2``) - aus ``pipeline/finalize.py`` gelesen,
+             nicht hier festgelegt (dieses Modul kopiert ``tags`` nur durch,
+             siehe ``build_band_manifest()``). Außerdem, noch innerhalb
+             W7.6 (Nutzerentscheidung 09.09.2026 nachmittags, vorgezogen aus
+             der W7.8-Planung, da nicht an die Bänder 45-47 gebunden):
+             ``default_visible`` und ``dashboard_layer`` werden nicht mehr
+             aus ``stufe``/Bandname abgeleitet, sondern kommen aus zwei
+             festen Namenslisten (``DEFAULT_VISIBLE_NAMES``,
+             ``DASHBOARD_LAYER_NAMES`` unten) - ``default_visible`` genau
+             die fünf Bänder 27/28/29/32/37 (die drei Kategoriesummen, die
+             Eignungsflächen, die amtlichen Zonen), ``dashboard_layer`` 23
+             der 44 Bänder (blendet Quell-, Roh- und Aggregatstufen sowie
+             die rohe verfügbare Fläche aus). ``DEFAULT_VISIBLE_NAMES`` ist
+             eine echte Teilmenge von ``DASHBOARD_LAYER_NAMES``. Vertrag
+             (``band_count``, ``bands[].index``/``name``/``rolle``)
+             unverändert - Nebenversion. Quelle: ``docs/LAYER-MANIFEST.md``
+             (§4a/§5), ``MANIFEST-TEXTE.md`` (Anwendung), beide von der
+             Konsumentenseite geschrieben, Sollwert ist ausschließlich deren
+             Spalte "neu"; im Zweifel gilt der Code (siehe Bericht zu W7.6).
 """
 
 from __future__ import annotations
@@ -138,7 +179,7 @@ from calc.viz.band_metadata import (
     layer_color,
 )
 
-SCHEMA_VERSION = "2.2.0"
+SCHEMA_VERSION = "2.2.1"
 MANIFEST_SUFFIX = ".bands.json"
 
 # Fallbacks, falls die Tags einmal ohne diese Schlüssel kommen. Der Regelfall
@@ -193,47 +234,51 @@ CLIPPED_PREFIXES = (
 # inzwischen als toter Code gelöschten Dashboard-Skripts (W1.5) übernommen,
 # die dortigen Pufferangaben wurden gegen den Code korrigiert.
 # --------------------------------------------------------------------------
+# W7.6 (09.09.2026, MANIFEST-TEXTE.md §1/§2): finale Fassung, ausnahmslos
+# nach der Namensregel (nur Buchstaben, Leerzeichen, Bindestriche - keine
+# Ziffer, Klammer, Komma, kein Σ). Alles Quantitative wandert in
+# DESCRIPTIONS_DE/condition_descriptions.
 LABELS_DE = {
-    "official_settlement_source": "Amtliches Wohnbauland (Quelle)",
-    "settlement_buffer": "Siedlungsabstand (NÖ 1.200 m, sonst 1.000 m)",
-    "haeuser_im_gruenen_ferienhaus": "Ferienhaus / Tourismus (Quelle)",
-    "haeuser_im_gruenen_widmung": "Amtliche HiG-Widmung (Quelle, ohne NÖ)",
-    "haeuser_im_gruenen_streusiedlung": "Streusiedlungs-Hüllen (Quelle, ohne NÖ)",
-    "haeuser_im_gruenen_noe_pdf": "NÖ-SekROP-750-m-Zonen",
-    "haeuser_im_gruenen": "Häuser im Grünen (750 m)",
-    "nonresidential_hulls_source": "Nicht-Wohn-Hüllen (Quelle)",
-    "nonresidential_hulls_buffer": "Nicht-Wohn-Hülle (25 m)",
-    "cableway_buildings_source": "Seilbahn-Gebäude (Quelle)",
-    "cableway_buildings_buffer": "Seilbahn-Gebäude (50 m)",
-    "general_buildings_source": "Sonstige Gebäude + Einzellagen (Quelle)",
-    "general_buildings_buffer": "Sonstige Gebäude (25 m)",
-    "road_motorway_trunk": "Autobahn / Schnellstraße (150 m)",
-    "road_federal_state": "Bundes- / Landesstraße (150 m)",
-    "rail_main": "Hauptbahn (150 m)",
-    "cableway_people_150m": "Personenseilbahn (150 m)",
+    "official_settlement_source": "Amtliches Wohnbauland",
+    "settlement_buffer": "Siedlungsabstand",
+    "haeuser_im_gruenen_ferienhaus": "Ferienhaus und Tourismus",
+    "haeuser_im_gruenen_widmung": "Amtliche Einzellagen-Widmung",
+    "haeuser_im_gruenen_streusiedlung": "Streusiedlungs-Hüllen",
+    "haeuser_im_gruenen_noe_pdf": "NÖ-Mindestabstandszonen",
+    "haeuser_im_gruenen": "Häuser im Grünen",
+    "nonresidential_hulls_source": "Nicht-Wohn-Hüllen",
+    "nonresidential_hulls_buffer": "Ausschluss Nicht-Wohn-Hüllen",
+    "cableway_buildings_source": "Seilbahn-Gebäude",
+    "cableway_buildings_buffer": "Ausschluss Seilbahn-Gebäude",
+    "general_buildings_source": "Sonstige Gebäude und Einzellagen",
+    "general_buildings_buffer": "Ausschluss sonstige Gebäude",
+    "road_motorway_trunk": "Autobahnen und Schnellstraßen",
+    "road_federal_state": "Bundes- und Landesstraßen",
+    "rail_main": "Hauptbahnen",
+    "cableway_people_150m": "Personenseilbahnen",
     "military_restricted_area": "Militärisches Sperrgebiet",
-    "airport_area_major": "Hauptflughafen-Areal",
-    "airport_runway_corridor_5km": "An-/Abflugkorridor (5 km)",
-    "nature_protection_areas": "Naturschutzgebiete (amtlich)",
-    "osm_nature_protection_areas": "Naturschutzgebiete (OSM)",
+    "airport_area_major": "Hauptflughafen-Areale",
+    "airport_runway_corridor_5km": "An- und Abflugkorridore",
+    "nature_protection_areas": "Amtliche Schutzgebiete",
+    "osm_nature_protection_areas": "Schutzgebiete aus OpenStreetMap",
     "geography_slope_too_steep": "Hangneigung zu steil",
     "geography_elevation_too_high": "Seehöhe zu hoch",
-    "geography_wind_too_low": "Windhöffigkeit zu gering",
+    "geography_wind_too_low": "Wind zu gering",
     "geography_water_bodies": "Größere Gewässer",
-    "exclusion_human": "Σ Ausschluss Mensch",
-    "exclusion_nature": "Σ Ausschluss Natur",
-    "exclusion_geography": "Σ Ausschluss Geografie",
-    "all_exclusions": "Σ Ausschluss gesamt",
-    "available_after_all_exclusions_raw": "Verfügbare Fläche, roh",
+    "exclusion_human": "Ausschluss Mensch",
+    "exclusion_nature": "Ausschluss Natur",
+    "exclusion_geography": "Ausschluss Geografie",
+    "all_exclusions": "Ausschluss gesamt",
+    "available_after_all_exclusions_raw": "Verfügbare Fläche roh",
     "official_wind_zoning": "Amtliche Windkraft-Zonen",
     "wka_bestand_ausserhalb_zonen": "WKA-Bestand außerhalb der Zonen",
-    # Bänder 39-44, Schema 2.2.0 (W7.1) - Labels aus layer-beschreibung.md.
-    "haeuser_im_gruenen_source": "Häuser im Grünen (Quelle, Aggregat)",
-    "general_buildings_roh_osm": "Sonstige Gebäude – OSM-Rohdaten",
-    "general_buildings_roh_dkm": "Sonstige Gebäude – Kataster-Rohdaten (DKM)",
-    "sources_human": "Σ Quellen Mensch (ungepuffert)",
-    "sources_nature": "Σ Quellen Natur (ungepuffert)",
-    "sources_geography": "Σ Quellen Geografie (ungepuffert)",
+    # Bänder 39-44, Schema 2.2.1 (W7.6) - MANIFEST-TEXTE.md §1/§2.
+    "haeuser_im_gruenen_source": "Quellen Häuser im Grünen",
+    "general_buildings_roh_osm": "Sonstige Gebäude aus OpenStreetMap",
+    "general_buildings_roh_dkm": "Sonstige Gebäude aus dem Kataster",
+    "sources_human": "Quellen Mensch",
+    "sources_nature": "Quellen Natur",
+    "sources_geography": "Quellen Geografie",
 }
 
 # --------------------------------------------------------------------------
@@ -242,70 +287,91 @@ LABELS_DE = {
 # sind aus docs/widmung_v2.md (Abschnitte "Aggregate und Ergebnis",
 # "Unsicherheits-Bänder", "Referenzbänder") portiert.
 # --------------------------------------------------------------------------
+# W7.6 (09.09.2026, MANIFEST-TEXTE.md §1): finale deutsche Fassung. Band 40
+# in der heutigen Fassung der Vorlage (Registerpunkt 72 - die alte Fassung
+# nannte nur zwei der sechs abdeckenden Flächen).
 DESCRIPTIONS_DE = {
     "exclusion_human": (
-        "ODER-Verknüpfung aller Mensch-Ausschlüsse (Bänder 2, 7, 9, 11, 13, 14-20), "
+        "Vereinigung aller Ausschlüsse der Kategorie Mensch: Siedlungsabstand, "
+        "Häuser im Grünen, Gebäude und Anlagen, Verkehr, Militär und Luftfahrt; "
         "auf das Staatsgebiet zugeschnitten."
     ),
-    "exclusion_nature": "ODER der Natur-Bänder (21-22), auf das Staatsgebiet zugeschnitten.",
-    "exclusion_geography": "ODER der Geografie-Bänder (23-26), auf das Staatsgebiet zugeschnitten.",
-    "all_exclusions": "ODER von 27-29: alles, was ausgeschlossen ist.",
-    "available_after_all_exclusions_raw": (
-        "Das Negativ von all_exclusions - verfügbare Fläche ohne Mindestgrößen-Filter."
+    "exclusion_nature": (
+        "Amtliche Schutzgebiete, also Nationalparks, Naturschutzgebiete, "
+        "Europaschutzgebiete nach Natura 2000 und Ramsar-Gebiete, sowie "
+        "Schutzgebiete aus OpenStreetMap, vereinigt und auf das Staatsgebiet "
+        "zugeschnitten. Ohne Abstandspuffer."
     ),
-    # Bänder 39-44, Schema 2.2.0 (W7.1) - wortgleich aus layer-beschreibung.md.
+    "exclusion_geography": (
+        "Vereinigung der Kriterien Hangneigung, Seehöhe, Wind und Gewässer; auf "
+        "das Staatsgebiet zugeschnitten."
+    ),
+    "all_exclusions": (
+        "Vereinigung der Ausschlüsse aus Mensch, Natur und Geografie: alles, was "
+        "ausgeschlossen ist."
+    ),
+    "available_after_all_exclusions_raw": (
+        "Das Gegenstück zum Gesamtausschluss: die verbleibende Fläche ohne "
+        "Mindestgrößen-Filter, einschließlich aller Splitter."
+    ),
+    # Bänder 39-44, Schema 2.2.1 (W7.6) - MANIFEST-TEXTE.md §1.
     "haeuser_im_gruenen_source": (
-        "Vereinigung der drei Quellen Ferienhaus/Tourismus, amtliche HiG-Widmung "
-        "und Streusiedlungs-Hüllen, ungepuffert und ohne NÖ. Die NÖ-SekROP-Zonen "
-        "sind nicht enthalten, weil sie den 750-m-Puffer bereits tragen. "
-        "Entspricht dem Zwischenergebnis, das der Produzent heute intern vor dem "
-        "750-m-Puffer bildet."
+        "Vereinigung der drei Quellen Ferienhaus und Tourismus, amtliche "
+        "Einzellagen-Widmung und Streusiedlungs-Hüllen, ohne Abstand und ohne "
+        "Niederösterreich."
     ),
     "general_buildings_roh_osm": (
-        "OSM-Gebäude (building=*), die weder Seilbahn-Gebäude sind noch von einer "
-        "amtlichen Widmungs- oder HiG-Fläche abgedeckt werden; der OSM-Anteil von "
-        "general_buildings_source vor der Vereinigung mit den Kataster-Footprints."
+        "Gebäude aus OpenStreetMap, die weiter als 100 m von einer "
+        "Personenseilbahn entfernt liegen und von keiner der sechs abdeckenden "
+        "Flächen erfasst werden: amtliches Wohnbauland, Ferienhaus- und "
+        "Tourismusgebiete, amtliche Einzellagen-Widmung, niederösterreichische "
+        "Mindestabstandszonen, Streusiedlungs-Hüllen und bewohnte Einzellagen. "
+        "Rohdatensatz vor der Vereinigung mit den Kataster-Fußabdrücken."
     ),
     "general_buildings_roh_dkm": (
-        "Kataster-Footprints (DKM) bewohnter Einzellagen unter fünf Adressen sowie "
-        "die Hüllen innerhalb Niederösterreichs; der Kataster-Anteil von "
-        "general_buildings_source."
+        "Kataster-Fußabdrücke bewohnter Einzellagen mit weniger als fünf "
+        "Adressen sowie die Hüllen innerhalb Niederösterreichs. Rohdatensatz vor "
+        "der Vereinigung mit den Gebäuden aus OpenStreetMap."
     ),
-    # "Personenseilbahnen" hier war schon vor W7.5 der Wortlaut - der
-    # dazugehörige fclass-Filter auf aerialways in
-    # build_appended_source_aggregates() (pipeline/layers/geo.py) fehlte
-    # bis dahin aber tatsächlich (jede aerialway-Linie ging ein, nicht nur
-    # Personenseilbahnen). W7.5 (09.09.2026) hat den Filter nachgezogen -
-    # dieser Text war insofern vorher zu optimistisch, ist es jetzt nicht
-    # mehr. Dieselbe Konstante wie Band 10/17:
-    # calc.abschichtung_common.PEOPLE_CARRYING_AERIALWAY_TYPES.
     "sources_human": (
-        "ODER aller ungepufferten Quellen der Kategorie Mensch: Wohnbauland, die "
-        "vier HiG-Quellen, Nicht-Wohn-Hüllen, Seilbahn-Gebäude, sonstige Gebäude, "
-        "Militärflächen und Flughafen-Areale, dazu Autobahnen/Schnellstraßen, "
-        "Bundes-/Landesstraßen, Hauptbahnen und Personenseilbahnen als ungepufferte "
-        "Linien (0 m statt 150 m). Der An-/Abflugkorridor hat keine Objektquelle "
-        "und ist nicht enthalten."
+        "Vereinigung aller ungepufferten Quellen der Kategorie Mensch: "
+        "Wohnbauland, die vier Quellen der Häuser im Grünen, Nicht-Wohn-Hüllen, "
+        "Seilbahn-Gebäude, sonstige Gebäude, Militärflächen und "
+        "Flughafen-Areale, dazu Straßen, Bahnen und Personenseilbahnen als "
+        "Linien ohne Abstand. Die An- und Abflugkorridore haben keine "
+        "Objektquelle und fehlen deshalb."
     ),
     "sources_nature": (
-        "ODER der Natur-Quellen nature_protection_areas und "
-        "osm_nature_protection_areas. In der Kategorie Natur gibt es keine Puffer, "
-        "das Band ist inhaltsgleich mit exclusion_nature und existiert nur, damit "
-        "jede Kategorie denselben Aufbau hat."
+        "Vereinigung der amtlichen Schutzgebiete und der Schutzgebiete aus "
+        "OpenStreetMap. In der Kategorie Natur gibt es keinen Abstand, das Band "
+        "ist deshalb inhaltsgleich mit dem Ausschluss Natur und existiert nur, "
+        "damit jede Kategorie denselben Aufbau hat."
     ),
     "sources_geography": (
-        "ODER der Geografie-Kriterien Hangneigung, Seehöhe, Windhöffigkeit und "
-        "Gewässer. Es gibt keine Puffer, das Band ist inhaltsgleich mit "
-        "exclusion_geography und existiert nur der Einheitlichkeit halber."
+        "Vereinigung der Kriterien Hangneigung, Seehöhe, Wind und Gewässer. Es "
+        "gibt keinen Abstand, das Band ist deshalb inhaltsgleich mit dem "
+        "Ausschluss Geografie und existiert nur der Einheitlichkeit halber."
     ),
+}
+
+
+# W7.6 (09.09.2026, MANIFEST-TEXTE.md §1): label_de dieser beiden
+# parametrischen Bandfamilien folgte bisher nicht der Namensregel (Ziffern/
+# Klammern im Fallback von band_label_de() unten) - jetzt Wort statt Zahl,
+# die Zahl steht ausschließlich noch in der Beschreibung hier.
+BLUR_STRENGTH_DE = {
+    "100m": "schwach",
+    "200m": "mittel",
+    "250m": "stark",
+    "300m": "sehr stark",
 }
 
 
 def _cleaned_description(name: str) -> str:
     ha = name[len("available_cleaned_min_"):].removesuffix("ha")
     return (
-        f"Das Endergebnis: die rohe verfügbare Fläche, bereinigt um Splitter - nur "
-        f"zusammenhängende Flächen ab {ha} ha (4er-Nachbarschaft)."
+        f"Das Endergebnis: die nach Abzug aller Ausschlüsse verbleibende Fläche, "
+        f"bereinigt um Splitter; nur zusammenhängende Flächen ab {ha} ha."
     )
 
 
@@ -314,28 +380,33 @@ def _sigma_text(name: str) -> str:
     return name[len(PERCENT_BAND_PREFIX):].removesuffix("m") + " m"
 
 
+def _blur_strength_label(name: str) -> str:
+    key = name[len(PERCENT_BAND_PREFIX):]
+    return f"Unschärfe {BLUR_STRENGTH_DE[key]}"
+
+
 def _blur_description(name: str) -> str:
     sigma = _sigma_text(name)
     return (
-        f"Gauß-geglättete Eignungsfläche (Werte 0-100 %): der gewichtete Anteil "
-        f"verfügbarer Fläche in der Umgebung jeder Zelle, Glättungsradius Sigma "
-        f"{sigma}. Basis ist die ROHE verfügbare Fläche, daher sind auch Flächen "
-        f"unter der Mindestgrößen-Schwelle sichtbar. 100 = tief in einer großen "
-        f"Zone, ~50 = an der Kante, schmale Splitter verwaschen."
+        f"Eignungsflächen, weichgezeichnet mit einer Standardabweichung von "
+        f"{sigma}. Dient der flächigen Darstellung, nicht der Auswertung."
     )
 
 
+# W7.6 (09.09.2026, MANIFEST-TEXTE.md §1) - finale deutsche Fassung.
 DESCRIPTIONS_DE_TRAILING = {
     "official_wind_zoning": (
-        "Alle amtlichen Windkraft-Positivzonen der Länder in einem Band: NÖ Zonierung "
-        "(71 Zonen, LGBl. 47/2024), Steiermark SAPRO Vorrang-/Eignungszonen, Salzburg "
-        "Vorrangzonen, Burgenland Eignungszonen, Kärnten RED-III-Beschleunigungszonen. "
-        "Dient dem Soll-Ist-Vergleich mit der Abschichtung, ist selbst kein Ausschluss."
+        "Alle amtlichen Windkraft-Positivzonen der Länder in einem Layer: "
+        "Zonierung Niederösterreich, Vorrang- und Eignungszonen Steiermark, "
+        "Vorrangzonen Salzburg, Eignungszonen Burgenland, Beschleunigungszonen "
+        "Kärnten. Dient dem Vergleich mit der Abschichtung und ist selbst kein "
+        "Ausschluss."
     ),
     "wka_bestand_ausserhalb_zonen": (
-        "Bestehende Windräder aus OSM, die AUSSERHALB der amtlichen Zonen stehen, zu "
-        "Park-Hüllen zusammengefasst (Anlagen mit < 750 m Abstand bilden einen Park; "
-        "konvexe Hülle + 200 m Rand). Referenzband, kein Ausschluss."
+        "Bestehende Windräder aus OpenStreetMap außerhalb der amtlichen Zonen, "
+        "zu Park-Hüllen zusammengefasst: Anlagen mit weniger als 750 m Abstand "
+        "bilden einen Park, dessen Hülle 200 m Rand erhält. Referenz, kein "
+        "Ausschluss."
     ),
 }
 
@@ -558,6 +629,53 @@ BLUR_BLEED_CAVEAT = {
         "wer daraus auf „exakt auf Österreich beschnitten\" schließt und Flächen "
         "aufsummiert, rechnet falsch."
     ),
+}
+
+
+# --------------------------------------------------------------------------
+# Tunnelfilter-Caveat (W7.6, 09.09.2026, Registerpunkt 70): der Tunnelfilter
+# der Straßen-/Bahnbänder 14-16 prüft nur, ob ein Abschnitt ausdrücklich als
+# Tunnel ausgewiesen ist (calc.abschichtung_common._non_tunnel_mask() liest
+# ausschließlich die Spalte "tunnel", nie "layer"/"covered" -
+# pipeline/prep/osm.py:OSM_PBF_INCLUDE_TAGS führt für roads/railways nur
+# "tunnel" als Zusatzspalte). Band 17 (cableway_people_150m) hat keinen
+# Tunnelfilter und ist deshalb NICHT betroffen.
+#
+# affects.bands wird wie bei den zwei bestehenden Caveats aus den tatsächlich
+# vorhandenen Bändern abgeleitet, nicht abgeschrieben (MANIFEST-TEXTE.md §7/
+# §8 Punkt 7): die Vorlage nennt zusätzlich Band 46 (verkehr_zone), das erst
+# im End-Set von W7.8 entsteht - in einem 44-Band-Manifest wäre eine hart
+# eingetragene 46 falsch. Für heute macht das exakt 14, 15, 16, 27, 30, 31, 32.
+# --------------------------------------------------------------------------
+TUNNELFILTER_AFFECTED_EXACT = {
+    "road_motorway_trunk",
+    "road_federal_state",
+    "rail_main",
+    "exclusion_human",
+    "all_exclusions",
+    "available_after_all_exclusions_raw",
+    "available_cleaned_min_10ha",
+}
+
+
+def _tunnelfilter_affected(name: str) -> bool:
+    return name in TUNNELFILTER_AFFECTED_EXACT
+
+
+TUNNELFILTER_CAVEAT = {
+    "id": "tunnelfilter_unvollstaendig",
+    "severity": "methodisch",
+    "text_de": (
+        "Der Tunnelfilter bei Autobahnen, Bundes- und Landesstraßen und "
+        "Hauptbahnen prüft nur, ob ein Abschnitt ausdrücklich als Tunnel "
+        "ausgewiesen ist. Abschnitte, die stattdessen als unterirdisch oder "
+        "überdeckt geführt sind, werden gepuffert, obwohl dort kein Verkehr an "
+        "der Oberfläche liegt. Betroffen sind 144 Objekte; die Flächenwirkung "
+        "liegt unter 0,7 Prozent der ausgewiesenen Potenzialfläche und läuft "
+        "über das Verkehrsband in die Summen 27, 30, 31 und 32. Registerpunkt "
+        "70."
+    ),
+    "numbers": {"objekte_betroffen": 144, "flaechenwirkung_anteil_max": 0.007},
 }
 
 
@@ -978,23 +1096,60 @@ STUFE_ORDER = [
 # Mensch/Natur/Geografie) - der Familienschlüssel allein ist nicht
 # kategorieübergreifend eindeutig, das übernimmt "category" hier bzw.
 # "category" je Band.
+# W7.6 (09.09.2026, MANIFEST-TEXTE.md §4): description_de neu je Eintrag,
+# Array-Reihenfolge unverändert. Drei Labels verlieren das Summenzeichen -
+# "Σ Mensch"/"Σ Natur"/"Σ Geografie" -> "Gesamt Mensch"/"Gesamt Natur"/
+# "Gesamt Geografie" (keine Kollision: drei verschiedene Familien mit
+# demselben label_de, aber je eigener category - eindeutig ist das Paar
+# (key, category), nicht label_de allein, siehe test_familien_top_level_field).
 FAMILIEN = [
-    {"key": "siedlung", "category": "Mensch", "label_de": "Siedlung"},
-    {"key": "haeuser_im_gruenen", "category": "Mensch", "label_de": "Häuser im Grünen"},
-    {"key": "nichtwohn_huellen", "category": "Mensch", "label_de": "Nicht-Wohn-Hüllen"},
-    {"key": "seilbahn_gebaeude", "category": "Mensch", "label_de": "Seilbahn-Gebäude"},
-    {"key": "gebaeude", "category": "Mensch", "label_de": "Gebäude"},
-    {"key": "verkehr", "category": "Mensch", "label_de": "Verkehr"},
-    {"key": "militaer", "category": "Mensch", "label_de": "Militär"},
-    {"key": "luftfahrt", "category": "Mensch", "label_de": "Luftfahrt"},
-    {"key": "summe", "category": "Mensch", "label_de": "Σ Mensch"},
-    {"key": "schutzgebiet", "category": "Natur", "label_de": "Schutzgebiete"},
-    {"key": "summe", "category": "Natur", "label_de": "Σ Natur"},
-    {"key": "kriterien", "category": "Geografie", "label_de": "Kriterien"},
-    {"key": "summe", "category": "Geografie", "label_de": "Σ Geografie"},
-    {"key": "ergebnis", "category": "Total & Ergebnis", "label_de": "Ergebnis"},
-    {"key": "amtliche_zonen", "category": "Referenz (Zonen & WKA-Bestand)", "label_de": "Amtliche Zonen"},
-    {"key": "wka_bestand", "category": "Referenz (Zonen & WKA-Bestand)", "label_de": "WKA-Bestand"},
+    {"key": "siedlung", "category": "Mensch", "label_de": "Siedlung", "description_de": "Abstand um amtlich gewidmetes Wohnbauland."},
+    {"key": "haeuser_im_gruenen", "category": "Mensch", "label_de": "Häuser im Grünen", "description_de": "Abstand um bewohnte Einzellagen außerhalb des Baulands."},
+    {"key": "nichtwohn_huellen", "category": "Mensch", "label_de": "Nicht-Wohn-Hüllen", "description_de": "Unbewohnte und industrieartige Kataster-Hüllen mit ihrem Fußabdruck."},
+    {"key": "seilbahn_gebaeude", "category": "Mensch", "label_de": "Seilbahn-Gebäude", "description_de": "Liftstationen und andere Gebäude an Seilbahnlinien."},
+    {"key": "gebaeude", "category": "Mensch", "label_de": "Gebäude", "description_de": "Übrige Gebäude aus OpenStreetMap und Kataster mit ihrem Fußabdruck."},
+    {"key": "verkehr", "category": "Mensch", "label_de": "Verkehr", "description_de": "Abstand entlang Straßen, Bahnen und Personenseilbahnen."},
+    {"key": "militaer", "category": "Mensch", "label_de": "Militär", "description_de": "Militärische Sperrgebiete."},
+    {"key": "luftfahrt", "category": "Mensch", "label_de": "Luftfahrt", "description_de": "Flughafenareale und ihre An- und Abflugkorridore."},
+    {"key": "summe", "category": "Mensch", "label_de": "Gesamt Mensch", "description_de": "Alle Quellen und alle Ausschlussflächen der Kategorie Mensch, je als ein Band."},
+    {"key": "schutzgebiet", "category": "Natur", "label_de": "Schutzgebiete", "description_de": "Amtliche und offene Schutzgebietsdaten, ohne Abstandspuffer."},
+    {"key": "summe", "category": "Natur", "label_de": "Gesamt Natur", "description_de": "Quellen und Ausschluss der Kategorie Natur, deckungsgleich, weil ohne Puffer."},
+    {"key": "kriterien", "category": "Geografie", "label_de": "Kriterien", "description_de": "Schwellenwerte für Gelände, Wind und Gewässer."},
+    {"key": "summe", "category": "Geografie", "label_de": "Gesamt Geografie", "description_de": "Quellen und Ausschluss der Kategorie Geografie, deckungsgleich, weil ohne Puffer."},
+    {"key": "ergebnis", "category": "Total & Ergebnis", "label_de": "Ergebnis", "description_de": "Gesamtausschluss sowie verfügbare Fläche, roh und bereinigt."},
+    {"key": "amtliche_zonen", "category": "Referenz (Zonen & WKA-Bestand)", "label_de": "Amtliche Zonen", "description_de": "Windkraft-Positivzonen der Bundesländer."},
+    {"key": "wka_bestand", "category": "Referenz (Zonen & WKA-Bestand)", "label_de": "WKA-Bestand", "description_de": "Bestehende Windräder als Park-Hüllen und als Einzelpunkte."},
+]
+
+# W7.6 (09.09.2026, MANIFEST-TEXTE.md §3) - neuer Top-Level-Block
+# "kategorien": sieben Einträge, weil category_order sieben Kategorien führt
+# (calc/viz/band_metadata.py:CATEGORY_ORDER); "Siedlungsabstand-Varianten"
+# und "Sonstige" sind heute leer, brauchen aber je einen Eintrag, damit die
+# Invariante "jede Kategorie aus category_order hat einen Eintrag" hält.
+# "category" ist zeichengleich mit category_order übernommen (Verbindungs-
+# String zu bands[].category), "label_de" die kurze Überschrift im Baum.
+KATEGORIEN = [
+    {"key": "mensch", "category": "Mensch", "label_de": "Mensch", "description_de": "Ausschlüsse wegen Nähe zu Menschen und ihrer Infrastruktur: Siedlungen, Häuser im Grünen, Gebäude, Verkehrswege, militärische Sperrgebiete und Luftfahrt. Quellen sind die Flächenwidmungen der neun Bundesländer, Kataster und Adressregister, OpenStreetMap sowie die niederösterreichischen Mindestabstandszonen."},
+    {"key": "natur", "category": "Natur", "label_de": "Natur", "description_de": "Amtliche Schutzgebiete und Schutzgebiete aus OpenStreetMap gelten als Ausschluss. In dieser Kategorie gibt es keine Abstandspuffer, Quellen und Zonen fallen daher zusammen."},
+    {"key": "geo", "category": "Geografie", "label_de": "Geografie", "description_de": "Physische Kriterien aus Geländemodell, Windatlas und OpenStreetMap: Hangneigung, Seehöhe, Windleistungsdichte und größere Gewässer. Jedes Kriterium ist ein Schwellenwert, keine Abstandsregel."},
+    {"key": "ergebnis", "category": "Total & Ergebnis", "label_de": "Ergebnis", "description_de": "Die Vereinigung aller Ausschlüsse und ihr Gegenstück, die verbleibende Fläche. Die um Splitter bereinigte Fläche ist das Endergebnis der Abschichtung."},
+    {"key": "varianten", "category": "Siedlungsabstand-Varianten", "label_de": "Varianten", "description_de": "Alternative Siedlungsabstände zum Vergleich mit dem Regelwert. Derzeit ist keine Variante konfiguriert, die Kategorie bleibt leer."},
+    {"key": "referenz", "category": "Referenz (Zonen & WKA-Bestand)", "label_de": "Referenz", "description_de": "Kein Ausschluss, sondern Vergleichsmaßstab: die amtlichen Windkraft-Zonen der Länder und die bestehenden Windräder."},
+    {"key": "sonstige", "category": "Sonstige", "label_de": "Sonstige", "description_de": "Auffangkategorie für Bänder ohne eigene Zuordnung. Derzeit leer."},
+]
+
+# W7.6 (09.09.2026, MANIFEST-TEXTE.md §5) - neuer Top-Level-Block "stufen":
+# sieben Einträge, zeichengleich aus STUFE_ORDER übernommen, deckt es
+# vollständig ab. Nicht zu verwechseln mit ROLLEN (Bandebene, feiner,
+# Vertragsfeld, wird im Dashboard nicht angezeigt).
+STUFEN = [
+    {"key": "roh", "label_de": "Rohdaten", "description_de": "Rohdatensatz vor der Vereinigung, nur dort, wo verschiedene Quellen in ein Band fließen."},
+    {"key": "quelle", "label_de": "Quelle", "description_de": "Objekte einer Quelle, ohne Abstandspuffer."},
+    {"key": "aggregat", "label_de": "Aggregat", "description_de": "Vereinigung der Quellen einer Familie, ohne Abstandspuffer."},
+    {"key": "zone", "label_de": "Zone", "description_de": "Ausschlussfläche mit Abstand, geht in die Summe ein."},
+    {"key": "summe_quellen", "label_de": "Summe Quellen", "description_de": "Vereinigung aller Quellen einer Kategorie."},
+    {"key": "summe_zonen", "label_de": "Summe Ausschluss", "description_de": "Vereinigung aller Ausschlussflächen einer Kategorie."},
+    {"key": "ergebnis", "label_de": "Ergebnis", "description_de": "Verfügbare Fläche nach Abzug aller Ausschlüsse."},
 ]
 
 # Familie je Band - Schnittstelle §2 ("Zuordnung aller 44 Bänder"), Spalte
@@ -1104,18 +1259,66 @@ def band_stufe(name: str) -> str:
     raise KeyError(f"calc/band_manifest.py: kein stufe-Eintrag für Band {name!r}")
 
 
+
+# W7.6 (Nutzerentscheidung 09.09.2026 nachmittags, vorgezogen aus W7.8):
+# ``dashboard_layer``/``default_visible`` sind ab hier feste Namenslisten,
+# keine Ableitung mehr aus Stufe/Namensmuster - der bisherige
+# stufe=="zone"-Test bzw. "alles außer den vier Unschärfebändern"-Test
+# stimmten nicht mehr mit dem, was das Dashboard heute tatsächlich zeigen
+# soll, überein. Bandnamen statt Indizes, damit eine künftige
+# Bandreihenfolge-Änderung die Listen nicht still verschiebt.
+DASHBOARD_LAYER_NAMES = frozenset({
+    "settlement_buffer",                     # 2
+    "haeuser_im_gruenen",                    # 7
+    "nonresidential_hulls_buffer",           # 9
+    "cableway_buildings_buffer",             # 11
+    "general_buildings_buffer",              # 13
+    "road_motorway_trunk",                   # 14
+    "road_federal_state",                    # 15
+    "rail_main",                             # 16
+    "cableway_people_150m",                  # 17
+    "military_restricted_area",              # 18
+    "airport_area_major",                    # 19
+    "airport_runway_corridor_5km",           # 20
+    "geography_slope_too_steep",             # 23
+    "geography_elevation_too_high",          # 24
+    "geography_wind_too_low",                # 25
+    "geography_water_bodies",                # 26
+    "exclusion_human",                       # 27
+    "exclusion_nature",                      # 28
+    "exclusion_geography",                   # 29
+    "all_exclusions",                        # 30
+    "available_cleaned_min_10ha",            # 32
+    "official_wind_zoning",                  # 37
+    "wka_bestand_ausserhalb_zonen",          # 38
+})  # 23 von 44 Bändern
+
+DEFAULT_VISIBLE_NAMES = frozenset({
+    "exclusion_human",                # 27 - Gesamt Mensch
+    "exclusion_nature",               # 28 - Gesamt Natur
+    "exclusion_geography",            # 29 - Gesamt Geografie
+    "available_cleaned_min_10ha",     # 32 - Eignungsflächen
+    "official_wind_zoning",           # 37 - amtliche Windzonen
+})  # 5 von 44 Bändern, Teilmenge von DASHBOARD_LAYER_NAMES
+
+assert DEFAULT_VISIBLE_NAMES <= DASHBOARD_LAYER_NAMES, (
+    "default_visible muss eine Teilmenge von dashboard_layer sein - ein "
+    "Band, das beim Start sichtbar sein soll, muss überhaupt anzeigbar sein."
+)
+
+
 def band_dashboard_layer(name: str) -> bool:
-    """False nur für die vier Unschärfebänder 33-36 (Schnittstelle §1)."""
-    return not name.startswith(PERCENT_BAND_PREFIX)
+    """W7.6: feste Liste (``DASHBOARD_LAYER_NAMES``), 23 der 44 Bänder."""
+    return name in DASHBOARD_LAYER_NAMES
 
 
 def band_default_visible(name: str, stufe: str) -> bool:
-    """Schnittstelle §1: true für stufe == "zone" und für
-    available_cleaned_min_10ha, sonst false. Ersetzt ab Schema 2.2.0 das
-    vorherige feste Namensset (band_metadata.DEFAULT_VISIBLE, dort weiterhin
-    als Altbestand vorhanden, aber ab hier nicht mehr die Quelle für dieses
-    Feld)."""
-    return stufe == "zone" or name == "available_cleaned_min_10ha"
+    """W7.6: feste Liste (``DEFAULT_VISIBLE_NAMES``), 5 der 44 Bänder -
+    die drei Kategoriesummen, die Eignungsflächen, die amtlichen Zonen.
+    ``stufe`` wird nicht mehr verwendet, bleibt aber im Funktionskopf, weil
+    ``band_entry()`` es ohnehin schon berechnet hat und der Aufruf sonst an
+    zwei Stellen umgeschrieben werden müsste."""
+    return name in DEFAULT_VISIBLE_NAMES
 
 
 # --------------------------------------------------------------------------
@@ -1134,10 +1337,12 @@ def band_label_de(name: str) -> str:
     if name in LABELS_DE:
         return LABELS_DE[name]
     if name.startswith("available_cleaned_min_"):
-        ha = name[len("available_cleaned_min_"):].removesuffix("ha")
-        return f"Verfügbare Fläche, bereinigt (≥ {ha} ha)"
+        # W7.6: die Zahl gehört in description_de (_cleaned_description),
+        # nicht in label_de - "Eignungsflächen" ist unabhängig vom
+        # Mindestflächen-Schwellenwert.
+        return "Eignungsflächen"
     if name.startswith(PERCENT_BAND_PREFIX):
-        return f"Unschärfe σ {_sigma_text(name)}"
+        return _blur_strength_label(name)
     return name
 
 
@@ -1243,7 +1448,19 @@ def build_band_manifest(
         "text_de": blur_caveat["text_de"],
     }
 
-    caveats = [noe_caveat, blur_caveat]
+    tunnel_caveat = dict(TUNNELFILTER_CAVEAT)
+    tunnel_caveat["affects"] = {
+        "bands": [b["index"] for b in bands if _tunnelfilter_affected(b["name"])],
+    }
+    tunnel_caveat = {
+        "id": tunnel_caveat["id"],
+        "affects": tunnel_caveat["affects"],
+        "severity": tunnel_caveat["severity"],
+        "text_de": tunnel_caveat["text_de"],
+        "numbers": dict(tunnel_caveat["numbers"]),
+    }
+
+    caveats = [noe_caveat, blur_caveat, tunnel_caveat]
 
     return {
         "schema_version": SCHEMA_VERSION,
@@ -1266,6 +1483,9 @@ def build_band_manifest(
         # Neu ab Schema 2.2.0 (W7.1), additiv - Schnittstelle §1.
         "stufe_order": list(STUFE_ORDER),
         "familien": [dict(f) for f in FAMILIEN],
+        # Neu ab Schema 2.2.1 (W7.6), additiv - MANIFEST-TEXTE.md §3/§5.
+        "kategorien": [dict(k) for k in KATEGORIEN],
+        "stufen": [dict(s) for s in STUFEN],
         "bands": bands,
         "parameters": dict(tags),
         "sources": {key: dict(value) for key, value in SOURCES.items()},
