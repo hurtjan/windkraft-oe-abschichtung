@@ -1,8 +1,8 @@
 """Tests für calc.viz.band_metadata: Kategorien, Farben, Default-Sichtbarkeit.
 
 Regressionsschutz für die Reihenfolge von HUMAN_PREFIXES (siehe Modul-Docstring
-von band_metadata.py) und für die Farb-/Kategorie-Zuordnung der 38 Bänder des
-Clean-Schemas.
+von band_metadata.py) und für die Farb-/Kategorie-Zuordnung der 44 Bänder des
+Clean-Schemas (Schema 2.2.0, Paket W7.1).
 """
 from __future__ import annotations
 
@@ -21,7 +21,8 @@ from calc.viz.band_metadata import (  # noqa: E402
     layer_color,
 )
 
-# Die 38 Bänder des aktuellen Clean-Schemas, in Bandreihenfolge.
+# Die 44 Bänder des aktuellen Clean-Schemas, in Bandreihenfolge (Schema
+# 2.2.0, Paket W7.1: 39-44 neu, additiv ans Ende angehängt).
 BAND_NAMES = [
     "official_settlement_source",
     "settlement_buffer",
@@ -61,6 +62,12 @@ BAND_NAMES = [
     "available_blur_sigma_300m",
     "official_wind_zoning",
     "wka_bestand_ausserhalb_zonen",
+    "haeuser_im_gruenen_source",
+    "general_buildings_roh_osm",
+    "general_buildings_roh_dkm",
+    "sources_human",
+    "sources_nature",
+    "sources_geography",
 ]
 
 # Referenzkategorie laut CATEGORY_ORDER, nicht hart als String-Literal geraten.
@@ -76,9 +83,16 @@ EXPECTED_CATEGORY = (
     + ["Geografie"]
     + ["Total & Ergebnis"] * 7
     + [REFERENZ_KATEGORIE] * 2
+    # Bänder 39-44, Schema 2.2.0 (W7.1): haeuser_im_gruenen_source,
+    # general_buildings_roh_osm, general_buildings_roh_dkm sind reine
+    # Präfix-Treffer (Mensch, is_total False); sources_human/nature/geography
+    # stehen in CATEGORY_TOTALS (is_total True), siehe
+    # test_sources_bands_are_totals_in_their_category unten.
+    + ["Mensch"] * 3
+    + ["Mensch", "Natur", "Geografie"]
 )
-assert len(BAND_NAMES) == 38
-assert len(EXPECTED_CATEGORY) == 38
+assert len(BAND_NAMES) == 44
+assert len(EXPECTED_CATEGORY) == 44
 
 
 def test_categorize_layer_matches_expected_mapping():
@@ -118,6 +132,15 @@ def test_human_prefixes_ordering_regression():
     # official_hig_ are doing real, specific work in HUMAN_PREFIXES.
     category, _ = categorize_layer("official_wind_zoning")
     assert category == "Referenz (Zonen & WKA-Bestand)"
+
+
+def test_sources_bands_are_totals_in_their_category():
+    # Bänder 42-44, Schema 2.2.0 (W7.1): CATEGORY_TOTALS um die drei
+    # sources_* erweitert - dieselbe is_total=True-Behandlung wie die
+    # bestehenden exclusion_*/all_exclusions-Summenbänder.
+    assert categorize_layer("sources_human") == ("Mensch", True)
+    assert categorize_layer("sources_nature") == ("Natur", True)
+    assert categorize_layer("sources_geography") == ("Geografie", True)
 
 
 def test_layer_color_all_bands_are_valid_rgba():

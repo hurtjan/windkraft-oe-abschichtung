@@ -23,10 +23,10 @@ import pytest
 
 TESTS_DIR = Path(__file__).resolve().parent
 
-# Schwellwert. Zum Zeitpunkt dieser Änderung (W6.6) sammelt ein voller Lauf
+# Schwellwert. Zum Zeitpunkt dieser Änderung (W6.6) sammelte ein voller Lauf
 # über tests/ genau 217 Tests (214 passed + 3 skipped, siehe
 # docs/rewrite/FORTSCHRITT.md Punkt 57 für die drei erwarteten Skips).
-# MIN_COLLECTED_TESTS steht bewusst etwas darunter (nicht exakt bei 217),
+# MIN_COLLECTED_TESTS stand bewusst etwas darunter (nicht exakt bei 217),
 # damit ein einzelner neuer, absichtlich übersprungener oder umbenannter
 # Test die Schwelle nicht sofort reißt - aber weit über dem Bug-Zustand von
 # 199, den Punkt 54 gefunden hat: jede stille Verstummung einer ganzen
@@ -34,7 +34,21 @@ TESTS_DIR = Path(__file__).resolve().parent
 # erkennbar. Erhöhen, sobald absichtlich neue Tests dazukommen UND der neue,
 # höhere Wert eine Weile stabil gesammelt wird - nicht bei jedem einzelnen
 # neuen Testfall einzeln.
-MIN_COLLECTED_TESTS = 210
+#
+# W7.1 (Schema 2.2.0, Struktur v4): laut Auftraggeber sammelte die Suite vor
+# diesem Paket bereits 226 Tests (die alte Schwelle 210 schützte also schon
+# weniger als vorher - genau der Zustand, den Punkt 54 verhindern sollte).
+# Bahn 2 (dieses Paket) fügt sechs weitere hinzu (tests/test_band_manifest.py,
+# tests/test_band_metadata.py) - macht mindestens 232 allein aus dieser
+# Bahn, dazu kommen unabhängig die neuen Testdateien der Bahnen 1 und 3
+# (pipeline/export/wka_bestand.py, pipeline/export/layer_doc.py), deren
+# genaue Zahl hier nicht bekannt ist. Schwelle deshalb konservativ auf den
+# bereits gesicherten Stand vor diesem Paket angehoben (226), nicht auf die
+# unsichere Summe aller drei Bahnen - das bleibt ein echter Fortschritt
+# gegenüber 210 und bricht nicht, sobald die anderen Bahnen ihre Tests
+# nachziehen. Nach der Integration aller drei Bahnen erneut prüfen und
+# gegebenenfalls weiter anheben.
+MIN_COLLECTED_TESTS = 226
 
 
 def pytest_collection_modifyitems(session, config, items):

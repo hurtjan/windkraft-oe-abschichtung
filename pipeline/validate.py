@@ -41,7 +41,7 @@ Rolle als eingebaute Pass/Fail-Schranke:
 
 Der frühere Satz an dieser Stelle - "alle 38 Bänder müssen bitgleich zu
 ``run1`` sein" - stammte aus der Zeit vor der Nutzerentscheidung und ist
-seit dem 08.09.2026 falsch: neun der 38 Bänder (26, 29-36) weichen
+seit dem 08.09.2026 falsch: neun der mittlerweile 44 Bänder (26, 29-36) weichen
 **bewusst und angenommen** von ``run1`` ab. Die Bitgleichheits-Anforderung
 gilt unverändert, nur eben gegen die aktuelle Referenz, nicht mehr gegen
 ``run1`` (siehe Abschnitt "Referenzbänder 37/38" weiter unten, der davon
@@ -96,23 +96,31 @@ in ``anteil_prozent``.
 Die Ampeltabelle unterscheidet zwei Gruppen nach ``band_role()`` aus
 ``calc.band_manifest``:
 
-- ``bedingung`` (Bänder 1-26, Quellen und Puffer): Anteil **und** größte
-  Fläche müssen beide unter dem jeweiligen Schwellwert liegen.
+- ``bedingung`` (Bänder 1-26 sowie 39-41, Quellen und Puffer): Anteil
+  **und** größte Fläche müssen beide unter dem jeweiligen Schwellwert
+  liegen.
 - ``aggregat_kategorie`` / ``aggregat_gesamt`` / ``verfuegbarkeit_roh`` /
-  ``verfuegbarkeit_bereinigt`` / ``unschaerfe`` (Bänder 27-36, Aggregate
-  und Verfügbarkeit): ein einziges Flächenbudget in km², absolut (nicht
-  Prozent) - "die Fläche zählt, nicht die Pixelzahl" (§6). Die
+  ``verfuegbarkeit_bereinigt`` / ``unschaerfe`` (Bänder 27-36 sowie 42-44,
+  Aggregate und Verfügbarkeit): ein einziges Flächenbudget in km², absolut
+  (nicht Prozent) - "die Fläche zählt, nicht die Pixelzahl" (§6). Die
   Staatsfläche 83.921 km² aus der Ampeltabelle ist dabei nur Kontext für
   die Größenordnung, kein Nenner.
 
+Die Zuordnung läuft über ``band_role()`` (``calc.band_manifest``), nicht
+über einen hartkodierten Indexbereich - Bänder 39-44 (Schema 2.2.0, W7.1)
+fallen deshalb ohne Sonderfall in dieselben zwei Gruppen wie 1-26/27-36
+(``band_role()`` liefert für 39-41 ``bedingung``, für 42-44
+``aggregat_kategorie`` - siehe dortiges Modul).
+
 ### Referenzbänder 37/38 - eine zweite Lücke in der Ampeltabelle, hier entschieden
 
-Die Ampeltabelle in §6 hat nur zwei Spalten (1-26, 27-36). Für die
-Referenzbänder 37/38 gibt es keine dritte Spalte - ohne Sonderfall (die
-frühere Steiermark-SAPRO-Ausnahme für Band 37 wurde von W1.7 ersatzlos
-gestrichen, weil die zugrunde liegende inhaltliche Änderung sich als nicht
-existent erwiesen hat). Entscheidung dieses Werkzeugs: jede Abweichung auf
-einem Referenzband ist automatisch **Rot**, unabhängig von Pixelzahl oder
+Die Ampeltabelle in §6 hat nur zwei Spalten (1-26, 27-36; seit Schema
+2.2.0 zusätzlich 39-41 bzw. 42-44, siehe oben). Für die Referenzbänder
+37/38 gibt es keine dritte Spalte - ohne Sonderfall (die frühere
+Steiermark-SAPRO-Ausnahme für Band 37 wurde von W1.7 ersatzlos gestrichen,
+weil die zugrunde liegende inhaltliche Änderung sich als nicht existent
+erwiesen hat). Entscheidung dieses Werkzeugs: jede Abweichung auf einem
+Referenzband ist automatisch **Rot**, unabhängig von Pixelzahl oder
 Fläche - es gibt für diese beiden Bänder keinen Grün-/Gelb-Korridor, weil
 die Ampeltabelle keinen definiert. Das gilt unverändert auch nach der
 Nutzerentscheidung vom 08.09.2026 (Abschnitt "Der Nutzer hat entschieden"
@@ -238,13 +246,15 @@ URSACHE_AKZEPTIERT_MARKER = "angenommen"
 # Ampel-Schwellen, PLAN.md §6
 # ---------------------------------------------------------------------------
 
-# Bänder 1-26 (bedingung): BEIDE Bedingungen müssen erfüllt sein.
+# Bänder 1-26 sowie 39-41 (bedingung, per band_role()): BEIDE Bedingungen
+# müssen erfüllt sein.
 GRUEN_ANTEIL_PROZENT = 0.01
 GRUEN_FLAECHE_HA = 1.0
 GELB_ANTEIL_PROZENT = 0.1
 GELB_FLAECHE_HA = 25.0
 
-# Bänder 27-36 (Aggregate/Verfügbarkeit): absolutes Flächenbudget in km².
+# Bänder 27-36 sowie 42-44 (Aggregate/Verfügbarkeit, per band_role()):
+# absolutes Flächenbudget in km².
 GRUEN_FLAECHE_KM2 = 1.0
 GELB_FLAECHE_KM2 = 10.0
 

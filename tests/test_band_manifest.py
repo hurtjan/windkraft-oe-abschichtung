@@ -1,8 +1,9 @@
 """Unit-Tests für den Band-Manifest-Writer.
 
 Synthetische Eingaben - kein echtes Raster. Geprüft wird der Vertrag, auf den
-sich der Dashboard-Konsument verlässt: 38 Bänder, Namen/Reihenfolge exakt wie
-übergeben, zehn Pflichtfelder je Band, value_type nur bei den vier
+sich der Dashboard-Konsument verlässt: 44 Bänder (Schema 2.2.0, Paket W7.1),
+Namen/Reihenfolge exakt wie übergeben, Pflichtfelder je Band (inkl. familie/
+stufe/dashboard_layer seit 2.2.0), value_type nur bei den vier
 Unschärfebändern "percent_0_100", clipped_to_austria nur bei 27-36, jede
 Kategorie in category_order, Farben als 4 Ints in [0, 255], parameters
 unverändert, NÖ-DKM-Caveat vorhanden.
@@ -27,8 +28,9 @@ from calc.band_manifest import (  # noqa: E402
     write_band_manifest,
 )
 
-# Die 26 Bedingungsbänder des Clean-38-Schemas, in genau der Reihenfolge, in
-# der scripts/widmung_v2/04_create_distance_zones.py sie schreibt.
+# Die 26 Bedingungsbänder des Clean-Schemas (seit Schema 2.2.0/W7.1
+# "clean-44-..."), in genau der Reihenfolge, in der
+# scripts/widmung_v2/04_create_distance_zones.py sie schreibt.
 CONDITION_BANDS = [
     "official_settlement_source",
     "settlement_buffer",
@@ -72,6 +74,13 @@ BAND_NAMES = [
     "available_blur_sigma_300m",
     "official_wind_zoning",
     "wka_bestand_ausserhalb_zonen",
+    # Bänder 39-44, Schema 2.2.0 (W7.1) - schnittstelle-manifest-2.2.md §2.
+    "haeuser_im_gruenen_source",
+    "general_buildings_roh_osm",
+    "general_buildings_roh_dkm",
+    "sources_human",
+    "sources_nature",
+    "sources_geography",
 ]
 
 # Das echte Tag-Dict, verkürzt auf Platzhalterwerte, aber mit den tatsächlichen
@@ -86,7 +95,7 @@ BAND_NAMES = [
 TAGS = {
     "MIN_FRAGMENT_AREA_HA": "10.0",
     "PIPELINE": "widmung_v2",
-    "BAND_SCHEMA": "clean-38-ohne-wichtige-objekte-aug-2026",
+    "BAND_SCHEMA": "clean-44-ohne-wichtige-objekte-aug-2026",
     "SETTLEMENT_BUFFER_BY_BL": '{"Niederösterreich": 1200.0}',
     "HIG_FAMILY_BUFFER_M": "750.0",
     "NONRESIDENTIAL_HULL_BUFFER_M": "25.0",
@@ -139,14 +148,20 @@ REQUIRED_BAND_FIELDS = [
     "puffer_hinweis",
     "quelle",
     "abgeleitet_von",
+    # Ab Schema 2.2.0 (Paket W7.1, docs/rewrite/PLAN.md, schnittstelle-
+    # manifest-2.2.md §1): familie/stufe/dashboard_layer.
+    "familie",
+    "stufe",
+    "dashboard_layer",
 ]
 
 PERCENT_INDICES = {33, 34, 35, 36}
 CLIPPED_INDICES = set(range(27, 37))
 
-# Rolle je Bandbereich (Schema 2.0.0) - deckungsgleich mit der Ampel-Logik
-# von PLAN.md §6 (1-26 Bedingung, 27-29 Kategorie-Aggregate, 30 Gesamt-
-# Aggregat, 31 roh, 32 bereinigt, 33-36 Unschärfe, 37-38 Referenz).
+# Rolle je Bandbereich (Schema 2.0.0, erweitert um 39-44 in 2.2.0/W7.1) -
+# deckungsgleich mit der Ampel-Logik von PLAN.md §6 (1-26 Bedingung, 27-29
+# Kategorie-Aggregate, 30 Gesamt-Aggregat, 31 roh, 32 bereinigt, 33-36
+# Unschärfe, 37-38 Referenz, 39-41 Bedingung, 42-44 Kategorie-Aggregate).
 EXPECTED_ROLE_BY_INDEX = {
     **{i: "bedingung" for i in range(1, 27)},
     27: "aggregat_kategorie",
@@ -161,6 +176,119 @@ EXPECTED_ROLE_BY_INDEX = {
     36: "unschaerfe",
     37: "referenz",
     38: "referenz",
+    # Bänder 39-44, Schema 2.2.0 (W7.1) - Schnittstelle §2: "rolle =
+    # bedingung (39-41) bzw. aggregat_kategorie (42-44)".
+    39: "bedingung",
+    40: "bedingung",
+    41: "bedingung",
+    42: "aggregat_kategorie",
+    43: "aggregat_kategorie",
+    44: "aggregat_kategorie",
+}
+
+# Familie/Stufe je Band, Schema 2.2.0 (W7.1) - schnittstelle-manifest-2.2.md
+# §2, wortgleich übernommen. Reihenfolge wie BAND_NAMES.
+EXPECTED_FAMILIE_BY_NAME = {
+    "official_settlement_source": "siedlung",
+    "settlement_buffer": "siedlung",
+    "haeuser_im_gruenen_ferienhaus": "haeuser_im_gruenen",
+    "haeuser_im_gruenen_widmung": "haeuser_im_gruenen",
+    "haeuser_im_gruenen_streusiedlung": "haeuser_im_gruenen",
+    "haeuser_im_gruenen_noe_pdf": "haeuser_im_gruenen",
+    "haeuser_im_gruenen": "haeuser_im_gruenen",
+    "nonresidential_hulls_source": "nichtwohn_huellen",
+    "nonresidential_hulls_buffer": "nichtwohn_huellen",
+    "cableway_buildings_source": "seilbahn_gebaeude",
+    "cableway_buildings_buffer": "seilbahn_gebaeude",
+    "general_buildings_source": "gebaeude",
+    "general_buildings_buffer": "gebaeude",
+    "road_motorway_trunk": "verkehr",
+    "road_federal_state": "verkehr",
+    "rail_main": "verkehr",
+    "cableway_people_150m": "verkehr",
+    "military_restricted_area": "militaer",
+    "airport_area_major": "luftfahrt",
+    "airport_runway_corridor_5km": "luftfahrt",
+    "nature_protection_areas": "schutzgebiet",
+    "osm_nature_protection_areas": "schutzgebiet",
+    "geography_slope_too_steep": "kriterien",
+    "geography_elevation_too_high": "kriterien",
+    "geography_wind_too_low": "kriterien",
+    "geography_water_bodies": "kriterien",
+    "exclusion_human": "summe",
+    "exclusion_nature": "summe",
+    "exclusion_geography": "summe",
+    "all_exclusions": "ergebnis",
+    "available_after_all_exclusions_raw": "ergebnis",
+    "available_cleaned_min_10ha": "ergebnis",
+    "available_blur_sigma_100m": "ergebnis",
+    "available_blur_sigma_200m": "ergebnis",
+    "available_blur_sigma_250m": "ergebnis",
+    "available_blur_sigma_300m": "ergebnis",
+    "official_wind_zoning": "amtliche_zonen",
+    "wka_bestand_ausserhalb_zonen": "wka_bestand",
+    "haeuser_im_gruenen_source": "haeuser_im_gruenen",
+    "general_buildings_roh_osm": "gebaeude",
+    "general_buildings_roh_dkm": "gebaeude",
+    "sources_human": "summe",
+    "sources_nature": "summe",
+    "sources_geography": "summe",
+}
+
+EXPECTED_STUFE_BY_NAME = {
+    "official_settlement_source": "quelle",
+    "settlement_buffer": "zone",
+    "haeuser_im_gruenen_ferienhaus": "quelle",
+    "haeuser_im_gruenen_widmung": "quelle",
+    "haeuser_im_gruenen_streusiedlung": "quelle",
+    "haeuser_im_gruenen_noe_pdf": "quelle",
+    "haeuser_im_gruenen": "zone",
+    "nonresidential_hulls_source": "quelle",
+    "nonresidential_hulls_buffer": "zone",
+    "cableway_buildings_source": "quelle",
+    "cableway_buildings_buffer": "zone",
+    "general_buildings_source": "quelle",
+    "general_buildings_buffer": "zone",
+    "road_motorway_trunk": "zone",
+    "road_federal_state": "zone",
+    "rail_main": "zone",
+    "cableway_people_150m": "zone",
+    "military_restricted_area": "zone",
+    "airport_area_major": "zone",
+    "airport_runway_corridor_5km": "zone",
+    "nature_protection_areas": "zone",
+    "osm_nature_protection_areas": "zone",
+    "geography_slope_too_steep": "zone",
+    "geography_elevation_too_high": "zone",
+    "geography_wind_too_low": "zone",
+    "geography_water_bodies": "zone",
+    "exclusion_human": "summe_zonen",
+    "exclusion_nature": "summe_zonen",
+    "exclusion_geography": "summe_zonen",
+    "all_exclusions": "summe_zonen",
+    "available_after_all_exclusions_raw": "ergebnis",
+    "available_cleaned_min_10ha": "ergebnis",
+    "available_blur_sigma_100m": "ergebnis",
+    "available_blur_sigma_200m": "ergebnis",
+    "available_blur_sigma_250m": "ergebnis",
+    "available_blur_sigma_300m": "ergebnis",
+    "official_wind_zoning": "zone",
+    "wka_bestand_ausserhalb_zonen": "zone",
+    "haeuser_im_gruenen_source": "aggregat",
+    "general_buildings_roh_osm": "roh",
+    "general_buildings_roh_dkm": "roh",
+    "sources_human": "summe_quellen",
+    "sources_nature": "summe_quellen",
+    "sources_geography": "summe_quellen",
+}
+
+# dashboard_layer ist false nur für die vier Unschärfebänder 33-36
+# (Schnittstelle §1).
+NON_DASHBOARD_LAYER_NAMES = {
+    "available_blur_sigma_100m",
+    "available_blur_sigma_200m",
+    "available_blur_sigma_250m",
+    "available_blur_sigma_300m",
 }
 
 # Die transitive Ausbreitung der geography_water_bodies-Abweichung
@@ -171,6 +299,10 @@ EXPECTED_ROLE_BY_INDEX = {
 # pipeline/finalize.py mit blur_source="raw" von available_after_all_
 # exclusions_raw abhängen, nicht von available_cleaned). Neun Bänder -
 # dieselbe Zahl, die der Bericht zu W3.1 vorab nennt.
+# Seit Schema 2.2.0 (W7.1) zehn statt neun Bänder: sources_geography (44)
+# hängt laut Schnittstelle §2 ebenfalls von geography_water_bodies ab (Σ
+# Quellen Geografie) und wird deshalb vom selben transitiven Abschluss
+# erreicht - ans Ende der Liste, weil Index 44 der höchste im Raster ist.
 EXPECTED_WATER_BODIES_IMPACT_PATH = [
     "geography_water_bodies",
     "exclusion_geography",
@@ -181,6 +313,7 @@ EXPECTED_WATER_BODIES_IMPACT_PATH = [
     "available_blur_sigma_200m",
     "available_blur_sigma_250m",
     "available_blur_sigma_300m",
+    "sources_geography",
 ]
 
 # Die transitive Ausbreitung der zweiten §13.9-Ursache (Punkt 34, Wegfall
@@ -196,6 +329,13 @@ EXPECTED_WATER_BODIES_IMPACT_PATH = [
 # an den gemeinsamen Aggregat-/Verfügbarkeitsbändern (all_exclusions u. a.)
 # - beide Ursachen überlagern sich dort tatsächlich (siehe
 # docs/rewrite/abweichungen.tsv, Bänder 30-36).
+# Seit Schema 2.2.0 (W7.1) 19 statt 16 Bänder: general_buildings_roh_dkm (41)
+# ist ein neuer Startknoten (seine quelle enthält dkm_geoparquet direkt,
+# siehe BAND_SOURCES), haeuser_im_gruenen_source (39) und sources_human (42)
+# werden über ihr abgeleitet_von erreicht (hängen an
+# haeuser_im_gruenen_streusiedlung bzw. general_buildings_source/
+# cableway_buildings_source, beides bereits reachte Bänder) - alle drei in
+# Index-Reihenfolge ans Ende gehängt.
 EXPECTED_DKM_GEOPARQUET_IMPACT_PATH = [
     "haeuser_im_gruenen_streusiedlung",
     "haeuser_im_gruenen",
@@ -213,6 +353,9 @@ EXPECTED_DKM_GEOPARQUET_IMPACT_PATH = [
     "available_blur_sigma_200m",
     "available_blur_sigma_250m",
     "available_blur_sigma_300m",
+    "haeuser_im_gruenen_source",
+    "general_buildings_roh_dkm",
+    "sources_human",
 ]
 
 
@@ -233,14 +376,14 @@ def test_tags_fixture_matches_the_real_tag_dict():
     assert all(isinstance(v, str) for v in TAGS.values())
 
 
-def test_band_count_is_38(manifest):
-    assert manifest["band_count"] == 38
-    assert len(manifest["bands"]) == 38
+def test_band_count_is_44(manifest):
+    assert manifest["band_count"] == 44
+    assert len(manifest["bands"]) == 44
 
 
 def test_band_names_and_order_match_input(manifest):
     assert [b["name"] for b in manifest["bands"]] == BAND_NAMES
-    assert [b["index"] for b in manifest["bands"]] == list(range(1, 39))
+    assert [b["index"] for b in manifest["bands"]] == list(range(1, 45))
 
 
 def test_every_band_has_all_required_fields(manifest):
@@ -295,11 +438,52 @@ def test_raster_block_matches_grid(manifest):
 
 
 def test_top_level_shape(manifest):
-    assert manifest["schema_version"] == "2.1.0"
+    assert manifest["schema_version"] == "2.2.0"
     assert manifest["pipeline"] == "widmung_v2"
-    assert manifest["band_schema"] == "clean-38-ohne-wichtige-objekte-aug-2026"
+    assert manifest["band_schema"] == "clean-44-ohne-wichtige-objekte-aug-2026"
     assert manifest["raster_file"] == "osm_wka_distance_zones_widmung_v2.tif"
     assert manifest["generated_at"].endswith("Z")
+
+
+def test_stufe_order_top_level_field(manifest):
+    assert manifest["stufe_order"] == [
+        "roh",
+        "quelle",
+        "aggregat",
+        "zone",
+        "summe_quellen",
+        "summe_zonen",
+        "ergebnis",
+    ]
+
+
+def test_familien_top_level_field(manifest):
+    familien = manifest["familien"]
+    assert len(familien) == 16
+    for f in familien:
+        assert set(f.keys()) == {"key", "category", "label_de"}
+    # "summe" kommt bewusst dreimal vor - je Kategorie Mensch/Natur/Geografie.
+    summe_categories = [f["category"] for f in familien if f["key"] == "summe"]
+    assert summe_categories == ["Mensch", "Natur", "Geografie"]
+
+
+def test_familie_and_stufe_match_interface_assignment(manifest):
+    for band in manifest["bands"]:
+        assert band["familie"] == EXPECTED_FAMILIE_BY_NAME[band["name"]], band["name"]
+        assert band["stufe"] == EXPECTED_STUFE_BY_NAME[band["name"]], band["name"]
+        assert band["stufe"] in manifest["stufe_order"]
+
+
+def test_dashboard_layer_false_only_for_blur_bands(manifest):
+    for band in manifest["bands"]:
+        expected = band["name"] not in NON_DASHBOARD_LAYER_NAMES
+        assert band["dashboard_layer"] is expected, band["name"]
+
+
+def test_default_visible_derived_from_stufe(manifest):
+    for band in manifest["bands"]:
+        expected = band["stufe"] == "zone" or band["name"] == "available_cleaned_min_10ha"
+        assert band["default_visible"] is expected, band["name"]
 
 
 def test_descriptions_wired_through_for_condition_bands(manifest):
@@ -322,7 +506,9 @@ def test_noe_dkm_caveat_present_with_numbers(manifest):
     assert caveat["severity"] == "methodisch"
     assert caveat["applies_to_other_states"] is False
     assert caveat["affects"]["bundesland"] == "NÖ"
-    assert caveat["affects"]["bands"] == [8, 9, 12, 13, 27, 30, 31, 32, 33, 34, 35, 36]
+    # Band 41 (general_buildings_roh_dkm, Schema 2.2.0/W7.1) neu dazu: exakt
+    # dieselben rekonstruierten NÖ-DKM-Polygone wie general_buildings_source.
+    assert caveat["affects"]["bands"] == [8, 9, 12, 13, 27, 30, 31, 32, 33, 34, 35, 36, 41]
     # Wirkungspfad bis Band 32 (die veröffentlichte Potenzialfläche) muss im
     # Fließtext benannt sein, nicht nur implizit über die Bandliste.
     assert "Band 32" in caveat["text_de"]
@@ -427,6 +613,6 @@ def test_written_file_round_trips_through_json(tmp_path):
     out = write_band_manifest(tif, BAND_NAMES, TAGS, GRID, CONDITION_DESCRIPTIONS)
     assert out.exists()
     loaded = json.loads(out.read_text(encoding="utf-8"))
-    assert loaded["band_count"] == 38
+    assert loaded["band_count"] == 44
     assert [b["name"] for b in loaded["bands"]] == BAND_NAMES
     assert loaded["parameters"] == TAGS

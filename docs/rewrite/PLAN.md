@@ -495,9 +495,22 @@ veraltet.
 beschreibt für das neue Band 39 eine Einfügestelle *mitten* in
 `contract.LAYER_NAMES`, zwischen `haeuser_im_gruenen_noe_pdf` und
 `haeuser_im_gruenen` — während dieselbe Auftragslage verlangt, dass die
-bestehenden 38 Bänder Name und Index behalten. Beides zusammen geht nicht:
-`LAYER_NAMES` **ist** die Bandreihenfolge, 1-basiert, und eine Einfügung an
-dieser Stelle verschöbe alles ab Index 8. Die auftraggebende Seite hat die
+bestehenden 38 Bänder Name und Index behalten. Beides zusammen geht nicht: Eine Einfügung an dieser
+Stelle verschöbe alles Nachfolgende.
+
+**Nachtrag aus der Umsetzung, weil beide Seiten es sich zu einfach gemacht
+haben.** Die auftraggebende Seite schrieb, `LAYER_NAMES` **sei** die
+Bandreihenfolge, 1-basiert; ich habe das ungeprüft in diesen Plan
+übernommen. Es stimmt nicht. `LAYER_NAMES` ist die Registry der
+**Checkpoints** unter `derived/layers/` und zählt 33 Einträge, nicht 38 —
+zehn der 38 Bänder (die drei Kategorie-Aggregate, `all`/`raw`/`cleaned` und
+die vier Unschärfebänder) sind reine Rechenergebnisse und haben nie einen
+Checkpoint gehabt. Die Bandreihenfolge entsteht erst in `finalize.py`: 26
+Bedingungsbänder, die berechneten 27–36, dann eine Liste **nachlaufender**
+Bänder, über die heute schon 37 und 38 durchgereicht werden. Genau dort
+hängen die sechs neuen an. **Die Entscheidung „anhängen statt einfügen"
+bleibt richtig — die Begründung, die beide Seiten dafür genannt haben, war
+es nicht.** Die auftraggebende Seite hat die
 Dokumentstelle als veraltet zurückgezogen; es wird **angehängt**, 39 bis 44
 in der Reihenfolge `haeuser_im_gruenen_source`,
 `general_buildings_roh_osm`, `general_buildings_roh_dkm`, `sources_human`,
@@ -521,8 +534,14 @@ Wanduhr**. A und B werden **ein** Produzentenpaket mit **einem** Lauf, **einem**
 Commit und **einem** neuen Referenz-Hash; im Produzenten arbeiten drei
 Bahnen nach Dateien getrennt gleichzeitig; das Dashboard beginnt **sofort**
 gegen einen selbstgebauten 2.2.0-Stub, statt auf das echte Manifest zu
-warten. W7.1 wurde dafür nach wenigen Minuten angehalten — es war noch beim
-Lesen, es ging kein Code verloren.
+warten. W7.1 wurde dafür nach wenigen Minuten angehalten. **Meine Angabe
+dazu war falsch:** Ich hatte notiert, der Agent sei „noch beim Lesen"
+gewesen — er hatte tatsächlich bereits `pipeline/layers/geo.py` und
+`calc/band_manifest.py` im Arbeitsbaum geändert. Nichts davon war
+committet; Bahn 1 hat beides vor dem Start verworfen und den Zweig neu
+angelegt. Verloren ging nichts, aber die Aussage stimmte nicht, und die
+Lehre ist banal: **abgebrochen heißt nicht folgenlos** — der Zustand des
+Arbeitsbaums wird nachgesehen, nicht aus der Abbruchmeldung geschlossen.
 
 **Was der Zusammenschluss kostet, gehört genannt.** Der Pixelbefund (Hüllen
 zuschneiden) und die Schemaänderung (sechs Bänder) landen damit in

@@ -329,13 +329,31 @@ LAYER_NAMES = (
     "geography_water_bodies",
     "official_wind_zoning",
     "wka_bestand_ausserhalb_zonen",
+    # W7.1 (docs/rewrite/PLAN.md, Neuzuschnitt "Layer-Struktur v4"):
+    # angehängt an Index 39-44, laut schnittstelle-manifest-2.2.md §2 -
+    # verbindlich für Produzent UND Dashboard (Paket W7.3). Kein Index 1-38
+    # oben verschiebt sich; die Bänder selbst entstehen in
+    # pipeline/layers/geo.py (39, 42-44) bzw. pipeline/layers/osm.py (40, 41)
+    # als Checkpoint einer früheren Build-Gruppe - Baureihenfolge dort weicht
+    # bewusst von dieser Bandreihenfolge ab (siehe dortige Kommentare).
+    "haeuser_im_gruenen_source",
+    "general_buildings_roh_osm",
+    "general_buildings_roh_dkm",
+    "sources_human",
+    "sources_nature",
+    "sources_geography",
 )
 
 LAYERS = {name: DERIVED_LAYERS / f"{name}.tif" for name in LAYER_NAMES}
 
 
 # ---------------------------------------------------------------------------
-# PRODUCTS - genau die vier Endprodukte aus PLAN.md §3. Zielzustand.
+# PRODUCTS - ursprünglich die vier Endprodukte aus PLAN.md §3; seit W7.1
+# (Neuzuschnitt, schnittstelle-manifest-2.2.md §3) sechs: der Punkte-Export
+# des WKA-Bestands und LAYER.md kommen dazu. Beide Erzeuger liegen bei
+# Bahn 3 (neu pipeline/export/wka_bestand.py, pipeline/export/layer_doc.py -
+# nicht Teil dieser Datei/dieses Pakets), die Pfadeinträge selbst trägt
+# Bahn 1 ein, weil pipeline/contract.py als Ganzes hier liegt.
 # ---------------------------------------------------------------------------
 
 PRODUCTS = {
@@ -343,4 +361,6 @@ PRODUCTS = {
     "abschichtung_bands_json": OUT / "abschichtung.bands.json",
     "dashboard_dir": OUT / "dashboard",
     "gemeinden_geojson": OUT / "gemeinden.geojson",
+    "wka_bestand_punkte_geojson": OUT / "wka_bestand_punkte.geojson",
+    "layer_md": OUT / "LAYER.md",
 }

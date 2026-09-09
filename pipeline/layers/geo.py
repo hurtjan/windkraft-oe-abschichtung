@@ -166,6 +166,7 @@ from calc.abschichtung_common import (  # noqa: E402
     TARGET_CRS,
     WATER_BANDS,
     WATER_MIN_AREA_HA,
+    _non_tunnel_mask,
     building_points,
     build_geography_masks,
     ensure_group_layers,
@@ -188,7 +189,7 @@ from calc.abschichtung_common import (  # noqa: E402
 # f1d00f7:scripts/widmung_v2/04_create_distance_zones.py.
 # ---------------------------------------------------------------------------
 
-BAND_SCHEMA = "clean-38-ohne-wichtige-objekte-aug-2026"
+BAND_SCHEMA = "clean-44-ohne-wichtige-objekte-aug-2026"
 
 WKA_BESTAND_BAND = "wka_bestand_ausserhalb_zonen"
 WKA_CLUSTER_CHAIN_M = 750.0
@@ -573,7 +574,110 @@ def build_wka_bestand_hulls(grid: dict, out_dir: Path, valid_area: np.ndarray) -
         hulls.append(unary_union(members.tolist()).convex_hull.buffer(WKA_HULL_MARGIN_M))
     print(f"[info]  wka bestand: {len(hulls)} Park-Hüllen um {len(outside)} Anlagen", flush=True)
     hull_gdf = gpd.GeoDataFrame(geometry=hulls, crs=TARGET_CRS)
-    return {WKA_BESTAND_BAND: raster_mask(hull_gdf, 0.0, grid, WKA_BESTAND_BAND)}
+    hull_mask = raster_mask(hull_gdf, 0.0, grid, WKA_BESTAND_BAND)
+    # Geometriefehler (nicht Zählfehler, siehe PLAN.md/Auftrag W7.1): die
+    # in_zone-Prüfung oben ist eine reine Punktabfrage je Anlage - die Hülle
+    # selbst (konvexe Hülle + 200 m Rand über einen ganzen Cluster) wurde
+    # bisher OHNE Abzug gegen official_wind_zoning rasterisiert und konnte
+    # bei einem grenznahen Cluster in eine amtliche Zone hineinragen, obwohl
+    # jede einzelne Anlage außerhalb liegt. official_wind_zoning liegt schon
+    # vor - siehe Kommentar bei main(), OFFICIAL_ZONING_BANDS läuft vor
+    # dieser Gruppe.
+    official_zoning = read_layer_mask(layer_path(out_dir, "official_wind_zoning"))
+    before = int(hull_mask.sum())
+    hull_mask = hull_mask & ~official_zoning
+    after = int(hull_mask.sum())
+    print(
+        f"[info]  wka bestand: Hüllen gegen official_wind_zoning zugeschnitten: "
+        f"Zellen vorher={before:,}, nachher={after:,}, entfernt={before - after:,}",
+        flush=True,
+    )
+    return {WKA_BESTAND_BAND: hull_mask}
+
+
+# ---------------------------------------------------------------------------
+# W7.1 (docs/rewrite/PLAN.md, Neuzuschnitt): vier der sechs angehängten
+# Bänder 39-44 (Schnittstelle-Manifest 2.2 §2) - reine ODER-Vereinigungen
+# bereits geschriebener Checkpoints dieser Kette (derived/layers/, alle vor
+# dieser Stelle in main() gebaut). Bänder 40/41 (general_buildings_roh_osm/
+# _dkm) liegen in pipeline/layers/osm.py - dort entstehen ihre Eingaben.
+# Angehängt ans Ende von contract.LAYER_NAMES, kein bestehender Index 1-38
+# verschiebt sich (siehe dortiger Kommentar).
+# ---------------------------------------------------------------------------
+
+APPENDED_BAND_NAMES = [
+    "haeuser_im_gruenen_source",
+    "sources_human",
+    "sources_nature",
+    "sources_geography",
+]
+
+
+def build_appended_source_aggregates(grid: dict, out_dir: Path) -> dict[str, np.ndarray]:
+    """Band 39 (haeuser_im_gruenen_source): ungepuffertes Union der drei
+    HiG-Quellbänder - wortgleich zu build_v2_buffers():hig_family, hier
+    erneut aus dem eigenen, schon geschriebenen Checkpoint gelesen statt der
+    dortigen lokalen Variable, damit dieses Band unabhängig von der
+    Puffer-Gruppe bleibt (Checkpoint-Reihenfolge darf von der Bandreihenfolge
+    abweichen, siehe Moduldocstring-Abschnitt oben).
+
+    Band 42 (sources_human): laut schnittstelle-manifest-2.2.md §2 die
+    ODER-Vereinigung der Bänder 1, 3-6, 8, 10, 12, 18, 19
+    (official_settlement_source, die vier HiG-Quellen, nonresidential_/
+    cableway_/general_buildings_source, military_restricted_area,
+    airport_area_major) PLUS die ungepufferten (0 m) Linien aus
+    roads/railways/aerialways.parquet ohne Tunnel - dieselbe
+    Tunnel-Ausschlussregel wie bei den gepufferten Bändern 14-16
+    (_non_tunnel_mask, unverändert aus calc.abschichtung_common), hier ohne
+    fclass-Filter und ohne Puffer (reine Quellgeometrie).
+
+    Band 43 (sources_nature) = 21 ∪ 22, Band 44 (sources_geography) =
+    23 ∪ 24 ∪ 25 ∪ 26 - beide reine Checkpoint-Unionen.
+
+    Maßgeblich für alle drei Zusammensetzungen ist die Schnittstelle, nicht
+    diese Beschreibung (siehe Bericht bei Abweichung)."""
+
+    def own(name: str) -> np.ndarray:
+        return read_layer_mask(layer_path(out_dir, name))
+
+    hig_family = (
+        own("haeuser_im_gruenen_ferienhaus")
+        | own("haeuser_im_gruenen_widmung")
+        | own("haeuser_im_gruenen_streusiedlung")
+    )
+
+    sources_human = (
+        own("official_settlement_source")
+        | hig_family
+        | own("haeuser_im_gruenen_noe_pdf")
+        | own("nonresidential_hulls_source")
+        | own("cableway_buildings_source")
+        | own("general_buildings_source")
+        | own("military_restricted_area")
+        | own("airport_area_major")
+    )
+    bounds = grid["bounds"]
+    for key in ("roads", "railways", "aerialways"):
+        gdf = _read_prep_vector(contract.PREP["osm"]["b_layers"] / f"{key}.parquet", bounds=bounds)
+        if not gdf.empty:
+            gdf = gdf[_non_tunnel_mask(gdf)]
+        if not gdf.empty:
+            sources_human = sources_human | raster_mask(gdf, 0.0, grid, f"sources_human:{key}")
+
+    sources_nature = own("nature_protection_areas") | own("osm_nature_protection_areas")
+    sources_geography = (
+        own("geography_slope_too_steep")
+        | own("geography_elevation_too_high")
+        | own("geography_wind_too_low")
+        | own("geography_water_bodies")
+    )
+
+    return {
+        "haeuser_im_gruenen_source": hig_family,
+        "sources_human": sources_human,
+        "sources_nature": sources_nature,
+        "sources_geography": sources_geography,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -722,8 +826,17 @@ def main(argv: list[str] | None = None) -> None:
             lambda: build_wka_bestand_hulls(grid, out_dir, valid_area), grid, args.force_layers,
             extra_ok=_tags_ok(wka_tags), extra_tags=wka_tags,
         )
+        # W7.1: angehängte Bänder 39, 42-44 (Schnittstelle 2.2 §2) - laufen
+        # nach allen sieben Gruppen oben, weil sie deren Checkpoints lesen;
+        # die Bandreihenfolge (contract.LAYER_NAMES) bleibt davon unberührt,
+        # nur die Baureihenfolge ist hier zuletzt.
+        ensure_group_layers(
+            out_dir, APPENDED_BAND_NAMES, "appended bands 39, 42-44 (Schnittstelle 2.2)",
+            lambda: build_appended_source_aggregates(grid, out_dir), grid, args.force_layers,
+            extra_ok=_tags_ok(derived_tags), extra_tags=derived_tags,
+        )
 
-    all_names = [*HIG_FAMILY_SOURCE_BANDS, *BUFFER_BANDS, *NATURE_BANDS, *GEOGRAPHY_BANDS, *WATER_BANDS, *OFFICIAL_ZONING_BANDS, WKA_BESTAND_BAND]
+    all_names = [*HIG_FAMILY_SOURCE_BANDS, *BUFFER_BANDS, *NATURE_BANDS, *GEOGRAPHY_BANDS, *WATER_BANDS, *OFFICIAL_ZONING_BANDS, WKA_BESTAND_BAND, *APPENDED_BAND_NAMES]
     print(f"pipeline.layers.geo: {len(all_names)} Checkpoints in {out_dir}")
 
 

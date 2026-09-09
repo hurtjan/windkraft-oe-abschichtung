@@ -104,6 +104,26 @@ durchzulassen").
              ``bands[].index``/``name``/``rolle``, siehe
              ``docs/HANDOFF.md``) ändert sich nichts - ``..._wirkungspfad``
              gehört dort ausdrücklich nicht dazu.
+  ``2.2.0``  W7.1 (Struktur v4, additiv zu 2.1.0): sechs neue Bänder (39-44,
+             ``haeuser_im_gruenen_source``, ``general_buildings_roh_osm``,
+             ``general_buildings_roh_dkm``, ``sources_human``,
+             ``sources_nature``, ``sources_geography``) sowie drei neue
+             Pflichtfelder je Band - ``familie`` (Gruppierungsschlüssel
+             innerhalb einer Kategorie), ``stufe`` (Pipeline-Stufe, Werte in
+             ``STUFE_ORDER``) und ``dashboard_layer`` (bool; nur bei den vier
+             Unschärfebändern 33-36 false). ``default_visible`` wird ab hier
+             aus ``stufe`` abgeleitet (``band_default_visible()``) statt aus
+             einem separaten Namensset - ``zone``-Bänder und
+             ``available_cleaned_min_10ha`` sind sichtbar, sonst nicht.
+             Zwei neue Top-Level-Schlüssel: ``stufe_order`` (die feste
+             Stufenreihenfolge) und ``familien`` (geordnetes Array von
+             ``{key, category, label_de}`` - Anzeigereihenfolge innerhalb
+             der Kategorie). Der Quellschlüssel
+             ``amtliche_windzonen_stmk_sbg`` wird in ``amtliche_windzonen_stmk``
+             und ``amtliche_windzonen_sbg`` getrennt (Steiermark und Salzburg
+             sind unterschiedliche Shapefiles mit womöglich unterschiedlichem
+             Stand). Verbindliche Schnittstelle:
+             ``schnittstelle-manifest-2.2.md`` (Paket W7.1, Bahn 2).
 """
 
 from __future__ import annotations
@@ -114,19 +134,18 @@ from pathlib import Path
 
 from calc.viz.band_metadata import (
     CATEGORY_ORDER,
-    DEFAULT_VISIBLE,
     categorize_layer,
     layer_color,
 )
 
-SCHEMA_VERSION = "2.1.0"
+SCHEMA_VERSION = "2.2.0"
 MANIFEST_SUFFIX = ".bands.json"
 
 # Fallbacks, falls die Tags einmal ohne diese Schlüssel kommen. Der Regelfall
 # ist, dass PIPELINE/BAND_SCHEMA aus dem tags-Dict stammen - dann steht im
 # Manifest garantiert dasselbe wie in den Datei-Tags des TIFs.
 DEFAULT_PIPELINE = "widmung_v2"
-DEFAULT_BAND_SCHEMA = "clean-38-ohne-wichtige-objekte-aug-2026"
+DEFAULT_BAND_SCHEMA = "clean-44-ohne-wichtige-objekte-aug-2026"
 
 # Wie output_profile() in calc/abschichtung_common.py das GeoTIFF
 # anlegt. Hier als Konstante gespiegelt statt importiert, damit dieses Modul
@@ -208,6 +227,13 @@ LABELS_DE = {
     "available_after_all_exclusions_raw": "Verfügbare Fläche, roh",
     "official_wind_zoning": "Amtliche Windkraft-Zonen",
     "wka_bestand_ausserhalb_zonen": "WKA-Bestand außerhalb der Zonen",
+    # Bänder 39-44, Schema 2.2.0 (W7.1) - Labels aus layer-beschreibung.md.
+    "haeuser_im_gruenen_source": "Häuser im Grünen (Quelle, Aggregat)",
+    "general_buildings_roh_osm": "Sonstige Gebäude – OSM-Rohdaten",
+    "general_buildings_roh_dkm": "Sonstige Gebäude – Kataster-Rohdaten (DKM)",
+    "sources_human": "Σ Quellen Mensch (ungepuffert)",
+    "sources_nature": "Σ Quellen Natur (ungepuffert)",
+    "sources_geography": "Σ Quellen Geografie (ungepuffert)",
 }
 
 # --------------------------------------------------------------------------
@@ -226,6 +252,43 @@ DESCRIPTIONS_DE = {
     "all_exclusions": "ODER von 27-29: alles, was ausgeschlossen ist.",
     "available_after_all_exclusions_raw": (
         "Das Negativ von all_exclusions - verfügbare Fläche ohne Mindestgrößen-Filter."
+    ),
+    # Bänder 39-44, Schema 2.2.0 (W7.1) - wortgleich aus layer-beschreibung.md.
+    "haeuser_im_gruenen_source": (
+        "Vereinigung der drei Quellen Ferienhaus/Tourismus, amtliche HiG-Widmung "
+        "und Streusiedlungs-Hüllen, ungepuffert und ohne NÖ. Die NÖ-SekROP-Zonen "
+        "sind nicht enthalten, weil sie den 750-m-Puffer bereits tragen. "
+        "Entspricht dem Zwischenergebnis, das der Produzent heute intern vor dem "
+        "750-m-Puffer bildet."
+    ),
+    "general_buildings_roh_osm": (
+        "OSM-Gebäude (building=*), die weder Seilbahn-Gebäude sind noch von einer "
+        "amtlichen Widmungs- oder HiG-Fläche abgedeckt werden; der OSM-Anteil von "
+        "general_buildings_source vor der Vereinigung mit den Kataster-Footprints."
+    ),
+    "general_buildings_roh_dkm": (
+        "Kataster-Footprints (DKM) bewohnter Einzellagen unter fünf Adressen sowie "
+        "die Hüllen innerhalb Niederösterreichs; der Kataster-Anteil von "
+        "general_buildings_source."
+    ),
+    "sources_human": (
+        "ODER aller ungepufferten Quellen der Kategorie Mensch: Wohnbauland, die "
+        "vier HiG-Quellen, Nicht-Wohn-Hüllen, Seilbahn-Gebäude, sonstige Gebäude, "
+        "Militärflächen und Flughafen-Areale, dazu Autobahnen/Schnellstraßen, "
+        "Bundes-/Landesstraßen, Hauptbahnen und Personenseilbahnen als ungepufferte "
+        "Linien (0 m statt 150 m). Der An-/Abflugkorridor hat keine Objektquelle "
+        "und ist nicht enthalten."
+    ),
+    "sources_nature": (
+        "ODER der Natur-Quellen nature_protection_areas und "
+        "osm_nature_protection_areas. In der Kategorie Natur gibt es keine Puffer, "
+        "das Band ist inhaltsgleich mit exclusion_nature und existiert nur, damit "
+        "jede Kategorie denselben Aufbau hat."
+    ),
+    "sources_geography": (
+        "ODER der Geografie-Kriterien Hangneigung, Seehöhe, Windhöffigkeit und "
+        "Gewässer. Es gibt keine Puffer, das Band ist inhaltsgleich mit "
+        "exclusion_geography und existiert nur der Einheitlichkeit halber."
     ),
 }
 
@@ -330,8 +393,17 @@ SOURCES = {
         "stand": "unbekannt — zu klären",
         "rolle": "Referenzband official_wind_zoning",
     },
-    "amtliche_windzonen_stmk_sbg": {
-        "pfad": "data/zonen/luca_zonen/Stmk.shp, data/zonen/luca_zonen/Sbg.shp",
+    # Schema 2.2.0 (W7.1): war bis 2.1.0 ein gemeinsamer Schlüssel
+    # "amtliche_windzonen_stmk_sbg" - Steiermark und Salzburg sind zwei
+    # getrennte Shapefiles mit potenziell unterschiedlichem (hier: jeweils
+    # unbekanntem) Stand, deshalb additiv in zwei Quellen aufgeteilt.
+    "amtliche_windzonen_stmk": {
+        "pfad": "data/zonen/luca_zonen/Stmk.shp",
+        "stand": "unbekannt — zu klären (handdigitalisiert, nicht amtlich bezogen)",
+        "rolle": "Referenzband official_wind_zoning",
+    },
+    "amtliche_windzonen_sbg": {
+        "pfad": "data/zonen/luca_zonen/Sbg.shp",
         "stand": "unbekannt — zu klären (handdigitalisiert, nicht amtlich bezogen)",
         "rolle": "Referenzband official_wind_zoning",
     },
@@ -399,6 +471,13 @@ NOE_DKM_AFFECTED_EXACT = {
     "exclusion_human",
     "all_exclusions",
     "available_after_all_exclusions_raw",
+    # Band 41, Schema 2.2.0 (W7.1): "Kataster-Footprints (DKM) bewohnter
+    # Einzellagen ... sowie die Hüllen innerhalb Niederösterreichs" - genau
+    # dieselben rekonstruierten NÖ-DKM-Polygone wie general_buildings_source.
+    # sources_human (42) bleibt bewusst außen vor: dessen "quelle" ist leer
+    # (abgeleitet), der DKM-Wirkungspfad läuft für dieses Band ohnehin über
+    # dkm_geoparquet_wirkungspfad, nicht über diesen Caveat.
+    "general_buildings_roh_dkm",
 }
 NOE_DKM_AFFECTED_PREFIXES = (
     "exclusion_human_",
@@ -503,7 +582,18 @@ ROLLEN = (
     ROLE_REFERENZ,
 )
 
-_ROLE_AGGREGAT_KATEGORIE_NAMES = {"exclusion_human", "exclusion_nature", "exclusion_geography"}
+_ROLE_AGGREGAT_KATEGORIE_NAMES = {
+    "exclusion_human",
+    "exclusion_nature",
+    "exclusion_geography",
+    # Bänder 42-44, Schema 2.2.0 (W7.1): rolle = aggregat_kategorie laut
+    # Schnittstelle §2 ("Für 39-44: rolle = bedingung (39-41) bzw.
+    # aggregat_kategorie (42-44)"). 39-41 brauchen keinen Eintrag - sie
+    # fallen band_role() zufolge ohnehin auf ROLE_BEDINGUNG zurück.
+    "sources_human",
+    "sources_nature",
+    "sources_geography",
+}
 _ROLE_AGGREGAT_GESAMT_NAMES = {"all_exclusions"}
 _ROLE_VERFUEGBARKEIT_ROH_NAMES = {"available_after_all_exclusions_raw"}
 _ROLE_REFERENZ_NAMES = {"official_wind_zoning", "wka_bestand_ausserhalb_zonen"}
@@ -634,10 +724,15 @@ BAND_SOURCES: dict[str, list[str]] = {
         "amtliche_windzonen_noe",
         "amtliche_windzonen_bgld",
         "amtliche_windzonen_ktn",
-        "amtliche_windzonen_stmk_sbg",
+        "amtliche_windzonen_stmk",
+        "amtliche_windzonen_sbg",
         "verwaltungsgrenzen_vgd",
     ],
     "wka_bestand_ausserhalb_zonen": ["osm_pbf"],
+    # Bänder 39-41, Schema 2.2.0 (W7.1) - direkte Rohdatenquellen, aus
+    # layer-beschreibung.md §"Gebäude"/"Häuser im Grünen".
+    "general_buildings_roh_osm": ["osm_pbf"],
+    "general_buildings_roh_dkm": ["dkm_geoparquet", "bev_adressregister"],
 }
 
 # Bandnamen, aus denen ein Band RECHNERISCH entsteht (ODER, Negation,
@@ -704,6 +799,29 @@ BAND_DERIVED_FROM: dict[str, list[str]] = {
     "all_exclusions": ["exclusion_human", "exclusion_nature", "exclusion_geography"],
     "available_after_all_exclusions_raw": ["all_exclusions"],
     "wka_bestand_ausserhalb_zonen": ["official_wind_zoning"],
+    # Bänder 39, 42-44, Schema 2.2.0 (W7.1) - aus layer-beschreibung.md,
+    # Spalte "Abgeleitet von". 40/41 stehen hier bewusst nicht: sie sind
+    # roh gelesene Quellbänder ("Abgeleitet von: –"), keine Berechnung aus
+    # anderen Bändern.
+    "haeuser_im_gruenen_source": [
+        "haeuser_im_gruenen_ferienhaus",
+        "haeuser_im_gruenen_widmung",
+        "haeuser_im_gruenen_streusiedlung",
+    ],
+    "sources_human": [
+        "official_settlement_source",
+        "haeuser_im_gruenen_ferienhaus",
+        "haeuser_im_gruenen_widmung",
+        "haeuser_im_gruenen_streusiedlung",
+        "haeuser_im_gruenen_noe_pdf",
+        "nonresidential_hulls_source",
+        "cableway_buildings_source",
+        "general_buildings_source",
+        "military_restricted_area",
+        "airport_area_major",
+    ],
+    "sources_nature": ["nature_protection_areas", "osm_nature_protection_areas"],
+    "sources_geography": list(_GEOGRAPHY_AND_WATER_BANDS),
 }
 
 
@@ -789,6 +907,169 @@ def _dkm_geoparquet_impact_path(band_names: list[str]) -> list[str]:
 
 
 # --------------------------------------------------------------------------
+# Familie, Stufe, Dashboard-Sichtbarkeit je Band (Schema 2.2.0, Paket W7.1,
+# Bahn 2). Verbindliche Quelle: schnittstelle-manifest-2.2.md §1/§2 - Werte
+# hier sind daraus wortgleich übernommen, nicht neu festgelegt.
+# --------------------------------------------------------------------------
+
+# Feste Pipeline-Stufen-Reihenfolge (Top-Level-Feld "stufe_order").
+STUFE_ORDER = [
+    "roh",
+    "quelle",
+    "aggregat",
+    "zone",
+    "summe_quellen",
+    "summe_zonen",
+    "ergebnis",
+]
+
+# Geordnetes Array (Top-Level-Feld "familien") - wortgleich aus der
+# Schnittstelle §1 übernommen. Reihenfolge im Array = Anzeigereihenfolge
+# innerhalb der Kategorie. "summe" kommt bewusst dreimal vor (je Kategorie
+# Mensch/Natur/Geografie) - der Familienschlüssel allein ist nicht
+# kategorieübergreifend eindeutig, das übernimmt "category" hier bzw.
+# "category" je Band.
+FAMILIEN = [
+    {"key": "siedlung", "category": "Mensch", "label_de": "Siedlung"},
+    {"key": "haeuser_im_gruenen", "category": "Mensch", "label_de": "Häuser im Grünen"},
+    {"key": "nichtwohn_huellen", "category": "Mensch", "label_de": "Nicht-Wohn-Hüllen"},
+    {"key": "seilbahn_gebaeude", "category": "Mensch", "label_de": "Seilbahn-Gebäude"},
+    {"key": "gebaeude", "category": "Mensch", "label_de": "Gebäude"},
+    {"key": "verkehr", "category": "Mensch", "label_de": "Verkehr"},
+    {"key": "militaer", "category": "Mensch", "label_de": "Militär"},
+    {"key": "luftfahrt", "category": "Mensch", "label_de": "Luftfahrt"},
+    {"key": "summe", "category": "Mensch", "label_de": "Σ Mensch"},
+    {"key": "schutzgebiet", "category": "Natur", "label_de": "Schutzgebiete"},
+    {"key": "summe", "category": "Natur", "label_de": "Σ Natur"},
+    {"key": "kriterien", "category": "Geografie", "label_de": "Kriterien"},
+    {"key": "summe", "category": "Geografie", "label_de": "Σ Geografie"},
+    {"key": "ergebnis", "category": "Total & Ergebnis", "label_de": "Ergebnis"},
+    {"key": "amtliche_zonen", "category": "Referenz (Zonen & WKA-Bestand)", "label_de": "Amtliche Zonen"},
+    {"key": "wka_bestand", "category": "Referenz (Zonen & WKA-Bestand)", "label_de": "WKA-Bestand"},
+]
+
+# Familie je Band - Schnittstelle §2 ("Zuordnung aller 44 Bänder"), Spalte
+# "familie". available_cleaned_min_* und available_blur_sigma_* (parametrische
+# Namen) sind hier bewusst nicht gelistet, siehe band_familie()-Fallback.
+BAND_FAMILIE: dict[str, str] = {
+    "official_settlement_source": "siedlung",
+    "settlement_buffer": "siedlung",
+    "haeuser_im_gruenen_ferienhaus": "haeuser_im_gruenen",
+    "haeuser_im_gruenen_widmung": "haeuser_im_gruenen",
+    "haeuser_im_gruenen_streusiedlung": "haeuser_im_gruenen",
+    "haeuser_im_gruenen_noe_pdf": "haeuser_im_gruenen",
+    "haeuser_im_gruenen_source": "haeuser_im_gruenen",
+    "haeuser_im_gruenen": "haeuser_im_gruenen",
+    "nonresidential_hulls_source": "nichtwohn_huellen",
+    "nonresidential_hulls_buffer": "nichtwohn_huellen",
+    "cableway_buildings_source": "seilbahn_gebaeude",
+    "cableway_buildings_buffer": "seilbahn_gebaeude",
+    "general_buildings_source": "gebaeude",
+    "general_buildings_buffer": "gebaeude",
+    "general_buildings_roh_osm": "gebaeude",
+    "general_buildings_roh_dkm": "gebaeude",
+    "road_motorway_trunk": "verkehr",
+    "road_federal_state": "verkehr",
+    "rail_main": "verkehr",
+    "cableway_people_150m": "verkehr",
+    "military_restricted_area": "militaer",
+    "airport_area_major": "luftfahrt",
+    "airport_runway_corridor_5km": "luftfahrt",
+    "nature_protection_areas": "schutzgebiet",
+    "osm_nature_protection_areas": "schutzgebiet",
+    "geography_slope_too_steep": "kriterien",
+    "geography_elevation_too_high": "kriterien",
+    "geography_wind_too_low": "kriterien",
+    "geography_water_bodies": "kriterien",
+    "exclusion_human": "summe",
+    "exclusion_nature": "summe",
+    "exclusion_geography": "summe",
+    "sources_human": "summe",
+    "sources_nature": "summe",
+    "sources_geography": "summe",
+    "all_exclusions": "ergebnis",
+    "available_after_all_exclusions_raw": "ergebnis",
+    "available_cleaned_min_10ha": "ergebnis",
+    "official_wind_zoning": "amtliche_zonen",
+    "wka_bestand_ausserhalb_zonen": "wka_bestand",
+}
+
+# Stufe je Band - Schnittstelle §2, Spalte "stufe".
+BAND_STUFE: dict[str, str] = {
+    "official_settlement_source": "quelle",
+    "settlement_buffer": "zone",
+    "haeuser_im_gruenen_ferienhaus": "quelle",
+    "haeuser_im_gruenen_widmung": "quelle",
+    "haeuser_im_gruenen_streusiedlung": "quelle",
+    "haeuser_im_gruenen_noe_pdf": "quelle",
+    "haeuser_im_gruenen_source": "aggregat",
+    "haeuser_im_gruenen": "zone",
+    "nonresidential_hulls_source": "quelle",
+    "nonresidential_hulls_buffer": "zone",
+    "cableway_buildings_source": "quelle",
+    "cableway_buildings_buffer": "zone",
+    "general_buildings_roh_osm": "roh",
+    "general_buildings_roh_dkm": "roh",
+    "general_buildings_source": "quelle",
+    "general_buildings_buffer": "zone",
+    "road_motorway_trunk": "zone",
+    "road_federal_state": "zone",
+    "rail_main": "zone",
+    "cableway_people_150m": "zone",
+    "military_restricted_area": "zone",
+    "airport_area_major": "zone",
+    "airport_runway_corridor_5km": "zone",
+    "nature_protection_areas": "zone",
+    "osm_nature_protection_areas": "zone",
+    "geography_slope_too_steep": "zone",
+    "geography_elevation_too_high": "zone",
+    "geography_wind_too_low": "zone",
+    "geography_water_bodies": "zone",
+    "sources_human": "summe_quellen",
+    "sources_nature": "summe_quellen",
+    "sources_geography": "summe_quellen",
+    "exclusion_human": "summe_zonen",
+    "exclusion_nature": "summe_zonen",
+    "exclusion_geography": "summe_zonen",
+    "all_exclusions": "summe_zonen",
+    "available_after_all_exclusions_raw": "ergebnis",
+    "available_cleaned_min_10ha": "ergebnis",
+    "official_wind_zoning": "zone",
+    "wka_bestand_ausserhalb_zonen": "zone",
+}
+
+
+def band_familie(name: str) -> str:
+    if name in BAND_FAMILIE:
+        return BAND_FAMILIE[name]
+    if name.startswith("available_cleaned_min_") or name.startswith(PERCENT_BAND_PREFIX):
+        return "ergebnis"
+    raise KeyError(f"calc/band_manifest.py: kein familie-Eintrag für Band {name!r}")
+
+
+def band_stufe(name: str) -> str:
+    if name in BAND_STUFE:
+        return BAND_STUFE[name]
+    if name.startswith("available_cleaned_min_") or name.startswith(PERCENT_BAND_PREFIX):
+        return "ergebnis"
+    raise KeyError(f"calc/band_manifest.py: kein stufe-Eintrag für Band {name!r}")
+
+
+def band_dashboard_layer(name: str) -> bool:
+    """False nur für die vier Unschärfebänder 33-36 (Schnittstelle §1)."""
+    return not name.startswith(PERCENT_BAND_PREFIX)
+
+
+def band_default_visible(name: str, stufe: str) -> bool:
+    """Schnittstelle §1: true für stufe == "zone" und für
+    available_cleaned_min_10ha, sonst false. Ersetzt ab Schema 2.2.0 das
+    vorherige feste Namensset (band_metadata.DEFAULT_VISIBLE, dort weiterhin
+    als Altbestand vorhanden, aber ab hier nicht mehr die Quelle für dieses
+    Feld)."""
+    return stufe == "zone" or name == "available_cleaned_min_10ha"
+
+
+# --------------------------------------------------------------------------
 # Ableitungen je Band
 # --------------------------------------------------------------------------
 
@@ -827,6 +1108,7 @@ def band_description_de(name: str, condition_descriptions: dict[str, str]) -> st
 
 def band_entry(index: int, name: str, condition_descriptions: dict[str, str]) -> dict:
     category, is_total = categorize_layer(name)
+    stufe = band_stufe(name)
     return {
         "index": index,
         "name": name,
@@ -837,12 +1119,19 @@ def band_entry(index: int, name: str, condition_descriptions: dict[str, str]) ->
         "clipped_to_austria": band_clipped_to_austria(name),
         "is_total": is_total,
         "color_rgba": list(layer_color(name)),
-        "default_visible": name in DEFAULT_VISIBLE,
+        # Schema 2.2.0 (W7.1): aus der Stufe abgeleitet, siehe
+        # band_default_visible(). DEFAULT_VISIBLE (band_metadata.py) ist damit
+        # für dieses Feld kein Eingang mehr, siehe dortigen Kommentar.
+        "default_visible": band_default_visible(name, stufe),
         "rolle": band_role(name),
         "puffer_m": band_buffer_m(name),
         "puffer_hinweis": band_buffer_note_de(name),
         "quelle": band_sources(name),
         "abgeleitet_von": band_derived_from(name),
+        # Neu ab Schema 2.2.0 (W7.1), additiv - Schnittstelle §1.
+        "familie": band_familie(name),
+        "stufe": stufe,
+        "dashboard_layer": band_dashboard_layer(name),
     }
 
 
@@ -925,6 +1214,9 @@ def build_band_manifest(
             "nodata_meaning": NODATA_MEANING,
         },
         "category_order": list(CATEGORY_ORDER),
+        # Neu ab Schema 2.2.0 (W7.1), additiv - Schnittstelle §1.
+        "stufe_order": list(STUFE_ORDER),
+        "familien": [dict(f) for f in FAMILIEN],
         "bands": bands,
         "parameters": dict(tags),
         "sources": {key: dict(value) for key, value in SOURCES.items()},
