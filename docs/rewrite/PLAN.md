@@ -312,7 +312,7 @@ Zwischen den Wellen wird synchronisiert, innerhalb einer Welle nicht.
 | 4 | Prüfung | 4 | Vorfeld zuerst, dann drei gleichzeitig |
 | 5 | Beweis | 7 | Vorfeld in sechs Stufen, dann der Lauf |
 | 6 | Aufräumen und Abschluss | 7 | nein — nacheinander, weil nichts kollidiert und nichts sich beschleunigen lässt |
-| 7 | Layer-Struktur v4 | 3 | nein — strikt nacheinander, weil jedes Paket die Datei erzeugt, auf der das nächste aufsetzt |
+| 7 | Layer-Struktur v4 | 2 | ja — drei Bahnen im Produzentenpaket und das Dashboard gleichzeitig; siehe den Nachtrag zum Neuzuschnitt |
 
 „Besitzt" heißt: nur dieses Paket darf diese Pfade anfassen. Zwei Pakete
 derselben Welle teilen sich niemals eine Datei.
@@ -513,11 +513,68 @@ Tests grün"; 217 war der Stand nach W6.6 (214 + 3). Seit W6.7 sammelt
 Untergrenze —, wird in W7.2 aber nachgezogen, sonst schützt sie nach dem
 Zuwachs weniger als vorher.
 
+### Neuzuschnitt am selben Tag — zwei Stunden statt sechs bis acht
+
+**Wenige Minuten nach dem Start von W7.1 kam über dieselbe Sitzung eine
+Änderung der Arbeitsweise:** Ziel ist Fertigstellung in **rund zwei Stunden
+Wanduhr**. A und B werden **ein** Produzentenpaket mit **einem** Lauf, **einem**
+Commit und **einem** neuen Referenz-Hash; im Produzenten arbeiten drei
+Bahnen nach Dateien getrennt gleichzeitig; das Dashboard beginnt **sofort**
+gegen einen selbstgebauten 2.2.0-Stub, statt auf das echte Manifest zu
+warten. W7.1 wurde dafür nach wenigen Minuten angehalten — es war noch beim
+Lesen, es ging kein Code verloren.
+
+**Was der Zusammenschluss kostet, gehört genannt.** Der Pixelbefund (Hüllen
+zuschneiden) und die Schemaänderung (sechs Bänder) landen damit in
+**demselben** Hash-Schritt. Zeigt das neue TIF eine unerwartete
+Bandabweichung, lässt sie sich nicht mehr **von der Struktur her** einer der
+beiden Ursachen zuordnen — genau die Trennschärfe, für die dieses Repo in
+den Wellen 3 bis 5 teuer bezahlt hat. Der Ausgleich kostet keinen zweiten
+Lauf: Die integrierende Bahn nimmt den **bandweisen** Vergleich gegen das
+TIF von `b8af5fd` auf und ordnet **jedes** geänderte Band in der
+Commit-Message entweder dem Zuschnitt oder dem Schema zu. Die Zuordnung
+wandert damit aus dem Commit-Graphen in den Commit-Text: schwächer, aber
+nicht verloren. **Das ist eine Abweichung nach Regel 8** — erklärt,
+mitgeführt, umkehrbar.
+
+**Regel 9, angewandt: die fremde Aufteilung war nach Themen geschnitten,
+und Themen kollidieren in Dateien.** Zwei Überschneidungen sind vor dem
+Start aufgelöst, und zwar **nach Datei, nicht nach Begriff**:
+
+- Der Schema-String `clean-38-…` steht in `pipeline/finalize.py`,
+  `pipeline/layers/geo.py`, `calc/band_manifest.py` und in Tests. Er gehört
+  nicht *einer* Bahn — ihn ändert, **wem die Datei gehört**.
+- `pipeline/contract.py` trägt `LAYER_NAMES` **und** `PRODUCTS`, die im
+  fremden Schnitt in zwei verschiedenen Bahnen lagen. Die Datei bekommt
+  **einen** Besitzer, Bahn 1, samt der beiden neuen Produkteinträge.
+
+| Bahn | Besitzt |
+|---|---|
+| **1 — Builder** | `pipeline/layers/geo.py` (Zuschnitt, `hig_family` als Band 39, die drei `sources_*`), `pipeline/layers/osm.py` (Bänder 40/41), `pipeline/contract.py` (`LAYER_NAMES` **und** `PRODUCTS`), `pipeline/finalize.py` (`BANDS`, Schema-String an dieser Stelle) |
+| **2 — Metadaten** | `calc/band_manifest.py` (Felder, Familien, `stufe_order`, Beschreibungen 39–44, Schema-String dort), `calc/viz/band_metadata.py`, `pipeline/validate.py` (die hartkodierten Indexbereiche), `tests/test_band_manifest.py`, `tests/test_band_metadata.py`, `tests/test_export_dashboard.py`, `tests/test_export_viewer.py`, `tests/conftest.py`, `docs/HANDOFF.md` |
+| **3 — Exporte** | neu `pipeline/export/wka_bestand.py`, neu `pipeline/export/layer_doc.py`, die zugehörigen neuen Testdateien, `make/export/**` |
+| **4 — Dashboard** | fremdes Repo, siehe W7.3 — läuft von Anfang an mit |
+
+**Zwei Regeln für das Zeitfenster, in dem drei Bahnen denselben Baum
+bearbeiten.** Erstens: **Niemand fährt `make` oder die volle Suite**,
+solange nicht alle drei fertig sind — das Repo ist in diesem Fenster
+absichtlich widersprüchlich, und ein Test, der die Datei einer fremden Bahn
+nennt, ist **erwartetes Verhalten und wird gemeldet, nicht repariert**.
+Zweitens: **`schnittstelle-manifest-2.2.md` ist verbindlich für beide
+Seiten.** Das Dashboard entwickelt gegen ein Manifest, das es noch nicht
+gibt — jede Abweichung des Produzenten von dieser Schnittstelle wird
+**gemeldet, nie stillschweigend übernommen**, sonst arbeitet eine Bahn
+zwei Stunden gegen einen Vertrag, den die andere längst verlassen hat.
+
+`layer_doc.py` liegt **nicht** auf dem kritischen Pfad: verzögert es, wird
+`LAYER.md` aus der Vorlage übernommen und der Generator als Registerpunkt
+notiert.
+
 | Paket | Welle | Gruppe | Titel | Besitzt | Braucht | Abnahme |
 |---|---|---|---|---|---|---|
-| W7.1 | 7 | Struktur v4 | WKA-Bestand strikt außerhalb der Zonen | neu: `pipeline/export/wka_bestand.py`, `tests/test_export_wka_bestand.py`, `make/export/wka_bestand.mk` · ändern: `pipeline/layers/geo.py` (nur `build_wka_bestand_hulls`), `calc/band_manifest.py` (nur die Beschreibung von Band 38), `pipeline/contract.py` (nur `PRODUCTS`), `docs/HANDOFF.md`, `tests/test_referenz_tif.py` und `pipeline/validate.py` (nur das Hash-Literal) | W6.7 | Wörtlich aus dem Auftrag: „Band 38 AND Band 37 = leer; jede Anlage mit `in_zone=false` liegt außerhalb Band 37; Anzahl Hüllen und Anlagen im Report." Dazu aus diesem Plan: Der Befund, den das Paket behebt, ist ein **Geometriefehler, kein Zählfehler** — `geo.py:556` prüft „in Zone" als Punktabfrage am Raster, die konvexe Hülle plus 200-m-Rand wird danach ohne `difference()` gegen `official_wind_zoning` rasterisiert (`geo.py:567-576`), sodass ein grenznaher Cluster in eine amtliche Zone hineinragen kann, obwohl jede einzelne Anlage außerhalb liegt. Lauf: `make layers finalize validate export`, kein voller `make all`. Zu berichten sind die drei Zählungen gegen die Referenz **1595 gesamt / 807 in Zone / 788 außerhalb** und der **neue Referenz-Hash neben dem alten**. |
-| W7.2 | 7 | Struktur v4 | Sechs Bänder und Manifest 2.2.0 | `pipeline/contract.py` (`LAYER_NAMES`), `pipeline/finalize.py` (`BANDS`), `calc/band_manifest.py`, `calc/viz/band_metadata.py` (`CATEGORY_TOTALS`, Farben), `pipeline/layers/geo.py`, `pipeline/layers/osm.py`, `pipeline/validate.py` (die hartkodierten Indexbereiche in Zeile 44, 108–121, 473) · neu: `pipeline/export/layer_doc.py` → `out/LAYER.md`, Kopie `docs/layer.md` · Tests: `test_band_metadata.py`, `test_band_manifest.py`, `test_export_dashboard.py`, `test_export_viewer.py`, `conftest.py` · `docs/HANDOFF.md` | W7.1 | Wörtlich aus dem Auftrag: „44 Bänder, Manifest validiert, alle 217+ Tests grün, `LAYER.md` listet 44 Bänder." Dazu aus diesem Plan: **217 ist der Stand vor W6.7 — die Abnahme läuft gegen 226 gesammelte Tests**, und die Untergrenze in `conftest.py` wird mitgezogen. Die sechs Bänder entstehen aus bereits vorhandenen In-Memory-Arrays (`hig_family` liegt als lokale Variable in `geo.py:393` und wird heute nur gepuffert weiterverwendet), es wird **kein neuer Rohdatenzugriff** eröffnet. Der Schema-String `clean-38-…` trägt die Bandzahl im Namen und muss an allen vier Fundstellen mit — wer ihn stehen lässt, hat ein Manifest, das sich selbst widerspricht. **Zweiter neuer Referenz-Hash, wieder neben dem abgelösten.** |
-| W7.3 | 7 | Struktur v4 | Das Dashboard baut den Baum aus dem Manifest | **Fremdes Repo** `~/Documents/master_windkraft/winddashboard`, Zweig `feat/manifest-integration` (`c69121c`): `src/lib/config/bands.ts`, `src/lib/config/legend.ts`, `src/lib/components/MapControlPanel.svelte`, `src/routes/methodik/+page.svelte`, `scripts/extract_band_geojson.py`, `scripts/extract_possible_zones.py`, neu `scripts/merge_turbine_attributes.py`, `PIPELINE.md`, die neue Punktdatei unter `geodata/` | W7.2 | Wörtlich aus dem Auftrag: „40 Layer im Baum, Reihenfolge wie v4, Bestandsanlagen außerhalb überlappen weder Band 37 noch die Vektor-Zonen sichtbar, keine neuen svelte-check-Fehler." Dazu aus diesem Plan: Das Paket arbeitet **außerhalb dieses Repos** — Regel 10 (Plandateien nach jedem Paket committen) betrifft nur diese Seite, und nichts unter `geodata/` wird gelöscht. Es ist zugleich die Gegenprobe auf W7.2: Die 16 Handeinträge entfallen ersatzlos, der Baum kommt aus `familie`/`stufe`/`dashboard_layer`. Fällt dabei ein Band durch, ist der Fehler im Manifest, nicht im Dashboard. |
+| W7.1 | 7 | Struktur v4 | **Der Produzent in einem Zug** — Zuschnitt, Punkte-Export, sechs Bänder, Manifest 2.2.0 (Besitz je Bahn: siehe die Tabelle im Neuzuschnitt) | neu: `pipeline/export/wka_bestand.py`, `tests/test_export_wka_bestand.py`, `make/export/wka_bestand.mk` · ändern: `pipeline/layers/geo.py` (nur `build_wka_bestand_hulls`), `calc/band_manifest.py` (nur die Beschreibung von Band 38), `pipeline/contract.py` (nur `PRODUCTS`), `docs/HANDOFF.md`, `tests/test_referenz_tif.py` und `pipeline/validate.py` (nur das Hash-Literal) | W6.7 | Wörtlich aus dem Auftrag: „Band 38 AND Band 37 = leer; jede Anlage mit `in_zone=false` liegt außerhalb Band 37; Anzahl Hüllen und Anlagen im Report." Dazu aus diesem Plan: Der Befund, den das Paket behebt, ist ein **Geometriefehler, kein Zählfehler** — `geo.py:556` prüft „in Zone" als Punktabfrage am Raster, die konvexe Hülle plus 200-m-Rand wird danach ohne `difference()` gegen `official_wind_zoning` rasterisiert (`geo.py:567-576`), sodass ein grenznaher Cluster in eine amtliche Zone hineinragen kann, obwohl jede einzelne Anlage außerhalb liegt. Lauf: `make layers finalize validate export`, kein voller `make all`. Zu berichten sind die drei Zählungen gegen die Referenz **1595 gesamt / 807 in Zone / 788 außerhalb** und der **neue Referenz-Hash neben dem alten**. |
+| ~~W7.2~~ | 7 | Struktur v4 | ~~Sechs Bänder und Manifest 2.2.0~~ — **in W7.1 aufgegangen** (Neuzuschnitt oben). Die Zeile bleibt vollständig stehen, weil sie die Arbeit beschreibt, die W7.1 jetzt mitträgt — nach Regel 8 wird eine erklärte Abweichung mitgeführt, nicht gelöscht | `pipeline/contract.py` (`LAYER_NAMES`), `pipeline/finalize.py` (`BANDS`), `calc/band_manifest.py`, `calc/viz/band_metadata.py` (`CATEGORY_TOTALS`, Farben), `pipeline/layers/geo.py`, `pipeline/layers/osm.py`, `pipeline/validate.py` (die hartkodierten Indexbereiche in Zeile 44, 108–121, 473) · neu: `pipeline/export/layer_doc.py` → `out/LAYER.md`, Kopie `docs/layer.md` · Tests: `test_band_metadata.py`, `test_band_manifest.py`, `test_export_dashboard.py`, `test_export_viewer.py`, `conftest.py` · `docs/HANDOFF.md` | W7.1 | Wörtlich aus dem Auftrag: „44 Bänder, Manifest validiert, alle 217+ Tests grün, `LAYER.md` listet 44 Bänder." Dazu aus diesem Plan: **217 ist der Stand vor W6.7 — die Abnahme läuft gegen 226 gesammelte Tests**, und die Untergrenze in `conftest.py` wird mitgezogen. Die sechs Bänder entstehen aus bereits vorhandenen In-Memory-Arrays (`hig_family` liegt als lokale Variable in `geo.py:393` und wird heute nur gepuffert weiterverwendet), es wird **kein neuer Rohdatenzugriff** eröffnet. Der Schema-String `clean-38-…` trägt die Bandzahl im Namen und muss an allen vier Fundstellen mit — wer ihn stehen lässt, hat ein Manifest, das sich selbst widerspricht. **Zweiter neuer Referenz-Hash, wieder neben dem abgelösten.** |
+| W7.3 | 7 | Struktur v4 | Das Dashboard baut den Baum aus dem Manifest — **ab 09.09.2026 nicht mehr hier.** Die zweite Sitzung führt es selbst aus und arbeitet dabei parallel zum Produzenten; diese Seite fasst `winddashboard/` **nicht** an und schuldet nur das Paar aus TIF, Manifest und Punktdatei. Die Abnahme unten bleibt stehen, weil sie beschreibt, wogegen unser Manifest sich bewähren muss | **Fremdes Repo** `~/Documents/master_windkraft/winddashboard`, Zweig `feat/manifest-integration` (`c69121c`): `src/lib/config/bands.ts`, `src/lib/config/legend.ts`, `src/lib/components/MapControlPanel.svelte`, `src/routes/methodik/+page.svelte`, `scripts/extract_band_geojson.py`, `scripts/extract_possible_zones.py`, neu `scripts/merge_turbine_attributes.py`, `PIPELINE.md`, die neue Punktdatei unter `geodata/` | W7.2 | Wörtlich aus dem Auftrag: „40 Layer im Baum, Reihenfolge wie v4, Bestandsanlagen außerhalb überlappen weder Band 37 noch die Vektor-Zonen sichtbar, keine neuen svelte-check-Fehler." Dazu aus diesem Plan: Das Paket arbeitet **außerhalb dieses Repos** — Regel 10 (Plandateien nach jedem Paket committen) betrifft nur diese Seite, und nichts unter `geodata/` wird gelöscht. Es ist zugleich die Gegenprobe auf W7.2: Die 16 Handeinträge entfallen ersatzlos, der Baum kommt aus `familie`/`stufe`/`dashboard_layer`. Fällt dabei ein Band durch, ist der Fehler im Manifest, nicht im Dashboard. |
 
 ## 8. Regeln der Parallelität
 
