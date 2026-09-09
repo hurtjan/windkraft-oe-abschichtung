@@ -312,6 +312,7 @@ Zwischen den Wellen wird synchronisiert, innerhalb einer Welle nicht.
 | 4 | Prüfung | 4 | Vorfeld zuerst, dann drei gleichzeitig |
 | 5 | Beweis | 7 | Vorfeld in sechs Stufen, dann der Lauf |
 | 6 | Aufräumen und Abschluss | 7 | nein — nacheinander, weil nichts kollidiert und nichts sich beschleunigen lässt |
+| 7 | Layer-Struktur v4 | 3 | nein — strikt nacheinander, weil jedes Paket die Datei erzeugt, auf der das nächste aufsetzt |
 
 „Besitzt" heißt: nur dieses Paket darf diese Pfade anfassen. Zwei Pakete
 derselben Welle teilen sich niemals eine Datei.
@@ -448,6 +449,75 @@ Danach liest sich die Kette von selbst:
 | W6.6 | 6 | Abschluss | Drei Einzeiler, die Welle 6 selbst hinterlassen hat | `pipeline/fingerprint.py`; die zehn Prep-Einstiegsmodule; `tests/test_contract.py`; die Stelle, an der die Test-Untergrenze sitzt (`tests/conftest.py` oder `make/`) | W6.4 | Punkt 56, 57 und 54. **Die Nummer sagt, wann das Paket geschnitten wurde, nicht wann es läuft** — es läuft vor W6.5, damit die Doku den Endzustand beschreibt. (1) Der Fingerabdruck nimmt versionierte **Quelldateien über `sha256`** statt über Größe und Zeitstempel auf; Rohdaten bleiben bei `_stat()`. (2) Die `skipif`-Bedingung von `test_layer_names_match_existing_checkpoints` zeigt auf `derived/layers/` statt auf das archivierte `output/…/distance_layers`. (3) `make test` bekommt eine **Untergrenze für die Zahl gesammelter Tests**. Abnahme: voller `make all` → TIF `fb57c41d…232c30` (**Halt bei Abweichung**), zweiter Lauf überspringt alle zehn Stufen, **Klontest überspringt jetzt ebenfalls** (das ist der Zweck von Punkt 56 und die Abnahme, die W6.4 schuldig geblieben ist), `make test` meldet **214 + 3** statt 213 + 4, und die Untergrenze wird **dynamisch gegengeprüft** — einmal so verstellt, dass sie auslöst, dann zurück. **Vollständig eingetroffen** (`ffca628`): Klontest **8:38 statt 62:49**, `sha256` exakt, `make test` 214 + 3. Eine der zehn Stufen übersprang nicht — `prep-natur` liest `config.json`, das außerhalb der Erkennung „`.py` unter `pipeline`/`calc`/`tools`" liegt. Punkt 60. |
 | W6.7 | 6 | Abschluss | Der Kartenviewer über OSM | neu: `pipeline/export/viewer.py`; ändern: `pipeline/export/dashboard.py`, `pipeline/contract.py`, `make/`, `tests/` | W6.6 | **Vom Nutzer am 08.09.2026 verlangt:** unter `out/dashboard/` soll nicht die Übersichtstabelle liegen, sondern „die simple Visualisierung der Layer in einer Website über einem OSM-Layer". **Rollenteilung, als Annahme gesetzt und umkehrbar:** Der Viewer übernimmt `out/dashboard/index.html`, die Prüfstufe `dashboard.py` behält `report.json`. Damit bleibt `out/dashboard/` das vierte vertraglich zugesagte Endprodukt und die bestehenden Tests gelten weiter. **Das Verfahren ist nicht neu, sondern zurückgeholt:** Das Vorgängerprojekt hat es zwanzigmal so gebaut (`windkraft/viz/raster_overlay.py`, Leaflet 1.9.4, ein PNG je Band als `L.imageOverlay` über OSM), und dieses Repo hatte das Skript als `scripts/webmap/build_layer_viewer.py`, gelöscht in `9c64a85b`. Je Band: Reprojektion nach EPSG:3857, Herunterskalieren auf `--max-size` (Default 3000), transparentes PNG. **34 der 38 Bänder sind binär, vier sind 0–100 %** (`available_blur_sigma_*`) und brauchen eine Farbskala — die Unterscheidung kommt aus `band_value_type()`, nicht aus einer Liste im Code. Abnahme: kein Bandname im Quelltext (Härtetest gegen ein Fremdmanifest wie in W4.1), `make all` erzeugt den Viewer mit, die Seite zeigt alle 38 Bänder über OSM, und die Gesamtgröße von `out/dashboard/` wird **gemessen und berichtet**, nicht geschätzt. |
 | W6.5 | 6 | Doku | Die Doku beschreibt den neuen Baum | `docs/rohdaten.md`; `docs/dataflow/**`; `docs/rewrite/README.md`; `docs/rewrite/packages.tsv`/`.json`; `docs/rewrite/UMSETZUNG.md`; `docs/FOLLOWUPS.md`; `docs/widmung_v2_provenance.md`; `docs/widmung_v2.md` | W6.6 | **Vom Nutzer bewusst nach hinten gestellt** („Struktur und Doku dann hinten nach") — es blockiert nichts und ist Prosa, kein Aufräumen. `docs/rohdaten.md` behauptet in Zeile 365–420, `data/widmung/` existiere nicht; es existiert seit W0.1 mit neun Domänen. `docs/dataflow/` bildet 417-mal `scripts/` ab und **kein einziges Mal** `pipeline/`, wird aber von `docs/rewrite/README.md` als „Faktengrundlage" zitiert — nach W6.1 beschreibt es einen Baum, den es nicht mehr gibt. `packages.tsv` kennt 30 Pakete. Abnahme: keine Doku behauptet mehr etwas, das die laufende Kette widerlegt; jede gelöschte Datei hat einen benannten Ersatz oder einen niedergeschriebenen Grund. **`docs/rohdaten.md` wird korrigiert, nicht gelöscht** — es ist die einzige Provenienz- und Lizenzangabe der Rohdaten im Repo. **Entschieden für `docs/dataflow/`: datiert einfrieren, nicht neu erzeugen und nicht löschen.** Es ist ein aus dem alten Code erzeugter Befund über die alte Kette — dieselbe Gattung wie `docs/RUN1_VERGLEICH.md`, das nach Punkt 3 ausdrücklich eingefroren bleibt. Gefährlich ist nicht sein Inhalt, sondern sein **Etikett**: `docs/rewrite/README.md` zitiert es als „Faktengrundlage" für ein Repo, das es nicht mehr beschreibt. Also bekommt das Verzeichnis einen datierten Kopf („beschreibt die Kette vor dem Umbau, Stand `f1d00f7`") und das Zitat im README wird entsprechend umgeschrieben. Eine Neuerzeugung gegen `pipeline/` bleibt möglich und wird als eigener Registerpunkt eröffnet — sie ist ein Paket für sich, nicht ein Nebensatz in einem Doku-Paket. |
+
+### Welle 7 — Layer-Struktur v4
+
+**Beauftragt am 09.09.2026, und nicht von hier.** Der Auftrag kam über eine
+zweite Claude-Sitzung (`mwk-fable`) im Namen des Nutzers, mit eigenem
+Umsetzungsplan, eigenen Abnahmekriterien und eigener Paketbenennung A, B,
+C. Er steht trotzdem in diesem Plan, weil zwei der drei Pakete in diesem
+Repo arbeiten — und weil die Ergänzung zu Regel 7 (§13.11) genau das
+verlangt: **ein Paket bekommt seine Nummer im Plan zuerst.** Die Zuordnung
+ist **A = W7.1, B = W7.2, C = W7.3**; Meldungen aus der anderen Sitzung
+kommen unter den Buchstaben herein und werden hier unter der Nummer
+gebucht.
+
+**Diese Welle setzt Regel 4 außer Kraft, und das ist ihr Zweck.** Regel 4
+— „kein Paket ändert Zahlen" — galt für einen Umbau, der beweisen musste,
+dass er nichts verändert. Welle 7 ist kein Umbau, sondern eine fachliche
+Änderung: Band 38 wird gegen Band 37 zugeschnitten, sechs Bänder kommen
+hinzu. Die Regel wird deshalb **begrenzt, nicht gestrichen** (Regel 8,
+§13.9): Sie gilt weiter für alles, was nicht ausdrücklich in der
+Abnahmebedingung eines Welle-7-Pakets als geänderte Zahl benannt ist. Wer
+hier eine Abweichung findet, die in keiner Abnahme steht, hat einen Fehler
+gefunden, keine Absicht.
+
+**Der Referenz-Hash fällt, zweimal.** `fb57c41dca0642225a8115e3ed95297ede47b56d56c00fdddf8caa445e232c30`
+(124 597 421 Bytes, 38 Bänder, Manifest 2.1.0) war vom 07. bis 09.09.2026
+der Anker, an dem die Wellen 0 bis 6 nachgewiesen haben, dass sie nichts
+verändern. W7.1 ändert Pixel, W7.2 die Bandzahl — der Wert **muss** fallen,
+zweimal, und jeder neue Wert wird in der Commit-Message seines Pakets
+**neben dem abgelösten** genannt. Die auftraggebende Seite hat bestätigt,
+dass außerhalb dieses Repos nichts automatisch dagegen prüft: im Dashboard
+vergleicht `verify_raster()` nur `band_count`, der Hash steht dort als
+Dokumentation und wird in W7.3 nachgezogen. Der alte Wert bleibt hier
+stehen, mit Datum und Grund. **Was damit endet, ist nicht der Nachweis,
+sondern seine Bezugsgröße** — die Kette „vier Produkte reproduzierbar" wird
+gegen den jeweils neuen Wert neu abgenommen, nicht ersatzlos aufgegeben.
+
+**Aus vier Endprodukten werden fünf.** `out/wka_bestand_punkte.geojson`
+kommt in W7.1 hinzu und ist ab dann vertraglich zugesagt wie die anderen
+vier. Das Zielbild in §3 nennt vier; es wird mit W7.1 auf fünf gezogen. Eine
+Produktliste, die nach dem Paket noch vier sagt, ist falsch, nicht bloß
+veraltet.
+
+**Eine Frage war vor Beginn offen und ist beantwortet.** Der fremde Plan
+beschreibt für das neue Band 39 eine Einfügestelle *mitten* in
+`contract.LAYER_NAMES`, zwischen `haeuser_im_gruenen_noe_pdf` und
+`haeuser_im_gruenen` — während dieselbe Auftragslage verlangt, dass die
+bestehenden 38 Bänder Name und Index behalten. Beides zusammen geht nicht:
+`LAYER_NAMES` **ist** die Bandreihenfolge, 1-basiert, und eine Einfügung an
+dieser Stelle verschöbe alles ab Index 8. Die auftraggebende Seite hat die
+Dokumentstelle als veraltet zurückgezogen; es wird **angehängt**, 39 bis 44
+in der Reihenfolge `haeuser_im_gruenen_source`,
+`general_buildings_roh_osm`, `general_buildings_roh_dkm`, `sources_human`,
+`sources_nature`, `sources_geography`. Braucht ein angehängtes Band Eingänge
+aus einem früheren Builder, wird es **dort** gerechnet und unter dem
+angehängten Namen als Checkpoint geschrieben. Maßgeblich ist der Code, nicht
+das Dokument — das ist derselbe Vorrang wie in §13.11.
+
+**Die Testzahl im fremden Plan ist eine Welle alt.** Er verlangt „alle 217+
+Tests grün"; 217 war der Stand nach W6.6 (214 + 3). Seit W6.7 sammelt
+`make test` **226** (223 + 3). Die Untergrenze in `tests/conftest.py`
+(`MIN_COLLECTED_TESTS = 210`) bricht dadurch nicht — sie ist eine
+Untergrenze —, wird in W7.2 aber nachgezogen, sonst schützt sie nach dem
+Zuwachs weniger als vorher.
+
+| Paket | Welle | Gruppe | Titel | Besitzt | Braucht | Abnahme |
+|---|---|---|---|---|---|---|
+| W7.1 | 7 | Struktur v4 | WKA-Bestand strikt außerhalb der Zonen | neu: `pipeline/export/wka_bestand.py`, `tests/test_export_wka_bestand.py`, `make/export/wka_bestand.mk` · ändern: `pipeline/layers/geo.py` (nur `build_wka_bestand_hulls`), `calc/band_manifest.py` (nur die Beschreibung von Band 38), `pipeline/contract.py` (nur `PRODUCTS`), `docs/HANDOFF.md`, `tests/test_referenz_tif.py` und `pipeline/validate.py` (nur das Hash-Literal) | W6.7 | Wörtlich aus dem Auftrag: „Band 38 AND Band 37 = leer; jede Anlage mit `in_zone=false` liegt außerhalb Band 37; Anzahl Hüllen und Anlagen im Report." Dazu aus diesem Plan: Der Befund, den das Paket behebt, ist ein **Geometriefehler, kein Zählfehler** — `geo.py:556` prüft „in Zone" als Punktabfrage am Raster, die konvexe Hülle plus 200-m-Rand wird danach ohne `difference()` gegen `official_wind_zoning` rasterisiert (`geo.py:567-576`), sodass ein grenznaher Cluster in eine amtliche Zone hineinragen kann, obwohl jede einzelne Anlage außerhalb liegt. Lauf: `make layers finalize validate export`, kein voller `make all`. Zu berichten sind die drei Zählungen gegen die Referenz **1595 gesamt / 807 in Zone / 788 außerhalb** und der **neue Referenz-Hash neben dem alten**. |
+| W7.2 | 7 | Struktur v4 | Sechs Bänder und Manifest 2.2.0 | `pipeline/contract.py` (`LAYER_NAMES`), `pipeline/finalize.py` (`BANDS`), `calc/band_manifest.py`, `calc/viz/band_metadata.py` (`CATEGORY_TOTALS`, Farben), `pipeline/layers/geo.py`, `pipeline/layers/osm.py`, `pipeline/validate.py` (die hartkodierten Indexbereiche in Zeile 44, 108–121, 473) · neu: `pipeline/export/layer_doc.py` → `out/LAYER.md`, Kopie `docs/layer.md` · Tests: `test_band_metadata.py`, `test_band_manifest.py`, `test_export_dashboard.py`, `test_export_viewer.py`, `conftest.py` · `docs/HANDOFF.md` | W7.1 | Wörtlich aus dem Auftrag: „44 Bänder, Manifest validiert, alle 217+ Tests grün, `LAYER.md` listet 44 Bänder." Dazu aus diesem Plan: **217 ist der Stand vor W6.7 — die Abnahme läuft gegen 226 gesammelte Tests**, und die Untergrenze in `conftest.py` wird mitgezogen. Die sechs Bänder entstehen aus bereits vorhandenen In-Memory-Arrays (`hig_family` liegt als lokale Variable in `geo.py:393` und wird heute nur gepuffert weiterverwendet), es wird **kein neuer Rohdatenzugriff** eröffnet. Der Schema-String `clean-38-…` trägt die Bandzahl im Namen und muss an allen vier Fundstellen mit — wer ihn stehen lässt, hat ein Manifest, das sich selbst widerspricht. **Zweiter neuer Referenz-Hash, wieder neben dem abgelösten.** |
+| W7.3 | 7 | Struktur v4 | Das Dashboard baut den Baum aus dem Manifest | **Fremdes Repo** `~/Documents/master_windkraft/winddashboard`, Zweig `feat/manifest-integration` (`c69121c`): `src/lib/config/bands.ts`, `src/lib/config/legend.ts`, `src/lib/components/MapControlPanel.svelte`, `src/routes/methodik/+page.svelte`, `scripts/extract_band_geojson.py`, `scripts/extract_possible_zones.py`, neu `scripts/merge_turbine_attributes.py`, `PIPELINE.md`, die neue Punktdatei unter `geodata/` | W7.2 | Wörtlich aus dem Auftrag: „40 Layer im Baum, Reihenfolge wie v4, Bestandsanlagen außerhalb überlappen weder Band 37 noch die Vektor-Zonen sichtbar, keine neuen svelte-check-Fehler." Dazu aus diesem Plan: Das Paket arbeitet **außerhalb dieses Repos** — Regel 10 (Plandateien nach jedem Paket committen) betrifft nur diese Seite, und nichts unter `geodata/` wird gelöscht. Es ist zugleich die Gegenprobe auf W7.2: Die 16 Handeinträge entfallen ersatzlos, der Baum kommt aus `familie`/`stufe`/`dashboard_layer`. Fällt dabei ein Band durch, ist der Fehler im Manifest, nicht im Dashboard. |
 
 ## 8. Regeln der Parallelität
 
