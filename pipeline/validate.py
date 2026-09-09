@@ -233,6 +233,12 @@ URSACHE_UNERWARTET = (
     "FEHLER: in keinem *_wirkungspfad des Manifests - verstoesst "
     "gegen PLAN.md Paragraph 13.9, vor Fortsetzung klaeren"
 )
+# W7.4: Default-ursache fuer ein Band ohne Gegenstueck in run1 - kein TODO
+# (URSACHE_PLATZHALTER waere hier irrefuehrend, es ist nichts offen zu
+# klaeren), sondern eine Aussage, die den fehlenden Vergleich benennt.
+URSACHE_OHNE_GEGENSTUECK = (
+    "kein Gegenstueck in run1 (neues Band seit Schema 2.2.0/W7.1)"
+)
 
 # Konvention (siehe Moduldocstring, "Der Nutzer hat entschieden"): eine
 # ursache, die dieses Wort enthaelt, markiert eine vom Nutzer bereits
@@ -269,6 +275,13 @@ AMPEL_ROT = "rot"
 # Nutzer bereits geprueft und akzeptiert hat. Beides in "gruen" zu
 # verschmelzen wuerde die Groessenordnung verschleiern; siehe write_register().
 AMPEL_AKZEPTIERT = "akzeptiert"
+# W7.4: ein Band des neuen TIFs, das in run1 (namentlich, siehe
+# measure_bands()) keine Entsprechung hat - z.B. die sechs seit Schema
+# 2.2.0/W7.1 angehaengten Baender 39-44. Kein Diff, also weder "bitgleich"
+# noch gruen/gelb/rot; eine eigene, ausdrueckliche Aussage ("kein
+# Gegenstueck"), damit diese Baender im Register sichtbar bleiben statt als
+# gruen durchzugehen oder ganz zu fehlen.
+AMPEL_OHNE_GEGENSTUECK = "ohne_gegenstueck"
 
 
 @dataclass
@@ -285,6 +298,7 @@ class BandResult:
     schwerpunkt_bundesland: str
     ampel: str = AMPEL_BITGLEICH
     unerwartet: bool = False
+    ohne_gegenstueck: bool = False  # W7.4: kein Gegenstueck in run1 (siehe AMPEL_OHNE_GEGENSTUECK)
 
 
 # ---------------------------------------------------------------------------
@@ -350,16 +364,32 @@ def _largest_connected_component_px(diff_mask: np.ndarray) -> int:
 # ---------------------------------------------------------------------------
 
 def measure_bands(new_tif: Path, reference_tif: Path) -> list[BandResult]:
+    """Vergleicht ``new_tif`` bandweise gegen ``reference_tif`` (``run1``).
+
+    **Seit W7.4 vergleichbare Bandzahl ist keine Voraussetzung mehr.** Seit
+    Schema 2.2.0 (W7.1) traegt das TIF mehr Baender als ``run1`` - das ist
+    der Regelfall, sobald ein Paket neue Baender anhaengt, kein Fehler. Statt
+    bei abweichender Bandzahl/-liste hart abzubrechen (frueheres Verhalten,
+    ``ValueError`` "Bandzahl weicht ab" bzw. "Bandnamen/-reihenfolge weichen
+    ab"), vergleicht diese Funktion nur die **ueberlappenden** Baender und
+    weist die uebrigen Baender des neuen TIFs ausdruecklich als
+    :data:`AMPEL_OHNE_GEGENSTUECK` aus (``BandResult.ohne_gegenstueck =
+    True``) - eine eigene Aussage, kein "bitgleich" (0 Diff) und kein
+    Fehler, siehe :func:`classify` und :func:`write_register`.
+
+    **Zuordnung ueber den Bandnamen, nicht ueber den Index** (Auftrag W7.4),
+    sofern beide Seiten vollstaendige, eindeutige Namen hergeben - beide
+    TIFs tragen ihre Bandnamen als GDAL-``Description`` je Band (``run1``
+    ebenso wie das frisch finalisierte TIF; siehe Bericht zu W7.4: eine
+    ``.bands.json``-Sidecar existiert fuer ``run1`` zwar auch, ist aber nicht
+    Datenquelle dieser Funktion, weil die im TIF selbst eingebetteten
+    Descriptions bereits vollstaendig und - geprueft - deckungsgleich mit der
+    Sidecar sind). Nur wenn Namen auf einer Seite fehlen oder doppelt sind,
+    faellt die Funktion sichtbar (Meldung auf stderr) auf einen reinen
+    Indexabgleich der ersten ``min(new_count, ref_count)`` Baender zurueck -
+    niemals stillschweigend.
+    """
     with rasterio.open(new_tif) as new_src, rasterio.open(reference_tif) as ref_src:
-        if new_src.count != ref_src.count:
-            raise ValueError(
-                f"Bandzahl weicht ab: {new_tif} hat {new_src.count}, {reference_tif} hat {ref_src.count}."
-            )
-        if new_src.descriptions != ref_src.descriptions:
-            raise ValueError(
-                "Bandnamen/-reihenfolge weichen ab - kein bandweiser Vergleich moeglich:\n"
-                f"neu: {new_src.descriptions}\nrun1: {ref_src.descriptions}"
-            )
         if new_src.shape != ref_src.shape or new_src.transform != ref_src.transform:
             raise ValueError(
                 f"Gitter weicht ab: {new_tif} shape={new_src.shape} transform={new_src.transform} vs. "
@@ -370,17 +400,86 @@ def measure_bands(new_tif: Path, reference_tif: Path) -> list[BandResult]:
         cell_area_m2 = abs(float(grid["transform"].a) * float(grid["transform"].e))
         total_cells = int(grid["shape"][0]) * int(grid["shape"][1])
         band_names = list(new_src.descriptions)
+        ref_names = list(ref_src.descriptions)
+
+        # Namensabgleich nur, wenn beide Seiten vollstaendige UND eindeutige
+        # Namen hergeben - eine leere oder doppelte Beschreibung macht einen
+        # Namensabgleich bedeutungslos (welchem Band entspraeche ""?).
+        namen_nutzbar = (
+            all(band_names)
+            and all(ref_names)
+            and len(set(ref_names)) == len(ref_names)
+        )
+        if namen_nutzbar:
+            ref_index_by_name = {name: idx for idx, name in enumerate(ref_names, start=1)}
+            print(
+                f"measure_bands(): Zuordnung ueber den Bandnamen ({len(band_names)} Baender "
+                f"in {new_tif.name}, {len(ref_names)} in {reference_tif.name})."
+            )
+        else:
+            ref_index_by_name = None
+            min_count = min(len(band_names), len(ref_names))
+            print(
+                "measure_bands(): Namensabgleich nicht moeglich (leere oder doppelte "
+                f"Bandbeschreibungen auf mindestens einer Seite) - falle zurueck auf die "
+                f"ersten {min_count} Indizes.",
+                file=sys.stderr,
+            )
 
         bl_raster: np.ndarray | None = None
         bl_codes: dict[int, str] | None = None
 
         results: list[BandResult] = []
-        for i, name in enumerate(band_names, start=1):
+        for i, raw_name in enumerate(band_names, start=1):
+            # Im Indexabgleich-Fallback kann raw_name None sein (GDAL-
+            # Description nicht gesetzt) - ab hier durchgaengig als "" statt
+            # None fuehren (BandResult.band_name, band_role(), Register).
+            name = raw_name or ""
+            role = band_role(name)
+
+            if ref_index_by_name is not None:
+                ref_idx = ref_index_by_name.get(name)
+            else:
+                ref_idx = i if i <= min_count else None
+
+            if ref_idx is None:
+                # Kein Gegenstueck in run1 (Auftrag W7.4) - ausdruecklich
+                # ausweisen statt als "bitgleich" zu verschlucken oder
+                # abzubrechen. Kennzahlen sind hier rein informativ (eigener
+                # Bestand des neuen Bandes, kein Diff moeglich) - bewusst
+                # OHNE Bundesland-Zuordnung: die teure Rasterisierung der
+                # Bundeslandmaske (_build_bundesland_code_raster()) lohnt
+                # sich fuer einen "Schwerpunkt der Abweichung" - hier gibt es
+                # keine Abweichung, nur ein neues Band, also keinen
+                # sinnvollen Schwerpunkt.
+                a = new_src.read(i)
+                mask = a != 0
+                gesetzt = int(mask.sum())
+                anteil_kontrolle = gesetzt / total_cells * 100.0 if total_cells else 0.0
+                groesste_px = _largest_connected_component_px(mask) if gesetzt else 0
+                results.append(
+                    BandResult(
+                        band_nr=i,
+                        band_name=name,
+                        role=role,
+                        pixel_abs=gesetzt,
+                        gesetzte_pixel_referenz=0,
+                        anteil_prozent=anteil_kontrolle,
+                        anteil_prozent_kontrolle=anteil_kontrolle,
+                        groesste_flaeche_ha=groesste_px * cell_area_m2 / 10_000.0,
+                        flaeche_km2=gesetzt * cell_area_m2 / 1_000_000.0,
+                        schwerpunkt_bundesland="",
+                        ampel=AMPEL_OHNE_GEGENSTUECK,
+                        ohne_gegenstueck=True,
+                    )
+                )
+                del a, mask
+                continue
+
             a = new_src.read(i)
-            b = ref_src.read(i)
+            b = ref_src.read(ref_idx)
             diff_mask = a != b
             pixel_abs = int(diff_mask.sum())
-            role = band_role(name)
 
             if pixel_abs == 0:
                 results.append(
@@ -465,6 +564,13 @@ def classify(result: BandResult, erlaubte_baender: set[str]) -> tuple[str, bool]
     selbst kennt keine einzelne Ursache. Erzwingt Rot unabhaengig von der
     sonst berechneten Farbe.
     """
+    if result.ohne_gegenstueck:
+        # W7.4: kein Diff moeglich (kein Gegenstueck in run1) - eigener
+        # Status, umgeht die Ampeltabelle UND den §13.9-Waechter (der
+        # pruefte nur, ob eine ABWEICHUNG erwartet war; hier gibt es gar
+        # keine Abweichung, nur ein neues Band).
+        return AMPEL_OHNE_GEGENSTUECK, False
+
     if result.pixel_abs == 0:
         return AMPEL_BITGLEICH, False
 
@@ -550,7 +656,10 @@ def write_register(path: Path, paket: str, results: list[BandResult], erlaubte_b
     existing = _load_existing_register(path)
     other_paket_rows = {key: row for key, row in existing.items() if key[0] != paket}
 
-    deviating = [r for r in results if r.pixel_abs > 0]
+    # W7.4: Baender ohne Gegenstueck in run1 muessen im Register erscheinen,
+    # auch wenn sie (informativ) 0 gesetzte Zellen haetten - deshalb nicht
+    # ueber den pixel_abs-Filter ausgeschlossen wie bitgleiche Baender.
+    deviating = [r for r in results if r.pixel_abs > 0 or r.ohne_gegenstueck]
     classified: list[BandResult] = []
     new_rows: dict[tuple[str, str], list[str]] = {}
     for r in deviating:
@@ -571,6 +680,8 @@ def write_register(path: Path, paket: str, results: list[BandResult], erlaubte_b
             ursache = URSACHE_UNERWARTET
         elif prior is not None and prior[-1] and prior[-1] not in (URSACHE_PLATZHALTER, URSACHE_UNERWARTET):
             ursache = prior[-1]
+        elif r.ohne_gegenstueck:
+            ursache = URSACHE_OHNE_GEGENSTUECK
         else:
             ursache = URSACHE_PLATZHALTER
 
@@ -695,12 +806,14 @@ def main(argv: list[str] | None = None) -> int:
     erlaubte_baender = _erlaubte_baender_aus_manifest(manifest)
 
     results = measure_bands(new_tif, reference_tif)
-    bitgleich = [r for r in results if r.pixel_abs == 0]
+    ohne_gegenstueck = [r for r in results if r.ohne_gegenstueck]
+    bitgleich = [r for r in results if r.pixel_abs == 0 and not r.ohne_gegenstueck]
     classified = write_register(register_path, args.paket, results, erlaubte_baender)
 
     print(f"Vergleich {new_tif.name} gegen {reference_tif.name}: {len(results)} Baender.")
     print(f"  bitgleich: {len(bitgleich)}")
-    print(f"  abweichend: {len(classified)}")
+    print(f"  ohne Gegenstueck in {reference_tif.name}: {len(ohne_gegenstueck)}")
+    print(f"  abweichend (inkl. ohne Gegenstueck): {len(classified)}")
     if classified:
         # groesste_ha (groesste zusammenhaengende Flaeche, Register-Spalte
         # groesste_flaeche_ha) und gesamt_km2 (Summe aller abweichenden

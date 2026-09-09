@@ -38,6 +38,7 @@ from pipeline.validate import (  # noqa: E402
     AMPEL_BITGLEICH,
     AMPEL_GELB,
     AMPEL_GRUEN,
+    AMPEL_OHNE_GEGENSTUECK,
     AMPEL_ROT,
     GELB_FLAECHE_HA,
     GELB_FLAECHE_KM2,
@@ -46,6 +47,7 @@ from pipeline.validate import (  # noqa: E402
     GRUEN_FLAECHE_KM2,
     GRUEN_ANTEIL_PROZENT,
     REGISTER_COLUMNS,
+    URSACHE_OHNE_GEGENSTUECK,
     URSACHE_PLATZHALTER,
     URSACHE_UNERWARTET,
     BandResult,
@@ -67,6 +69,7 @@ def _result(
     groesste_flaeche_ha: float = 0.0,
     flaeche_km2: float = 0.0,
     band_name: str = "irgendein_band",
+    ohne_gegenstueck: bool = False,
 ) -> BandResult:
     return BandResult(
         band_nr=1,
@@ -79,6 +82,7 @@ def _result(
         groesste_flaeche_ha=groesste_flaeche_ha,
         flaeche_km2=flaeche_km2,
         schwerpunkt_bundesland="Wien",
+        ohne_gegenstueck=ohne_gegenstueck,
     )
 
 
@@ -150,6 +154,38 @@ def test_referenzband_jede_abweichung_ist_rot_auch_minimal():
     r = _result(ROLE_REFERENZ, pixel_abs=1, anteil_prozent=0.0000001, groesste_flaeche_ha=0.0000001)
     ampel, unerwartet = classify(r, erlaubte_baender={r.band_name})
     assert ampel == AMPEL_ROT
+    assert unerwartet is False
+
+
+# ---------------------------------------------------------------------------
+# Ampel: Bänder ohne Gegenstück in run1 (W7.4) - eigener Status, kein Diff
+# möglich, umgeht die Ampeltabelle UND den §13.9-Wächter.
+# ---------------------------------------------------------------------------
+
+def test_ohne_gegenstueck_ist_ein_eigener_status_kein_bitgleich_und_kein_rot():
+    # Extremwerte, die als "bedingung" sonst sicher Rot waeren - der Status
+    # muss trotzdem AMPEL_OHNE_GEGENSTUECK bleiben, nicht in die normale
+    # Ampeltabelle rutschen.
+    r = _result(
+        ROLE_BEDINGUNG,
+        pixel_abs=999999,
+        anteil_prozent=99.0,
+        groesste_flaeche_ha=99999.0,
+        band_name="ein_neues_band_seit_w71",
+        ohne_gegenstueck=True,
+    )
+    ampel, unerwartet = classify(r, erlaubte_baender=set())
+    assert ampel == AMPEL_OHNE_GEGENSTUECK
+    assert unerwartet is False
+
+
+def test_ohne_gegenstueck_wird_nicht_vom_13_9_waechter_erfasst():
+    # Ein Band ohne Gegenstueck steht per Definition in keinem
+    # *_wirkungspfad (es ist kein Diff, keine Abweichung) - trotzdem darf
+    # es nicht als "unerwartet" (Rot) markiert werden.
+    r = _result(ROLE_BEDINGUNG, ohne_gegenstueck=True, band_name="ganz_neu")
+    ampel, unerwartet = classify(r, erlaubte_baender={"irgendein_anderes_band"})
+    assert ampel == AMPEL_OHNE_GEGENSTUECK
     assert unerwartet is False
 
 
@@ -316,14 +352,103 @@ def test_measure_bands_bitgleiches_band_hat_keine_flaeche_und_keinen_schwerpunkt
     assert result.schwerpunkt_bundesland == ""
 
 
-def test_measure_bands_bricht_bei_unterschiedlichen_bandnamen_ab(tmp_path):
+def test_measure_bands_band_ohne_gegenstueck_wird_ausgewiesen_statt_abzubrechen(tmp_path, monkeypatch):
+    """W7.4: unterschiedliche Bandzahl/-namen sind seit Schema 2.2.0 (W7.1)
+    der Regelfall (44 gegen 38), kein Fehler mehr. Ein Band, das im neuen
+    TIF steht, aber in run1 keine Entsprechung hat, wird als eigener Status
+    ausgewiesen statt den Vergleich abzubrechen."""
     arr = np.zeros((5, 5), dtype=np.uint8)
+    arr[0:2, 0:2] = 1  # 4 gesetzte Zellen im neuen Band
     new_tif = tmp_path / "new.tif"
     ref_tif = tmp_path / "ref.tif"
-    _write_tif(new_tif, {"band_a": arr})
-    _write_tif(ref_tif, {"band_b": arr})
-    with pytest.raises(ValueError, match="Bandnamen"):
-        measure_bands(new_tif, ref_tif)
+    _write_tif(new_tif, {"band_a": arr, "ganz_neu": arr})
+    _write_tif(ref_tif, {"band_a": arr})
+
+    monkeypatch.setattr(
+        validate_module,
+        "_build_bundesland_code_raster",
+        lambda grid: (_ for _ in ()).throw(
+            AssertionError("sollte fuer ein Band ohne gesetzte Referenz-/Diff-Zellen nicht noetig sein")
+        ),
+    )
+
+    results = measure_bands(new_tif, ref_tif)
+    by_name = {r.band_name: r for r in results}
+    assert by_name["band_a"].pixel_abs == 0
+    assert by_name["band_a"].ohne_gegenstueck is False
+
+    neu = by_name["ganz_neu"]
+    assert neu.ohne_gegenstueck is True
+    assert neu.ampel == validate_module.AMPEL_OHNE_GEGENSTUECK
+    assert neu.pixel_abs == 4  # informativ: gesetzte Zellen des neuen Bandes selbst
+    assert neu.gesetzte_pixel_referenz == 0
+
+
+def test_measure_bands_ordnet_ueber_namen_nicht_ueber_index(tmp_path, monkeypatch):
+    """Kernpunkt des Auftrags: die Zuordnung laeuft ueber den Bandnamen, so
+    dass eine andere Bandreihenfolge zwischen neuem TIF und run1 KEINEN
+    falschen Diff erzeugt."""
+    alpha = np.zeros((5, 5), dtype=np.uint8)
+    alpha[0, 0] = 1  # identisch in new und ref -> bitgleich, wenn richtig zugeordnet
+    beta_new = np.zeros((5, 5), dtype=np.uint8)
+    beta_new[1:3, 1:3] = 1  # 4 gesetzte Zellen
+    beta_ref = np.zeros((5, 5), dtype=np.uint8)  # komplett anders (leer)
+
+    new_tif = tmp_path / "new.tif"
+    ref_tif = tmp_path / "ref.tif"
+    # new: alpha zuerst, dann beta - ref: beta zuerst, dann alpha (vertauscht).
+    _write_tif(new_tif, {"alpha": alpha, "beta": beta_new})
+    _write_tif(ref_tif, {"beta": beta_ref, "alpha": alpha})
+
+    dummy_bl = np.zeros((5, 5), dtype=np.uint8)
+    monkeypatch.setattr(
+        validate_module,
+        "_build_bundesland_code_raster",
+        lambda grid: (dummy_bl, {1: "Wien"}),
+    )
+
+    results = measure_bands(new_tif, ref_tif)
+    by_name = {r.band_name: r for r in results}
+    # Richtig (namensbasiert): alpha bitgleich, beta genau 4 abweichende Zellen.
+    # Ein indexbasierter Fehlgriff (Position statt Name) haette hier
+    # stattdessen 1 bzw. 5 abweichende Zellen ergeben (siehe Kommentar im
+    # Auftrag) - genau das soll dieser Test ausschliessen.
+    assert by_name["alpha"].pixel_abs == 0
+    assert by_name["beta"].pixel_abs == 4
+
+
+def test_measure_bands_faellt_auf_index_zurueck_wenn_namen_fehlen(tmp_path, capsys):
+    """Fehlen Bandbeschreibungen auf mindestens einer Seite, faellt die
+    Funktion sichtbar (nicht stillschweigend) auf einen reinen Indexabgleich
+    zurueck - siehe Auftrag W7.4: 'ein Namensabgleich, der stillschweigend
+    zum Indexabgleich zurueckfaellt, waere genau der Fehler'."""
+    a = np.zeros((5, 5), dtype=np.uint8)
+    b = np.zeros((5, 5), dtype=np.uint8)  # keine gesetzten Zellen - _build_bundesland_code_raster() bleibt ungebraucht
+    new_tif = tmp_path / "new.tif"
+    ref_tif = tmp_path / "ref.tif"
+
+    # Ohne set_band_description(): Description bleibt None -> "namen fehlen".
+    profile = {
+        "driver": "GTiff", "height": 5, "width": 5, "count": 2,
+        "dtype": "uint8", "crs": "EPSG:31287", "transform": _grid_transform(5),
+    }
+    with rasterio.open(new_tif, "w", **profile) as dst:
+        dst.write(a, 1)
+        dst.write(b, 2)
+    profile_ref = dict(profile, count=1)
+    with rasterio.open(ref_tif, "w", **profile_ref) as dst:
+        dst.write(a, 1)
+
+    results = measure_bands(new_tif, ref_tif)
+    # min(new_count=2, ref_count=1) = 1 -> nur Band 1 wird verglichen (bitgleich,
+    # a gegen a), Band 2 ("b", nur im neuen TIF) ist ohne Gegenstueck.
+    assert len(results) == 2
+    assert results[0].pixel_abs == 0
+    assert results[0].ohne_gegenstueck is False
+    assert results[1].ohne_gegenstueck is True
+
+    err = capsys.readouterr().err
+    assert "Namensabgleich nicht moeglich" in err
 
 
 def test_measure_bands_bricht_bei_unterschiedlichem_gitter_ab(tmp_path):
@@ -416,6 +541,35 @@ def test_write_register_frisches_band_bekommt_todo_platzhalter(tmp_path):
     write_register(path, "W1.0", [_band(1, "band_a")], erlaubte_baender={"band_a"})
     rows = _load_existing_register(path)
     assert rows[("W1.0", "band_a")][-1] == URSACHE_PLATZHALTER
+
+
+def test_write_register_band_ohne_gegenstueck_erscheint_ausdruecklich(tmp_path):
+    """W7.4: ein Band ohne Gegenstueck in run1 (z.B. die sechs seit Schema
+    2.2.0/W7.1 angehaengten) darf nicht als 'gruen' durchgehen und nicht
+    fehlen - eigener Status AMPEL_OHNE_GEGENSTUECK und eigene ursache, auch
+    wenn (informativ) pixel_abs=0 waere."""
+    path = tmp_path / "abweichungen.tsv"
+    neues_band = BandResult(
+        band_nr=42,
+        band_name="sources_human",
+        role=ROLE_BEDINGUNG,
+        pixel_abs=0,  # informativ: das neue Band ist zufaellig ueberall 0
+        gesetzte_pixel_referenz=0,
+        anteil_prozent=0.0,
+        anteil_prozent_kontrolle=0.0,
+        groesste_flaeche_ha=0.0,
+        flaeche_km2=0.0,
+        schwerpunkt_bundesland="",
+        ohne_gegenstueck=True,
+    )
+    classified = write_register(path, "W7.4", [neues_band], erlaubte_baender=set())
+    assert [r.band_name for r in classified] == ["sources_human"]
+    assert classified[0].ampel == AMPEL_OHNE_GEGENSTUECK
+
+    rows = _load_existing_register(path)
+    row = rows[("W7.4", "sources_human")]
+    assert row[-2] == AMPEL_OHNE_GEGENSTUECK  # ampel-Spalte
+    assert row[-1] == URSACHE_OHNE_GEGENSTUECK  # ursache-Spalte
 
 
 # ---------------------------------------------------------------------------
