@@ -221,8 +221,9 @@ große JSON-Ausschnitt oben im Dokument (Abschnitt „Das Manifest-Schema,
 Feld für Feld") bleibt bewusst die historische Momentaufnahme von
 `2.0.0`, an der die dortige Felderklärung entstand — sie zeigt die
 Struktur, nicht den aktuellen Stand; für die 44-Bänder-Liste selbst siehe
-`out/abschichtung.bands.json` oder `out/LAYER.md` (bzw. `docs/layer.md`,
-die eingecheckte Kopie der Vorlage). Der bandweise Vergleich der 18 (bzw.
+`out/abschichtung.bands.json` oder `out/LAYER.md` (seit W7.6 erzeugt aus
+dem Manifest, `pipeline/export/layer_doc.py` - keine handgepflegte
+Vorlage mehr, siehe unten). Der bandweise Vergleich der 18 (bzw.
 jetzt ggf. mehr) abweichenden Bänder gegen `run1` unten („18 Bänder
 unterscheiden sich von `run1`") bezieht sich inhaltlich weiterhin nur auf
 Ursachen innerhalb der Bänder 1–38 (`run1` selbst hat und behält 38
@@ -301,6 +302,34 @@ aber eine inhaltliche Änderung an drei Bändern: Nutzerentscheidung vom
   ungepufferten Quellsumme filterte vorher ebenfalls nicht.
 
 Einzige Definitionsstelle: `calc.abschichtung_common.PEOPLE_CARRYING_AERIALWAY_TYPES`.
+
+### `2.2.1` (Paket W7.6, 09.09.2026) — Kategorie-/Familien-/Stufentexte, drei neue Parameter, dritter Caveat
+
+Reine Textänderung, kein Pixel geändert (bandweise gemessen: `diff=0` über
+alle 44 Bänder), `band_count` bleibt 44. Zwei neue Top-Level-Schlüssel,
+`kategorien` (sieben Einträge, je `category_order`-Eintrag einer) und
+`stufen` (sieben Einträge, deckt `stufe_order` vollständig ab); `familien[]`
+bekommt `description_de` je Eintrag. Alle `label_de` folgen ab hier
+ausnahmslos der Namensregel (nur Buchstaben, Leerzeichen, Bindestriche -
+mechanisch geprüft, `tests/test_band_manifest.py`). Ein dritter
+`caveats`-Eintrag (`tunnelfilter_unvollstaendig`). Fünf neue
+`parameters`-Schlüssel (`SLOPE_MAX_DEG`, `ELEVATION_MAX_M`, `PD_MIN_W_M2`,
+`PD_MIN_REFERENCE_HEIGHT_M`, `PD_MIN_AT_150M_W_M2`) - diese landen auch als
+GeoTIFF-Datei-Tags, was die Datei-Prüfsumme des TIF ändert, obwohl kein
+Pixel abweicht (siehe `tests/test_referenz_tif.py`, "Fünfter Wechsel").
+Außerdem, noch innerhalb W7.6: `default_visible`/`dashboard_layer` sind ab
+hier feste Namenslisten statt einer Ableitung aus `stufe` (`default_visible`
+5 der 44 Bänder - die drei Kategoriesummen, die Eignungsflächen, die
+amtlichen Zonen; `dashboard_layer` 23 der 44 Bänder).
+
+**Siebtes Endprodukt:** `out/LAYER-MANIFEST.md` (Quelle `docs/LAYER-MANIFEST.md`,
+`pipeline.contract.PRODUCTS["layer_manifest_md"]`) - der Vertrag, WIE dieses
+Manifest zu lesen ist (Feldtabelle, Invarianten, Textkonventionen), kopiert
+bei jedem `make export` neben `out/LAYER.md`. `out/LAYER.md` selbst wird ab
+W7.6 nicht mehr aus einer handgepflegten Vorlage kopiert, sondern von
+`pipeline/export/layer_doc.py` direkt aus `out/abschichtung.bands.json`
+erzeugt - kein Bandname im Erzeuger-Code, zwei Läufe über dasselbe Manifest
+liefern bytegleiche Ausgaben.
 
 ## Vertrag vs. Dokumentation
 

@@ -363,4 +363,8 @@ PRODUCTS = {
     "gemeinden_geojson": OUT / "gemeinden.geojson",
     "wka_bestand_punkte_geojson": OUT / "wka_bestand_punkte.geojson",
     "layer_md": OUT / "LAYER.md",
+    # W7.6: siebtes Endprodukt - der Vertrag, WIE abschichtung.bands.json zu
+    # lesen ist (docs/LAYER-MANIFEST.md), gelesen nicht kopiert bis hierher,
+    # ab W7.6 auch nach out/ übergeben (make/export/layer_manifest_md.mk).
+    "layer_manifest_md": OUT / "LAYER-MANIFEST.md",
 }

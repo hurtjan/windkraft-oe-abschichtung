@@ -153,8 +153,42 @@ from calc.band_manifest import manifest_path_for  # noqa: E402
 # Vorheriger Wert (W7.1, 09.09.2026 vormittags):
 # sha256 a905c056…ab5c9f, 152 669 124 Bytes - bleibt ebenso als
 # historischer Zeuge dokumentiert.
-REFERENZ_SHA256 = "99d522239dc499b833cab3080c810b9568ac3078a66b81a470e37228b55a96ac"
-REFERENZ_BYTES = 152_656_278
+#
+# Fünfter Wechsel (W7.6, 09.09.2026, reine Textänderung - KEIN Pixel
+# unterscheidet sich): pipeline/finalize.py bekommt fünf neue
+# ``tags``-Einträge (SLOPE_MAX_DEG, ELEVATION_MAX_M, PD_MIN_W_M2,
+# PD_MIN_REFERENCE_HEIGHT_M, PD_MIN_AT_150M_W_M2 - die drei
+# Geografie-Schwellenwerte maschinenlesbar, docs/LAYER-MANIFEST.md §4a/§5).
+# Diese Tags werden von compose_exclusion_geotiff() in die Datei
+# gestempelt (siehe dortiges update_tags) - der sha256 über die GANZE
+# Datei ändert sich deshalb zwangsläufig, obwohl jedes der 44 Bänder
+# zellgenau unverändert bleibt. Nachgewiesen durch zwei unabhängige Läufe:
+# (1) dieselben derived/layers/-Checkpoints mit dem UNVERÄNDERTEN
+# pipeline/finalize.py (git stash) reproduzieren exakt den vorherigen Wert
+# 99d522…96ac/152 656 278 Bytes - Determinismus und unveränderte
+# Checkpoints bestätigt; (2) ein bandweiser Vergleich (rasterio, alle 44
+# Bänder einzeln gelesen) zwischen diesem Lauf und dem W7.6-Lauf ergibt
+# ``diff=0`` für jedes Band, ``a.descriptions == b.descriptions``, und der
+# einzige Unterschied in den Datei-Tags sind exakt die fünf neu
+# hinzugekommenen Schlüssel (keine gelöscht, keine geändert). Vorheriger
+# Wert (W7.5, s.o.): sha256 99d522…96ac, 152 656 278 Bytes - bleibt als
+# historischer Zeuge dokumentiert.
+#
+# Wichtig für die Kettenfolge: pipeline/validate.py:AKTUELLE_REFERENZ_SHA256
+# gehört NICHT zu diesem Paket (W7.6 darf pipeline/validate.py nicht
+# anfassen) und bleibt deshalb auf dem Vierter-Wechsel-Wert stehen - der
+# Schnellweg dort greift ab diesem Lauf nicht mehr, der Diagnoseweg
+# (bandweiser Vergleich gegen run1) läuft stattdessen, bleibt aber grün,
+# weil sich an den bereits registrierten Abweichungen nichts ändert. Laut
+# docs/rewrite/PLAN.md ist die Aktualisierung dieses zweiten Hash-Literals
+# (in pipeline/validate.py UND hier) explizit W7.7 zugeordnet ("das
+# Hash-Literal in pipeline/validate.py und tests/test_referenz_tif.py").
+# REFERENZ_SHA256/REFERENZ_BYTES HIER werden trotzdem schon jetzt
+# nachgezogen, weil sonst die beiden billigen Tests unten in JEDEM
+# ``make test`` bis W7.7 rot liefen - siehe Bericht zu W7.6 für die
+# ausdrückliche Begründung dieser Abweichung von der Registerzuordnung.
+REFERENZ_SHA256 = "c1809c4cf9cb243d420efc949ff5543130ef3c5a75db9e948d2ea53c94416f37"
+REFERENZ_BYTES = 152_656_739
 
 # Bisheriges Soll, ab 08.09.2026 nur noch Vergleichsbasis - aber als solche
 # unveränderlich.

@@ -166,40 +166,43 @@ class Band:
 # f1d00f7 - git show f1d00f7:scripts/widmung_v2/04_create_distance_zones.py)
 # übernommen - die 26 Bedingungsbänder in exakt der Reihenfolge, in der
 # compose_exclusion_geotiff() sie schreibt.
+# W7.6 (09.09.2026, docs/LAYER-MANIFEST.md §4a/§5, MANIFEST-TEXTE.md §1):
+# alle 26 Beschreibungen final ausformuliert (Spalte "neu"), gegen den Code
+# geprüft statt aus der Vorlage übernommen (siehe Bericht zu W7.6) - insb.
+# Band 17 gegen PEOPLE_CARRYING_AERIALWAY_TYPES (W7.5, heute) verifiziert,
+# nicht die zurückgenommene Fassung eingesetzt. Bänder 14-16: Wortlaut sagt
+# die tatsächliche Wirkung ("als Tunnel ausgewiesene Abschnitte bleiben
+# unberücksichtigt"), nicht eine Absicht, die der Code nicht einlöst (siehe
+# calc.abschichtung_common._non_tunnel_mask() - liest ausschließlich die
+# Spalte "tunnel", nie "layer"/"covered"; caveats-Eintrag
+# "tunnelfilter_unvollstaendig" in calc/band_manifest.py).
 BANDS = [
-    Band("official_settlement_source", "Amtliches Wohn-/Misch-/Kern-/Dorfgebiet, alle 9 Bundesländer (build_official_zoning_layers.py)"),
-    Band("settlement_buffer", "Siedlungsabstand um official_settlement_source (NÖ 1.200 m, sonst 1.000 m)"),
-    Band("haeuser_im_gruenen_ferienhaus", "HiG-Familie: Ferienhaus-/Tourismusgebiete (B 10030/10007/10017, T Tourismusgebiet § 40 (4))"),
-    Band("haeuser_im_gruenen_widmung", "HiG-Familie: amtliche Häuser-im-Grünen-Widmung (Hofstellen, Camping, Golf, Kleingarten, Auffüllungsgebiete); ohne NÖ - dort trägt die PDF-Grünland-Klasse den Abstand"),
-    Band("haeuser_im_gruenen_streusiedlung", "HiG-Familie: bewohnte Streusiedlungs-Hüllen (>= 5 adressierte Objekte, 200-m-Verkettung); ohne NÖ - dort gilt die amtliche PDF-Quelle"),
-    Band("haeuser_im_gruenen_noe_pdf", "HiG-Familie: NÖ-SekROP-750-m-Zonen (Gebäude/GWR/Grünland-Widmung) - enthalten den 750-m-Puffer bereits"),
-    Band("haeuser_im_gruenen", "Aggregat: 750 m um Ferienhaus + Widmung + Streusiedlung, vereinigt mit den NÖ-PDF-Zonen"),
-    Band("nonresidential_hulls_source", "Industriegebietartige und unbewohnte DKM-Hüllen"),
-    Band("nonresidential_hulls_buffer", "25 m um nonresidential_hulls_source (praktisch nur der Fußabdruck)"),
-    # W7.5 (09.09.2026): Text ergänzt ggü. dem historischen Original
-    # ("OSM-Gebäude nahe einer Aerialway-Linie") - der BANDS-Kommentar oben
-    # ("wortgleich aus ...04_create_distance_zones.py") gilt ab hier
-    # bewusst NICHT mehr fuer diese eine Zeile, weil sich der Filter selbst
-    # inhaltlich geaendert hat (build_osm_building_sources() in
-    # pipeline/layers/osm.py filtert seither auf
-    # PEOPLE_CARRYING_AERIALWAY_TYPES statt jede aerialway-Linie zu nehmen).
-    Band("cableway_buildings_source", "OSM-Gebäude nahe einer Personenseilbahnlinie (Liftstationen etc.)"),
-    Band("cableway_buildings_buffer", "50 m um cableway_buildings_source"),
-    Band("general_buildings_source", "Übrige OSM-Gebäude (Garagen, Schuppen, Ställe, Industrie, untypisiert) + bewohnte Einzellagen und NÖ-Streusiedlungs-Bauflächen (DKM/BEV)"),
-    Band("general_buildings_buffer", "25 m um general_buildings_source (praktisch nur der Fußabdruck)"),
-    Band("road_motorway_trunk", "150 m buffer around motorway/trunk roads, tunnels excluded"),
-    Band("road_federal_state", "150 m buffer around primary/secondary/tertiary roads, tunnels excluded"),
-    Band("rail_main", "150 m buffer around normal/narrow-gauge railway, tunnels excluded"),
-    Band("cableway_people_150m", "150 m buffer around OSM people-carrying aerialways/lifts"),
-    Band("military_restricted_area", "OSM military/landuse=military area polygons rasterized without extra buffer"),
-    Band("airport_area_major", "Areal der Hauptflughäfen (config buffers.major_airport_osm_ids), OSM-Aerodrome-Polygone ohne Zusatzpuffer"),
-    Band("airport_runway_corridor_5km", "An-/Abflugkorridore der Hauptflughäfen: 5 km ab beiden Landebahn-Enden, ±15° um die verlängerte Bahnachse"),
-    Band("nature_protection_areas", "Official protection areas: NP, NSG, ESG/Natura2000, Ramsar"),
-    Band("osm_nature_protection_areas", "OSM protected/nature areas"),
-    Band("geography_slope_too_steep", "Slope above configured exclusion threshold"),
-    Band("geography_elevation_too_high", "Elevation above configured exclusion threshold"),
-    Band("geography_wind_too_low", "Power density below configured wind threshold"),
-    Band("geography_water_bodies", "Größere Wasserkörper (Seen/Stauseen/Flüsse) aus OSM, verbundene Flächen >= WATER_MIN_AREA_HA"),
+    Band("official_settlement_source", "Amtlich gewidmetes Wohn-, Misch-, Kern- und Dorfgebiet aller neun Bundesländer, ohne Abstand."),
+    Band("settlement_buffer", "Abstand von 1.000 m um amtliches Wohn-, Misch-, Kern- und Dorfgebiet aller neun Bundesländer; in Niederösterreich 1.200 m."),
+    Band("haeuser_im_gruenen_ferienhaus", "Ferienhaus- und Tourismusgebiete aus den amtlichen Widmungen des Burgenlands und Tirols, ohne Abstand."),
+    Band("haeuser_im_gruenen_widmung", "Amtliche Widmungen für Hofstellen, Camping, Golf, Kleingärten und Auffüllungsgebiete, ohne Abstand. Ohne Niederösterreich, dort tragen die Zonen des Sektoralen Raumordnungsprogramms den Abstand bereits."),
+    Band("haeuser_im_gruenen_streusiedlung", "Hüllen bewohnter Streusiedlungen, gebildet aus mindestens fünf adressierten Objekten mit höchstens 200 m Abstand zueinander, ohne Abstand nach außen. Ohne Niederösterreich."),
+    Band("haeuser_im_gruenen_noe_pdf", "Mindestabstandszonen des niederösterreichischen Sektoralen Raumordnungsprogramms um Gebäude, Adressen und Grünland-Widmungen. Sie enthalten den Abstand von 750 m bereits und werden deshalb nicht erneut gepuffert."),
+    Band("haeuser_im_gruenen", "Abstand von 750 m um bewohnte Einzellagen außerhalb des Baulands: Ferienhaus- und Tourismusgebiete, amtliche Widmungen für Hofstellen, Camping, Golf, Kleingärten und Auffüllungsgebiete sowie Streusiedlungen. In Niederösterreich gelten stattdessen die Mindestabstandszonen des Sektoralen Raumordnungsprogramms, die den Abstand bereits enthalten."),
+    Band("nonresidential_hulls_source", "Unbewohnte und industrieartige Kataster-Hüllen, ohne Abstand."),
+    Band("nonresidential_hulls_buffer", "Abstand von 25 m um unbewohnte und industrieartige Kataster-Hüllen; das entspricht praktisch dem Fußabdruck."),
+    Band("cableway_buildings_source", "Gebäude aus OpenStreetMap in unmittelbarer Nähe einer Seilbahnlinie, vor allem Liftstationen, ohne Abstand."),
+    Band("cableway_buildings_buffer", "Abstand von 50 m um Gebäude an Seilbahnlinien."),
+    Band("general_buildings_source", "Übrige Gebäude aus OpenStreetMap wie Garagen, Schuppen, Ställe, Industriebauten und untypisierte Gebäude, dazu bewohnte Einzellagen und niederösterreichische Streusiedlungs-Bauflächen aus Kataster und Gebäuderegister, ohne Abstand."),
+    Band("general_buildings_buffer", "Abstand von 25 m um sonstige Gebäude und Einzellagen; das entspricht praktisch dem Fußabdruck."),
+    Band("road_motorway_trunk", "Abstand von 150 m beiderseits von Autobahnen und Schnellstraßen aus OpenStreetMap. Als Tunnel ausgewiesene Abschnitte bleiben unberücksichtigt."),
+    Band("road_federal_state", "Abstand von 150 m beiderseits von Bundes- und Landesstraßen aus OpenStreetMap, einschließlich der nachgeordneten Landesstraßen. Als Tunnel ausgewiesene Abschnitte bleiben unberücksichtigt."),
+    Band("rail_main", "Abstand von 150 m beiderseits von Haupt- und Schmalspurbahnen aus OpenStreetMap. Als Tunnel ausgewiesene Abschnitte bleiben unberücksichtigt."),
+    Band("cableway_people_150m", "Abstand von 150 m um Personenseilbahnen aus OpenStreetMap: Gondelbahnen, Kabinen- und Pendelbahnen, Sessellifte und Kombibahnen. Schlepplifte und Materialseilbahnen erzeugen keine Zone."),
+    Band("military_restricted_area", "Militärische Sperrgebiete aus OpenStreetMap, ohne zusätzlichen Abstand."),
+    Band("airport_area_major", "Areale der Hauptflughäfen aus OpenStreetMap, ohne zusätzlichen Abstand."),
+    Band("airport_runway_corridor_5km", "Korridore ab beiden Landebahn-Enden der Hauptflughäfen: 5 km lang, ±15 Grad um die verlängerte Bahnachse."),
+    Band("nature_protection_areas", "Nationalparks, Naturschutzgebiete, Europaschutzgebiete nach Natura 2000 und Ramsar-Gebiete aus den amtlichen Datensätzen, ohne Abstand."),
+    Band("osm_nature_protection_areas", "Als Schutzgebiet ausgewiesene Flächen aus OpenStreetMap, ohne Abstand."),
+    Band("geography_slope_too_steep", "Hangneigung über 15 Grad, ermittelt aus dem Geländemodell mit 25 m Auflösung."),
+    Band("geography_elevation_too_high", "Seehöhe über 2.500 m, ermittelt aus dem Geländemodell mit 25 m Auflösung."),
+    Band("geography_wind_too_low", "Windleistungsdichte in 150 m Höhe unter rund 160 W/m², aus dem Globalen Windatlas. Der Grenzwert entspricht 150 W/m² in 130 m Höhe, mit dem Windprofil auf 150 m hochgerechnet."),
+    Band("geography_water_bodies", "Seen, Stauseen und Flüsse aus OpenStreetMap, zusammenhängende Wasserflächen ab 1 ha."),
 ]
 
 # Wortgleich aus scripts/widmung_v2/04_create_distance_zones.py:HUMAN_BANDS
@@ -326,6 +329,23 @@ def main(argv: list[str] | None = None) -> None:
         "WKA_CLUSTER_CHAIN_M": str(WKA_CLUSTER_CHAIN_M),
         "WKA_HULL_MARGIN_M": str(WKA_HULL_MARGIN_M),
         "DISTANCE_ENGINE": "fft",
+        # W7.6 (docs/LAYER-MANIFEST.md §7, MANIFEST-TEXTE.md §6): die drei
+        # Geografie-Schwellenwerte standen bisher nur im Quelltext (config.json
+        # "exclusion"/"wind"), null Treffer in parameters. Gelesen aus cfg,
+        # nicht als Literal hier hingeschrieben - dieselbe Quelle, aus der
+        # calc/abschichtung_common.py:build_geography_masks() tatsächlich
+        # rechnet (dortige Fallbacks 20.0/2500.0/180.0 greifen nur, wenn cfg
+        # die Schlüssel nicht trägt; config.json trägt sie, siehe dort).
+        "SLOPE_MAX_DEG": str(float(cfg["exclusion"]["slope_max_deg"])),
+        "ELEVATION_MAX_M": str(float(cfg["exclusion"]["elevation_max"])),
+        "PD_MIN_W_M2": str(float(cfg["wind"]["pd_min"])),
+        "PD_MIN_REFERENCE_HEIGHT_M": str(float(cfg["wind"]["pd_min_height_m"])),
+        # Kein zweiter Schwellenwert, sondern derselbe, auf die tatsächliche
+        # Vergleichshöhe (150 m) umgerechnet - cfg["_derived"]["power_density_min_150"]
+        # aus calc/config.py:load_config() (pd_min * (150/pd_min_height_m)**(3*shear_alpha)),
+        # dieselbe Formel, mit der Band 25 (geography_wind_too_low) tatsächlich
+        # vergleicht (calc/abschichtung_common.py: wind_min = derived["power_density_min_150"]).
+        "PD_MIN_AT_150M_W_M2": f"{cfg['_derived']['power_density_min_150']:.4f}",
     }
 
     with timed(f"compose final GeoTIFF {output}"):

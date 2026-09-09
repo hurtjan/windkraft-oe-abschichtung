@@ -1,12 +1,17 @@
 """Unit-Tests für den Band-Manifest-Writer.
 
 Synthetische Eingaben - kein echtes Raster. Geprüft wird der Vertrag, auf den
-sich der Dashboard-Konsument verlässt: 44 Bänder (Schema 2.2.0, Paket W7.1),
+sich der Dashboard-Konsument verlässt: 44 Bänder (Schema 2.2.1, Paket W7.6),
 Namen/Reihenfolge exakt wie übergeben, Pflichtfelder je Band (inkl. familie/
 stufe/dashboard_layer seit 2.2.0), value_type nur bei den vier
 Unschärfebändern "percent_0_100", clipped_to_austria nur bei 27-36, jede
 Kategorie in category_order, Farben als 4 Ints in [0, 255], parameters
-unverändert, NÖ-DKM-Caveat vorhanden.
+unverändert, drei Caveats vorhanden (NÖ-DKM, Blur-Bleed, Tunnelfilter), sowie
+seit 2.2.1: `kategorien`/`stufen` als Top-Level-Felder, `familien[].
+description_de`, die feste `dashboard_layer`/`default_visible`-Namensliste
+und die mechanische `label_de`-Namensregel (Namenstest, Registerpunkt aus
+docs/rewrite/PLAN.md, Paket W7.6: nur Buchstaben/Leerzeichen/Bindestriche,
+gilt für alle Bänder im Manifest, unabhängig von der Bandzahl).
 """
 
 from __future__ import annotations
@@ -119,6 +124,15 @@ TAGS = {
     "WKA_CLUSTER_CHAIN_M": "750.0",
     "WKA_HULL_MARGIN_M": "200.0",
     "DISTANCE_ENGINE": "fft",
+    # W7.6: fünf neue Schlüssel, die drei Geografie-Schwellenwerte
+    # maschinenlesbar - siehe pipeline/finalize.py für die echten,
+    # aus config.json gelesenen Werte. Platzhalterwerte hier, wie beim Rest
+    # von TAGS - der Writer reicht durch, was er bekommt.
+    "SLOPE_MAX_DEG": "15.0",
+    "ELEVATION_MAX_M": "2500.0",
+    "PD_MIN_W_M2": "150.0",
+    "PD_MIN_REFERENCE_HEIGHT_M": "130.0",
+    "PD_MIN_AT_150M_W_M2": "159.4971",
 }
 
 GRID = {
@@ -282,14 +296,31 @@ EXPECTED_STUFE_BY_NAME = {
     "sources_geography": "summe_quellen",
 }
 
-# dashboard_layer ist false nur für die vier Unschärfebänder 33-36
-# (Schnittstelle §1).
-NON_DASHBOARD_LAYER_NAMES = {
-    "available_blur_sigma_100m",
-    "available_blur_sigma_200m",
-    "available_blur_sigma_250m",
-    "available_blur_sigma_300m",
+# W7.6 (Nutzerentscheidung 09.09.2026 nachmittags, vorgezogen aus W7.8):
+# dashboard_layer/default_visible sind feste Namenslisten, unabhängig von
+# calc/band_manifest.py nachgezählt (Indizes in BAND_NAMES, 1-basiert) -
+# eine unabhängige Gegenprobe, keine Tautologie gegen den Erzeuger-Code.
+# default_visible: die drei Kategoriesummen, die Eignungsflächen, die
+# amtlichen Zonen (27, 28, 29, 32, 37). dashboard_layer: 23 der 44 Bänder,
+# blendet Quell-, Roh- und Aggregatstufen sowie die rohe verfügbare Fläche
+# aus.
+_DASHBOARD_LAYER_INDICES = {
+    2, 7, 9, 11, 13, 14, 15, 16, 17, 18, 19, 20,
+    23, 24, 25, 26, 27, 28, 29, 30, 32, 37, 38,
 }
+_DEFAULT_VISIBLE_INDICES = {27, 28, 29, 32, 37}
+assert _DEFAULT_VISIBLE_INDICES <= _DASHBOARD_LAYER_INDICES
+assert len(_DASHBOARD_LAYER_INDICES) == 23
+assert len(_DEFAULT_VISIBLE_INDICES) == 5
+
+EXPECTED_DASHBOARD_LAYER_NAMES = {BAND_NAMES[i - 1] for i in _DASHBOARD_LAYER_INDICES}
+EXPECTED_DEFAULT_VISIBLE_NAMES = {BAND_NAMES[i - 1] for i in _DEFAULT_VISIBLE_INDICES}
+
+# Namensregel (docs/rewrite/PLAN.md, W7.6, Abschnitt 4a von
+# docs/LAYER-MANIFEST.md): label_de darf nur Buchstaben (inkl. Umlaute/ß),
+# Leerzeichen und Bindestriche enthalten - keine Ziffer, keine Klammer, kein
+# Komma, kein Summenzeichen. Gilt für ALLE Bänder, auch die ausgeblendeten.
+_LABEL_DE_ALLOWED_CHARS = set("abcdefghijklmnopqrstuvwxyzäöüßABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ -")
 
 # Die transitive Ausbreitung der geography_water_bodies-Abweichung
 # (PLAN.md §13.9/Regel 8), vorher berechnet aus compose_exclusion_geotiff()s
@@ -403,8 +434,8 @@ def manifest() -> dict:
 
 
 def test_tags_fixture_matches_the_real_tag_dict():
-    # Gegen das echte tags-Dict gezählt: 26 Schlüssel.
-    assert len(TAGS) == 26
+    # Gegen das echte tags-Dict gezählt: 26 Schlüssel + 5 neue (W7.6) = 31.
+    assert len(TAGS) == 31
     assert all(isinstance(v, str) for v in TAGS.values())
 
 
@@ -470,7 +501,7 @@ def test_raster_block_matches_grid(manifest):
 
 
 def test_top_level_shape(manifest):
-    assert manifest["schema_version"] == "2.2.0"
+    assert manifest["schema_version"] == "2.2.1"
     assert manifest["pipeline"] == "widmung_v2"
     assert manifest["band_schema"] == "clean-44-ohne-wichtige-objekte-aug-2026"
     assert manifest["raster_file"] == "osm_wka_distance_zones_widmung_v2.tif"
@@ -493,10 +524,49 @@ def test_familien_top_level_field(manifest):
     familien = manifest["familien"]
     assert len(familien) == 16
     for f in familien:
-        assert set(f.keys()) == {"key", "category", "label_de"}
+        # Ab Schema 2.2.1 (W7.6): description_de je Familie neu dazu.
+        assert set(f.keys()) == {"key", "category", "label_de", "description_de"}
+        assert f["description_de"], f["key"]
     # "summe" kommt bewusst dreimal vor - je Kategorie Mensch/Natur/Geografie.
     summe_categories = [f["category"] for f in familien if f["key"] == "summe"]
     assert summe_categories == ["Mensch", "Natur", "Geografie"]
+    # W7.6: alle drei "Σ ..."-Labels heißen jetzt "Gesamt ..." - kein
+    # Summenzeichen mehr, drei verschiedene Familien dürfen trotzdem
+    # denselben label_de tragen (key+category ist der eindeutige Schlüssel,
+    # nicht label_de allein).
+    summe_labels = [f["label_de"] for f in familien if f["key"] == "summe"]
+    assert summe_labels == ["Gesamt Mensch", "Gesamt Natur", "Gesamt Geografie"]
+    assert not any("Σ" in f["label_de"] for f in familien)
+
+
+def test_kategorien_top_level_field(manifest):
+    kategorien = manifest["kategorien"]
+    assert len(kategorien) == len(manifest["category_order"]) == 7
+    assert [k["category"] for k in kategorien] == manifest["category_order"]
+    for k in kategorien:
+        assert set(k.keys()) == {"key", "category", "label_de", "description_de"}
+        assert k["key"] == k["key"].lower()
+        assert k["description_de"], k["key"]
+
+
+def test_stufen_top_level_field(manifest):
+    stufen = manifest["stufen"]
+    assert [s["key"] for s in stufen] == manifest["stufe_order"]
+    for s in stufen:
+        assert set(s.keys()) == {"key", "label_de", "description_de"}
+        assert s["description_de"], s["key"]
+
+
+def test_label_de_follows_naming_rule_for_all_bands(manifest):
+    # Mechanischer Namenstest (docs/rewrite/PLAN.md, W7.6): gilt über ALLE
+    # Bänder im Manifest, unabhängig von deren Zahl - kein Sonderfall für
+    # ausgeblendete Bänder, keine feste 44/47-Schranke im Test selbst.
+    for band in manifest["bands"]:
+        label = band["label_de"]
+        assert label, band["name"]
+        bad_chars = set(label) - _LABEL_DE_ALLOWED_CHARS
+        assert not bad_chars, f"{band['name']}: label_de {label!r} enthält unerlaubte Zeichen {bad_chars}"
+        assert not any(ch.isdigit() for ch in label), band["name"]
 
 
 def test_familie_and_stufe_match_interface_assignment(manifest):
@@ -506,16 +576,42 @@ def test_familie_and_stufe_match_interface_assignment(manifest):
         assert band["stufe"] in manifest["stufe_order"]
 
 
-def test_dashboard_layer_false_only_for_blur_bands(manifest):
+def test_dashboard_layer_matches_fixed_name_list(manifest):
+    # W7.6: keine Ableitung mehr aus der Stufe - feste Liste, 23 der 44
+    # Bänder.
+    actual = {b["name"] for b in manifest["bands"] if b["dashboard_layer"]}
+    assert actual == EXPECTED_DASHBOARD_LAYER_NAMES
+    assert len(actual) == 23
     for band in manifest["bands"]:
-        expected = band["name"] not in NON_DASHBOARD_LAYER_NAMES
+        expected = band["name"] in EXPECTED_DASHBOARD_LAYER_NAMES
         assert band["dashboard_layer"] is expected, band["name"]
 
 
-def test_default_visible_derived_from_stufe(manifest):
+def test_default_visible_matches_fixed_name_list(manifest):
+    # W7.6: keine Ableitung mehr aus der Stufe - feste Liste, 5 der 44
+    # Bänder (die drei Kategoriesummen, die Eignungsflächen, die amtlichen
+    # Zonen).
+    actual = {b["name"] for b in manifest["bands"] if b["default_visible"]}
+    assert actual == EXPECTED_DEFAULT_VISIBLE_NAMES
+    assert actual == {
+        "exclusion_human",
+        "exclusion_nature",
+        "exclusion_geography",
+        "available_cleaned_min_10ha",
+        "official_wind_zoning",
+    }
     for band in manifest["bands"]:
-        expected = band["stufe"] == "zone" or band["name"] == "available_cleaned_min_10ha"
+        expected = band["name"] in EXPECTED_DEFAULT_VISIBLE_NAMES
         assert band["default_visible"] is expected, band["name"]
+
+
+def test_default_visible_is_subset_of_dashboard_layer(manifest):
+    for band in manifest["bands"]:
+        if band["default_visible"]:
+            assert band["dashboard_layer"], (
+                f"{band['name']}: default_visible=true, aber dashboard_layer=false - "
+                "ein Band, das beim Start sichtbar sein soll, muss anzeigbar sein."
+            )
 
 
 def test_descriptions_wired_through_for_condition_bands(manifest):
@@ -556,9 +652,28 @@ def test_blur_bleed_caveat_present_for_bands_33_to_36(manifest):
     assert caveat["affects"]["bands"] == [33, 34, 35, 36]
 
 
-def test_exactly_two_caveats_present(manifest):
+def test_tunnelfilter_caveat_present_for_road_rail_bands(manifest):
+    # W7.6, Registerpunkt 70: der Tunnelfilter der Bänder 14-16 prüft nur
+    # die Spalte "tunnel", nie "layer"/"covered". Band 17 (Personenseilbahn)
+    # hat keinen Tunnelfilter und ist deshalb NICHT betroffen -
+    # aerialways.parquet führt keine tunnel-Spalte.
+    caveats = manifest["caveats"]
+    match = [c for c in caveats if c["id"] == "tunnelfilter_unvollstaendig"]
+    assert len(match) == 1
+    caveat = match[0]
+    assert caveat["severity"] == "methodisch"
+    assert caveat["affects"]["bands"] == [14, 15, 16, 27, 30, 31, 32]
+    assert caveat["numbers"] == {"objekte_betroffen": 144, "flaechenwirkung_anteil_max": 0.007}
+    assert "144" in caveat["text_de"]
+
+
+def test_exactly_three_caveats_present(manifest):
     ids = {c["id"] for c in manifest["caveats"]}
-    assert ids == {"noe_dkm_reconstructed", "blur_bands_bleed_across_border"}
+    assert ids == {
+        "noe_dkm_reconstructed",
+        "blur_bands_bleed_across_border",
+        "tunnelfilter_unvollstaendig",
+    }
 
 
 def test_role_matches_expected_bands(manifest):
