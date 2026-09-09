@@ -162,6 +162,7 @@ from calc.abschichtung_common import (  # noqa: E402
     NATURE_BANDS,
     NONRESIDENTIAL_HULL_BUFFER_M,
     OFFICIAL_ZONING_BANDS,
+    PEOPLE_CARRYING_AERIALWAY_TYPES,
     SETTLEMENT_BUFFER_BY_BL,
     TARGET_CRS,
     WATER_BANDS,
@@ -628,8 +629,13 @@ def build_appended_source_aggregates(grid: dict, out_dir: Path) -> dict[str, np.
     airport_area_major) PLUS die ungepufferten (0 m) Linien aus
     roads/railways/aerialways.parquet ohne Tunnel - dieselbe
     Tunnel-Ausschlussregel wie bei den gepufferten Bändern 14-16
-    (_non_tunnel_mask, unverändert aus calc.abschichtung_common), hier ohne
-    fclass-Filter und ohne Puffer (reine Quellgeometrie).
+    (_non_tunnel_mask, unverändert aus calc.abschichtung_common), ohne
+    Puffer (reine Quellgeometrie). roads/railways bleiben ohne fclass-Filter
+    (jede Strasse/Bahnlinie zählt); aerialways bekommt seit W7.5 denselben
+    fclass-Filter wie Band 10 (cableway_buildings_source) und Band 17
+    (cableway_people_150m) - nur PEOPLE_CARRYING_AERIALWAY_TYPES
+    (Personenseilbahnen), keine Material-/Warenseilbahnen. Vorher (bis
+    W7.5) ging hier jede aerialway-Linie ungefiltert ein.
 
     Band 43 (sources_nature) = 21 ∪ 22, Band 44 (sources_geography) =
     23 ∪ 24 ∪ 25 ∪ 26 - beide reine Checkpoint-Unionen.
@@ -661,6 +667,12 @@ def build_appended_source_aggregates(grid: dict, out_dir: Path) -> dict[str, np.
         gdf = _read_prep_vector(contract.PREP["osm"]["b_layers"] / f"{key}.parquet", bounds=bounds)
         if not gdf.empty:
             gdf = gdf[_non_tunnel_mask(gdf)]
+        if key == "aerialways" and not gdf.empty:
+            # W7.5: nur Personenseilbahnen (dieselbe Konstante wie Band 10/17,
+            # calc.abschichtung_common.PEOPLE_CARRYING_AERIALWAY_TYPES) -
+            # vorher ging hier jede aerialway-fclass ungefiltert ein.
+            fclass = gdf.get("fclass", pd.Series("", index=gdf.index)).fillna("").astype(str).str.lower()
+            gdf = gdf[fclass.isin(PEOPLE_CARRYING_AERIALWAY_TYPES)]
         if not gdf.empty:
             sources_human = sources_human | raster_mask(gdf, 0.0, grid, f"sources_human:{key}")
 

@@ -181,12 +181,12 @@ Dieses Dokument beschreibt jede der 44 Bänder des geplanten Widmung-v2-Layer-Se
 | Index | 10 |
 | Stufe | quelle |
 | Label | Seilbahn-Gebäude (Quelle) |
-| Beschreibung | OSM-Gebäude nahe einer Aerialway-Linie (Liftstationen etc.) |
+| Beschreibung | OSM-Gebäude nahe einer Personenseilbahnlinie (Liftstationen etc.) |
 | Puffer | keiner |
 | Quellen | osm_pbf: data/osm/austria-260330.osm.pbf (Stand 30.03.2026); dkm_geoparquet: output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet (Stand Dateidatum 15.05.; erzeugtes Artefakt aus BEV-DKM) |
 | Abgeleitet von | – |
 | Rolle | bedingung |
-| Caveats | keine |
+| Caveats | seit 09.09.2026 (W7.5) auf Personenseilbahnen eingegrenzt (aerialway gondola/cable_car/chair_lift/mixed_lift); vorher zählte jede aerialway-Linie, auch Schlepplifte und Materialseilbahnen |
 | Sichtbar beim Laden | nein |
 
 #### cableway_buildings_buffer
@@ -325,7 +325,7 @@ Dieses Dokument beschreibt jede der 44 Bänder des geplanten Widmung-v2-Layer-Se
 | Quellen | osm_pbf: data/osm/austria-260330.osm.pbf (Stand 30.03.2026) |
 | Abgeleitet von | – |
 | Rolle | bedingung |
-| Caveats | keine |
+| Caveats | seit 09.09.2026 (W7.5, Nutzerentscheidung) genau vier aerialway-Typen: gondola, cable_car, chair_lift, mixed_lift. Keine Schlepplifte (drag_lift, t-bar, j-bar, platter, rope_tow), kein magic_carpet, nichts aus goods/zip_line/explosive/avalanche/pylon/station/yes/proposed/abandoned/deflection_roller (vorher zehn Typen: zusätzlich die fünf Schlepplift-Varianten und magic_carpet) |
 | Sichtbar beim Laden | ja |
 
 ### Militär

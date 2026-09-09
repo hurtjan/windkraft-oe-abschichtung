@@ -224,11 +224,15 @@ Struktur, nicht den aktuellen Stand; für die 44-Bänder-Liste selbst siehe
 `out/abschichtung.bands.json` oder `out/LAYER.md` (bzw. `docs/layer.md`,
 die eingecheckte Kopie der Vorlage). Der bandweise Vergleich der 18 (bzw.
 jetzt ggf. mehr) abweichenden Bänder gegen `run1` unten („18 Bänder
-unterscheiden sich von `run1`") bezieht sich weiterhin nur auf die
-Bänder 1–38 — `run1` selbst hat 38 Bänder und lässt sich mit
-`pipeline.validate` gegen ein 44-Bänder-TIF strukturell nicht mehr direkt
-vergleichen (Bandzahl-Guard in `measure_bands()`); das ist ein bekanntes,
-offenes Problem dieser Integration, nicht stillschweigend behoben.
+unterscheiden sich von `run1`") bezieht sich inhaltlich weiterhin nur auf
+Ursachen innerhalb der Bänder 1–38 (`run1` selbst hat und behält 38
+Bänder). **Nachgezogen (W7.4):** der frühere Bandzahl-Guard in
+`measure_bands()` — der bei 44 gegen 38 Bändern hart mit `ValueError`
+abbrach — ist entfernt. `pipeline.validate` vergleicht seither nur die
+namentlich überlappenden Bänder (1–38) gegen `run1` und weist die sechs
+neuen Bänder 39–44 im Register (`docs/rewrite/abweichungen.tsv`) explizit
+als eigenen Status „ohne Gegenstück in `run1`" aus, statt abzubrechen oder
+sie stillschweigend zu übergehen.
 
 `band_count` steigt additiv von 38 auf 44: sechs neue Bänder 39–44
 (`haeuser_im_gruenen_source`, `general_buildings_roh_osm`,
@@ -273,6 +277,30 @@ und Salzburg sind zwei unterschiedliche Shapefiles.
 
 `familie`, `stufe` und `dashboard_layer` sind **informativ**, wie `puffer_m`
 und `quelle` — nicht Teil des Vertrags (siehe nächster Abschnitt).
+
+### Inhaltliche Änderung innerhalb `2.2.0` (09.09.2026, W7.5): Personenseilbahnen enger gefasst
+
+Kein Schema-Wechsel (`band_count`/`schema_version` bleiben bei 44/`2.2.0`),
+aber eine inhaltliche Änderung an drei Bändern: Nutzerentscheidung vom
+09.09.2026, Personenseilbahnen sind genau vier OSM-`aerialway`-Typen —
+`gondola`, `cable_car`, `chair_lift`, `mixed_lift`. Keine Schlepplifte
+(`drag_lift`, `t-bar`, `j-bar`, `platter`, `rope_tow`), kein
+`magic_carpet`, nichts aus `goods`/`zip_line`/`explosive`/`avalanche`/
+`pylon`/`station`/`yes`/`proposed`/`abandoned`/`deflection_roller`. Betrifft:
+
+- **Band 17** (`cableway_people_150m`) — filterte schon vorher auf
+  personenbefördernde Typen, aber auf zehn statt vier (zusätzlich die fünf
+  Schlepplift-Varianten und `magic_carpet`).
+- **Band 10** (`cableway_buildings_source`) — filterte vorher **gar
+  nicht**: jede `aerialway`-Geometrie (auch Punkte wie `station`/`pylon`)
+  zählte für die Nähe-Zuordnung von OSM-Gebäuden zu einer Seilbahn. `docs/rewrite/FORTSCHRITT.md`,
+  Paket W7.5, dokumentiert die tatsächlich gemessene Auswirkung dieses
+  Filters auf Band 10 - eine Bergstation ist ein Gebäude, das dieses Band
+  finden soll, das war ausdrücklich zu prüfen statt anzunehmen.
+- **Band 42** (`sources_human`) — die `aerialways`-Teilmenge in der
+  ungepufferten Quellsumme filterte vorher ebenfalls nicht.
+
+Einzige Definitionsstelle: `calc.abschichtung_common.PEOPLE_CARRYING_AERIALWAY_TYPES`.
 
 ## Vertrag vs. Dokumentation
 

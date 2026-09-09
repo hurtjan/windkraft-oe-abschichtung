@@ -228,7 +228,16 @@ WIND_POWER_OSM_FILTERS = ["nwr/generator:source=wind", "nwr/man_made=wind_turbin
 # dass sich ein Parameter ändert (neuer Eingangsfilter o.ä.). Der Wert landet als
 # Tag in den Checkpoint-Layern; ohne ihn würden vorhandene distance_layers/*.tif
 # als gültig gelten und die Änderung stillschweigend nicht wirksam werden.
-BUILDING_CLASSIFICATION_REVISION = "5-wichtige-objekte-entfernt"
+# 6 (09.09.2026, W7.5): PEOPLE_CARRYING_AERIALWAY_TYPES eingeengt auf gondola/
+# cable_car/chair_lift/mixed_lift - is_cableway in build_osm_building_sources()
+# (pipeline/layers/osm.py) liest denselben Filter, das ERGEBNIS der
+# Klassifikation ändert sich also, ohne dass ein Prep-Eingang sich ändert
+# (genau der hier dokumentierte Fall). Invalidiert die ganze Gruppe
+# "v2 OSM building classification + angehängte Bänder 40/41"
+# (cableway_buildings_source, general_buildings_source,
+# general_buildings_roh_osm, general_buildings_roh_dkm) automatisch, ohne
+# manuelles Löschen der Checkpoint-Dateien.
+BUILDING_CLASSIFICATION_REVISION = "6-personenseilbahn-typen-eingeengt"
 
 PLACE_TYPES = {
     "city",
@@ -243,17 +252,25 @@ PLACE_TYPES = {
 ADDRESS_REQUIRED_TAGS = ["addr:housenumber", "addr:city", "addr:postcode"]
 ADDRESS_TAGS = ADDRESS_REQUIRED_TAGS + ["addr:street", "addr:place", "addr:country", "building", "name"]
 
+# Nutzerentscheidung vom 09.09.2026 (W7.5): Personenseilbahnen sind genau
+# diese vier OSM-``aerialway``-Typen - KEINE Schlepplifte (drag_lift, t-bar,
+# j-bar, platter, rope_tow), KEIN magic_carpet, und nichts aus goods,
+# zip_line, explosive, avalanche, pylon, station, yes, proposed, abandoned,
+# deflection_roller. Vorher (bis W7.5) enthielt diese Liste zusätzlich die
+# fünf Schlepplift-Varianten und magic_carpet (zehn statt vier Typen).
+#
+# Einzige Definitionsstelle fuer alle drei Verbraucher (Auftrag W7.5: "eine
+# Liste, an einer Stelle definiert, von allen drei Verbrauchern gelesen"):
+#   - Band 17 cableway_people_150m: pipeline/layers/osm.py,
+#     build_infrastructure_masks()
+#   - Band 10 cableway_buildings_source: pipeline/layers/osm.py,
+#     build_osm_building_sources()
+#   - Band 42 sources_human: pipeline/layers/geo.py
 PEOPLE_CARRYING_AERIALWAY_TYPES = {
     "gondola",
     "cable_car",
-    "mixed_lift",
     "chair_lift",
-    "drag_lift",
-    "t-bar",
-    "j-bar",
-    "platter",
-    "rope_tow",
-    "magic_carpet",
+    "mixed_lift",
 }
 
 MILITARY_AREA_TYPES = {
@@ -961,61 +978,21 @@ def _power_line_mask(power: gpd.GeoDataFrame, allowed_kv: set[int]) -> np.ndarra
     return geom_ok & power_ok & voltage_ok
 
 
-def build_infrastructure_masks(cfg: dict, grid: dict, args) -> dict[str, np.ndarray]:
-    """Roads/rail/power/cableway/military masks, unchanged from create_osm_wka_distance_zones.py.
-
-    `args` needs attributes: osm_pbf, osm_pbf_cache_dir, mode, total_height_m.
-    """
-    bounds = grid["bounds"]
-    masks: dict[str, np.ndarray] = {}
-
-    power_path = Path(cfg["paths"].get("powerlines_gpkg", ""))
-    power_bounds = expand_bounds(bounds, 150.0)
-    pbf = Path(args.osm_pbf) if getattr(args, "osm_pbf", None) else Path("")
-    power = (
-        read_layer(osm_layer_path(cfg, args.osm_pbf, args.osm_pbf_cache_dir, "powerlines", power_bounds), bounds=power_bounds, columns=OSM_PBF_COLUMNS["powerlines"])
-        if pbf.exists()
-        else (read_layer(power_path, bounds=power_bounds) if power_path.exists() else read_layer(osm_layer_path(cfg, args.osm_pbf, args.osm_pbf_cache_dir, "powerlines", power_bounds), bounds=power_bounds))
-    )
-    if not power.empty:
-        high_voltage = _power_line_mask(power, {380, 400})
-        print(f"[info]  power line filter: features={len(power):,}, 380/400kV_lines={int(high_voltage.sum()):,}", flush=True)
-        masks["power_380_400kv"] = raster_mask(power[high_voltage], rule_distance("power_380_400kv", args.mode, args.total_height_m), grid, "power_380_400kv")
-    else:
-        masks["power_380_400kv"] = np.zeros(grid["shape"], dtype=bool)
-
-    max_road_buffer = max(rule_distance("road_motorway_trunk", args.mode, args.total_height_m), rule_distance("road_federal_state", args.mode, args.total_height_m))
-    road_bounds = expand_bounds(bounds, max_road_buffer)
-    roads = read_layer(osm_layer_path(cfg, args.osm_pbf, args.osm_pbf_cache_dir, "roads", road_bounds), bounds=road_bounds, columns=OSM_PBF_COLUMNS["roads"])
-    f = roads.get("fclass", pd.Series("", index=roads.index)).fillna("").astype(str) if not roads.empty else pd.Series([], dtype=str)
-    road_not_tunnel = _non_tunnel_mask(roads)
-    masks["road_motorway_trunk"] = raster_mask(roads[road_not_tunnel & f.isin(["motorway", "motorway_link", "trunk", "trunk_link"])] if not roads.empty else roads, rule_distance("road_motorway_trunk", args.mode, args.total_height_m), grid, "road_motorway_trunk")
-    masks["road_federal_state"] = raster_mask(roads[road_not_tunnel & f.isin(["primary", "primary_link", "secondary", "secondary_link", "tertiary", "tertiary_link"])] if not roads.empty else roads, rule_distance("road_federal_state", args.mode, args.total_height_m), grid, "road_federal_state")
-
-    rail_bounds = expand_bounds(bounds, rule_distance("rail_main", args.mode, args.total_height_m))
-    rail = read_layer(osm_layer_path(cfg, args.osm_pbf, args.osm_pbf_cache_dir, "railways", rail_bounds), bounds=rail_bounds, columns=OSM_PBF_COLUMNS["railways"])
-    rf = rail.get("fclass", pd.Series("", index=rail.index)).fillna("").astype(str) if not rail.empty else pd.Series([], dtype=str)
-    rail_not_tunnel = _non_tunnel_mask(rail)
-    masks["rail_main"] = raster_mask(rail[rail_not_tunnel & rf.isin(["rail", "narrow_gauge"])] if not rail.empty else rail, rule_distance("rail_main", args.mode, args.total_height_m), grid, "rail_main")
-
-    cable_bounds = expand_bounds(bounds, rule_distance("cableway_people_150m", args.mode, args.total_height_m))
-    aerialways = read_layer(osm_layer_path(cfg, args.osm_pbf, args.osm_pbf_cache_dir, "aerialways", cable_bounds), bounds=cable_bounds, columns=OSM_PBF_COLUMNS["aerialways"])
-    af = aerialways.get("fclass", pd.Series("", index=aerialways.index)).fillna("").astype(str).str.lower() if not aerialways.empty else pd.Series([], dtype=str)
-    people_aerialways = aerialways[af.isin(PEOPLE_CARRYING_AERIALWAY_TYPES)] if not aerialways.empty else aerialways
-    masks["cableway_people_150m"] = raster_mask(people_aerialways, rule_distance("cableway_people_150m", args.mode, args.total_height_m), grid, "cableway_people_150m")
-
-    military_bounds = bounds
-    military = read_layer(osm_layer_path(cfg, args.osm_pbf, args.osm_pbf_cache_dir, "military", military_bounds), bounds=military_bounds, columns=OSM_PBF_COLUMNS["military"])
-    if not military.empty:
-        geom_area = military.geometry.geom_type.isin(["Polygon", "MultiPolygon"])
-        landuse = military.get("landuse", pd.Series("", index=military.index)).fillna("").astype(str).str.lower()
-        mtype = military.get("military", pd.Series("", index=military.index)).fillna("").astype(str).str.lower()
-        military_area = military[geom_area & (landuse.eq("military") | mtype.isin(MILITARY_AREA_TYPES))]
-    else:
-        military_area = military
-    masks["military_restricted_area"] = raster_mask(military_area, 0.0, grid, "military_restricted_area")
-
-    return masks
+# build_infrastructure_masks() (Roads/rail/power/cableway/military) stand
+# hier bis W7.5 als woertliche Kopie aus der alten Kette
+# (create_osm_wka_distance_zones.py), aber ohne Aufrufer: die neue Kette
+# ruft ausschliesslich pipeline/layers/osm.py:build_infrastructure_masks()
+# (eigene, mit _read_prep_layer() statt osm_layer_path()+read_layer())
+# auf - siehe deren Docstring "Original-Zeilen ~966-972". W7.5 hat diese
+# tote Kopie entfernt (Auftrag: "ein Legacy-Zwilling derselben
+# [PEOPLE_CARRYING_AERIALWAY_TYPES-]Liste ... ihn stehen zu lassen waere
+# eine zweite Wahrheit") - sie las dieselbe Konstante wie die aktive
+# Fassung, war also fuer die Daten kein Divergenzrisiko, aber als
+# unerreichbarer, ungetesteter Zweitleser einer entscheidungsrelevanten
+# Konstante trotzdem irrefuehrend. Die drei privaten Hilfsfunktionen
+# _voltage_tokens_kv/_non_tunnel_mask/_power_line_mask bleiben: sie werden
+# von der aktiven Fassung importiert (pipeline/layers/osm.py,
+# pipeline/layers/geo.py) und sind nicht tot.
 
 
 def build_airport_masks(cfg: dict, grid: dict, args) -> dict[str, np.ndarray]:

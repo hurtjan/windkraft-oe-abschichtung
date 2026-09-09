@@ -358,6 +358,38 @@ EXPECTED_DKM_GEOPARQUET_IMPACT_PATH = [
     "sources_human",
 ]
 
+# Die transitive Ausbreitung der dritten §13.9-Ursache (W7.5: Personenseil-
+# bahnen auf gondola/cable_car/chair_lift/mixed_lift eingeengt, Nutzer-
+# entscheidung 09.09.2026). Startknotensatz: cableway_buildings_source (10),
+# general_buildings_source (12, komplementäre Restmenge is_general in
+# build_osm_building_sources()), general_buildings_roh_osm (40, OSM-Anteil
+# derselben Restmenge) und cableway_people_150m (17, eigener Filter in
+# build_infrastructure_masks()) - siehe _CABLEWAY_TYP_WIRKUNGSPFAD_ROOTS in
+# calc/band_manifest.py. cableway_buildings_buffer (11) und
+# general_buildings_buffer (13) hängen über abgeleitet_von an ihren jeweiligen
+# Quellbändern, exclusion_human/all_exclusions/available_after_all_
+# exclusions_raw/available_cleaned_min_10ha/die vier Blur-Bänder über dieselbe
+# Aggregatkette wie bei den anderen beiden Wirkungspfaden, sources_human (42)
+# über sein abgeleitet_von an cableway_buildings_source UND
+# general_buildings_source. In Index-Reihenfolge, vorab genannt.
+EXPECTED_CABLEWAY_TYP_IMPACT_PATH = [
+    "cableway_buildings_source",
+    "cableway_buildings_buffer",
+    "general_buildings_source",
+    "general_buildings_buffer",
+    "cableway_people_150m",
+    "exclusion_human",
+    "all_exclusions",
+    "available_after_all_exclusions_raw",
+    "available_cleaned_min_10ha",
+    "available_blur_sigma_100m",
+    "available_blur_sigma_200m",
+    "available_blur_sigma_250m",
+    "available_blur_sigma_300m",
+    "general_buildings_roh_osm",
+    "sources_human",
+]
+
 
 @pytest.fixture(scope="module")
 def manifest() -> dict:
@@ -593,6 +625,14 @@ def test_dkm_geoparquet_wirkungspfad_is_the_predicted_sixteen_bands(manifest):
     # diese 16 Bänder dürfen zusätzlich von run1 abweichen. Vorab genannt,
     # nicht nachträglich gepasst - siehe EXPECTED_DKM_GEOPARQUET_IMPACT_PATH.
     assert manifest["dkm_geoparquet_wirkungspfad"] == EXPECTED_DKM_GEOPARQUET_IMPACT_PATH
+
+
+def test_cableway_typ_wirkungspfad_is_the_predicted_fifteen_bands(manifest):
+    # PLAN.md §13.9/Regel 8, dritte Ursache (W7.5, Nutzerentscheidung
+    # 09.09.2026): genau diese 15 Bänder dürfen zusätzlich von run1
+    # abweichen. Vorab genannt, nicht nachträglich gepasst - siehe
+    # EXPECTED_CABLEWAY_TYP_IMPACT_PATH.
+    assert manifest["cableway_typ_wirkungspfad"] == EXPECTED_CABLEWAY_TYP_IMPACT_PATH
 
 
 def test_pixel_size_accepts_plain_affine_tuple():
