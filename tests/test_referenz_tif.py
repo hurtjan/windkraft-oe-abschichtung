@@ -134,12 +134,16 @@ from calc.band_manifest import manifest_path_for  # noqa: E402
 # Die Zahlen des Vertrags
 # ---------------------------------------------------------------------------
 
-# Zweiter Wechsel (Punkt 34, W5.P2, 08.09.2026): adresslose DKM-
-# Großflächen entfallen als Kandidat. Vorheriger Wert (Punkt 33, Bodensee):
-# sha256 4bdef6ad…6b1a13e, 124 613 971 Bytes - bleibt als historischer
-# Zeuge in docs/rewrite/FORTSCHRITT.md/PLAN.md dokumentiert.
-REFERENZ_SHA256 = "fb57c41dca0642225a8115e3ed95297ede47b56d56c00fdddf8caa445e232c30"
-REFERENZ_BYTES = 124_597_421
+# Dritter Wechsel (W7.1, Neuzuschnitt "Layer-Struktur v4", 09.09.2026):
+# Hüllen-Zuschnitt gegen official_wind_zoning (Band 38) plus sechs
+# angehängte Bänder 39-44 (Schema 2.2.0, clean-44-…) heben die Bandzahl von
+# 38 auf 44 - allein dadurch ändert sich Dateigröße und Hash, auch ohne
+# Pixeländerung an den ersten 38 Bändern. Vorheriger Wert (Punkt 34,
+# W5.P2, 08.09.2026): sha256 fb57c41d…232c30, 124 597 421 Bytes - bleibt
+# als historischer Zeuge in docs/rewrite/FORTSCHRITT.md/PLAN.md
+# dokumentiert.
+REFERENZ_SHA256 = "a905c0563696c8af4a2fd3b1407521c81ccdc3c0b373d14ce8a6429196ab5c9f"
+REFERENZ_BYTES = 152_669_124
 
 # Bisheriges Soll, ab 08.09.2026 nur noch Vergleichsbasis - aber als solche
 # unveränderlich.

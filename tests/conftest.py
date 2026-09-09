@@ -35,20 +35,16 @@ TESTS_DIR = Path(__file__).resolve().parent
 # höhere Wert eine Weile stabil gesammelt wird - nicht bei jedem einzelnen
 # neuen Testfall einzeln.
 #
-# W7.1 (Schema 2.2.0, Struktur v4): laut Auftraggeber sammelte die Suite vor
-# diesem Paket bereits 226 Tests (die alte Schwelle 210 schützte also schon
-# weniger als vorher - genau der Zustand, den Punkt 54 verhindern sollte).
-# Bahn 2 (dieses Paket) fügt sechs weitere hinzu (tests/test_band_manifest.py,
-# tests/test_band_metadata.py) - macht mindestens 232 allein aus dieser
-# Bahn, dazu kommen unabhängig die neuen Testdateien der Bahnen 1 und 3
-# (pipeline/export/wka_bestand.py, pipeline/export/layer_doc.py), deren
-# genaue Zahl hier nicht bekannt ist. Schwelle deshalb konservativ auf den
-# bereits gesicherten Stand vor diesem Paket angehoben (226), nicht auf die
-# unsichere Summe aller drei Bahnen - das bleibt ein echter Fortschritt
-# gegenüber 210 und bricht nicht, sobald die anderen Bahnen ihre Tests
-# nachziehen. Nach der Integration aller drei Bahnen erneut prüfen und
-# gegebenenfalls weiter anheben.
-MIN_COLLECTED_TESTS = 226
+# W7.1 (Schema 2.2.0, Struktur v4): nach der Integration aller drei Bahnen
+# (Zuschnitt/Punkte-Export, sechs angehängte Bänder + Manifest 2.2.0,
+# tests/test_export_wka_bestand.py) sammelt ein voller Lauf über tests/
+# tatsächlich 238 Tests (235 passed + 3 skipped, siehe test_referenz_tif.py
+# für die drei erwarteten Skips - unverändert aus W6.6). Die vorherige
+# Schwelle (226) war der konservative Zwischenwert, während Bahn 2 noch
+# allein gegen ein widersprüchliches Repo lief (siehe vorheriger
+# Kommentartext im Diff dieses Commits) - jetzt auf den tatsächlich
+# gesammelten, grünen Stand angehoben.
+MIN_COLLECTED_TESTS = 238
 
 
 def pytest_collection_modifyitems(session, config, items):

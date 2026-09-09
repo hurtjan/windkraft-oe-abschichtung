@@ -206,13 +206,13 @@ REFERENCE_TIF = contract.RUN1_TIF
 # nicht von einem Testmodul abhängen soll; wer den einen Wert ändert, muss
 # den anderen mitziehen.
 #
-# Zweiter Wechsel (08.09.2026, Punkt 34, W5.P2): adresslose DKM-
-# Großflächen über HIG_MAX_FOOTPRINT_M2 entfallen jetzt als Kandidat
-# (calc/hig_detection.py:scan_dkm_candidates()). Der vorherige
-# Wert ``4bdef6ad5e863692cef0f19cdfe959f04e439e9b17310f2f7a3c067d56b1a13e``
+# Dritter Wechsel (09.09.2026, W7.1, Neuzuschnitt "Layer-Struktur v4"):
+# Hüllen-Zuschnitt gegen official_wind_zoning (Band 38, Geometriefehler
+# behoben) plus sechs angehängte Bänder 39-44 (Schema 2.2.0). Der vorherige
+# Wert ``fb57c41dca0642225a8115e3ed95297ede47b56d56c00fdddf8caa445e232c30``
 # bleibt in ``docs/rewrite/FORTSCHRITT.md``/``PLAN.md`` als historischer
 # Zeuge dokumentiert, ist aber - wie zuvor ``run1`` - kein Ziel mehr.
-AKTUELLE_REFERENZ_SHA256 = "fb57c41dca0642225a8115e3ed95297ede47b56d56c00fdddf8caa445e232c30"
+AKTUELLE_REFERENZ_SHA256 = "a905c0563696c8af4a2fd3b1407521c81ccdc3c0b373d14ce8a6429196ab5c9f"
 
 REGISTER_PATH = contract.ROOT / "docs" / "rewrite" / "abweichungen.tsv"
 
