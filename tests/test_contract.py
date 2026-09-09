@@ -272,7 +272,9 @@ def test_prep_leaf_count():
 def test_products_live_under_out():
     for path in contract.PRODUCTS.values():
         assert contract.OUT in path.parents, f"PRODUCTS-Pfad nicht unter out/: {path}"
-    assert len(contract.PRODUCTS) == 4
+    # 4 ursprüngliche Endprodukte + Punkte-Export und LAYER.md (W7.1,
+    # schnittstelle-manifest-2.2.md §3) - siehe Kommentar bei contract.PRODUCTS.
+    assert len(contract.PRODUCTS) == 6
 
 
 def test_raw_lives_under_data():
@@ -286,7 +288,10 @@ def test_raw_lives_under_data():
 
 def test_layer_names_are_unique():
     assert len(contract.LAYER_NAMES) == len(set(contract.LAYER_NAMES))
-    assert len(contract.LAYER_NAMES) == 33
+    # 33 Checkpoints der ursprünglichen Kette + 6 angehängte Bänder 39-44
+    # (W7.1, Neuzuschnitt "Layer-Struktur v4", schnittstelle-manifest-2.2.md
+    # §2) - siehe Kommentar bei contract.LAYER_NAMES.
+    assert len(contract.LAYER_NAMES) == 39
 
 
 def test_layer_names_match_the_chain():
@@ -307,6 +312,12 @@ def test_layer_names_match_the_chain():
     führt dieselben Namenslisten unter denselben Namen fort (siehe deren
     Moduldocstrings, Abschnitt "Regel 4") und ist ein ganz normaler
     Modulpfad - kein ``importlib``-Umweg mehr nötig.
+
+    W7.1 (Neuzuschnitt "Layer-Struktur v4", schnittstelle-manifest-2.2.md §2)
+    hängt sechs weitere Bänder an (Index 39, 42-44 aus
+    ``geo.APPENDED_BAND_NAMES``, Index 40/41 aus
+    ``osm.APPENDED_OSM_BAND_NAMES``) - beide Namenslisten fließen hier
+    ebenfalls ein, aus denselben Gründen wie die ursprünglichen neun.
     """
     from pipeline.layers import geo, hig, osm  # noqa: PLC0415  (schwerer Import, nur hier nötig)
 
@@ -315,6 +326,7 @@ def test_layer_names_match_the_chain():
     from_chain.update(osm.OSM_LAYER_NAMES)
     from_chain.update(osm.INFRA_LAYER_NAMES)
     from_chain.update(osm.AIRPORT_LAYER_NAMES)
+    from_chain.update(osm.APPENDED_OSM_BAND_NAMES)
     from_chain.update(geo.HIG_FAMILY_SOURCE_BANDS)
     from_chain.update(geo.BUFFER_BANDS)
     from_chain.update(geo.NATURE_BANDS)
@@ -322,6 +334,7 @@ def test_layer_names_match_the_chain():
     from_chain.update(geo.WATER_BANDS)
     from_chain.update(geo.OFFICIAL_ZONING_BANDS)
     from_chain.add(geo.WKA_BESTAND_BAND)
+    from_chain.update(geo.APPENDED_BAND_NAMES)
 
     assert from_chain == set(contract.LAYER_NAMES)
 

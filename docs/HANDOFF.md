@@ -19,7 +19,7 @@ Jeder Lauf von `pipeline/finalize.py` (`make -f make/finalize/finalize.mk
 finalize`, bzw. `uv run python -m pipeline.finalize`) schreibt zwei Dateien,
 die zusammengehören und nur zusammen ausgeliefert werden:
 
-- **`out/abschichtung.tif`** — das eigentliche Raster, 38 Bänder, `uint8`,
+- **`out/abschichtung.tif`** — das eigentliche Raster, 44 Bänder, `uint8`,
   EPSG:31287, 25 m Pixelgröße.
 - **`out/abschichtung.bands.json`** — das Sidecar-Manifest
   (`<stem>.bands.json`), geschrieben von `windkraft/calc/band_manifest.py`
@@ -41,16 +41,30 @@ den Pfad ein zweites Mal hinzuschreiben.
 | | |
 |---|---|
 | Datei | `out/abschichtung.tif` |
-| `sha256` | `fb57c41dca0642225a8115e3ed95297ede47b56d56c00fdddf8caa445e232c30` |
-| Größe | 124.597.421 Bytes |
-| Bänder | 38 |
-| Manifest-`schema_version` | `2.1.0` |
+| `sha256` | `a905c0563696c8af4a2fd3b1407521c81ccdc3c0b373d14ce8a6429196ab5c9f` |
+| Größe | 152.669.124 Bytes |
+| Bänder | 44 |
+| Manifest-`schema_version` | `2.2.0` |
 
 Diese Prüfsumme ist verdrahtet: `tests/test_referenz_tif.py` prüft sie bei
 jedem `make test` (siehe dort auch, wie der langlaufende Reproduktionstest
 gezielt ausgeführt wird). Sie ändert sich nicht beiläufig — wenn doch,
 gehört das gemessen, begründet und in `docs/rewrite/abweichungen.tsv`
 eingetragen.
+
+**Dritter Referenzwechsel (09.09.2026, Paket W7.1, Neuzuschnitt
+„Layer-Struktur v4"):** zwei unabhängige Ursachen in einem Lauf. Erstens
+ein Geometriefehler in Band 38 (`wka_bestand_ausserhalb_zonen`):
+`build_wka_bestand_hulls()` rasterisierte die Park-Hüllen (konvexe Hülle
+je Cluster außerhalb einer amtlichen Zone, plus 200 m Rand) bisher ohne
+Abzug gegen `official_wind_zoning` — ein grenznaher Cluster konnte dadurch
+in eine amtliche Zone hineinragen, obwohl jede einzelne Anlage laut
+Punktabfrage außerhalb lag. Die Hülle wird jetzt explizit
+`& ~official_wind_zoning` zugeschnitten. Zweitens sechs additiv angehängte
+Bänder 39–44 (Schema `2.2.0`, siehe unten) — Bedeutung und Index der
+Bänder 1–38 bleiben unverändert. Der bandweise Vergleich der ersten 38
+Bänder gegen die vorherige Referenz (`fb57c41d…232c30`) wird separat
+nachgereicht (noch nicht Teil dieses Dokuments).
 
 **Zweiter Referenzwechsel (08.09.2026, Punkt 34, Paket W5.P2):** ein
 DKM-Kandidat mit Fußabdruck über `HIG_MAX_FOOTPRINT_M2` (10.000 m²), der
@@ -200,13 +214,21 @@ nicht betroffen.
 
 ### `2.2.0` (Paket W7.1, Struktur v4) — sechs neue Bänder, drei neue Felder je Band
 
-**TODO(W7.x):** Dieser Abschnitt beschreibt das Schema, nicht das
-Referenzartefakt — die Beispielwerte weiter oben im Dokument (`band_count:
-38`, `schema_version: 2.0.0`, die `sha256`-Referenzzeile, die 18-Bänder-
-Tabelle) stammen noch aus dem 38-Bänder-Stand und werden erst nach dem
-nächsten echten `pipeline/finalize.py`-Lauf (Integration aller drei Bahnen
-von W7.1) auf 44 Bänder / `2.2.0` nachgezogen. Prosa hier ist bewusst knapp
-gehalten, nicht poliert — siehe Auftrag.
+**Nachgezogen (09.09.2026, Integration aller drei Bahnen von W7.1):** die
+„Aktuelle Referenzausgabe"-Tabelle weiter oben zeigt jetzt die echten
+Werte (`band_count: 44`, `schema_version: 2.2.0`, neuer `sha256`). Der
+große JSON-Ausschnitt oben im Dokument (Abschnitt „Das Manifest-Schema,
+Feld für Feld") bleibt bewusst die historische Momentaufnahme von
+`2.0.0`, an der die dortige Felderklärung entstand — sie zeigt die
+Struktur, nicht den aktuellen Stand; für die 44-Bänder-Liste selbst siehe
+`out/abschichtung.bands.json` oder `out/LAYER.md` (bzw. `docs/layer.md`,
+die eingecheckte Kopie der Vorlage). Der bandweise Vergleich der 18 (bzw.
+jetzt ggf. mehr) abweichenden Bänder gegen `run1` unten („18 Bänder
+unterscheiden sich von `run1`") bezieht sich weiterhin nur auf die
+Bänder 1–38 — `run1` selbst hat 38 Bänder und lässt sich mit
+`pipeline.validate` gegen ein 44-Bänder-TIF strukturell nicht mehr direkt
+vergleichen (Bandzahl-Guard in `measure_bands()`); das ist ein bekanntes,
+offenes Problem dieser Integration, nicht stillschweigend behoben.
 
 `band_count` steigt additiv von 38 auf 44: sechs neue Bänder 39–44
 (`haeuser_im_gruenen_source`, `general_buildings_roh_osm`,
