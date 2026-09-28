@@ -135,6 +135,18 @@ ifeq ($(strip $(EXPORT_TARGETS)),)
 	@echo "export: noch keine Export-Pakete vorhanden - die entstehen erst in Welle 4 (docs/rewrite/PLAN.md §7, W4.1/W4.2)."
 endif
 
+## Optionale Analysen laufen nachgelagert auf vorhandenen Layern. Sie sind
+## absichtlich kein Bestandteil von `all` oder `export`.
+-include make/analysis/*.mk
+
+ANALYSIS_TARGETS := $(addprefix analysis-,$(basename $(notdir $(wildcard make/analysis/*.mk))))
+.PHONY: $(ANALYSIS_TARGETS) analysis
+
+analysis: $(ANALYSIS_TARGETS)
+ifeq ($(strip $(ANALYSIS_TARGETS)),)
+	@echo "analysis: noch keine Analyse-Pakete vorhanden."
+endif
+
 ## Der Beweislauf aus Rohdaten (Welle 5: W5.1, Vorfeld W5.P0,
 ## docs/rewrite/PLAN.md §13.10 Regel 9 - "wem gehört die Zeile, die alles
 ## zusammenhält"). Bis W5.P0 rief `all` `prep` und danach `widmung-v2`
