@@ -215,29 +215,34 @@ AIRPORT_RUNWAY_MIN_LENGTH_M = 500.0
 # Windkraftanlagen sind keine Gebäude im Sinne der Abschichtung. OSM taggt
 # einzelne Anlagen zusätzlich mit `building=yes` auf DERSELBEN Way/Relation, die
 # auch `power=generator` + `generator:source=wind` trägt (Ö-Stand 2026-03: 12
-# Anlagen). Diese landen dadurch im Gebäude-Layer, fallen durch alle vier
-# Klassifikationsstufen und schließen als "allgemeines Gebäude" mit 25 m Puffer
-# ihren eigenen Standort aus - obwohl bestehende WKA-Standorte gerade die besten
-# Flächen sind (Repowering) und nie ein Ausschlussgrund sein dürfen.
+# Anlagen). Diese landen dadurch im Gebäude-Layer und schließen als
+# "allgemeines Gebäude" mit 25 m Puffer ihren eigenen Standort aus - obwohl
+# bestehende WKA-Standorte gerade die besten Flächen sind (Repowering).
 #
+# Die technischen Bauwerke eines Windparks sind ebenfalls kein
+# Siedlungsschutzobjekt: kleine Transformatorhäuser/-türme und Umspannstationen
+# innerhalb von 200 m einer Bestands-WKA werden deshalb ebenfalls entfernt.
 # Historische `man_made=windmill` (Retzer Windmühle u.a.) bleiben bewusst
 # Gebäude: das sind echte Bauwerke, keine Kraftwerke.
 WIND_POWER_OSM_FILTERS = ["nwr/generator:source=wind", "nwr/man_made=wind_turbine"]
+WIND_POWER_TECHNICAL_BUILDING_TYPES = frozenset({
+    "transformer",
+    "transformer-tower",
+    "transformer_house",
+    "transformer_tower",
+    "substation",
+})
+WIND_POWER_TECHNICAL_BUILDING_RADIUS_M = 200.0
 
 # Hochzählen, sobald sich das ERGEBNIS der Gebäudeklassifikation ändert, ohne
 # dass sich ein Parameter ändert (neuer Eingangsfilter o.ä.). Der Wert landet als
 # Tag in den Checkpoint-Layern; ohne ihn würden vorhandene distance_layers/*.tif
 # als gültig gelten und die Änderung stillschweigend nicht wirksam werden.
-# 6 (09.09.2026, W7.5): PEOPLE_CARRYING_AERIALWAY_TYPES eingeengt auf gondola/
-# cable_car/chair_lift/mixed_lift - is_cableway in build_osm_building_sources()
-# (pipeline/layers/osm.py) liest denselben Filter, das ERGEBNIS der
-# Klassifikation ändert sich also, ohne dass ein Prep-Eingang sich ändert
-# (genau der hier dokumentierte Fall). Invalidiert die ganze Gruppe
-# "v2 OSM building classification + angehängte Bänder 40/41"
-# (cableway_buildings_source, general_buildings_source,
-# general_buildings_roh_osm, general_buildings_roh_dkm) automatisch, ohne
-# manuelles Löschen der Checkpoint-Dateien.
-BUILDING_CLASSIFICATION_REVISION = "6-personenseilbahn-typen-eingeengt"
+# 7 (18.09.2026): Technische Windpark-Gebäude aus
+# WIND_POWER_TECHNICAL_BUILDING_TYPES innerhalb von 200 m einer WKA ergänzt.
+# Invalidiert die ganze Gruppe "v2 OSM building classification + angehängte
+# Bänder 40/41" automatisch, ohne manuelles Löschen der Checkpoint-Dateien.
+BUILDING_CLASSIFICATION_REVISION = "7-wka-nahe-technikbauten-200m"
 
 PLACE_TYPES = {
     "city",
@@ -570,41 +575,58 @@ def read_layer(path: Path, bounds=None, where: str | None = None, columns: list[
 
 
 def drop_wind_power_buildings(buildings: gpd.GeoDataFrame, wind_power: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-    """Return `buildings` without the rows that are in fact wind turbines.
+    """Return buildings without wind turbines or nearby wind-park equipment.
 
-    OSM carries `building=yes` on the same way/relation as the wind generator
-    tags for a handful of Austrian turbines, so they arrive in the buildings
-    layer and would exclude their own site as an "allgemeines Gebäude" (see
-    WIND_POWER_OSM_FILTERS for the full rationale).
+    OSM maps some turbines as buildings on the same geometry. It also maps
+    transformer houses, transformer towers, and substations as distinct
+    buildings near turbines. Neither case is a settlement-protection object:
+    the turbine geometry is always removed; only the explicitly listed
+    technical building types are removed when their nearest turbine is
+    strictly closer than :data:`WIND_POWER_TECHNICAL_BUILDING_RADIUS_M`.
 
-    The match is geometric, not tag-based, because the buildings layer keeps
-    only the `building` tag (OSM_PBF_INCLUDE_TAGS) and therefore cannot tell a
-    turbine from a shed. That is safe here: turbine footprints in the Austrian
-    extract are <= 50 m², so an `intersects` predicate cannot swallow anything
-    larger. `power=plant` (wind-farm outlines, many hectares) is deliberately
-    NOT part of WIND_POWER_OSM_FILTERS for exactly that reason.
-
-    Never mutates its inputs - returns the original object when there is
-    nothing to drop, otherwise a filtered copy.
+    The function never mutates its inputs and returns the original object when
+    there is nothing to drop.
     """
     turbines = wind_power[wind_power.geometry.notnull() & ~wind_power.geometry.is_empty] if not wind_power.empty else wind_power
     if buildings.empty or turbines.empty:
-        # Loud on purpose: an empty wind layer usually means the OSM extract is
-        # missing/stale, not that Austria has no turbines.
-        print(f"[info]  wind turbines removed from OSM building layer: 0 ({len(turbines):,} OSM wind-power objects in bounds)", flush=True)
+        print(f"[info]  wind-power buildings removed: 0 ({len(turbines):,} OSM wind-power objects in bounds)", flush=True)
         return buildings
 
-    hits = gpd.sjoin(buildings[["geometry"]], turbines[["geometry"]], how="inner", predicate="intersects")
-    drop_index = hits.index.unique()
+    footprint_hits = gpd.sjoin(buildings[["geometry"]], turbines[["geometry"]], how="inner", predicate="intersects")
+    footprint_index = footprint_hits.index.unique()
+
+    building_types = buildings.get("building", pd.Series("", index=buildings.index)).fillna("").astype(str).str.strip().str.lower()
+    technical_buildings = buildings[building_types.isin(WIND_POWER_TECHNICAL_BUILDING_TYPES)]
+    nearby_index = pd.Index([], dtype=buildings.index.dtype)
+    if not technical_buildings.empty:
+        nearby_hits = gpd.sjoin_nearest(
+            technical_buildings[["geometry"]],
+            turbines[["geometry"]],
+            how="inner",
+            max_distance=WIND_POWER_TECHNICAL_BUILDING_RADIUS_M,
+            distance_col="distance_m",
+        )
+        nearby_index = nearby_hits.loc[
+            nearby_hits["distance_m"] < WIND_POWER_TECHNICAL_BUILDING_RADIUS_M
+        ].index.unique()
+
+    drop_index = footprint_index.union(nearby_index)
     if len(drop_index) == 0:
-        print(f"[info]  wind turbines removed from OSM building layer: 0 of {len(buildings):,} buildings ({len(turbines):,} OSM wind-power objects in bounds, none tagged as a building)", flush=True)
+        print(
+            f"[info]  wind-power buildings removed: 0 of {len(buildings):,} buildings "
+            f"({len(turbines):,} OSM wind-power objects in bounds)",
+            flush=True,
+        )
         return buildings
 
     kept = buildings.loc[~buildings.index.isin(drop_index)].copy()
+    nearby_only = nearby_index.difference(footprint_index)
     print(
-        "[info]  wind turbines removed from OSM building layer: "
+        "[info]  wind-power buildings removed: "
         f"{len(drop_index):,} of {len(buildings):,} buildings "
-        f"({len(turbines):,} OSM wind-power objects in bounds)",
+        f"({len(footprint_index):,} turbine footprints, "
+        f"{len(nearby_only):,} technical buildings < {WIND_POWER_TECHNICAL_BUILDING_RADIUS_M:g} m; "
+        f"{len(turbines):,} OSM wind-power objects in bounds)",
         flush=True,
     )
     return kept
