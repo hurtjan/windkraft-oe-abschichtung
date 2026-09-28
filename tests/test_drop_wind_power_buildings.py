@@ -27,6 +27,9 @@ def _square(x: float, y: float, size: float = 7.0) -> Polygon:
 def _buildings(*geoms) -> gpd.GeoDataFrame:
     return gpd.GeoDataFrame({"building": ["yes"] * len(geoms)}, geometry=list(geoms), crs=TARGET_CRS)
 
+def _typed_buildings(types: list[str], *geoms) -> gpd.GeoDataFrame:
+    return gpd.GeoDataFrame({"building": types}, geometry=list(geoms), crs=TARGET_CRS)
+
 
 def _wind(*geoms) -> gpd.GeoDataFrame:
     return gpd.GeoDataFrame({"generator:source": ["wind"] * len(geoms)}, geometry=list(geoms), crs=TARGET_CRS)
@@ -55,6 +58,35 @@ def test_keeps_ordinary_buildings_far_from_any_turbine():
     # Assert
     assert len(kept) == 2
 
+
+
+def test_removes_listed_technical_building_strictly_within_200m_of_turbine():
+    turbine = Point(500_000, 400_000)
+    transformer = _square(500_190, 400_000)
+    transformer_at_limit = _square(500_200, 400_000)
+    ordinary_service_building = _square(500_050, 400_000)
+
+    kept = drop_wind_power_buildings(
+        _typed_buildings(
+            ["transformer", "transformer_tower", "service"],
+            transformer,
+            transformer_at_limit,
+            ordinary_service_building,
+        ),
+        _wind(turbine),
+    )
+
+    assert kept["building"].tolist() == ["transformer_tower", "service"]
+
+
+def test_removes_each_listed_technical_building_type_near_a_turbine():
+    turbine = Point(500_000, 400_000)
+    types = ["transformer", "transformer-tower", "transformer_house", "transformer_tower", "substation"]
+    buildings = _typed_buildings(types, *[Point(500_010 + i * 10, 400_000) for i in range(len(types))])
+
+    kept = drop_wind_power_buildings(buildings, _wind(turbine))
+
+    assert kept.empty
 
 def test_returns_input_unchanged_when_no_wind_objects_present():
     # Arrange
