@@ -1,10 +1,10 @@
-# make/prep/ — Konvention für die neun Prep-Pakete
+# make/prep/ — Konvention für die Prep-Pakete
 
 Vorpaket **W1.P0** (`docs/rewrite/PLAN.md` §13.4) hat dieses Verzeichnis
-angelegt, damit die neun parallelen Prep-Pakete (W1.P1–W1.P9) nicht alle
+angelegt, damit die parallelen Prep-Pakete nicht alle
 dieselbe Zeile im `Makefile` ändern müssen. Das `Makefile` liest
-`make/prep/*.mk` per `-include` ein — neun verschiedene Dateien statt
-neun Änderungen an einer.
+`make/prep/*.mk` per `-include` ein — getrennte Dateien statt mehrfacher
+Änderungen an einer.
 
 ## Konvention
 
@@ -14,7 +14,7 @@ neun Änderungen an einer.
   Schlüsselname aus `pipeline.contract.RAW` bzw. `PREP`, also das
   Unterverzeichnis von `data/`, das deine Prep-Stufe liest.
 - Deine Ausgabepfade stehen bereits in `pipeline/contract.py:PREP`
-  (Paket W1.P0 hat alle neun Domänen dort vorab erklärt) — importieren,
+  (Paket W1.P0 und spätere Erweiterungen haben die Domänen dort erklärt) — importieren,
   nicht neu erklären. Beispiel:
 
   ```python
@@ -49,6 +49,6 @@ prep-admin:
 ## Warum diese Datei existiert
 
 `docs/rewrite/PLAN.md` §13.4: Konflikte werden vorher verhindert, nicht
-nachher aufgelöst. Ohne diese Konvention hätte jedes der neun Pakete
-sowohl `pipeline/contract.py:PREP` als auch `Makefile` ändern müssen —
-zwei garantierte neunfache Konflikte an je einer Stelle.
+nachher aufgelöst. Ohne diese Konvention müsste jedes Paket sowohl
+`pipeline/contract.py:PREP` als auch `Makefile` ändern — mehrfacher
+Konflikt an je einer Stelle.

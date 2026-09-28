@@ -200,6 +200,8 @@ data/
 │   └── AUT_power-density_150m.tif  6,6 MB  Global Wind Atlas
 ├── osm/
 │   └── austria-260330.osm.pbf      760 MB  Geofabrik-PBF, speist viele Bänder
+├── windkraft/
+│   └── windkraft_standorte_at.geojson  207 KB  geliefertes WKA-Standortverzeichnis, 1.388 Points
 ├── adressen/                       484 MB  BEV-Adressregister (+ 2 Parquet-Caches)
 ├── admin/
 │   └── VGD_Oesterreich_gen_50_20221002/    20 MB  Verwaltungsgrenzen
@@ -249,11 +251,22 @@ Artefakte, insbesondere `output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet`
 |---|---|---|---|---|---|---|---|
 | Höhenmodell 25 m | `data/gelaende/DGM_R25.tif` | BEV / Land Austria | unbekannt — zu klären (manueller Download beim Arbeitsrechner-Stand) | 30.03.2026 | **750 MB** | unbekannt — zu klären | ja, eingeschränkt (Portal/Lizenz zu klären) |
 | OSM Österreich (PBF) | `data/osm/austria-260330.osm.pbf` | Geofabrik | https://download.geofabrik.de/europe/austria.html | 30.03.2026 | **760 MB** | ODbL 1.0 | ja |
+| WKA-Standortverzeichnis Österreich | `data/windkraft/windkraft_standorte_at.geojson` | geliefert | vom Projektinhaber bereitgestellt | 22.09.2026 | **207 KB**, 1.388 Point-Features, keine Attribute und kein `crs`-Member | unbekannt — zu klären | nur über die bereitgestellte Datei |
 | Adressregister | `data/adressen/` | BEV | unbekannt — zu klären (manueller Download BEV-Portal) | Stichtag 01.10.2025 | **484 MB** (ZIP 93 MB + `ADRESSE.csv` 311 MB + 2 Parquet-Caches ~81 MB) | unbekannt — zu klären | ja, eingeschränkt |
 | Leistungsdichte 150 m | `data/gelaende/AUT_power-density_150m.tif` | Global Wind Atlas | https://globalwindatlas.info | 29.03.2026 | **6,6 MB** | unbekannt — zu klären | ja |
 | Verwaltungsgrenzen | `data/admin/VGD_Oesterreich_gen_50_20221002/` | BEV, generalisiert 1:50.000 | unbekannt — zu klären | 02.10.2022 | **20 MB** | unbekannt — zu klären | ja, eingeschränkt |
 | Naturschutzgebiete | `data/natur/SG_AT_2024_v_April_Stand_3_April_2024.zip` | Umweltbundesamt / DORIS (OGD) | unbekannt — zu klären | 03.04.2024 | **73 MB** | unbekannt — zu klären | ja, eingeschränkt |
 | OSM-Stromleitungen (**entfernt, Paket W1.2**) | war `data/osm_power_lines.gpkg` | abgeleitet aus Geofabrik-OSM | — (Export aus OSM-PBF) | 31.03.2026 | **13 MB** | ODbL 1.0 | entfällt |
+
+**WKA-Standortverzeichnis.** Das GeoJSON folgt RFC 7946: ohne den
+veralteten `crs`-Member werden seine Koordinaten beim Import ausdrücklich als
+CRS84/EPSG:4326 (Länge, Breite) behandelt und nach EPSG:31287 transformiert.
+`pipeline/prep/windkraft.py` akzeptiert ausschließlich Points und entfernt
+zwei exakte Koordinatduplikate deterministisch; die gemeinsame Eingabe für
+Band 38 und den Punkte-Export enthält deshalb **1.386** Punkte mit stabilen
+`wka_id`-Werten. OSM-`windpower` wird nicht als WKA-Quelle verwendet, sondern
+bleibt allein der Schutz davor, dass OSM-Turbinen und nahe Technikgebäude als
+allgemeine Gebäude klassifiziert werden.
 
 **Entfernt in Paket W1.2 (war zuvor `data/osm_power_lines.gpkg`).** Die
 Datei hatte einen einzigen Codeleser, `abschichtung_common.py:966`

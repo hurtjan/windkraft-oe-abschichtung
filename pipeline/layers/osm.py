@@ -145,6 +145,7 @@ from calc.abschichtung_common import (
     AIRPORT_RUNWAY_MIN_LENGTH_M,
     BUILDING_CLASSIFICATION_REVISION,
     CABLEWAY_BUILDING_MATCH_RADIUS_M,
+    WIND_POWER_TECHNICAL_BUILDING_RADIUS_M,
     MILITARY_AREA_TYPES,
     PEOPLE_CARRYING_AERIALWAY_TYPES,
     TARGET_CRS,
@@ -345,9 +346,16 @@ def build_osm_building_sources(cfg: dict, grid: dict, args: argparse.Namespace) 
     buildings = _read_prep_layer("buildings", source_bounds)
     buildings = buildings[buildings.geometry.notnull() & ~buildings.geometry.is_empty].copy()
 
-    # Windkraftanlagen raus, BEVOR eine der zwei Kategorien greift - siehe
-    # drop_wind_power_buildings()-Docstring in abschichtung_common.py.
-    wind_power = _read_prep_layer("windpower", source_bounds)
+    # OSM-Windpower ist hier bewusst NUR ein Negativfilter: Die autoritative
+    # Bestands-WKA-Quelle liegt in pipeline/prep/windkraft.py und wird nur von
+    # geo.py/export.wka_bestand.py positiv verarbeitet. Hier verhindert OSM
+    # ausschließlich, dass Turbinen oder zugehörige Technikgebäude in eine der
+    # zwei Gebäude-Kategorien geraten. Siehe drop_wind_power_buildings(). Der
+    # Wind-Lesebereich ist weiter als der Gebäudelesebereich: ein technisches
+    # Windparkgebäude noch innerhalb von source_bounds braucht seine WKA bis
+    # 200 m dahinter, sonst zieht sein 25-m-Puffer fälschlich herein.
+    wind_bounds = expand_bounds(source_bounds, WIND_POWER_TECHNICAL_BUILDING_RADIUS_M)
+    wind_power = _read_prep_layer("windpower", wind_bounds)
     buildings = drop_wind_power_buildings(buildings, wind_power)
 
     aerialways = _read_prep_layer("aerialways", source_bounds)

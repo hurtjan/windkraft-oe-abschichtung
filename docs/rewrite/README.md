@@ -73,7 +73,8 @@ Dieselben Daten liegen maschinenlesbar in `domains.tsv` / `domains.json`
 | Kataster | 8 × DKM-SHP-ZIP + NÖ-DXF + Symbol-CSV | 7,8 GB | kataster/a_noe_polygonize → kataster/b_export_parquet | nonresidential_hulls_source, general_buildings_source, hig_hulls_source, bewohnt_einzellage_source | 8–13 |
 | Adressregister | BEV Adresse, Stichtagsdaten | 484 MB | adressen | hig_hulls_source | 12–13 |
 | Flächenwidmung | 9 Bundesland-Quellen, GPKG und SHP | 1,6 GB | widmung | official_settlement_source, official_hig_source, ferienhaus_tourismus_source | 1–5 |
-| OSM | austria.osm.pbf | 760 MB | osm/a_extract → osm/b_layers | roads, rail, cableway, water_bodies, nature_osm, military, airport, wka_bestand | 14–22, 26, 38 |
+| OSM | austria.osm.pbf | 760 MB | osm/a_extract → osm/b_layers | roads, rail, cableway, water_bodies, nature_osm, military, airport; windpower nur als Gebäude-Negativfilter | 14–22, 26 |
+| WKA-Bestand | windkraft_standorte_at.geojson (geliefert) | 207 KB | windkraft | wka_bestand | 38 |
 | Gelände & Wind | DGM_R25, Leistungsdichte 150 m | 757 MB | kein Prep | geography_slope, geography_elevation, geography_wind | 23–25 |
 | Naturschutz | Schutzgebiete Österreich 2024 | 73 MB | natur | nature_protection_areas | 21 |
 | Windzonen | luca_zonen, Eignungszonen, RED III, zonierung_noe | 4,9 MB | zonen | — | 37 |

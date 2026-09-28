@@ -348,7 +348,7 @@ Schwellenwerte gelesen aus `config.json` und `calc/config.py`, Stand 2026-09-09.
 |---|---|---|
 | 2 | Siedlungsabstand | Abstand von 1.000 m um amtliches Wohn-, Misch-, Kern- und Dorfgebiet aller neun Bundesländer; in Niederösterreich 1.200 m. |
 | 7 | Häuser im Grünen | Abstand von 750 m um bewohnte Einzellagen außerhalb des Baulands: Ferienhaus- und Tourismusgebiete, amtliche Widmungen für Hofstellen, Camping, Golf, Kleingärten und Auffüllungsgebiete sowie Streusiedlungen. In Niederösterreich gelten stattdessen die Mindestabstandszonen des Sektoralen Raumordnungsprogramms, die den Abstand bereits enthalten. |
-| 45 | Gebäude und Anlagen | Fußabdrücke aller übrigen Gebäude mit ihrem Abstand: unbewohnte und industrieartige Kataster-Hüllen sowie sonstige Gebäude und Einzellagen mit je 25 m, Seilbahn-Gebäude mit 50 m. |
+| 45 | Gebäude und Anlagen | Fußabdrücke aller übrigen Gebäude mit ihrem Abstand: unbewohnte und industrieartige Kataster-Hüllen sowie sonstige Gebäude und Einzellagen mit je 25 m, Seilbahn-Gebäude mit 50 m. Transformatorhäuser, Transformatorentürme und Umspannstationen innerhalb von 200 m einer Bestands-WKA zählen nicht als Gebäude. |
 | 46 | Verkehr | Abstand von 150 m beiderseits von Autobahnen und Schnellstraßen, Bundes- und Landesstraßen, Hauptbahnen und Personenseilbahnen. Schlepplifte und Materialseilbahnen zählen nicht als Personenseilbahn. |
 | 18 | Militärisches Sperrgebiet | Militärische Sperrgebiete, ohne zusätzlichen Abstand. |
 | 47 | Luftfahrt | Areale der Hauptflughäfen sowie ihre An- und Abflugkorridore: 5 km ab beiden Landebahn-Enden, ±15° um die verlängerte Bahnachse. |
@@ -362,7 +362,7 @@ Schwellenwerte gelesen aus `config.json` und `calc/config.py`, Stand 2026-09-09.
 | 30 | Ausschluss gesamt | Vereinigung der Ausschlüsse aus Mensch, Natur und Geografie: alles, was ausgeschlossen ist. |
 | 32 | Eignungsflächen | Das Endergebnis: die nach Abzug aller Ausschlüsse verbleibende Fläche, bereinigt um Splitter; nur zusammenhängende Flächen ab 10 ha. |
 | 37 | Amtliche Windkraft-Zonen | Alle amtlichen Windkraft-Positivzonen der Länder in einem Layer: Zonierung Niederösterreich, Vorrang- und Eignungszonen Steiermark, Vorrangzonen Salzburg, Eignungszonen Burgenland, Beschleunigungszonen Kärnten. Dient dem Vergleich mit der Abschichtung und ist selbst kein Ausschluss. |
-| 38 | WKA-Bestand außerhalb der Zonen | Bestehende Windräder aus OpenStreetMap außerhalb der amtlichen Zonen, zu Park-Hüllen zusammengefasst: Anlagen mit weniger als 750 m Abstand bilden einen Park, dessen Hülle 200 m Rand erhält. Referenz, kein Ausschluss. |
+| 38 | WKA-Bestand außerhalb der Zonen | Bestehende Windräder aus dem gelieferten österreichischen Standortverzeichnis, vorbereitet als 1.386 eindeutige Punkte, außerhalb der amtlichen Zonen zu Park-Hüllen zusammengefasst: Anlagen mit weniger als 750 m Abstand bilden einen Park, dessen Hülle 200 m Rand erhält. Referenz, kein Ausschluss. |
 
 Die drei Schwellenwerte der Kategorie Geografie stehen heute nur im Quelltext.
 Sie kommen zusätzlich maschinenlesbar nach `parameters`, im dort vorhandenen Stil

@@ -78,7 +78,7 @@ def test_raw_path_exists(path):
 def test_raw_is_not_empty():
     # Schützt gegen eine leere Struktur, die die Parametrisierung oben
     # stillschweigend zu null Tests verkürzen würde.
-    assert len(RAW_PATHS) == 31
+    assert len(RAW_PATHS) == 32
 
 
 # ---------------------------------------------------------------------------
@@ -218,30 +218,30 @@ def test_prep_and_layers_live_under_derived():
 
 
 # ---------------------------------------------------------------------------
-# 4b. PREP deckt alle neun Domänen der Prep-Welle vollständig ab (PLAN.md
+# 4b. PREP deckt alle Rohdaten-Domänen vollständig ab (PLAN.md
 #     §7, W1.P1-W1.P9; Vorpaket W1.P0, §13.4). Diese Zusicherungen sind der
-#     eigentliche Zweck von W1.P0: sie beweisen, dass keines der neun
-#     Prep-Pakete beim parallelen Start noch selbst einen Eintrag in PREP
+#     eigentliche Zweck von W1.P0: sie beweisen, dass keine Prep-Domäne beim
+#     parallelen Start noch selbst einen Eintrag in PREP
 #     nachtragen muss.
 # ---------------------------------------------------------------------------
 
-# Die neun Domänen sind genau die neun Unterverzeichnisse von data/ (siehe
-# contract.RAW-Schlüssel oben) und damit auch die neun Top-Level-Schlüssel
+# Die zehn Domänen sind genau die zehn Unterverzeichnisse von data/ (siehe
+# contract.RAW-Schlüssel oben) und damit auch die Top-Level-Schlüssel
 # von PREP - unabhängig davon, ob eine Domäne eine oder zwei Prep-Stufen hat.
 PREP_DOMAINS = frozenset(contract.RAW.keys())
 
 # Domänen mit zwei Prep-Stufen (PLAN.md §4/§7: teure Extraktion getrennt von
-# billigerer Ableitung) - alle anderen sechs Domänen haben genau eine Stufe,
+# billigerer Ableitung) - alle anderen sieben Domänen haben genau eine Stufe,
 # also einen Path-Wert statt eines verschachtelten dict.
 PREP_TWO_STAGE_DOMAINS = frozenset({"kataster", "osm", "noe_sekrop"})
 
 
-def test_prep_covers_all_nine_domains():
+def test_prep_covers_all_raw_data_domains():
     assert PREP_DOMAINS == frozenset({
         "admin", "kataster", "adressen", "widmung", "osm",
-        "gelaende", "natur", "zonen", "noe_sekrop",
+        "gelaende", "natur", "zonen", "noe_sekrop", "windkraft",
     })
-    assert len(PREP_DOMAINS) == 9
+    assert len(PREP_DOMAINS) == 10
     assert set(contract.PREP.keys()) == PREP_DOMAINS
 
 
@@ -265,8 +265,8 @@ def test_prep_single_stage_domains_are_bare_paths():
 
 
 def test_prep_leaf_count():
-    # 6 einstufige Domänen + 3 zweistufige Domänen * 2 Stufen = 12 Pfade.
-    assert len(_iter_leaf_paths(contract.PREP)) == 12
+    # 7 einstufige Domänen + 3 zweistufige Domänen * 2 Stufen = 13 Pfade.
+    assert len(_iter_leaf_paths(contract.PREP)) == 13
 
 
 def test_products_live_under_out():

@@ -403,7 +403,8 @@ DESCRIPTIONS_DE_TRAILING = {
         "Ausschluss."
     ),
     "wka_bestand_ausserhalb_zonen": (
-        "Bestehende Windräder aus OpenStreetMap außerhalb der amtlichen Zonen, "
+        "Bestehende Windräder aus dem gelieferten österreichischen "
+        "Standortverzeichnis außerhalb der amtlichen Zonen, "
         "zu Park-Hüllen zusammengefasst: Anlagen mit weniger als 750 m Abstand "
         "bilden einen Park, dessen Hülle 200 m Rand erhält. Referenz, kein "
         "Ausschluss."
@@ -430,7 +431,13 @@ SOURCES = {
         "pfad": "data/osm/austria-260330.osm.pbf",
         "stand": "30.03.2026",
         "rolle": "Geofabrik-Extrakt Österreich: Straßen, Bahn, Seilbahnen, Militär, "
-                 "Flughäfen, Gebäude, Gewässer, Schutzgebiete, Bestands-WKA",
+                 "Flughäfen, Gebäude, Gewässer und Schutzgebiete",
+    },
+    "windkraft_standorte_at": {
+        "pfad": "data/windkraft/windkraft_standorte_at.geojson",
+        "stand": "gelieferter Datensatz (kein crs-Member; RFC 7946 CRS84/EPSG:4326)",
+        "rolle": "Autoritative Bestands-WKA für Referenzband und Punkte-Export; "
+                 "exakte Koordinatduplikate werden in der Prep-Stufe entfernt",
     },
     "verwaltungsgrenzen_vgd": {
         "pfad": "data/admin/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp",
@@ -854,7 +861,7 @@ BAND_SOURCES: dict[str, list[str]] = {
         "amtliche_windzonen_sbg",
         "verwaltungsgrenzen_vgd",
     ],
-    "wka_bestand_ausserhalb_zonen": ["osm_pbf"],
+    "wka_bestand_ausserhalb_zonen": ["windkraft_standorte_at"],
     # Bänder 39-41, Schema 2.2.0 (W7.1) - direkte Rohdatenquellen, aus
     # layer-beschreibung.md §"Gebäude"/"Häuser im Grünen".
     "general_buildings_roh_osm": ["osm_pbf"],
@@ -870,7 +877,8 @@ BAND_SOURCES: dict[str, list[str]] = {
 #   available_cleaned_min_*ha          = Mindestflächenfilter auf raw
 #   available_blur_sigma_*m            = Gauß-Blur auf raw (blur_source="raw"
 #                                         in pipeline/finalize.py)
-#   wka_bestand_ausserhalb_zonen       = testet OSM-Windpower-Punkte gegen
+#   wka_bestand_ausserhalb_zonen       = testet vorbereitete Punkte des
+#                                         gelieferten WKA-Verzeichnisses gegen
 #                                         official_wind_zoning
 # Wie abschichtung_common.py: HUMAN_BANDS (wortgleich aus
 # scripts/widmung_v2/04_create_distance_zones.py bzw. pipeline/finalize.py),

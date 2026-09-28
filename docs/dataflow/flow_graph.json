@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated_at": "2026-09-07T16:35:34+02:00",
+    "generated_at": "2026-09-22T17:19:56+02:00",
     "fragments": [
       "frag_A_widmung.json",
       "frag_B_preprocessing.json",
@@ -32,7 +32,7 @@
     "conflict_count": 42,
     "stub_count": 0,
     "schema_version": 2,
-    "fixed_at": "2026-09-07T16:35:34.682955+02:00",
+    "fixed_at": "2026-09-22T17:19:56.118536+02:00",
     "fix_script": "docs/dataflow/src/2_normalize.py",
     "reversed_edge_count": 158,
     "direction_unresolved_count": 14,
@@ -2561,7 +2561,7 @@
       "path": "output/abschichtung_widmung_v2/distance_layers/wka_bestand_ausserhalb_zonen.tif",
       "label": "wka_bestand_ausserhalb_zonen",
       "raw_class": "derived_in_repo",
-      "notes": "[frag_A] Referenzband: Bestands-WKA (OSM) ausserhalb amtlicher Zonen, zu Park-Huellen verkettet.",
+      "notes": "[frag_A] Referenzband: Bestands-WKA aus dem gelieferten Standortverzeichnis, vorbereitet als 1.386 eindeutige Punkte, ausserhalb amtlicher Zonen zu Park-Huellen verkettet.",
       "sources": [
         "frag_A"
       ],
