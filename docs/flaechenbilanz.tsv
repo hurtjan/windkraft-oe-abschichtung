@@ -1,0 +1,416 @@
+# flaechenbilanz v1
+# tif_sha256=bd5ddacc1d231cd43d507eece4536a6cfde57e5af912bdcbeec716212878bf1c
+# schema=clean-44-ohne-wichtige-objekte-aug-2026
+# band_count=44
+# bezug=bundesland_maske_zellmitte zelle_m2=625
+kennzahl	region	zellen	km2	prozent	anzahl
+ergebnis.ausschluss_gesamt	B	5208503	3255.31	82.166	
+ergebnis.ausschluss_gesamt	K	14747725	9217.33	96.638	
+ergebnis.ausschluss_gesamt	N	28253341	17658.34	92.038	
+ergebnis.ausschluss_gesamt	O	18477761	11548.60	96.412	
+ergebnis.ausschluss_gesamt	S	11043974	6902.48	96.459	
+ergebnis.ausschluss_gesamt	ST	25248399	15780.25	96.205	
+ergebnis.ausschluss_gesamt	T	19672925	12295.58	97.274	
+ergebnis.ausschluss_gesamt	V	4049062	2530.66	97.281	
+ergebnis.ausschluss_gesamt	W	659724	412.33	99.432	
+ergebnis.ausschluss_gesamt	AT	127361414	79600.88	94.900	
+ergebnis.frei_roh	B	1130531	706.58	17.834	
+ergebnis.frei_roh	K	513091	320.68	3.362	
+ergebnis.frei_roh	N	2444247	1527.65	7.962	
+ergebnis.frei_roh	O	687619	429.76	3.588	
+ergebnis.frei_roh	S	405445	253.40	3.541	
+ergebnis.frei_roh	ST	995913	622.45	3.795	
+ergebnis.frei_roh	T	551304	344.56	2.726	
+ergebnis.frei_roh	V	113152	70.72	2.719	
+ergebnis.frei_roh	W	3769	2.36	0.568	
+ergebnis.frei_roh	AT	6845071	4278.17	5.100	
+ergebnis.kleinflaechen	B	4795	3.00	0.076	
+ergebnis.kleinflaechen	K	125954	78.72	0.825	
+ergebnis.kleinflaechen	N	94880	59.30	0.309	
+ergebnis.kleinflaechen	O	90394	56.50	0.472	
+ergebnis.kleinflaechen	S	132142	82.59	1.154	
+ergebnis.kleinflaechen	ST	262105	163.82	0.999	
+ergebnis.kleinflaechen	T	240706	150.44	1.190	
+ergebnis.kleinflaechen	V	45216	28.26	1.086	
+ergebnis.kleinflaechen	W	511	0.32	0.077	
+ergebnis.kleinflaechen	AT	996703	622.94	0.743	
+ergebnis.eignung_10ha	B	1125736	703.59	17.759	
+ergebnis.eignung_10ha	K	387137	241.96	2.537	
+ergebnis.eignung_10ha	N	2349367	1468.35	7.653	
+ergebnis.eignung_10ha	O	597225	373.27	3.116	
+ergebnis.eignung_10ha	S	273303	170.81	2.387	
+ergebnis.eignung_10ha	ST	733808	458.63	2.796	
+ergebnis.eignung_10ha	T	310598	194.12	1.536	
+ergebnis.eignung_10ha	V	67936	42.46	1.632	
+ergebnis.eignung_10ha	W	3258	2.04	0.491	
+ergebnis.eignung_10ha	AT	5848368	3655.23	4.358	
+kategorie.mensch	B	4378323	2736.45	69.069	
+kategorie.mensch	K	10534696	6584.19	69.031	
+kategorie.mensch	N	25889234	16180.77	84.336	
+kategorie.mensch	O	16022158	10013.85	83.599	
+kategorie.mensch	S	5598491	3499.06	48.898	
+kategorie.mensch	ST	17492660	10932.91	66.653	
+kategorie.mensch	T	7800506	4875.32	38.570	
+kategorie.mensch	V	2356132	1472.58	56.608	
+kategorie.mensch	W	625866	391.17	94.329	
+kategorie.mensch	AT	90698066	56686.29	67.581	
+kategorie.natur	B	1827811	1142.38	28.834	
+kategorie.natur	K	1715633	1072.27	11.242	
+kategorie.natur	N	7632482	4770.30	24.863	
+kategorie.natur	O	1500821	938.01	7.831	
+kategorie.natur	S	2619404	1637.13	22.878	
+kategorie.natur	ST	6200686	3875.43	23.627	
+kategorie.natur	T	4821734	3013.58	23.841	
+kategorie.natur	V	1223414	764.63	29.393	
+kategorie.natur	W	88608	55.38	13.355	
+kategorie.natur	AT	27630593	17269.12	20.588	
+kategorie.geografie	B	391223	244.51	6.172	
+kategorie.geografie	K	13333041	8333.15	87.368	
+kategorie.geografie	N	4994113	3121.32	16.269	
+kategorie.geografie	O	4926602	3079.13	25.706	
+kategorie.geografie	S	9422937	5889.34	82.301	
+kategorie.geografie	ST	18296246	11435.15	69.715	
+kategorie.geografie	T	18789359	11743.35	92.905	
+kategorie.geografie	V	3727145	2329.47	89.547	
+kategorie.geografie	W	45595	28.50	6.872	
+kategorie.geografie	AT	73926261	46203.91	55.084	
+exklusiv.nur_mensch	B	3286945	2054.34	51.852	
+exklusiv.nur_mensch	K	1264254	790.16	8.284	
+exklusiv.nur_mensch	N	17446519	10904.07	56.834	
+exklusiv.nur_mensch	O	13004163	8127.60	67.852	
+exklusiv.nur_mensch	S	1270641	794.15	11.098	
+exklusiv.nur_mensch	ST	5288522	3305.33	20.151	
+exklusiv.nur_mensch	T	653042	408.15	3.229	
+exklusiv.nur_mensch	V	170634	106.65	4.100	
+exklusiv.nur_mensch	W	531876	332.42	80.163	
+exklusiv.nur_mensch	AT	42916596	26822.87	31.978	
+exklusiv.nur_natur	B	596841	373.03	9.415	
+exklusiv.nur_natur	K	112984	70.61	0.740	
+exklusiv.nur_natur	N	970936	606.84	3.163	
+exklusiv.nur_natur	O	225361	140.85	1.176	
+exklusiv.nur_natur	S	289150	180.72	2.525	
+exklusiv.nur_natur	ST	744030	465.02	2.835	
+exklusiv.nur_natur	T	182802	114.25	0.904	
+exklusiv.nur_natur	V	87239	54.52	2.096	
+exklusiv.nur_natur	W	30294	18.93	4.566	
+exklusiv.nur_natur	AT	3239637	2024.77	2.414	
+exklusiv.nur_geografie	B	10183	6.36	0.161	
+exklusiv.nur_geografie	K	2969117	1855.70	19.456	
+exklusiv.nur_geografie	N	803861	502.41	2.619	
+exklusiv.nur_geografie	O	1663043	1039.40	8.677	
+exklusiv.nur_geografie	S	3066179	1916.36	26.780	
+exklusiv.nur_geografie	ST	3816533	2385.33	14.542	
+exklusiv.nur_geografie	T	7698906	4811.82	38.068	
+exklusiv.nur_geografie	V	1058835	661.77	25.439	
+exklusiv.nur_geografie	W	1824	1.14	0.275	
+exklusiv.nur_geografie	AT	21088481	13180.30	15.713	
+exklusiv.mensch_natur	B	933494	583.43	14.726	
+exklusiv.mensch_natur	K	37446	23.40	0.245	
+exklusiv.mensch_natur	N	4841773	3026.11	15.772	
+exklusiv.mensch_natur	O	321635	201.02	1.678	
+exklusiv.mensch_natur	S	61246	38.28	0.535	
+exklusiv.mensch_natur	ST	919601	574.75	3.504	
+exklusiv.mensch_natur	T	47722	29.83	0.236	
+exklusiv.mensch_natur	V	64044	40.03	1.539	
+exklusiv.mensch_natur	W	51959	32.47	7.831	
+exklusiv.mensch_natur	AT	7278920	4549.32	5.424	
+exklusiv.mensch_geografie	B	83564	52.23	1.318	
+exklusiv.mensch_geografie	K	8798721	5499.20	57.656	
+exklusiv.mensch_geografie	N	2370479	1481.55	7.722	
+exklusiv.mensch_geografie	O	2309734	1443.58	12.052	
+exklusiv.mensch_geografie	S	4087750	2554.84	35.703	
+exklusiv.mensch_geografie	ST	9942658	6214.16	37.885	
+exklusiv.mensch_geografie	T	6499243	4062.03	32.136	
+exklusiv.mensch_geografie	V	1596179	997.61	38.349	
+exklusiv.mensch_geografie	W	37416	23.39	5.639	
+exklusiv.mensch_geografie	AT	35725744	22328.59	26.620	
+exklusiv.natur_geografie	B	223156	139.47	3.520	
+exklusiv.natur_geografie	K	1130928	706.83	7.411	
+exklusiv.natur_geografie	N	589310	368.32	1.920	
+exklusiv.natur_geografie	O	567199	354.50	2.959	
+exklusiv.natur_geografie	S	2090154	1306.35	18.256	
+exklusiv.natur_geografie	ST	3195176	1996.99	12.175	
+exklusiv.natur_geografie	T	3990711	2494.19	19.732	
+exklusiv.natur_geografie	V	546856	341.79	13.139	
+exklusiv.natur_geografie	W	1740	1.09	0.262	
+exklusiv.natur_geografie	AT	12335230	7709.52	9.191	
+exklusiv.alle_drei	B	74320	46.45	1.172	
+exklusiv.alle_drei	K	434275	271.42	2.846	
+exklusiv.alle_drei	N	1230463	769.04	4.008	
+exklusiv.alle_drei	O	386626	241.64	2.017	
+exklusiv.alle_drei	S	178854	111.78	1.562	
+exklusiv.alle_drei	ST	1341879	838.67	5.113	
+exklusiv.alle_drei	T	600499	375.31	2.969	
+exklusiv.alle_drei	V	525275	328.30	12.620	
+exklusiv.alle_drei	W	4615	2.88	0.696	
+exklusiv.alle_drei	AT	4776806	2985.50	3.559	
+kriterium.mensch.siedlung	B	4074821	2546.76	64.281	
+kriterium.mensch.siedlung	K	9113029	5695.64	59.715	
+kriterium.mensch.siedlung	N	21516090	13447.56	70.090	
+kriterium.mensch.siedlung	O	14496169	9060.11	75.637	
+kriterium.mensch.siedlung	S	3613988	2258.74	31.565	
+kriterium.mensch.siedlung	ST	12689844	7931.15	48.353	
+kriterium.mensch.siedlung	T	5216630	3260.39	25.794	
+kriterium.mensch.siedlung	V	1781033	1113.15	42.791	
+kriterium.mensch.siedlung	W	596943	373.09	89.970	
+kriterium.mensch.siedlung	AT	73098547	45686.59	54.467	
+kriterium.mensch.haeuser_im_gruenen	B	612448	382.78	9.662	
+kriterium.mensch.haeuser_im_gruenen	K	7903369	4939.61	51.789	
+kriterium.mensch.haeuser_im_gruenen	N	19038120	11898.83	62.018	
+kriterium.mensch.haeuser_im_gruenen	O	13924151	8702.59	72.653	
+kriterium.mensch.haeuser_im_gruenen	S	3840179	2400.11	33.540	
+kriterium.mensch.haeuser_im_gruenen	ST	12257749	7661.09	46.706	
+kriterium.mensch.haeuser_im_gruenen	T	5960926	3725.58	29.474	
+kriterium.mensch.haeuser_im_gruenen	V	1209409	755.88	29.057	
+kriterium.mensch.haeuser_im_gruenen	W	444418	277.76	66.982	
+kriterium.mensch.haeuser_im_gruenen	AT	65190769	40744.23	48.575	
+kriterium.mensch.nichtwohn_huellen	B	25674	16.05	0.405	
+kriterium.mensch.nichtwohn_huellen	K	117984	73.74	0.773	
+kriterium.mensch.nichtwohn_huellen	N	50057	31.29	0.163	
+kriterium.mensch.nichtwohn_huellen	O	77622	48.51	0.405	
+kriterium.mensch.nichtwohn_huellen	S	146454	91.53	1.279	
+kriterium.mensch.nichtwohn_huellen	ST	185168	115.73	0.706	
+kriterium.mensch.nichtwohn_huellen	T	291218	182.01	1.440	
+kriterium.mensch.nichtwohn_huellen	V	63963	39.98	1.537	
+kriterium.mensch.nichtwohn_huellen	W	6854	4.28	1.033	
+kriterium.mensch.nichtwohn_huellen	AT	964994	603.12	0.719	
+kriterium.mensch.seilbahn_gebaeude	B	0	0.00	0.000	
+kriterium.mensch.seilbahn_gebaeude	K	4098	2.56	0.027	
+kriterium.mensch.seilbahn_gebaeude	N	655	0.41	0.002	
+kriterium.mensch.seilbahn_gebaeude	O	2699	1.69	0.014	
+kriterium.mensch.seilbahn_gebaeude	S	21217	13.26	0.185	
+kriterium.mensch.seilbahn_gebaeude	ST	7756	4.85	0.030	
+kriterium.mensch.seilbahn_gebaeude	T	40328	25.21	0.199	
+kriterium.mensch.seilbahn_gebaeude	V	11712	7.32	0.281	
+kriterium.mensch.seilbahn_gebaeude	W	0	0.00	0.000	
+kriterium.mensch.seilbahn_gebaeude	AT	88465	55.29	0.066	
+kriterium.mensch.gebaeude	B	97674	61.05	1.541	
+kriterium.mensch.gebaeude	K	265077	165.67	1.737	
+kriterium.mensch.gebaeude	N	130561	81.60	0.425	
+kriterium.mensch.gebaeude	O	1129378	705.86	5.893	
+kriterium.mensch.gebaeude	S	424668	265.42	3.709	
+kriterium.mensch.gebaeude	ST	1191949	744.97	4.542	
+kriterium.mensch.gebaeude	T	632663	395.41	3.128	
+kriterium.mensch.gebaeude	V	211509	132.19	5.082	
+kriterium.mensch.gebaeude	W	95276	59.55	14.360	
+kriterium.mensch.gebaeude	AT	4178755	2611.72	3.114	
+kriterium.mensch.verkehr	B	1074667	671.67	16.953	
+kriterium.mensch.verkehr	K	1835511	1147.19	12.028	
+kriterium.mensch.verkehr	N	7283956	4552.47	23.728	
+kriterium.mensch.verkehr	O	3755850	2347.41	19.597	
+kriterium.mensch.verkehr	S	1135337	709.59	9.916	
+kriterium.mensch.verkehr	ST	3410295	2131.43	12.994	
+kriterium.mensch.verkehr	T	1683745	1052.34	8.325	
+kriterium.mensch.verkehr	V	558005	348.75	13.406	
+kriterium.mensch.verkehr	W	322389	201.49	48.590	
+kriterium.mensch.verkehr	AT	21059755	13162.35	15.692	
+kriterium.mensch.verkehr.autobahn	B	122549	76.59	1.933	
+kriterium.mensch.verkehr.autobahn	K	157832	98.64	1.034	
+kriterium.mensch.verkehr.autobahn	N	332781	207.99	1.084	
+kriterium.mensch.verkehr.autobahn	O	184574	115.36	0.963	
+kriterium.mensch.verkehr.autobahn	S	81352	50.84	0.711	
+kriterium.mensch.verkehr.autobahn	ST	269554	168.47	1.027	
+kriterium.mensch.verkehr.autobahn	T	128569	80.36	0.636	
+kriterium.mensch.verkehr.autobahn	V	42318	26.45	1.017	
+kriterium.mensch.verkehr.autobahn	W	36513	22.82	5.503	
+kriterium.mensch.verkehr.autobahn	AT	1356042	847.53	1.010	
+kriterium.mensch.verkehr.bundes_landesstrassen	B	892704	557.94	14.083	
+kriterium.mensch.verkehr.bundes_landesstrassen	K	1550020	968.76	10.157	
+kriterium.mensch.verkehr.bundes_landesstrassen	N	6521272	4075.80	21.244	
+kriterium.mensch.verkehr.bundes_landesstrassen	O	3321146	2075.72	17.329	
+kriterium.mensch.verkehr.bundes_landesstrassen	S	811717	507.32	7.090	
+kriterium.mensch.verkehr.bundes_landesstrassen	ST	2908335	1817.71	11.082	
+kriterium.mensch.verkehr.bundes_landesstrassen	T	1162868	726.79	5.750	
+kriterium.mensch.verkehr.bundes_landesstrassen	V	410559	256.60	9.864	
+kriterium.mensch.verkehr.bundes_landesstrassen	W	271396	169.62	40.904	
+kriterium.mensch.verkehr.bundes_landesstrassen	AT	17850017	11156.26	13.300	
+kriterium.mensch.verkehr.bahn	B	123886	77.43	1.954	
+kriterium.mensch.verkehr.bahn	K	279415	174.63	1.831	
+kriterium.mensch.verkehr.bahn	N	997263	623.29	3.249	
+kriterium.mensch.verkehr.bahn	O	532584	332.87	2.779	
+kriterium.mensch.verkehr.bahn	S	175091	109.43	1.529	
+kriterium.mensch.verkehr.bahn	ST	556151	347.59	2.119	
+kriterium.mensch.verkehr.bahn	T	228083	142.55	1.128	
+kriterium.mensch.verkehr.bahn	V	69239	43.27	1.664	
+kriterium.mensch.verkehr.bahn	W	86831	54.27	13.087	
+kriterium.mensch.verkehr.bahn	AT	3048543	1905.34	2.272	
+kriterium.mensch.verkehr.seilbahn_personen	B	0	0.00	0.000	
+kriterium.mensch.verkehr.seilbahn_personen	K	50322	31.45	0.330	
+kriterium.mensch.verkehr.seilbahn_personen	N	12822	8.01	0.042	
+kriterium.mensch.verkehr.seilbahn_personen	O	23955	14.97	0.125	
+kriterium.mensch.verkehr.seilbahn_personen	S	192204	120.13	1.679	
+kriterium.mensch.verkehr.seilbahn_personen	ST	66111	41.32	0.252	
+kriterium.mensch.verkehr.seilbahn_personen	T	366065	228.79	1.810	
+kriterium.mensch.verkehr.seilbahn_personen	V	95222	59.51	2.288	
+kriterium.mensch.verkehr.seilbahn_personen	W	0	0.00	0.000	
+kriterium.mensch.verkehr.seilbahn_personen	AT	806701	504.19	0.601	
+kriterium.mensch.militaer	B	58109	36.32	0.917	
+kriterium.mensch.militaer	K	4109	2.57	0.027	
+kriterium.mensch.militaer	N	310800	194.25	1.012	
+kriterium.mensch.militaer	O	12088	7.55	0.063	
+kriterium.mensch.militaer	S	4164	2.60	0.036	
+kriterium.mensch.militaer	ST	30070	18.79	0.115	
+kriterium.mensch.militaer	T	104580	65.36	0.517	
+kriterium.mensch.militaer	V	292	0.18	0.007	
+kriterium.mensch.militaer	W	2186	1.37	0.329	
+kriterium.mensch.militaer	AT	526398	329.00	0.392	
+kriterium.mensch.luftfahrt	B	0	0.00	0.000	
+kriterium.mensch.luftfahrt	K	32007	20.00	0.210	
+kriterium.mensch.luftfahrt	N	46730	29.21	0.152	
+kriterium.mensch.luftfahrt	O	33066	20.67	0.173	
+kriterium.mensch.luftfahrt	S	16185	10.12	0.141	
+kriterium.mensch.luftfahrt	ST	39118	24.45	0.149	
+kriterium.mensch.luftfahrt	T	26973	16.86	0.133	
+kriterium.mensch.luftfahrt	V	0	0.00	0.000	
+kriterium.mensch.luftfahrt	W	8084	5.05	1.218	
+kriterium.mensch.luftfahrt	AT	202163	126.35	0.151	
+kriterium.mensch.luftfahrt.flughafen	B	0	0.00	0.000	
+kriterium.mensch.luftfahrt.flughafen	K	3575	2.23	0.023	
+kriterium.mensch.luftfahrt.flughafen	N	13686	8.55	0.045	
+kriterium.mensch.luftfahrt.flughafen	O	3904	2.44	0.020	
+kriterium.mensch.luftfahrt.flughafen	S	2727	1.70	0.024	
+kriterium.mensch.luftfahrt.flughafen	ST	4918	3.07	0.019	
+kriterium.mensch.luftfahrt.flughafen	T	2082	1.30	0.010	
+kriterium.mensch.luftfahrt.flughafen	V	0	0.00	0.000	
+kriterium.mensch.luftfahrt.flughafen	W	0	0.00	0.000	
+kriterium.mensch.luftfahrt.flughafen	AT	30892	19.31	0.023	
+kriterium.mensch.luftfahrt.anflugkorridor	B	0	0.00	0.000	
+kriterium.mensch.luftfahrt.anflugkorridor	K	29966	18.73	0.196	
+kriterium.mensch.luftfahrt.anflugkorridor	N	35061	21.91	0.114	
+kriterium.mensch.luftfahrt.anflugkorridor	O	30605	19.13	0.160	
+kriterium.mensch.luftfahrt.anflugkorridor	S	13582	8.49	0.119	
+kriterium.mensch.luftfahrt.anflugkorridor	ST	36815	23.01	0.140	
+kriterium.mensch.luftfahrt.anflugkorridor	T	25398	15.87	0.126	
+kriterium.mensch.luftfahrt.anflugkorridor	V	0	0.00	0.000	
+kriterium.mensch.luftfahrt.anflugkorridor	W	8084	5.05	1.218	
+kriterium.mensch.luftfahrt.anflugkorridor	AT	179511	112.19	0.134	
+kriterium.natur.schutzgebiet	B	1827811	1142.38	28.834	
+kriterium.natur.schutzgebiet	K	1715633	1072.27	11.242	
+kriterium.natur.schutzgebiet	N	7632482	4770.30	24.863	
+kriterium.natur.schutzgebiet	O	1500821	938.01	7.831	
+kriterium.natur.schutzgebiet	S	2619404	1637.13	22.878	
+kriterium.natur.schutzgebiet	ST	6200686	3875.43	23.627	
+kriterium.natur.schutzgebiet	T	4821734	3013.58	23.841	
+kriterium.natur.schutzgebiet	V	1223414	764.63	29.393	
+kriterium.natur.schutzgebiet	W	88608	55.38	13.355	
+kriterium.natur.schutzgebiet	AT	27630593	17269.12	20.588	
+kriterium.natur.schutzgebiet.amtlich	B	1826991	1141.87	28.821	
+kriterium.natur.schutzgebiet.amtlich	K	1363288	852.06	8.933	
+kriterium.natur.schutzgebiet.amtlich	N	7542457	4714.04	24.570	
+kriterium.natur.schutzgebiet.amtlich	O	1498651	936.66	7.820	
+kriterium.natur.schutzgebiet.amtlich	S	1963931	1227.46	17.153	
+kriterium.natur.schutzgebiet.amtlich	ST	5213211	3258.26	19.864	
+kriterium.natur.schutzgebiet.amtlich	T	3176088	1985.06	15.704	
+kriterium.natur.schutzgebiet.amtlich	V	558606	349.13	13.421	
+kriterium.natur.schutzgebiet.amtlich	W	82016	51.26	12.361	
+kriterium.natur.schutzgebiet.amtlich	AT	23225239	14515.77	17.306	
+kriterium.natur.schutzgebiet.osm	B	162528	101.58	2.564	
+kriterium.natur.schutzgebiet.osm	K	1309106	818.19	8.578	
+kriterium.natur.schutzgebiet.osm	N	432587	270.37	1.409	
+kriterium.natur.schutzgebiet.osm	O	384679	240.42	2.007	
+kriterium.natur.schutzgebiet.osm	S	2082868	1301.79	18.192	
+kriterium.natur.schutzgebiet.osm	ST	5521422	3450.89	21.039	
+kriterium.natur.schutzgebiet.osm	T	4767503	2979.69	23.573	
+kriterium.natur.schutzgebiet.osm	V	1222480	764.05	29.371	
+kriterium.natur.schutzgebiet.osm	W	79669	49.79	12.008	
+kriterium.natur.schutzgebiet.osm	AT	15962842	9976.78	11.894	
+kriterium.geografie.hangneigung	B	80489	50.31	1.270	
+kriterium.geografie.hangneigung	K	8796118	5497.57	57.639	
+kriterium.geografie.hangneigung	N	4388404	2742.75	14.296	
+kriterium.geografie.hangneigung	O	3759276	2349.55	19.615	
+kriterium.geografie.hangneigung	S	7911919	4944.95	69.103	
+kriterium.geografie.hangneigung	ST	12725506	7953.44	48.489	
+kriterium.geografie.hangneigung	T	16085409	10053.38	79.535	
+kriterium.geografie.hangneigung	V	2705972	1691.23	65.013	
+kriterium.geografie.hangneigung	W	11103	6.94	1.673	
+kriterium.geografie.hangneigung	AT	56464196	35290.12	42.073	
+kriterium.geografie.seehoehe	B	0	0.00	0.000	
+kriterium.geografie.seehoehe	K	383518	239.70	2.513	
+kriterium.geografie.seehoehe	N	0	0.00	0.000	
+kriterium.geografie.seehoehe	O	9939	6.21	0.052	
+kriterium.geografie.seehoehe	S	415409	259.63	3.628	
+kriterium.geografie.seehoehe	ST	6662	4.16	0.025	
+kriterium.geografie.seehoehe	T	2780785	1737.99	13.750	
+kriterium.geografie.seehoehe	V	86439	54.02	2.077	
+kriterium.geografie.seehoehe	W	0	0.00	0.000	
+kriterium.geografie.seehoehe	AT	3682752	2301.72	2.744	
+kriterium.geografie.wind	B	47785	29.87	0.754	
+kriterium.geografie.wind	K	6904691	4315.43	45.245	
+kriterium.geografie.wind	N	515470	322.17	1.679	
+kriterium.geografie.wind	O	1655271	1034.54	8.637	
+kriterium.geografie.wind	S	3046215	1903.88	26.606	
+kriterium.geografie.wind	ST	6882879	4301.80	26.226	
+kriterium.geografie.wind	T	5300029	3312.52	26.206	
+kriterium.geografie.wind	V	1895437	1184.65	45.539	
+kriterium.geografie.wind	W	0	0.00	0.000	
+kriterium.geografie.wind	AT	26247777	16404.86	19.558	
+kriterium.geografie.gewaesser	B	264089	165.06	4.166	
+kriterium.geografie.gewaesser	K	229940	143.71	1.507	
+kriterium.geografie.gewaesser	N	353106	220.69	1.150	
+kriterium.geografie.gewaesser	O	368601	230.38	1.923	
+kriterium.geografie.gewaesser	S	139675	87.30	1.220	
+kriterium.geografie.gewaesser	ST	174042	108.78	0.663	
+kriterium.geografie.gewaesser	T	150162	93.85	0.742	
+kriterium.geografie.gewaesser	V	96558	60.35	2.320	
+kriterium.geografie.gewaesser	W	34496	21.56	5.199	
+kriterium.geografie.gewaesser	AT	1810669	1131.67	1.349	
+referenz.amtliche_zonen	B	42285	26.43	0.667	
+referenz.amtliche_zonen	K	12986	8.12	0.085	
+referenz.amtliche_zonen	N	470909	294.32	1.534	
+referenz.amtliche_zonen	O	91	0.06	0.000	
+referenz.amtliche_zonen	S	28790	17.99	0.251	
+referenz.amtliche_zonen	ST	78663	49.16	0.300	
+referenz.amtliche_zonen	T	131	0.08	0.001	
+referenz.amtliche_zonen	V	0	0.00	0.000	
+referenz.amtliche_zonen	W	4	0.00	0.001	
+referenz.amtliche_zonen	AT	633859	396.16	0.472	
+referenz.wka_ausserhalb_zonen	B	177994	111.25	2.808	
+referenz.wka_ausserhalb_zonen	K	235	0.15	0.002	
+referenz.wka_ausserhalb_zonen	N	39634	24.77	0.129	
+referenz.wka_ausserhalb_zonen	O	9297	5.81	0.049	
+referenz.wka_ausserhalb_zonen	S	0	0.00	0.000	
+referenz.wka_ausserhalb_zonen	ST	3102	1.94	0.012	
+referenz.wka_ausserhalb_zonen	T	0	0.00	0.000	
+referenz.wka_ausserhalb_zonen	V	0	0.00	0.000	
+referenz.wka_ausserhalb_zonen	W	1752	1.09	0.264	
+referenz.wka_ausserhalb_zonen	AT	232014	145.01	0.173	
+referenz.wka.anlagen	B				419
+referenz.wka.anlagen	K				9
+referenz.wka.anlagen	N				800
+referenz.wka.anlagen	O				31
+referenz.wka.anlagen	S				0
+referenz.wka.anlagen	ST				116
+referenz.wka.anlagen	T				0
+referenz.wka.anlagen	V				0
+referenz.wka.anlagen	W				9
+referenz.wka.anlagen	AT				1386
+referenz.wka.in_zonen	B				24
+referenz.wka.in_zonen	K				8
+referenz.wka.in_zonen	N				635
+referenz.wka.in_zonen	O				0
+referenz.wka.in_zonen	S				0
+referenz.wka.in_zonen	ST				103
+referenz.wka.in_zonen	T				0
+referenz.wka.in_zonen	V				0
+referenz.wka.in_zonen	W				0
+referenz.wka.in_zonen	AT				770
+referenz.wka.ausserhalb	B				395
+referenz.wka.ausserhalb	K				1
+referenz.wka.ausserhalb	N				165
+referenz.wka.ausserhalb	O				31
+referenz.wka.ausserhalb	S				0
+referenz.wka.ausserhalb	ST				13
+referenz.wka.ausserhalb	T				0
+referenz.wka.ausserhalb	V				0
+referenz.wka.ausserhalb	W				9
+referenz.wka.ausserhalb	AT				616
+referenz.wka.parks	B				19
+referenz.wka.parks	K				1
+referenz.wka.parks	N				82
+referenz.wka.parks	O				10
+referenz.wka.parks	S				0
+referenz.wka.parks	ST				5
+referenz.wka.parks	T				0
+referenz.wka.parks	V				0
+referenz.wka.parks	W				5
+referenz.wka.parks	AT				121
