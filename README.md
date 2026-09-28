@@ -73,7 +73,7 @@ Danach liegt unter `out/`:
 | `abschichtung.tif` + `abschichtung.bands.json` | Das 44-Band-Raster und sein Manifest — nur zusammen weitergeben |
 | `dashboard/index.html` | Kartenansicht aller Bänder (Leaflet über OSM) |
 | `gemeinden.geojson` | Gemeindegrenzen im Rasterbezug |
-| `wka_bestand_punkte.geojson` | Bestehende Windkraftanlagen aus OSM |
+| `wka_bestand_punkte.geojson` | Bestehende Windkraftanlagen aus dem gelieferten österreichischen Standortverzeichnis |
 | `LAYER.md` | Bandbeschreibungen in lesbarer Form |
 
 > ⚠️ **Fehlende Rohdaten führen nicht zum Abbruch.** Eine unvollständige
@@ -100,6 +100,7 @@ Lizenz jeder einzelnen Datei stehen in [`docs/rohdaten.md`](docs/rohdaten.md).
 | Schutzgebiete | Umweltbundesamt | Naturschutz |
 | NÖ SekROP Windkraft | Amt der NÖ Landesregierung | Mindestabstandszonen, Referenzzonen |
 | OSM Österreich-Extrakt | Geofabrik | Straßen, Bahn, Seilbahnen, Gebäude, Gewässer, Militär, Flughäfen |
+| WKA-Standortverzeichnis Österreich | geliefert | Autoritative Bestands-WKA für Referenzband und Punkte-Export |
 
 Direkt herunterladbar sind nur OSM und Windatlas; die übrigen Quellen
 müssen manuell bei den jeweiligen Stellen bezogen werden. Belegte Lizenzen:

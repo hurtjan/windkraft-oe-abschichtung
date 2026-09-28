@@ -880,7 +880,7 @@
       "path": "output/abschichtung_widmung_v2/distance_layers/wka_bestand_ausserhalb_zonen.tif",
       "label": "wka_bestand_ausserhalb_zonen",
       "raw_class": "derived_in_repo",
-      "notes": "Referenzband: Bestands-WKA (OSM) ausserhalb amtlicher Zonen, zu Park-Huellen verkettet."
+      "notes": "Referenzband: Bestands-WKA aus dem gelieferten Standortverzeichnis, vorbereitet als 1.386 eindeutige Punkte, ausserhalb amtlicher Zonen zu Park-Huellen verkettet."
     },
     {
       "id": "output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2.tif",

@@ -1,24 +1,23 @@
-"""Punkte-Export: bestehende OSM-Windkraftanlagen (Paket W7.1, Bahn 3).
+"""Punkte-Export: bestehende Windkraftanlagen aus dem Standortverzeichnis.
 
-Erzeugt ``out/wka_bestand_punkte.geojson`` - alle OSM-Windkraftanlagen
-Österreichs als Punkte, EPSG:31287 mit CRS-Member (RFC 7946: ohne
+Erzeugt ``out/wka_bestand_punkte.geojson`` - alle Anlagen des gelieferten
+österreichischen Standortverzeichnisses als Punkte, EPSG:31287 mit CRS-Member (RFC 7946: ohne
 ``crs``-Member gilt implizit WGS84 - siehe ``pipeline/export/gemeinden.py``,
 demselben Muster). Muster und Schreibkonvention (echte Datei statt
 Hardlink, Rückles-Prüfung) wie dort.
 
 Properties je Feature laut Schnittstelle 2.2.0 §3
 (``schnittstelle-manifest-2.2.md``, verbindlich - siehe dortiger Verweis):
-``osm_id``, ``in_zone``, ``hull_id``, ``name``, ``operator``, ``power_kw``,
-``start_date``.
+``wka_id``, ``osm_id``, ``in_zone``, ``hull_id``, ``name``, ``operator``,
+``power_kw``, ``start_date``. ``osm_id`` bleibt aus Kompatibilitätsgründen
+erhalten, ist für diese nicht-OSM-Quelle aber immer ``null``.
 
 ## Quelle
 
-``derived/prep/osm/b_layers/windpower.parquet`` (``pipeline/prep/osm.py``,
-W1.P5) - Pfad über ``contract.PREP["osm"]["b_layers"]`` bezogen, der
-Dateiname selbst ("windpower.parquet") ist bereits in
-``pipeline/layers/geo.py:build_wka_bestand_hulls()`` derselbe Literalname
-(kein Vertragseintrag dafür vorhanden) - hier genauso übernommen, keine
-zweite Konvention erfunden.
+``derived/prep/windkraft/standorte.parquet``
+(``pipeline/prep/windkraft.py``). Dieses ist die einzige positive
+Turbinenquelle in der Kette; die OSM-``windpower``-Extraktion bleibt nur der
+Negativfilter gegen die Gebäudeklassifikation in ``pipeline/layers/osm.py``.
 
 ## ``in_zone``: dieselbe Frage wie der Produzent
 
@@ -59,18 +58,11 @@ Bahn 1 schneidet die Hüllen-Geometrie in Band 38 parallel gegen die Zonen
 zu (ändert nur den Rasterrand der Hülle, nicht die Clusterzugehörigkeit der
 Punkte) - diese Nachbildung bleibt davon unberührt.
 
-## Fehlende Properties: ``operator``, ``power_kw``, ``start_date``
+## Fehlende Properties
 
-**Abweichung von §3, siehe Berichtstext:** ``pipeline/prep/osm.py``
-(``OSM_PBF_INCLUDE_TAGS["windpower"]``, W1.P5, nicht Teil dieses Pakets)
-exportiert für die Objektgruppe ``windpower`` nur die Tags ``power``,
-``generator:source``, ``man_made`` und ``name`` aus dem PBF - ``operator``,
-``generator:output:electricity`` und ``start_date`` stehen nicht im
-Parquet und sind deshalb in JEDEM Feature ``null``. Das Parse-/
-Umrechnungsverhalten (kW aus ``generator:output:electricity``) ist trotzdem
-implementiert (defensiv, prüft auf Spaltenexistenz) - sobald ein künftiges
-Welle-1-Nachbesserungspaket die drei Tags in die Prep-Extraktion aufnimmt,
-läuft dieses Modul ohne Änderung mit echten Werten.
+Das gelieferte GeoJSON hat keine Sachattribute. ``name``, ``operator``,
+``power_kw`` und ``start_date`` werden daher als ``null`` ausgegeben;
+``wka_id`` ist die stabile, quellenneutrale Kennung aus der Prep-Stufe.
 """
 
 from __future__ import annotations
@@ -91,6 +83,7 @@ import rasterio  # noqa: E402
 from shapely.ops import unary_union  # noqa: E402
 
 from pipeline import contract, runtime  # noqa: E402
+from pipeline.prep import windkraft as prep_windkraft  # noqa: E402
 from pipeline.layers.geo import _build_valid_area_mask, WKA_CLUSTER_CHAIN_M  # noqa: E402
 
 from calc.abschichtung_common import (  # noqa: E402
@@ -100,10 +93,6 @@ from calc.abschichtung_common import (  # noqa: E402
     sample_mask_at_points,
 )
 
-WINDPOWER_PARQUET_NAME = "windpower.parquet"
-
-# Spaltennamen im rohen OSM-Parquet, so wie osmium sie schreibt (Tags mit
-# ":" sind gültige, nicht umzubenennende Spaltennamen).
 _COL_OSM_ID = "@id"
 _COL_NAME = "name"
 _COL_OPERATOR = "operator"
@@ -154,16 +143,8 @@ def _parse_power_kw(raw) -> float | None:
 
 
 def load_turbines() -> gpd.GeoDataFrame:
-    path = contract.PREP["osm"]["b_layers"] / WINDPOWER_PARQUET_NAME
-    if not path.exists():
-        raise SystemExit(
-            f"[fehler] {path} fehlt - pipeline/prep/osm.py (W1.P5) noch nicht gelaufen "
-            "('make prep-osm')."
-        )
-    gdf = gpd.read_parquet(path)
-    if gdf.crs is None or str(gdf.crs).upper() != TARGET_CRS:
-        gdf = gdf.to_crs(TARGET_CRS)
-    return gdf
+    """Load the exact same prepared inventory as the Band-38 producer."""
+    return prep_windkraft.load_prepared()
 
 
 def grid_from_official_wind_zoning() -> dict:
@@ -253,13 +234,20 @@ def build_export(turbines: gpd.GeoDataFrame, grid: dict) -> tuple[gpd.GeoDataFra
             ) if not present
         ]
         print(
-            f"[warn]  Spalte(n) {missing} fehlen im windpower.parquet - "
+            f"[warn]  Spalte(n) {missing} fehlen im WKA-Standortverzeichnis - "
             "die entsprechenden Properties sind fuer JEDES Feature null "
             "(siehe Moduldocstring, Abschnitt 'Fehlende Properties').",
             flush=True,
         )
 
-    osm_id = turbines[_COL_OSM_ID].astype("int64").to_numpy() if _COL_OSM_ID in turbines.columns else np.arange(len(turbines), dtype="int64")
+    wka_id = turbines[prep_windkraft.ID_COLUMN].astype(str).to_numpy()
+    # Compatibility-only legacy field: it must never manufacture OSM IDs for
+    # this authoritative non-OSM source.
+    osm_id = (
+        turbines[_COL_OSM_ID].astype("int64").to_numpy()
+        if _COL_OSM_ID in turbines.columns
+        else pd.array([None] * len(turbines), dtype="Int64")
+    )
     name = [_none_if_nan(v) for v in turbines[_COL_NAME]] if _COL_NAME in turbines.columns else [None] * len(turbines)
     operator = [_none_if_nan(v) for v in turbines[_COL_OPERATOR]] if has_operator else [None] * len(turbines)
     start_date = [_none_if_nan(v) for v in turbines[_COL_START_DATE]] if has_start_date else [None] * len(turbines)
@@ -269,6 +257,7 @@ def build_export(turbines: gpd.GeoDataFrame, grid: dict) -> tuple[gpd.GeoDataFra
 
     gdf = gpd.GeoDataFrame(
         {
+            "wka_id": wka_id,
             "osm_id": osm_id,
             "in_zone": in_zone.astype(bool),
             # Nullable-Integer (pandas "Int64", nicht "int64") erzwingen:
@@ -320,7 +309,7 @@ def _verify_written_geojson(path: Path, expected_count: int) -> None:
             f"(gefunden: {crs_member!r})."
         )
     reread = gpd.read_file(path)
-    if reread.crs is None or str(reread.crs).upper() != TARGET_CRS:
+    if reread.crs is None or reread.crs.to_epsg() != 31287:
         raise SystemExit(f"{path}: geopandas liest das CRS als {reread.crs}, erwartet {TARGET_CRS}.")
 
 

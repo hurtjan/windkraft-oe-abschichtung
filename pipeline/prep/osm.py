@@ -97,8 +97,9 @@ unangetastet bleibt).
 ## Bandnamen aus PLAN.md §4 vs. tatsächliche Objektgruppen
 
 PLAN.md §4 nennt für die Domäne OSM acht "Erzeugte Layer": roads; rail;
-cableway; water_bodies; nature_osm; military; airport; wka_bestand. Das
-ist eine grobe, band-orientierte Zusammenfassung, keine 1:1-Liste der
+cableway; water_bodies; nature_osm; military; airport; windpower als
+Gebäude-Negativfilter. Das ist eine grobe, band-orientierte Zusammenfassung,
+keine 1:1-Liste der
 tatsächlich extrahierten Objektgruppen - Unterschiede:
 
 - ``buildings`` und ``powerlines`` fehlen in der PLAN.md-Liste komplett,
@@ -112,9 +113,9 @@ tatsächlich extrahierten Objektgruppen - Unterschiede:
   personenbefördernde Typen, Band 17) UND die Seilbahn-Gebäudenähe für
   ``cableway_buildings_source`` (Band 10, alle Typen). PLAN.md §4 nennt
   nur "cableway" (singular), nicht diese Doppelnutzung.
-- ``railways``/``rail``, ``transport``/``airport``, ``windpower``/
-  ``wka_bestand``, ``nature``/``nature_osm``, ``water``/``water_bodies``
-  entsprechen sich inhaltlich 1:1, tragen aber unterschiedliche Namen als
+- ``railways``/``rail``, ``transport``/``airport``, ``nature``/``nature_osm``
+  und ``water``/``water_bodies`` entsprechen sich inhaltlich 1:1, tragen aber
+  unterschiedliche Namen als
   osmium-Schlüssel (Code) vs. PLAN.md-Bandfamilie (Dokumentation).
 
 Diese Stufe benennt ihre Ausgabedateien nach den tatsächlichen

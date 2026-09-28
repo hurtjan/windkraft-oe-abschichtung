@@ -16,7 +16,7 @@ data/   →   derived/prep/   →   derived/layers/   →   out/
 
 | Ziel | Was es tut |
 |---|---|
-| `make prep` | Überführt Rohdaten aus `data/` nach `derived/prep/` — neun Domänen (`admin`, `adressen`, `gelaende`, `kataster`, `natur`, `noe_sekrop`, `osm`, `widmung`, `zonen`), drei davon intern zweistufig: zwölf einzeln überspringbare Stufen. |
+| `make prep` | Überführt Rohdaten aus `data/` nach `derived/prep/` — zehn Domänen (`admin`, `adressen`, `gelaende`, `kataster`, `natur`, `noe_sekrop`, `osm`, `widmung`, `windkraft`, `zonen`), drei davon intern zweistufig: dreizehn einzeln überspringbare Stufen. |
 | `make layers` | Baut die 39 Checkpoint-Layer in `derived/layers/`, in der Reihenfolge `hig` → `osm` → `geo`. |
 | `make finalize` | Komponiert daraus das 44-Band-GeoTIFF plus Manifest nach `out/` (rund drei Minuten). |
 | `make export` | Die Export-Ziele `dashboard`, `viewer`, `gemeinden`, `wka_bestand`, `layer_md`. |
@@ -40,12 +40,12 @@ Alle unter `out/`, alle gitignored:
 | `abschichtung.bands.json` | Das Sidecar-Manifest, Schema 2.2.0. |
 | `dashboard/` | Kartenansicht: `index.html` mit Leaflet über OSM, ein PNG-Overlay je Band, dazu `report.json` mit Kennzahlen je Band. |
 | `gemeinden.geojson` | Gemeindegrenzen im Rasterbezug (≈ 27 MB). |
-| `wka_bestand_punkte.geojson` | Bestehende Windkraftanlagen aus OSM als Punkte (1 595 Anlagen). |
+| `wka_bestand_punkte.geojson` | Bestehende Windkraftanlagen aus dem gelieferten österreichischen Standortverzeichnis als Punkte (1 386 eindeutige Koordinaten). |
 | `LAYER.md` | Bandbeschreibungen für Konsumenten in lesbarer Form. |
 
 ## Wiederholbarkeit
 
-**Die Prep-Stufe ist vollständig wiederholbar.** Jede der zwölf Prep-Stufen
+**Die Prep-Stufe ist vollständig wiederholbar.** Jede der dreizehn Prep-Stufen
 prüft über `pipeline/fingerprint.py`, ob ihre Eingaben *und ihr eigener
 Quelltext* unverändert sind und ihre Ausgabe vorliegt, und überspringt sich
 dann sichtbar. Der Kataster-Schritt allein dauert 45–70 Minuten — deshalb
@@ -94,7 +94,7 @@ config.json Schwellwerte, Puffer, Windparameter
 - **`pipeline/contract.py`** ist **der eine Pfadvertrag** für Rohpfade,
   Prep-Ausgaben, Layernamen und Produktpfade. Wer einen Pfad braucht,
   importiert ihn von hier, statt ihn ein zweites Mal hinzuschreiben.
-- **`pipeline/prep/`** — neun Domänen. `kataster/` läuft zweistufig
+- **`pipeline/prep/`** — zehn Domänen. `kataster/` läuft zweistufig
   (`a_noe_polygonize.py`, dann `b_export_parquet.py`), `osm.py` und
   `noe_sekrop.py` haben je zwei intern geprüfte Stufen.
 - **`pipeline/layers/`** — `hig.py`, `osm.py`, `geo.py`, zusammen die
@@ -175,10 +175,9 @@ ein — ein stillschweigend verschwundener Test lässt die Session abbrechen.
 
 - **Layer-Fingerabdruck ohne Quelltext** — siehe „Wiederholbarkeit". Nach
   Codeänderungen in der Layer-Stufe `derived/layers/` löschen.
-- **`wka_bestand_punkte.geojson`:** `operator`,
-  `generator:output:electricity` und `start_date` sind in allen Anlagen
-  leer. Die Tags werden beim PBF-Export nicht mitgezogen; der
-  Auswertungscode steht bereits und füllt sich, sobald sie es werden.
+- **`wka_bestand_punkte.geojson`:** Der gelieferte Standortdatensatz enthält
+  keine Sachattribute. `name`, `operator`, `power_kw` und `start_date` sind
+  deshalb `null`; `wka_id` ist die stabile, quellenneutrale Kennung.
 - **Tunnelausschluss** der Verkehrsbänder (Straße, Bahn, Seilbahn) prüft nur
   den OSM-Tag `tunnel`, nicht `layer<0`. Wirkung nach oben abgeschätzt unter
   0,7 % der Potenzialfläche.

@@ -184,7 +184,7 @@ OSM-Layer, die in v2 tatsächlich verwendet werden (Filter = osmium-Syntax,
 | Layer | osmium-Filter | Spalten | Stufe | Band(s) |
 |---|---|---|---|---|
 | `buildings` | `w/building r/building` | building | 3 | general_/cableway_buildings_source |
-| `windpower` | `nwr/generator:source=wind nwr/man_made=wind_turbine` (`:219`) | power, generator:source, man_made, name | 3, 4 | WKA-Drop aus Gebäuden; wka_bestand_ausserhalb_zonen |
+| `windpower` | `nwr/generator:source=wind nwr/man_made=wind_turbine` (`:219`) | power, generator:source, man_made, name | 3 | Nur Negativfilter: WKA-Drop aus Gebäuden und naher Technik; nicht Quelle von `wka_bestand_ausserhalb_zonen` |
 | `aerialways` | `n/aerialway w/aerialway r/aerialway` | aerialway | 3 | cableway_buildings_source (alle Typen, 100 m); cableway_people_150m (nur Personenbahnen) |
 | `roads` | `w/highway` | highway, tunnel | 3 | road_motorway_trunk, road_federal_state |
 | `railways` | `w/railway` | railway, tunnel | 3 | rail_main |
@@ -363,7 +363,7 @@ uv run python scripts/main/create_widmung_v2_distance_zones.py --layer-dir outpu
 | | |
 |---|---|
 | Code | `scripts/main/create_widmung_v2_distance_zones.py` (515 Z.); Builder `abschichtung_common.py`, Windzonen `windkraft/calc/wind_zones.py` |
-| Input | 15 Pflicht-Checkpoints (`REQUIRED_SOURCE_LAYERS` `:206-222`: 6 aus Stufe 2, 9 aus Stufe 3); DGM; Leistungsdichte; VGD; Schutzgebiete-GPKG; OSM nature/water/windpower; NÖ-Zonierung; BL-Windzonen; config `exclusion.*`, `wind.*` |
+| Input | 15 Pflicht-Checkpoints (`REQUIRED_SOURCE_LAYERS` `:206-222`: 6 aus Stufe 2, 9 aus Stufe 3); DGM; Leistungsdichte; VGD; Schutzgebiete-GPKG; OSM nature/water; vorbereitetes WKA-Standortverzeichnis (1.386 Punkte); NÖ-Zonierung; BL-Windzonen; config `exclusion.*`, `wind.*` |
 | CLI | `--output`, `--layer-dir`, `--min-fragment-area-ha 10.0`, `--official-zoning-geojson`, `--vorrangzonen-dir data/luca_zonen`, `--vorrangzonen` (an), `--settlement-variants` (**aus**; 6 Varianten × 4 Bänder = +24), `--drop-human-band` (Sensitivität), `--osm-pbf`, `--osm-pbf-cache-dir`, `--force-layers`, `--skip-final`, `--no-overviews`, `--bbox` |
 
 ### 7.1 Die 38 Bänder
@@ -407,7 +407,7 @@ Referenz/Quelle (nur zum Nachvollziehen im TIF), **D** = abgeleitet.
 | 32 | `available_cleaned_min_10ha` | 31, Komponenten ≥ **10 ha**, **4er-Nachbarschaft** (`min_area_filter` `:1319-1341`) | D | `:1584` |
 | 33–36 | `available_blur_sigma_{100,200,250,300}m` | Gauß auf Band 31 (raw), σ in Metern, uint8 0–100 | D | `:1592-1600` |
 | 37 | `official_wind_zoning` | NÖ-Zonierung ∪ Stmk/Sbg Vorrang ∪ Bgld Eignung ∪ Ktn RED III, je Quelle auf das BL geclippt | R | `:1293` |
-| 38 | `wka_bestand_ausserhalb_zonen` | OSM-Windräder in Österreich außerhalb Band 37 → Cluster 750 m → konvexe Hülle + 200 m | R | `create_…:299-335` |
+| 38 | `wka_bestand_ausserhalb_zonen` | Geliefertes WKA-Standortverzeichnis, vorbereitet als 1.386 eindeutige Punkte, außerhalb Band 37 → Cluster 750 m → konvexe Hülle + 200 m | R | `pipeline/layers/geo.py:build_wka_bestand_hulls()` |
 
 `--drop-human-band <name>` nimmt ein Band aus `HUMAN_BANDS` heraus (Sensitivität); das
 Band bleibt im TIF.
@@ -417,6 +417,8 @@ Band bleibt im TIF.
 17,1 km², Burgenland 40 / 24,7 km², Kärnten 4 / 7,4 km². Die Differenz zwischen der Summe
 der Vektorflächen (376,0 km²) und der Rasterfläche (396,18 km²) ist Rasterisierungseffekt
 bei 25 m Zellgröße.
+
+**Einordnung vor dem historischen Lauf:** Die folgenden Werte 1.595 / 807 / 788 stammen aus dem historischen OSM-Lauf. Der aktuelle Band-38-Vertrag verwendet stattdessen das gelieferte Standortverzeichnis mit 1.386 eindeutigen vorbereiteten Punkten.
 
 **Lesehinweis Band 38, unbedingt vor Weiterverwendung der Zahl beachten:** Der Pipeline-Lauf
 vom 04.09.2026 meldet `turbinen=1.595, in Österreich=1.595, in amtlicher Zone=807,

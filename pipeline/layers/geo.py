@@ -36,7 +36,7 @@ Endkomposition dieses Pakets.
 
 Vier der sieben Gruppen lasen bisher Rohdaten direkt: Verwaltungsgrenzen
 (VGD-Shapefile), amtlicher Naturschutz (NSG-ZIP), amtliche Windzonen (fünf
-Quellen) und drei OSM-Objektgruppen (nature/water/windpower, per Osmium
+Quellen) und zwei OSM-Objektgruppen (nature/water, per Osmium
 gegen die PBF-Rohquelle). Diese Datei liest sie jetzt aus der Prep-Stufe:
 
     admin_boundaries()        -> derived/prep/admin/bundesland_masken.gpkg
@@ -46,9 +46,10 @@ gegen die PBF-Rohquelle). Diese Datei liest sie jetzt aus der Prep-Stufe:
     official_wind_zoning      -> derived/prep/zonen/{Stmk,Sbg,Bgld,RED3,NOE}.gpkg
                                   (pipeline/prep/zonen.py, W1.P8)
     osm_nature_protection_areas,
-    geography_water_bodies,
-    wka_bestand_ausserhalb_zonen -> derived/prep/osm/b_layers/{nature,water,
-                                  windpower}.parquet (pipeline/prep/osm.py, W1.P5)
+    geography_water_bodies -> derived/prep/osm/b_layers/{nature,water}.parquet
+                                  (pipeline/prep/osm.py, W1.P5)
+    wka_bestand_ausserhalb_zonen -> derived/prep/windkraft/standorte.parquet
+                                  (pipeline/prep/windkraft.py)
 
 ``geography_*`` (Hangneigung/Höhe/Wind) ist die Ausnahme: W1.P6
 (``pipeline/prep/terrain.py``) schreibt laut eigenem Auftrag bewusst KEINE
@@ -126,7 +127,7 @@ die vier ``WIND_ZONE_SOURCES``-GPKGs plus ``NOE.gpkg``) laufen ausschließlich
 Rastermaske - keine Verzweigung dazwischen unterscheidet Polygon von
 MultiPolygon. Die einzige tatsächliche ``geom_type``-Verzweigung in diesem
 Block (``build_wka_bestand_hulls()``, "MultiPolygon" vs. sonst) prüft eine
-zur Laufzeit aus gepufferten OSM-Punkten vereinigte Geometrie - nie durch
+zur Laufzeit aus gepufferten WKA-Punkten vereinigte Geometrie - nie durch
 ein GPKG gerundtript, also vom Promotionseffekt unberührt.
 """
 from __future__ import annotations
@@ -151,6 +152,7 @@ from pipeline import contract, fingerprint, runtime  # noqa: E402
 from pipeline.prep import admin as prep_admin  # noqa: E402
 from pipeline.prep import natur as prep_natur  # noqa: E402
 from pipeline.prep import zonen as prep_zonen  # noqa: E402
+from pipeline.prep import windkraft as prep_windkraft  # noqa: E402
 
 from calc.config import load_config  # noqa: E402
 from calc.wind_zones import WIND_ZONE_SOURCES  # noqa: E402
@@ -298,7 +300,7 @@ def _prep_inputs() -> list[Path]:
             *(zonen_dir / f"{key}.gpkg" for key in prep_zonen.SOURCES),
             osm_b / "nature.parquet",
             osm_b / "water.parquet",
-            osm_b / "windpower.parquet",
+            prep_windkraft.output_path(),
             contract.RAW["gelaende"]["dgm"],
             contract.RAW["gelaende"]["wind_pd_150"],
         ]
@@ -540,18 +542,24 @@ def build_wka_bestand_hulls(grid: dict, out_dir: Path, valid_area: np.ndarray) -
     """Wie 04_create_distance_zones.py:build_wka_bestand_hulls() (seit W6.1
     aus dem Repo entfernt, letzter Stand im Commit f1d00f7 - git show
     f1d00f7:scripts/widmung_v2/04_create_distance_zones.py). Eingabe
-    ``windpower``-OSM-Layer jetzt aus ``derived/prep/osm/b_layers/
-    windpower.parquet`` statt frischem Osmium-Export; ``official_wind_zoning``
+    Das gelieferte, vorbereitete WKA-Verzeichnis aus
+    ``derived/prep/windkraft/standorte.parquet`` ist die einzige positive
+    Turbinenquelle. Der OSM-``windpower``-Layer fließt bewusst nicht ein;
+    ``pipeline/layers/osm.py`` nutzt ihn nur als Negativfilter für Gebäude.
+    ``official_wind_zoning``
     kommt aus ``out_dir`` (von build_official_zoning_masks() in DERSELBEN
     Ausführung geschrieben - muss deshalb vor dieser Gruppe laufen, siehe
     main()). Die Cluster-/Hüllen-Geometrie (unary_union, convex_hull) ist
     reine zur-Laufzeit-Algebra über Punkte - unverändert, siehe Moduldocstring
     zu Punkt 20."""
     zero = np.zeros(grid["shape"], dtype=bool)
-    path = contract.PREP["osm"]["b_layers"] / "windpower.parquet"
-    turbines = _read_prep_vector(path, bounds=grid["bounds"])
+    # Read through the WKA prep contract, not the generic OSM-vector helper:
+    # this makes a missing/corrupt authoritative inventory fail closed and
+    # keeps OSM windpower structurally unable to become a turbine input.
+    turbines = prep_windkraft.load_prepared()
+    turbines = turbines[turbines.geometry.intersects(box(*grid["bounds"]))].copy()
     if turbines.empty:
-        print("[warn]  wka bestand: windpower layer leer", flush=True)
+        print("[warn]  wka bestand: vorbereitetes WKA-Verzeichnis leer", flush=True)
         return {WKA_BESTAND_BAND: zero}
 
     points = building_points(turbines)

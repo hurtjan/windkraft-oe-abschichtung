@@ -62,7 +62,8 @@ auswertet, muss sie selbst mit der Staatsgrenze verschneiden.
 | **NÖ SekROP** „Sektorales Raumordnungsprogramm Windkraftnutzung", Karte Mindestabstandszonen (Teil C 3.2, 02.04.2024) | die amtlichen NÖ-750-m-Zonen (Klassen Gebäude / GWR / Grünland-Widmung), georeferenziert aus der PDF-Karte extrahiert |
 | **DKM** — Digitale Katastralmappe (BEV) | amtliche Gebäude-Grundrisse („Bauflächen") |
 | **BEV-Adressregister** (Stand 10/2025, 2,52 Mio. Adresspunkte) | Bewohnt-Signal: welche Gebäude haben eine Adresse |
-| **OpenStreetMap** (Österreich-Extrakt 03/2026) | Straßen, Bahn, Seilbahnen, Militärflächen, Flughäfen und Landebahnen, Gebäude ohne amtliche Abdeckung, Gewässer, ergänzende Schutzgebiete, Bestands-Windräder |
+| **OpenStreetMap** (Österreich-Extrakt 03/2026) | Straßen, Bahn, Seilbahnen, Militärflächen, Flughäfen und Landebahnen, Gebäude ohne amtliche Abdeckung, Gewässer, ergänzende Schutzgebiete; nur Negativfilter für als Gebäude gemappte Windturbinen und nahe Technikgebäude |
+| **WKA-Standortverzeichnis Österreich** (geliefert) | Autoritative Bestands-WKA für Band 38 und den Punkte-Export; nach RFC-7946-CRS-Zuweisung vorbereitet als 1.386 eindeutige EPSG:31287-Punkte |
 | **Schutzgebiets-Datenbank** (amtlich) | Nationalparks, Naturschutzgebiete, Europaschutzgebiete/Natura 2000, Ramsar |
 | **Digitales Geländemodell** (25 m) | Geländehöhe und -neigung |
 | **Global Wind Atlas** | Windleistungsdichte (W/m²) |
@@ -189,7 +190,7 @@ Ab hier auf das Staatsgebiet zugeschnitten.
 | # | Band | Inhalt und Herkunft |
 |---|---|---|
 | 37 | `official_wind_zoning` | Alle amtlichen Windkraft-Positivzonen der Länder in einem Band: NÖ Zonierung (71 Zonen, LGBl. 47/2024), Steiermark SAPRO Vorrang-/Eignungszonen, Salzburg Vorrangzonen, Burgenland Eignungszonen, Kärnten RED-III-Beschleunigungszonen (Bärofen, Peterer Alpe, Soboth/Lavamünd, Steinberger Alpe). Dient dem Soll-Ist-Vergleich mit der Abschichtung. |
-| 38 | `wka_bestand_ausserhalb_zonen` | Bestehende Windräder aus OSM, die **außerhalb** der Zonen aus Band 37 stehen, zu Park-Hüllen zusammengefasst (Anlagen mit < 750 m Abstand bilden einen Park; konvexe Hülle + 200 m Rand). Aktueller Stand: 1.595 Anlagen erfasst, davon 788 außerhalb der Zonen, gruppiert zu 183 Hüllen. |
+| 38 | `wka_bestand_ausserhalb_zonen` | Bestehende Windräder aus dem gelieferten österreichischen Standortverzeichnis, vorbereitet als 1.386 eindeutige EPSG:31287-Punkte, die **außerhalb** der Zonen aus Band 37 stehen, zu Park-Hüllen zusammengefasst (Anlagen mit < 750 m Abstand bilden einen Park; konvexe Hülle + 200 m Rand). Die Zahl außerhalb der Zonen und die Hüllenzahl entstehen beim nächsten Layer-Lauf aus diesem Bestand. |
 
 ## 6. Qualitätssicherung und Validierung
 

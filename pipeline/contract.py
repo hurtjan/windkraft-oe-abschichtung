@@ -138,6 +138,14 @@ RAW = {
         # war ohnehin nur ein Fallback, der nie griff, solange das PBF
         # vorhanden ist.
     },
+    "windkraft": {
+        # Geliefertes Bestandsverzeichnis. Das GeoJSON folgt RFC 7946
+        # und trägt deshalb kein crs-Member; pipeline/prep/windkraft.py weist
+        # beim Lesen explizit CRS84/EPSG:4326 zu und schreibt EPSG:31287.
+        # Es ist die einzige positive Quelle für Bestands-WKA. OSM-Windpower
+        # bleibt ausschließlich ein Negativfilter für Gebäude.
+        "standorte": DATA / "windkraft" / "windkraft_standorte_at.geojson",
+    },
     "gelaende": {
         # calc/abschichtung_common.py:1256, :307 (Fallback)
         "dgm": DATA / "gelaende" / "DGM_R25.tif",
@@ -225,10 +233,10 @@ LEGACY_ENTFAELLT: dict[str, Path] = {
 # ---------------------------------------------------------------------------
 # PREP - Ausgaben der Prep-Stufe(n) je Domäne (PLAN.md §4, Spalte "Prep";
 # §7, Pakete W1.P1-W1.P9). Zielzustand: existiert nach W0.2 noch nicht, die
-# neun Prep-Pakete legen die Verzeichnisse tatsächlich an und schreiben
-# hinein. Alle neun Domänen sind hier vorab erklärt (Paket W1.P0, PLAN.md
+# die Prep-Pakete legen die Verzeichnisse tatsächlich an und schreiben
+# hinein. Alle Rohdaten-Domänen sind hier vorab erklärt (Paket W1.P0, PLAN.md
 # §13.4) - so bräuchte kein Prep-Paket beim parallelen Start selbst einen
-# Eintrag hier anlegen, und der neunfache Konflikt an dieser einen Stelle
+# Eintrag hier anlegen, und ein mehrfacher Konflikt an dieser einen Stelle
 # entsteht gar nicht erst. Jedes Prep-Paket importiert seinen eigenen
 # Eintrag, statt den Pfad selbst zu konstruieren (siehe Modul-Docstring).
 #
@@ -260,6 +268,9 @@ PREP = {
         "a_extract": DERIVED_PREP / "osm" / "a_extract",
         "b_layers": DERIVED_PREP / "osm" / "b_layers",
     },
+    # Geliefertes WKA-Verzeichnis: eine Normalisierung (CRS, Point- und
+    # Duplikatprüfung) vor den Layer- und Export-Konsumenten.
+    "windkraft": DERIVED_PREP / "windkraft",
     # Gelände & Wind: ein Durchreichen/Gitterprüfung, keine zwei Stufen -
     # siehe Kommentar oben (ANNAHME, von W1.P6 zu prüfen).
     "gelaende": DERIVED_PREP / "gelaende",
