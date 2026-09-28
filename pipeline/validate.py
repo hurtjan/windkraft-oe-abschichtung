@@ -241,7 +241,19 @@ REFERENCE_TIF = contract.RUN1_TIF
 # Kommentar "Fünfter Wechsel", derselbe Nachweis). Der vorherige Wert
 # ``99d522239dc499b833cab3080c810b9568ac3078a66b81a470e37228b55a96ac``
 # bleibt ebenso als historischer Zeuge dokumentiert.
-AKTUELLE_REFERENZ_SHA256 = "c1809c4cf9cb243d420efc949ff5543130ef3c5a75db9e948d2ea53c94416f37"
+#
+# Sechster Wechsel (22.09.2026, neue WKA-Quelle, bestätigt durch Neubau
+# 28.09.2026): ``windkraft_standorte_at.geojson`` (1.388 Punkte) ersetzt die
+# bisherige OSM-Ableitung als Windkraftanlagen-Standortquelle, zusätzlich
+# entfallen Technikbauten nahe Windkraftanlagen aus den OSM-Gebäuden
+# (Revision 7) - beides ändert Pixel, betroffen sind u.a. die
+# WKA-bezogenen Bänder. Ein Kaltstart-Neuaufbau am 28.09.2026 bestätigt den
+# Lauf vom 22.09.2026 bitgleich (sha256 und Byte-Zahl identisch, ebenso
+# identisch mit dem Backup unter
+# ``backup/abschichtung_20260928/out/abschichtung.tif``). Der vorherige Wert
+# ``c1809c4cf9cb243d420efc949ff5543130ef3c5a75db9e948d2ea53c94416f37`` bleibt
+# ebenso als historischer Zeuge dokumentiert.
+AKTUELLE_REFERENZ_SHA256 = "bd5ddacc1d231cd43d507eece4536a6cfde57e5af912bdcbeec716212878bf1c"
 
 REGISTER_PATH = contract.ROOT / "docs" / "rewrite" / "abweichungen.tsv"
 

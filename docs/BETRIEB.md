@@ -135,9 +135,9 @@ steht in [`HANDOFF.md`](HANDOFF.md).
 | | |
 |---|---|
 | Bänder | 44 |
-| Manifest | Schema 2.2.0 |
-| `sha256` | `99d522239dc499b833cab3080c810b9568ac3078a66b81a470e37228b55a96ac` |
-| Größe | 152 656 278 Bytes |
+| Manifest | Schema 2.2.1 |
+| `sha256` | `bd5ddacc1d231cd43d507eece4536a6cfde57e5af912bdcbeec716212878bf1c` |
+| Größe | 152 645 657 Bytes |
 
 Verdrahtet in `pipeline/validate.py` und `tests/test_referenz_tif.py`; läuft
 bei jedem `make test` mit. Die Kette ist deterministisch: gleiche Rohdaten,

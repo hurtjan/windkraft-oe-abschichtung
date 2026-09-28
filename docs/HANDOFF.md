@@ -41,8 +41,8 @@ den Pfad ein zweites Mal hinzuschreiben.
 | | |
 |---|---|
 | Datei | `out/abschichtung.tif` |
-| `sha256` | `c1809c4cf9cb243d420efc949ff5543130ef3c5a75db9e948d2ea53c94416f37` |
-| Größe | 152.656.739 Bytes |
+| `sha256` | `bd5ddacc1d231cd43d507eece4536a6cfde57e5af912bdcbeec716212878bf1c` |
+| Größe | 152.645.657 Bytes |
 | Bänder | 44 |
 | Manifest-`schema_version` | `2.2.1` |
 
@@ -51,6 +51,17 @@ jedem `make test` (siehe dort auch, wie der langlaufende Reproduktionstest
 gezielt ausgeführt wird). Sie ändert sich nicht beiläufig — wenn doch,
 gehört das gemessen, begründet und in `docs/rewrite/abweichungen.tsv`
 eingetragen.
+
+**Vierter Referenzwechsel (Stand 22.09.2026 (neue WKA-Quelle), bestätigt
+durch Neubau 28.09.2026):** `windkraft_standorte_at.geojson` (1.388 Punkte)
+ersetzt die bisherige OSM-Ableitung als Windkraftanlagen-Standortquelle,
+zusätzlich entfallen Technikbauten nahe Windkraftanlagen aus den
+OSM-Gebäuden (Revision 7) — beides ändert Pixel in den WKA-bezogenen
+Bändern. Ein Kaltstart-Neuaufbau am 28.09.2026 bestätigt den Lauf vom
+22.09.2026 bitgleich (sha256 und Byte-Zahl identisch, ebenso identisch mit
+dem Backup unter `backup/abschichtung_20260928/out/abschichtung.tif`). Der
+vorherige Wert (`c1809c4c…16f37`) bleibt als historischer Zeuge
+dokumentiert.
 
 **Dritter Referenzwechsel (09.09.2026, Paket W7.1, Neuzuschnitt
 „Layer-Struktur v4"):** zwei unabhängige Ursachen in einem Lauf. Erstens

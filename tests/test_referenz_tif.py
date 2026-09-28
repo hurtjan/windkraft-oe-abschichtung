@@ -187,8 +187,22 @@ from calc.band_manifest import manifest_path_for  # noqa: E402
 # nachgezogen, weil sonst die beiden billigen Tests unten in JEDEM
 # ``make test`` bis W7.7 rot liefen - siehe Bericht zu W7.6 für die
 # ausdrückliche Begründung dieser Abweichung von der Registerzuordnung.
-REFERENZ_SHA256 = "c1809c4cf9cb243d420efc949ff5543130ef3c5a75db9e948d2ea53c94416f37"
-REFERENZ_BYTES = 152_656_739
+#
+# Sechster Wechsel (W7.7, Stand 22.09.2026 (neue WKA-Quelle), bestätigt
+# durch Neubau 28.09.2026): ``windkraft_standorte_at.geojson`` (1.388
+# Punkte) ersetzt die OSM-Ableitung als Windkraftanlagen-Standortquelle,
+# zusätzlich entfallen Technikbauten nahe Windkraftanlagen aus den
+# OSM-Gebäuden (Revision 7) - beides ändert Pixel in den WKA-bezogenen
+# Bändern. Damit wird das in Zeile 177ff. angekündigte zweite Hash-Literal
+# (pipeline/validate.py:AKTUELLE_REFERENZ_SHA256) jetzt mitgezogen - der
+# Schnellweg dort greift ab diesem Lauf wieder. Ein Kaltstart-Neuaufbau am
+# 28.09.2026 bestätigt den Lauf vom 22.09.2026 bitgleich (sha256 und
+# Byte-Zahl identisch, ebenso identisch mit dem Backup unter
+# ``backup/abschichtung_20260928/out/abschichtung.tif``). Vorheriger Wert
+# (Fünfter Wechsel, s.o.): sha256 c1809c4c…16f37, 152 656 739 Bytes - bleibt
+# als historischer Zeuge dokumentiert.
+REFERENZ_SHA256 = "bd5ddacc1d231cd43d507eece4536a6cfde57e5af912bdcbeec716212878bf1c"
+REFERENZ_BYTES = 152_645_657
 
 # Bisheriges Soll, ab 08.09.2026 nur noch Vergleichsbasis - aber als solche
 # unveränderlich.
