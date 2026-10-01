@@ -64,6 +64,9 @@ DEFAULT_COLORS = {
     "sources_human": [255, 90, 90, 110],
     "sources_nature": [90, 200, 90, 110],
     "sources_geography": [110, 140, 220, 110],
+    # Band 45 (30.09.2026): Freileitungen >= 110 kV, Violett - in keiner
+    # anderen Mensch-Familie belegt.
+    "power_lines_110kv_plus": [150, 50, 220, 150],
 }
 
 GEO_WIND_COLOR = [80, 160, 255, 145]

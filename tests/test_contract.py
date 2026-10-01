@@ -291,8 +291,10 @@ def test_layer_names_are_unique():
     assert len(contract.LAYER_NAMES) == len(set(contract.LAYER_NAMES))
     # 33 Checkpoints der ursprünglichen Kette + 6 angehängte Bänder 39-44
     # (W7.1, Neuzuschnitt "Layer-Struktur v4", schnittstelle-manifest-2.2.md
-    # §2) - siehe Kommentar bei contract.LAYER_NAMES.
-    assert len(contract.LAYER_NAMES) == 39
+    # §2) + Band 45 power_lines_110kv_plus (30.09.2026) - siehe Kommentar
+    # bei contract.LAYER_NAMES.
+    assert len(contract.LAYER_NAMES) == 40
+    assert contract.LAYER_NAMES[-1] == "power_lines_110kv_plus"
 
 
 def test_layer_names_match_the_chain():

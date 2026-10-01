@@ -225,7 +225,9 @@ data/
 Codeleser `abschichtung_common.py:966` bestand nur als toter Fallback, der
 nie griff, solange das OSM-PBF vorhanden ist, und dessen Ergebnisband
 `power_380_400kv` seit dem Clean-38-Schema ohnehin nicht mehr gespeichert
-wird), `WINDKRAFT_AUSSCHLUSSZONE.zip` (4,4 MB — kein Codeleser mehr, seit
+wurde; Stand 30.09.2026: Freileitungen >= 110 kV sind als Band 45
+`power_lines_110kv_plus` wieder ein Kriterium, gelesen aus dem OSM-PBF über
+`derived/prep/osm/b_layers/powerlines.parquet`, nicht aus dieser Datei), `WINDKRAFT_AUSSCHLUSSZONE.zip` (4,4 MB — kein Codeleser mehr, seit
 W1.7 die Registrierung in `wind_zones.py` entfernt hat) und
 `windkraftzonen_shapefile_2024.json` (588 KB — nie von einem Skript der
 Referenzkette gelesen, siehe §3.1). `data/README.md` ist nach
@@ -276,8 +278,11 @@ ausschließlich greift, wenn das konfigurierte OSM-PBF fehlt
 (`pbf.exists()` ist `False`). Mit gepflegtem PBF (`data/osm/austria-260330.osm.pbf`,
 Regelfall) wurde die Datei nie geöffnet. Das daraus gebaute Band
 `power_380_400kv` ist zudem im **Clean-38-Schema nicht mehr enthalten** —
-Stromleitungen sind seit `build_widmung_v2_layers.py` kein
-Ausschlusskriterium mehr, das Ergebnis wäre also ohnehin verworfen worden.
+Stromleitungen waren seit `build_widmung_v2_layers.py` kein
+Ausschlusskriterium mehr, das Ergebnis wäre also verworfen worden. Seit
+30.09.2026 gilt das nicht mehr: Freileitungen >= 110 kV bilden Band 45
+`power_lines_110kv_plus` (116 m bei 110 kV, 136 m bei 220/380/400 kV ab
+Leitungsachse), Quelle ist der OSM-PBF.
 Der Registereintrag `pipeline.contract.LEGACY_ENTFAELLT["powerlines_gpkg"]`
 und der einzige Konsument dieses Eintrags,
 `windkraft/config.py:load_config()`, sind mit W1.2 ebenfalls entfernt —

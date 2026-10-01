@@ -201,8 +201,24 @@ from calc.band_manifest import manifest_path_for  # noqa: E402
 # ``backup/abschichtung_20260928/out/abschichtung.tif``). Vorheriger Wert
 # (Fünfter Wechsel, s.o.): sha256 c1809c4c…16f37, 152 656 739 Bytes - bleibt
 # als historischer Zeuge dokumentiert.
-REFERENZ_SHA256 = "bd5ddacc1d231cd43d507eece4536a6cfde57e5af912bdcbeec716212878bf1c"
-REFERENZ_BYTES = 152_645_657
+#
+# Siebter Wechsel (30.09.2026, Freileitungen >= 110 kV): neues Band 45
+# ``power_lines_110kv_plus`` (116 m bei 110 kV, 136 m bei 220/380/400 kV ab
+# Leitungsachse, Schema 2.3.0,
+# ``clean-45-freileitungen-110kv-sep-2026``) - hebt die Bandzahl von 44 auf 45 und
+# geht in exclusion_human/all_exclusions ein. Bandweiser Vergleich gegen das
+# Backup ``abschichtung_out_backup_2026-09-30/abschichtung.tif`` (Vorwert):
+# bitgleich sind die Bänder 1-26, 28, 29, 37-44; geändert nur 27, 30, 31, 32,
+# 33-36 (Aggregat-/Ergebnis-/Unschärfebänder, +228.343 Zellen in 27, +118.239
+# in 30, Vektorpuffer). Zwischenstand am selben Tag (nur >= 220 kV): sha256 53cbc780…b653b6,
+# 153 586 328 Bytes (Backup ``abschichtung_out_220kv_2026-09-30/``); danach Rasterpuffer
+# >= 110 kV: sha256 87649de3…e81194, 154 144 787 Bytes (Backup
+# ``abschichtung_out_110kv_raster_2026-09-30/``), ersetzt durch den Vektorpuffer
+# (Zahlen 27/30 oben: Stand Vektorpuffer). Vorheriger Wert (Sechster Wechsel,
+# s.o.): sha256 bd5ddacc…878bf1c, 152 645 657 Bytes - bleibt als historischer
+# Zeuge dokumentiert.
+REFERENZ_SHA256 = "b596fd021dbc42eb4bfa19b9caf8fead78cad6489f6f91e344dd3e645cf87700"
+REFERENZ_BYTES = 154_134_192
 
 # Bisheriges Soll, ab 08.09.2026 nur noch Vergleichsbasis - aber als solche
 # unveränderlich.

@@ -1,7 +1,7 @@
 """Unit-Tests für den Band-Manifest-Writer.
 
 Synthetische Eingaben - kein echtes Raster. Geprüft wird der Vertrag, auf den
-sich der Dashboard-Konsument verlässt: 44 Bänder (Schema 2.2.1, Paket W7.6),
+sich der Dashboard-Konsument verlässt: 45 Bänder (Schema 2.3.0, Band 45 seit 30.09.2026),
 Namen/Reihenfolge exakt wie übergeben, Pflichtfelder je Band (inkl. familie/
 stufe/dashboard_layer seit 2.2.0), value_type nur bei den vier
 Unschärfebändern "percent_0_100", clipped_to_austria nur bei 27-36, jede
@@ -86,6 +86,8 @@ BAND_NAMES = [
     "sources_human",
     "sources_nature",
     "sources_geography",
+    # Band 45, Schema 2.3.0 (30.09.2026): Freileitungen >= 110 kV.
+    "power_lines_110kv_plus",
 ]
 
 # Das echte Tag-Dict, verkürzt auf Platzhalterwerte, aber mit den tatsächlichen
@@ -100,7 +102,7 @@ BAND_NAMES = [
 TAGS = {
     "MIN_FRAGMENT_AREA_HA": "10.0",
     "PIPELINE": "widmung_v2",
-    "BAND_SCHEMA": "clean-44-ohne-wichtige-objekte-aug-2026",
+    "BAND_SCHEMA": "clean-45-freileitungen-110kv-sep-2026",
     "SETTLEMENT_BUFFER_BY_BL": '{"Niederösterreich": 1200.0}',
     "HIG_FAMILY_BUFFER_M": "750.0",
     "NONRESIDENTIAL_HULL_BUFFER_M": "25.0",
@@ -112,7 +114,7 @@ TAGS = {
     "HIG_SOURCE": "amtliche Widmung + NÖ-SekROP-PDF + DKM-Hüllen + BEV-Adressregister",
     "WICHTIGE_OBJEKTE": "in haeuser_im_gruenen (750 m)",
     "BEWOHNTE_EINZELLAGEN": "in general_buildings_source (25 m)",
-    "POWER_LINES": "kein Ausschlusskriterium (Clean-Schema Aug 2026)",
+    "POWER_LINES": "Freileitungen >= 110 kV als Band 45, Puffer 116/136 m ab Leitungsachse",
     "AIRPORT_CORRIDOR_LENGTH_M": "5000.0",
     "AIRPORT_CORRIDOR_HALF_ANGLE_DEG": "15.0",
     "WIEN": "amtliche Widmung Stadt Wien (GENFLWIDMUNGOGD)",
@@ -198,6 +200,8 @@ EXPECTED_ROLE_BY_INDEX = {
     42: "aggregat_kategorie",
     43: "aggregat_kategorie",
     44: "aggregat_kategorie",
+    # Band 45, Schema 2.3.0: Zonenband wie die Verkehrsbänder.
+    45: "bedingung",
 }
 
 # Familie/Stufe je Band, Schema 2.2.0 (W7.1) - schnittstelle-manifest-2.2.md
@@ -247,6 +251,7 @@ EXPECTED_FAMILIE_BY_NAME = {
     "sources_human": "summe",
     "sources_nature": "summe",
     "sources_geography": "summe",
+    "power_lines_110kv_plus": "energieleitungen",
 }
 
 EXPECTED_STUFE_BY_NAME = {
@@ -294,6 +299,7 @@ EXPECTED_STUFE_BY_NAME = {
     "sources_human": "summe_quellen",
     "sources_nature": "summe_quellen",
     "sources_geography": "summe_quellen",
+    "power_lines_110kv_plus": "zone",
 }
 
 # W7.6 (Nutzerentscheidung 09.09.2026 nachmittags, vorgezogen aus W7.8):
@@ -301,16 +307,16 @@ EXPECTED_STUFE_BY_NAME = {
 # calc/band_manifest.py nachgezählt (Indizes in BAND_NAMES, 1-basiert) -
 # eine unabhängige Gegenprobe, keine Tautologie gegen den Erzeuger-Code.
 # default_visible: die drei Kategoriesummen, die Eignungsflächen, die
-# amtlichen Zonen (27, 28, 29, 32, 37). dashboard_layer: 23 der 44 Bänder,
+# amtlichen Zonen (27, 28, 29, 32, 37). dashboard_layer: 24 der 45 Bänder,
 # blendet Quell-, Roh- und Aggregatstufen sowie die rohe verfügbare Fläche
 # aus.
 _DASHBOARD_LAYER_INDICES = {
     2, 7, 9, 11, 13, 14, 15, 16, 17, 18, 19, 20,
-    23, 24, 25, 26, 27, 28, 29, 30, 32, 37, 38,
+    23, 24, 25, 26, 27, 28, 29, 30, 32, 37, 38, 45,
 }
 _DEFAULT_VISIBLE_INDICES = {27, 28, 29, 32, 37}
 assert _DEFAULT_VISIBLE_INDICES <= _DASHBOARD_LAYER_INDICES
-assert len(_DASHBOARD_LAYER_INDICES) == 23
+assert len(_DASHBOARD_LAYER_INDICES) == 24
 assert len(_DEFAULT_VISIBLE_INDICES) == 5
 
 EXPECTED_DASHBOARD_LAYER_NAMES = {BAND_NAMES[i - 1] for i in _DASHBOARD_LAYER_INDICES}
@@ -439,14 +445,14 @@ def test_tags_fixture_matches_the_real_tag_dict():
     assert all(isinstance(v, str) for v in TAGS.values())
 
 
-def test_band_count_is_44(manifest):
-    assert manifest["band_count"] == 44
-    assert len(manifest["bands"]) == 44
+def test_band_count_is_45(manifest):
+    assert manifest["band_count"] == 45
+    assert len(manifest["bands"]) == 45
 
 
 def test_band_names_and_order_match_input(manifest):
     assert [b["name"] for b in manifest["bands"]] == BAND_NAMES
-    assert [b["index"] for b in manifest["bands"]] == list(range(1, 45))
+    assert [b["index"] for b in manifest["bands"]] == list(range(1, 46))
 
 
 def test_every_band_has_all_required_fields(manifest):
@@ -501,9 +507,9 @@ def test_raster_block_matches_grid(manifest):
 
 
 def test_top_level_shape(manifest):
-    assert manifest["schema_version"] == "2.2.1"
+    assert manifest["schema_version"] == "2.3.0"
     assert manifest["pipeline"] == "widmung_v2"
-    assert manifest["band_schema"] == "clean-44-ohne-wichtige-objekte-aug-2026"
+    assert manifest["band_schema"] == "clean-45-freileitungen-110kv-sep-2026"
     assert manifest["raster_file"] == "osm_wka_distance_zones_widmung_v2.tif"
     assert manifest["generated_at"].endswith("Z")
 
@@ -522,7 +528,7 @@ def test_stufe_order_top_level_field(manifest):
 
 def test_familien_top_level_field(manifest):
     familien = manifest["familien"]
-    assert len(familien) == 16
+    assert len(familien) == 17
     for f in familien:
         # Ab Schema 2.2.1 (W7.6): description_de je Familie neu dazu.
         assert set(f.keys()) == {"key", "category", "label_de", "description_de"}
@@ -577,18 +583,18 @@ def test_familie_and_stufe_match_interface_assignment(manifest):
 
 
 def test_dashboard_layer_matches_fixed_name_list(manifest):
-    # W7.6: keine Ableitung mehr aus der Stufe - feste Liste, 23 der 44
-    # Bänder.
+    # W7.6: keine Ableitung mehr aus der Stufe - feste Liste, seit Band 45
+    # 24 der 45 Bänder.
     actual = {b["name"] for b in manifest["bands"] if b["dashboard_layer"]}
     assert actual == EXPECTED_DASHBOARD_LAYER_NAMES
-    assert len(actual) == 23
+    assert len(actual) == 24
     for band in manifest["bands"]:
         expected = band["name"] in EXPECTED_DASHBOARD_LAYER_NAMES
         assert band["dashboard_layer"] is expected, band["name"]
 
 
 def test_default_visible_matches_fixed_name_list(manifest):
-    # W7.6: keine Ableitung mehr aus der Stufe - feste Liste, 5 der 44
+    # W7.6: keine Ableitung mehr aus der Stufe - feste Liste, 5 der 45
     # Bänder (die drei Kategoriesummen, die Eignungsflächen, die amtlichen
     # Zonen).
     actual = {b["name"] for b in manifest["bands"] if b["default_visible"]}
@@ -688,6 +694,9 @@ def test_buffer_m_only_for_bands_with_a_single_austria_wide_value(manifest):
     assert by_name["cableway_buildings_buffer"]["puffer_m"] == 50.0
     assert by_name["general_buildings_buffer"]["puffer_m"] == 25.0
     assert by_name["road_motorway_trunk"]["puffer_m"] == 150.0
+    # Band 45: numerisch das Maximum, 136 m ab Leitungsachse (0,5 D V172 + a_LTG 30 m + 20 m
+    # Achse-Leiter); die 116 m bei 110 kV stehen in description_de.
+    assert by_name["power_lines_110kv_plus"]["puffer_m"] == 136.0
     # Bundeslandabhängig - kein einzelner Wert, aber ein erklärender Hinweis.
     assert by_name["settlement_buffer"]["puffer_m"] is None
     assert "1.200 m" in by_name["settlement_buffer"]["puffer_hinweis"]
@@ -768,6 +777,132 @@ def test_written_file_round_trips_through_json(tmp_path):
     out = write_band_manifest(tif, BAND_NAMES, TAGS, GRID, CONDITION_DESCRIPTIONS)
     assert out.exists()
     loaded = json.loads(out.read_text(encoding="utf-8"))
-    assert loaded["band_count"] == 44
+    assert loaded["band_count"] == 45
     assert [b["name"] for b in loaded["bands"]] == BAND_NAMES
     assert loaded["parameters"] == TAGS
+
+
+def test_power_lines_band_45_entry(manifest):
+    # Band 45 (30.09.2026): angehängt, kein Index 1-44 verschoben.
+    band = manifest["bands"][-1]
+    assert band["index"] == 45
+    assert band["name"] == "power_lines_110kv_plus"
+    assert band["label_de"] == "Hochspannungsfreileitungen"
+    assert band["category"] == "Mensch"
+    assert band["familie"] == "energieleitungen"
+    assert band["stufe"] == "zone"
+    assert band["rolle"] == "bedingung"
+    assert band["dashboard_layer"] is True
+    assert band["default_visible"] is False
+    assert band["clipped_to_austria"] is False
+    assert band["quelle"] == ["osm_pbf"]
+    for needle in ("110 kV", "116 m", "136 m", "220", "106 m", "V172", "86 m", "30 m", "20 m", "10 m",
+                   "größeren Puffer", "Vektorgeometrie", "berührten Zellen"):
+        assert needle in band["description_de"], needle
+    assert any(f["key"] == "energieleitungen" and f["category"] == "Mensch" for f in manifest["familien"])
+    # geht in die Summen Mensch/Gesamt ein
+    by_name = {b["name"]: b for b in manifest["bands"]}
+    assert "power_lines_110kv_plus" in by_name["exclusion_human"]["abgeleitet_von"]
+
+
+def test_power_line_buffer_constants_agree_with_manifest():
+    from calc.abschichtung_common import (
+        INFRA_RULES,
+        POWER_LINE_BUFFER_M,
+        POWER_LINE_BUFFERS_M,
+        POWER_LINE_VOLTAGES_KV,
+        rule_distance,
+    )
+    from calc.band_manifest import BUFFER_M
+
+    assert POWER_LINE_BUFFERS_M == {110: 116.0, 220: 136.0, 380: 136.0, 400: 136.0}
+    assert POWER_LINE_BUFFER_M == 136.0 == max(POWER_LINE_BUFFERS_M.values())
+    assert BUFFER_M["power_lines_110kv_plus"] == POWER_LINE_BUFFER_M
+    assert "power_380_400kv" not in INFRA_RULES
+    for mode in ("standard", "minimum"):
+        assert rule_distance("power_lines_110kv_plus", mode, 250.0) == 136.0
+    assert POWER_LINE_VOLTAGES_KV == {110, 220, 380, 400}
+
+
+def test_power_line_mask_selects_110_220_380_400_only():
+    import geopandas as gpd
+    from shapely.geometry import LineString
+
+    from calc.abschichtung_common import POWER_LINE_VOLTAGES_KV, _power_line_mask
+
+    line = LineString([(0, 0), (1000, 0)])
+    volt = ["220000", "380000", "400000", "380000;110000", "110000", "20000", "", "220000", "30000;110000"]
+    power = ["line"] * 7 + ["cable", "line"]
+    gdf = gpd.GeoDataFrame({"power": power, "voltage": volt, "geometry": [line] * 9})
+    mask = _power_line_mask(gdf, POWER_LINE_VOLTAGES_KV).tolist()
+    assert mask == [True, True, True, True, True, False, False, False, True]
+
+
+def test_power_line_buffers_per_line_take_the_larger_level():
+    import geopandas as gpd
+    from shapely.geometry import LineString
+
+    from calc.abschichtung_common import POWER_LINE_BUFFERS_M, power_line_buffers_m
+
+    line = LineString([(0, 0), (1000, 0)])
+    volt = ["110000", "220000", "380000", "400000", "220000;110000", "110000;20000", "20000", "", "110000"]
+    power = ["line"] * 8 + ["cable"]
+    gdf = gpd.GeoDataFrame({"power": power, "voltage": volt, "geometry": [line] * 9})
+    got = power_line_buffers_m(gdf, POWER_LINE_BUFFERS_M).tolist()
+    assert got == [116.0, 136.0, 136.0, 136.0, 136.0, 116.0, 0.0, 0.0, 0.0]
+
+
+def test_power_line_mask_width_follows_voltage():
+    # Masken-Breite quer zur Achse: 110 kV ~ 2 * 116 m, 380 kV ~ 2 * 136 m.
+    import geopandas as gpd
+    import numpy as np
+    from rasterio.transform import from_origin
+    from shapely.geometry import LineString
+
+    from calc.abschichtung_common import POWER_LINE_BUFFERS_M, power_line_buffers_m, raster_mask
+
+    cell = 10.0
+    shape = (80, 120)
+    grid = {"shape": shape, "transform": from_origin(0.0, 800.0, cell, cell)}
+    line = LineString([(0, 400), (1200, 400)])
+    widths = {}
+    for volt in ("110000", "380000"):
+        gdf = gpd.GeoDataFrame({"power": ["line"], "voltage": [volt], "geometry": [line]})
+        buf = float(power_line_buffers_m(gdf, POWER_LINE_BUFFERS_M)[0])
+        mask = raster_mask(gdf, buf, grid, "test")
+        widths[volt] = int(mask[:, 60].sum()) * cell
+    assert abs(widths["110000"] - 2 * 116.0) <= 2 * cell
+    assert abs(widths["380000"] - 2 * 136.0) <= 2 * cell
+    assert widths["380000"] > widths["110000"]
+
+
+def test_vector_buffer_mask_covers_every_cell_within_nominal_distance():
+    # Linie abseits der Zellmitten (diagonal, 11 m Versatz): jede Zelle, deren
+    # Mitte hoechstens der Nennabstand von der Linie entfernt ist, muss gesetzt
+    # sein; der Rand ueberschiesst hoechstens um eine Zelldiagonale.
+    import geopandas as gpd
+    import numpy as np
+    from rasterio.transform import from_origin
+    from shapely.geometry import LineString, Point
+
+    from calc.abschichtung_common import vector_buffer_mask
+
+    cell = 25.0
+    shape = (120, 160)
+    grid = {"shape": shape, "transform": from_origin(0.0, 3000.0, cell, cell)}
+    lines = [
+        LineString([(300.5 + 11, 2900), (3700.5 + 11, 200)]),  # diagonal
+        LineString([(400 + 11, 1500.0 + 11), (3300 + 11, 1800.0 + 11)]),  # flach, 11 m Versatz
+    ]
+    for buffer_m in (116.0, 136.0):
+        gdf = gpd.GeoDataFrame({"geometry": lines})
+        mask = vector_buffer_mask(gdf, buffer_m, grid)
+        rows, cols = np.indices(shape)
+        cx = cols * cell + cell / 2
+        cy = 3000.0 - (rows * cell + cell / 2)
+        from shapely import distance, points
+
+        dist = np.minimum(*[distance(points(cx, cy), ln) for ln in lines])
+        assert mask[dist <= buffer_m].all(), "Zelle innerhalb des Nennabstands nicht gesetzt"
+        assert dist[mask].max() <= buffer_m + cell * 2 ** 0.5 + 1.0
+        assert mask.sum() > 0

@@ -288,8 +288,52 @@ MILITARY_AREA_TYPES = {
     "base",
 }
 
+# Freileitungen >= 110 kV (Band 45 power_lines_110kv_plus, eingefuehrt 30.09.2026
+# zunaechst als >= 220 kV, am selben Tag auf >= 110 kV erweitert; davor v1-Band
+# power_380_400kv mit 150 m, im Clean-Schema Aug 2026 entfallen).
+# Puffer ab der OSM-Leitungsachse (= Mastachse), spannungsabhaengig, abgeleitet
+# fuer die Referenzanlage Vestas V172 (config.json turbine.norm_turbine.rotor_d_m
+# = 172). Mindestabstand Mastachse -> aeusserster ruhender Leiter = 0,5*D + a_LTG
+# (Untergrenze, ohne Kranarbeitsflaeche); dazu der Versatz der aeussersten
+# Leiter neben der OSM-Achse:
+#   0,5 * D          = 86 m   Rotorradius
+#   a_LTG            = 20 m   Sicherheitsabstand bei 110 kV
+#                     30 m    Sicherheitsabstand bei 220/380 kV
+#   Achse -> Leiter  = 10 m   aeusserste Leiter von 110-kV-Masten
+#                     20 m    aeusserste Leiter von 220/380-kV-Masten
+#   Summe 110 kV     = 116 m  garantiert >= 106 m (0,5 D + a_LTG) zum Leiter
+#   Summe 220/380 kV = 136 m  garantiert >= 116 m (0,5 D + a_LTG) zum Leiter
+# Untergrenze: ohne Kranarbeitsflaeche und ohne Nachweis gegen
+# nachlaufinduzierte Schwingungen (ohne diesen Nachweis 3 * D = 516 m).
+# 400 kV wie 380 kV behandelt. Mittelspannung (< 110 kV) ist bewusst NICHT
+# enthalten. Traegt eine Leitung mehrere Spannungsebenen ("220000;110000"),
+# gilt der GROESSERE Puffer.
+# Kein Wert aus config.json: die v2-Kette liest keinen Puffer aus cfg (siehe
+# config.json _comment_powerline), alle INFRA_RULES sind Konstanten.
+POWER_LINE_REFERENCE_ROTOR_D_M = 172.0
+POWER_LINE_SAFETY_DISTANCE_M = {110: 20.0, 220: 30.0, 380: 30.0, 400: 30.0}
+POWER_LINE_AXIS_TO_CONDUCTOR_M = {110: 10.0, 220: 20.0, 380: 20.0, 400: 20.0}
+POWER_LINE_BUFFERS_M = {
+    kv: 0.5 * POWER_LINE_REFERENCE_ROTOR_D_M
+    + POWER_LINE_SAFETY_DISTANCE_M[kv]
+    + POWER_LINE_AXIS_TO_CONDUCTOR_M[kv]
+    for kv in POWER_LINE_SAFETY_DISTANCE_M
+}  # {110: 116.0, 220: 136.0, 380: 136.0, 400: 136.0}
+POWER_LINE_VOLTAGES_KV = set(POWER_LINE_BUFFERS_M)
+# Groesster Einzelpuffer: dokumentarischer Wert in INFRA_RULES und Mass fuer die
+# Bounds-Erweiterung beim Lesen der Leitungen (rule_distance kennt nur einen Wert).
+POWER_LINE_BUFFER_M = max(POWER_LINE_BUFFERS_M.values())
+
 INFRA_RULES = {
-    "power_380_400kv": {"standard": 150.0, "minimum": 150.0, "source": "OSM/GPKG power voltage 380/400 kV"},
+    "power_lines_110kv_plus": {
+        "standard": POWER_LINE_BUFFER_M,
+        "minimum": POWER_LINE_BUFFER_M,
+        "source": (
+            "OSM power=line, voltage >= 110 kV (110/220/380/400), spannungsabhaengiger Puffer ab "
+            "Leitungsachse (POWER_LINE_BUFFERS_M: 110 kV 116 m, 220/380/400 kV 136 m; Wert hier = "
+            "Maximum), je 0,5*D(V172) 86 m + a_LTG + Achse->aeusserster Leiter"
+        ),
+    },
     "road_motorway_trunk": {"standard": 150.0, "minimum": 150.0, "source": "OSM roads motorway/trunk, tunnels excluded"},
     "road_federal_state": {"standard": 150.0, "minimum": 150.0, "source": "OSM roads primary/secondary/tertiary, tunnels excluded"},
     "rail_main": {"standard": 150.0, "minimum": 150.0, "source": "OSM railway=rail/narrow_gauge, tunnels excluded"},
@@ -665,6 +709,41 @@ def raster_mask(gdf: gpd.GeoDataFrame, buffer_m: float, grid: dict, label: str =
     return dilated[pad_px : pad_px + height, pad_px : pad_px + width].astype(bool)
 
 
+POWER_LINE_BUFFER_QUAD_SEGS = 16
+
+
+def vector_buffer_mask(gdf: gpd.GeoDataFrame, buffer_m: float, grid: dict, quad_segs: int = POWER_LINE_BUFFER_QUAD_SEGS) -> np.ndarray:
+    """Vektorpuffer der echten Liniengeometrie, rasterisiert mit all_touched=True.
+
+    Anders als ``raster_mask`` (Saatzellen + FFT-Kreisdilation, Zellmitten der Saat
+    koennen ~ eine halbe Zelldiagonale neben der Linie liegen) wird die exakte
+    Geometrie gepuffert: jede Zelle, deren Mitte hoechstens ``buffer_m`` von der
+    Linie entfernt ist, liegt im Puffer und wird gesetzt; ``all_touched`` setzt
+    zusaetzlich jede vom Puffer beruehrte Zelle, der Rand ueberschiesst also um
+    hoechstens eine Zelle. Die Puffer-Polygone umschreiben den Kreisbogen: Radius
+    um ``1/cos(pi/(4*quad_segs))`` vergroessert (Sehnenfehler ausgeglichen), damit
+    das Vieleck nie innerhalb des wahren Kreises liegt (quad_segs=16: +0,12 %).
+    Erwartet Geometrien in der Rasterprojektion (wie ``raster_mask``).
+    """
+    shape = grid["shape"]
+    if gdf.empty:
+        return np.zeros(shape, dtype=bool)
+    radius = float(buffer_m) / math.cos(math.pi / (4 * quad_segs))
+    polys = (
+        geom.buffer(radius, quad_segs=quad_segs)
+        for geom in gdf.geometry
+        if geom is not None and not geom.is_empty
+    )
+    return rasterize(
+        ((p, 1) for p in polys if not p.is_empty),
+        out_shape=shape,
+        transform=grid["transform"],
+        fill=0,
+        dtype="uint8",
+        all_touched=True,
+    ).astype(bool)
+
+
 def admin_boundaries(cfg: dict, bounds) -> gpd.GeoDataFrame:
     vgd = Path(cfg["paths"]["vgd"])
     gdf = read_layer(vgd, bounds=bounds)
@@ -988,6 +1067,20 @@ def _non_tunnel_mask(gdf: gpd.GeoDataFrame) -> np.ndarray:
         return np.ones(len(gdf), dtype=bool)
     tunnel = gdf["tunnel"].fillna("").astype(str).str.lower().str.strip()
     return tunnel.isin(["", "no", "false", "0"]).to_numpy()
+
+
+def _power_line_buffer_m(voltage: object, buffers_m: dict[int, float]) -> float:
+    """Puffer einer Leitung: Maximum ueber alle erkannten Spannungs-Tokens (0.0 = keiner passt)."""
+    return max((buffers_m[kv] for kv in _voltage_tokens_kv(voltage) if kv in buffers_m), default=0.0)
+
+
+def power_line_buffers_m(power: gpd.GeoDataFrame, buffers_m: dict[int, float]) -> np.ndarray:
+    """Pro Zeile der Leitungs-GDF der Puffer in m (0.0 = keine passende Spannung oder keine power=line-Geometrie)."""
+    if power.empty:
+        return np.zeros(0, dtype=float)
+    line_ok = _power_line_mask(power, set(buffers_m))
+    per_row = power.get("voltage", pd.Series("", index=power.index)).apply(lambda v: _power_line_buffer_m(v, buffers_m)).to_numpy(dtype=float)
+    return np.where(line_ok, per_row, 0.0)
 
 
 def _power_line_mask(power: gpd.GeoDataFrame, allowed_kv: set[int]) -> np.ndarray:
@@ -1597,6 +1690,20 @@ def compose_exclusion_geotiff(
                     geography |= arr
                 del arr
                 band_idx += 1
+
+        # human_bands, die KEIN Bedingungsband sind (z. B. das angehaengte
+        # Band 45 power_lines_110kv_plus), gehen in exclusion_human ein, werden
+        # aber erst als trailing band geschrieben - hier nur gelesen und
+        # vereinigt (die Aggregate 27-32 stehen im TIF vor den trailing bands).
+        for name in human_bands:
+            if name in condition_bands:
+                continue
+            with timed(f"read extra human layer {name}"):
+                arr = read_layer_mask(layer_path(layer_dir, name))
+                human |= arr
+                if name != variant_source_band:
+                    human_rest |= arr
+                del arr
 
         with timed("write aggregate/final bands"):
             human &= valid_area

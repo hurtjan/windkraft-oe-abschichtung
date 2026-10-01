@@ -192,6 +192,10 @@ from calc.abschichtung_common import (  # noqa: E402
 # f1d00f7:scripts/widmung_v2/04_create_distance_zones.py.
 # ---------------------------------------------------------------------------
 
+# Bewusst NICHT auf clean-45-freileitungen-110kv-sep-2026 (pipeline/finalize.py,
+# calc/band_manifest.py) mitgezogen: hier ist es nur ein Checkpoint-Tag
+# (derived_tags in main()); die Geo-Checkpoints sind von Band 45 nicht
+# betroffen, ein neuer Wert liesse alle als veraltet gelten und neu rechnen.
 BAND_SCHEMA = "clean-44-ohne-wichtige-objekte-aug-2026"
 
 WKA_BESTAND_BAND = "wka_bestand_ausserhalb_zonen"

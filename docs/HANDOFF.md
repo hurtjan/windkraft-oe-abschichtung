@@ -41,16 +41,34 @@ den Pfad ein zweites Mal hinzuschreiben.
 | | |
 |---|---|
 | Datei | `out/abschichtung.tif` |
-| `sha256` | `bd5ddacc1d231cd43d507eece4536a6cfde57e5af912bdcbeec716212878bf1c` |
-| Größe | 152.645.657 Bytes |
-| Bänder | 44 |
-| Manifest-`schema_version` | `2.2.1` |
+| `sha256` | `53cbc7800f28c49827786562d5312f58b3fceae55195996e7aeacbfeb6b653b6` |
+| Größe | 153.586.328 Bytes |
+| Bänder | 45 |
+| Manifest-`schema_version` | `2.3.0` |
 
 Diese Prüfsumme ist verdrahtet: `tests/test_referenz_tif.py` prüft sie bei
 jedem `make test` (siehe dort auch, wie der langlaufende Reproduktionstest
 gezielt ausgeführt wird). Sie ändert sich nicht beiläufig — wenn doch,
 gehört das gemessen, begründet und in `docs/rewrite/abweichungen.tsv`
 eingetragen.
+
+**Fünfter Referenzwechsel (30.09.2026, Freileitungen >= 110 kV):** neues Band 45
+`power_lines_110kv_plus` (spannungsabhängig ab OSM-Leitungsachse: 116 m bei
+110 kV, 136 m bei 220/380/400 kV; gemischte Leitungen erhalten den größeren
+Puffer), Schema `2.3.0`,
+`band_schema` `clean-45-freileitungen-110kv-sep-2026`. Vorwert: sha256
+`bd5ddacc1d231cd43d507eece4536a6cfde57e5af912bdcbeec716212878bf1c`,
+152.645.657 Bytes, 44 Bänder (Backup unter
+`abschichtung_out_backup_2026-09-30/`). Bandweise bitgleich zum Vorwert sind
+1–26, 28, 29 und 37–44; geändert nur 27, 30, 31, 32 und 33–36, und zwar
+ausschließlich durch den Freileitungs-Zuwachs. Neuer Wert (Vektorpuffer): sha256
+`b596fd021dbc42eb4bfa19b9caf8fead78cad6489f6f91e344dd3e645cf87700`,
+154.134.192 Bytes, 45 Bänder. Das Band wurde am selben Tag zunächst nur für
+>= 220 kV (136 m) gebaut (Zwischenstand sha256 `53cbc780…b653b6`, Backup unter
+`abschichtung_out_220kv_2026-09-30/`) und dann auf >= 110 kV erweitert; ein erster >= 110-kV-Lauf mit Rasterpuffer
+(Saatzellen + FFT-Dilation, sha256 `87649de3…e81194`, Backup unter
+`abschichtung_out_110kv_raster_2026-09-30/`) verfehlte Zellen innerhalb des
+Nennabstands und wurde durch den Vektorpuffer ersetzt.
 
 **Vierter Referenzwechsel (Stand 22.09.2026 (neue WKA-Quelle), bestätigt
 durch Neubau 28.09.2026):** `windkraft_standorte_at.geojson` (1.388 Punkte)
@@ -342,6 +360,16 @@ W7.6 nicht mehr aus einer handgepflegten Vorlage kopiert, sondern von
 erzeugt - kein Bandname im Erzeuger-Code, zwei Läufe über dasselbe Manifest
 liefern bytegleiche Ausgaben.
 
+### `2.3.0` (30.09.2026) — Band 45, Freileitungen >= 110 kV
+
+`band_count` steigt additiv von 44 auf 45; Bänder 1–44 behalten Name, Index und
+Rolle. Neues Band 45 `power_lines_110kv_plus` (Familie `energieleitungen`,
+Kategorie Mensch, Stufe `zone`, `dashboard_layer` true, `default_visible`
+false, `puffer_m` 136 — numerisch das Maximum; bei 110 kV gelten 116 m, beide
+Stufen nennt `description_de`). Neue Familie `energieleitungen` (`familien`: 17
+Einträge). `dashboard_layer` gilt jetzt für 24 der 45 Bänder. `band_schema`
+wechselt auf `clean-45-freileitungen-110kv-sep-2026`.
+
 ## Vertrag vs. Dokumentation
 
 **Vertrag** — das dürft ihr euch verlassen, solange `schema_version`
@@ -563,10 +591,22 @@ sie an diesen Stellen anpassen. Beide sind gegen den Code verifiziert (die
 Datei-Tags setzt heute `pipeline/finalize.py`, wörtlich übernommen aus
 `scripts/widmung_v2/04_create_distance_zones.py`):
 
-- **Stromleitungen sind kein Ausschlusskriterium mehr.** v1 kannte ein
-  eigenes Band `power_380_400kv` (Band 11 in der 54-Band-Liste). In v2 gibt
-  es kein solches Band mehr; der Datei-Tag `POWER_LINES` sagt explizit
-  `"kein Ausschlusskriterium (Clean-Schema Aug 2026)"`.
+- **Stromleitungen: seit 30.09.2026 wieder ein Ausschlusskriterium, als
+  Band 45.** v1 kannte ein eigenes Band `power_380_400kv` (Band 11 in der
+  54-Band-Liste, 150 m); das Clean-Schema Aug 2026 ließ es fallen. Seit
+  Schema `2.3.0` gibt es `power_lines_110kv_plus`: OSM `power=line` mit
+  110, 220, 380 oder 400 kV, spannungsabhängiger Puffer ab der Leitungsachse:
+  110 kV 116 m (halber Rotordurchmesser der Referenzanlage V172 = 86 m, plus
+  Sicherheitsabstand 20 m, plus 10 m von der Mastachse zum äußersten Leiter;
+  garantiert mindestens 106 m zum Leiter), 220/380/400 kV 136 m (86 m plus
+  30 m plus 20 m; mindestens 116 m zum Leiter). Leitungen mit mehreren
+  Spannungsebenen (z. B. `220000;110000`) erhalten den größeren Puffer.
+  Gepuffert wird als Vektor an der echten Liniengeometrie und mit allen
+  berührten Zellen gerastert (jede Zelle innerhalb des Nennabstands ist
+  ausgeschlossen, der Rand überschießt um höchstens eine Zelle); alle anderen
+  Puffer bleiben Rastermethode. Mittelspannung (< 110 kV) ist nicht enthalten. Der Datei-Tag
+  `POWER_LINES` beschreibt das Kriterium. Das Band geht in `exclusion_human`
+  (27) und damit in 30–36 ein; `sources_human` (42) bleibt unverändert.
 - **„Wichtige Objekte" sind in `haeuser_im_gruenen` (750 m) aufgegangen.**
   v1 führte sie als eigenes Band mit 250-m-Puffer (`important_objects_source`
   / `important_objects_buffer`, Bänder 3-4). Der Datei-Tag

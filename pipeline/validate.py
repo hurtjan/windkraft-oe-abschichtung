@@ -253,7 +253,20 @@ REFERENCE_TIF = contract.RUN1_TIF
 # ``backup/abschichtung_20260928/out/abschichtung.tif``). Der vorherige Wert
 # ``c1809c4cf9cb243d420efc949ff5543130ef3c5a75db9e948d2ea53c94416f37`` bleibt
 # ebenso als historischer Zeuge dokumentiert.
-AKTUELLE_REFERENZ_SHA256 = "bd5ddacc1d231cd43d507eece4536a6cfde57e5af912bdcbeec716212878bf1c"
+#
+# Siebter Wechsel (30.09.2026, Freileitungen >= 110 kV): neues Band 45
+# ``power_lines_110kv_plus`` (116 m bei 110 kV, 136 m bei 220/380/400 kV ab
+# Leitungsachse), Schema 2.3.0,
+# 45 Bänder. Bandweise gegen den Vorwert: 1-26, 28, 29, 37-44 bitgleich;
+# 27, 30, 31, 32, 33-36 geändert (nur Freileitungs-Zuwachs). Der vorherige
+# Wert ``bd5ddacc1d231cd43d507eece4536a6cfde57e5af912bdcbeec716212878bf1c``
+# bleibt als historischer Zeuge dokumentiert. Derselbe Wert steht in
+# ``tests/test_referenz_tif.py``. Zwischenstand am selben Tag (nur >= 220 kV):
+# ``53cbc7800f28c49827786562d5312f58b3fceae55195996e7aeacbfeb6b653b6``; danach
+# Rasterpuffer >= 110 kV ``87649de3b67b7ada183d282f281d2a073cae04dafcc78eef7c087fc874e81194``
+# (Saatzellen + FFT-Dilation, verfehlte Zellen im Nennabstand), ersetzt durch den
+# Vektorpuffer.
+AKTUELLE_REFERENZ_SHA256 = "b596fd021dbc42eb4bfa19b9caf8fead78cad6489f6f91e344dd3e645cf87700"
 
 REGISTER_PATH = contract.ROOT / "docs" / "rewrite" / "abweichungen.tsv"
 

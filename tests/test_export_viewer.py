@@ -84,8 +84,8 @@ def test_kein_bandname_der_echten_kette_steht_im_quelltext():
     manifest = json.loads(ECHTES_MANIFEST.read_text(encoding="utf-8"))
     bandnamen = [b["name"] for b in manifest["bands"]]
     # Erst nach der Integration (echtes Manifest neu geschrieben, Schema
-    # 2.2.0/W7.1, 44 Bänder) wieder grün - siehe Bericht Bahn 2, W7.1.
-    assert len(bandnamen) == 44
+    # 2.2.0/W7.1, 44 Bänder; seit 30.09.2026 45 Bänder, Schema 2.3.0) wieder grün - siehe Bericht Bahn 2, W7.1.
+    assert len(bandnamen) == 45
 
     quelltext = VIEWER_QUELLE.read_text(encoding="utf-8")
     treffer = sorted(name for name in bandnamen if name in quelltext)

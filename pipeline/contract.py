@@ -353,6 +353,10 @@ LAYER_NAMES = (
     "sources_human",
     "sources_nature",
     "sources_geography",
+    # 30.09.2026: Freileitungen >= 110 kV wieder als Ausschlusskriterium,
+    # angehaengt an Index 45 (kein Index 1-44 verschiebt sich). Erzeuger:
+    # pipeline/layers/osm.py (INFRA_LAYER_NAMES).
+    "power_lines_110kv_plus",
 )
 
 LAYERS = {name: DERIVED_LAYERS / f"{name}.tif" for name in LAYER_NAMES}

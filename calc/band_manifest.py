@@ -165,6 +165,18 @@ durchzulassen").
              (§4a/§5), ``MANIFEST-TEXTE.md`` (Anwendung), beide von der
              Konsumentenseite geschrieben, Sollwert ist ausschließlich deren
              Spalte "neu"; im Zweifel gilt der Code (siehe Bericht zu W7.6).
+  ``2.3.0``  30.09.2026: ein neues Band 45 ``power_lines_110kv_plus``
+             (Freileitungen >= 110 kV, 116 m bei 110 kV und 136 m bei 220/380/400 kV ab
+             Leitungsachse; zunächst am 30.09.2026 als >= 220 kV angelegt, am
+             selben Tag auf >= 110 kV erweitert), angehängt
+             hinter Band 44 - kein Index 1-44 verschiebt sich, ``band_count``
+             44 -> 45. Neue Familie ``energieleitungen`` (Kategorie Mensch),
+             Stufe ``zone``, ``dashboard_layer`` true, ``default_visible``
+             false. Das Band geht in ``exclusion_human`` (27), ``all_exclusions``
+             (30) und damit in 31-36 ein (``exclusion_human.abgeleitet_von``
+             trägt es); ``sources_human`` (42) bleibt unverändert. Nebenversion:
+             additiv, Bänder 1-44 behalten Name, Index und Rolle. Tag
+             ``BAND_SCHEMA`` = ``clean-45-freileitungen-110kv-sep-2026``.
 """
 
 from __future__ import annotations
@@ -179,14 +191,14 @@ from calc.viz.band_metadata import (
     layer_color,
 )
 
-SCHEMA_VERSION = "2.2.1"
+SCHEMA_VERSION = "2.3.0"
 MANIFEST_SUFFIX = ".bands.json"
 
 # Fallbacks, falls die Tags einmal ohne diese Schlüssel kommen. Der Regelfall
 # ist, dass PIPELINE/BAND_SCHEMA aus dem tags-Dict stammen - dann steht im
 # Manifest garantiert dasselbe wie in den Datei-Tags des TIFs.
 DEFAULT_PIPELINE = "widmung_v2"
-DEFAULT_BAND_SCHEMA = "clean-44-ohne-wichtige-objekte-aug-2026"
+DEFAULT_BAND_SCHEMA = "clean-45-freileitungen-110kv-sep-2026"
 
 # Wie output_profile() in calc/abschichtung_common.py das GeoTIFF
 # anlegt. Hier als Konstante gespiegelt statt importiert, damit dieses Modul
@@ -279,6 +291,8 @@ LABELS_DE = {
     "sources_human": "Quellen Mensch",
     "sources_nature": "Quellen Natur",
     "sources_geography": "Quellen Geografie",
+    # Band 45, Schema 2.3.0 (30.09.2026).
+    "power_lines_110kv_plus": "Hochspannungsfreileitungen",
 }
 
 # --------------------------------------------------------------------------
@@ -293,7 +307,8 @@ LABELS_DE = {
 DESCRIPTIONS_DE = {
     "exclusion_human": (
         "Vereinigung aller Ausschlüsse der Kategorie Mensch: Siedlungsabstand, "
-        "Häuser im Grünen, Gebäude und Anlagen, Verkehr, Militär und Luftfahrt; "
+        "Häuser im Grünen, Gebäude und Anlagen, Verkehr, Hochspannungsfreileitungen, "
+        "Militär und Luftfahrt; "
         "auf das Staatsgebiet zugeschnitten."
     ),
     "exclusion_nature": (
@@ -351,6 +366,25 @@ DESCRIPTIONS_DE = {
         "Vereinigung der Kriterien Hangneigung, Seehöhe, Wind und Gewässer. Es "
         "gibt keinen Abstand, das Band ist deshalb inhaltsgleich mit dem "
         "Ausschluss Geografie und existiert nur der Einheitlichkeit halber."
+    ),
+    # Band 45, Schema 2.3.0 (30.09.2026). Zahlen und Herleitung siehe
+    # calc/abschichtung_common.py:INFRA_RULES["power_lines_110kv_plus"].
+    "power_lines_110kv_plus": (
+        "Abstand beiderseits der Achse von Hochspannungsfreileitungen ab 110 kV "
+        "(110, 220, 380 und 400 kV) aus OpenStreetMap, je nach Spannung: 116 m "
+        "bei 110 kV, 136 m bei 220, 380 und 400 kV. Der Abstand ergibt sich für "
+        "die Referenzanlage Vestas V172 aus dem halben Rotordurchmesser von 86 m "
+        "und dem Sicherheitsabstand zum äußersten Leiter (20 m bei 110 kV, 30 m "
+        "bei 220 und 380 kV), zusammen 106 m bzw. 116 m, zuzüglich des Versatzes "
+        "von der Mastachse zum äußersten Leiter (10 m bzw. 20 m). Die 116 m bzw. "
+        "136 m ab der Leitungsachse stellen so mindestens 106 m bzw. 116 m zum "
+        "Leiter sicher. Leitungen mit mehreren Spannungsebenen erhalten den "
+        "größeren Puffer. Dieses Band wird an der Vektorgeometrie der Leitung "
+        "gepuffert und mit allen berührten Zellen gerastert, sodass jede Zelle "
+        "innerhalb des Nennabstands ausgeschlossen ist; der Rand überschießt um "
+        "höchstens eine Zelle. Untergrenze ohne Kranarbeitsfläche und ohne Nachweis "
+        "gegen nachlaufinduzierte Schwingungen. Mittelspannung unter 110 kV "
+        "erzeugt keine Zone, ebenso wenig Erdkabel."
     ),
 }
 
@@ -766,6 +800,12 @@ BUFFER_M = {
     "road_federal_state": 150.0,
     "rail_main": 150.0,
     "cableway_people_150m": 150.0,
+    # Band 45: spannungsabhängig (110 kV 116 m, 220/380/400 kV 136 m); das Feld
+    # ist numerisch, daher der größere Wert 136 m = POWER_LINE_BUFFER_M
+    # (Maximum von POWER_LINE_BUFFERS_M in calc/abschichtung_common.py), hier
+    # als Literal gespiegelt (Modul bleibt ohne geopandas importierbar); beide
+    # Stufen nennt description_de. tests/test_band_manifest.py prüft die Gleichheit.
+    "power_lines_110kv_plus": 136.0,
 }
 
 # Freitext für die drei Fälle, die sich nicht in eine einzelne Zahl pressen
@@ -844,6 +884,7 @@ BAND_SOURCES: dict[str, list[str]] = {
     "military_restricted_area": ["osm_pbf"],
     "airport_area_major": ["osm_pbf"],
     "airport_runway_corridor_5km": ["osm_pbf"],
+    "power_lines_110kv_plus": ["osm_pbf"],
     "nature_protection_areas": ["naturschutzgebiete"],
     "osm_nature_protection_areas": ["osm_pbf"],
     "geography_slope_too_steep": ["dgm_25m"],
@@ -899,6 +940,7 @@ _HUMAN_BANDS = [
     "military_restricted_area",
     "airport_area_major",
     "airport_runway_corridor_5km",
+    "power_lines_110kv_plus",
 ]
 _NATURE_BANDS = ["nature_protection_areas", "osm_nature_protection_areas"]
 _GEOGRAPHY_AND_WATER_BANDS = [
@@ -1117,6 +1159,7 @@ FAMILIEN = [
     {"key": "seilbahn_gebaeude", "category": "Mensch", "label_de": "Seilbahn-Gebäude", "description_de": "Liftstationen und andere Gebäude an Seilbahnlinien."},
     {"key": "gebaeude", "category": "Mensch", "label_de": "Gebäude", "description_de": "Übrige Gebäude aus OpenStreetMap und Kataster mit ihrem Fußabdruck."},
     {"key": "verkehr", "category": "Mensch", "label_de": "Verkehr", "description_de": "Abstand entlang Straßen, Bahnen und Personenseilbahnen."},
+    {"key": "energieleitungen", "category": "Mensch", "label_de": "Energieleitungen", "description_de": "Abstand entlang von Hochspannungsfreileitungen."},
     {"key": "militaer", "category": "Mensch", "label_de": "Militär", "description_de": "Militärische Sperrgebiete."},
     {"key": "luftfahrt", "category": "Mensch", "label_de": "Luftfahrt", "description_de": "Flughafenareale und ihre An- und Abflugkorridore."},
     {"key": "summe", "category": "Mensch", "label_de": "Gesamt Mensch", "description_de": "Alle Quellen und alle Ausschlussflächen der Kategorie Mensch, je als ein Band."},
@@ -1137,7 +1180,7 @@ FAMILIEN = [
 # "category" ist zeichengleich mit category_order übernommen (Verbindungs-
 # String zu bands[].category), "label_de" die kurze Überschrift im Baum.
 KATEGORIEN = [
-    {"key": "mensch", "category": "Mensch", "label_de": "Mensch", "description_de": "Ausschlüsse wegen Nähe zu Menschen und ihrer Infrastruktur: Siedlungen, Häuser im Grünen, Gebäude, Verkehrswege, militärische Sperrgebiete und Luftfahrt. Quellen sind die Flächenwidmungen der neun Bundesländer, Kataster und Adressregister, OpenStreetMap sowie die niederösterreichischen Mindestabstandszonen."},
+    {"key": "mensch", "category": "Mensch", "label_de": "Mensch", "description_de": "Ausschlüsse wegen Nähe zu Menschen und ihrer Infrastruktur: Siedlungen, Häuser im Grünen, Gebäude, Verkehrswege, Hochspannungsfreileitungen, militärische Sperrgebiete und Luftfahrt. Quellen sind die Flächenwidmungen der neun Bundesländer, Kataster und Adressregister, OpenStreetMap sowie die niederösterreichischen Mindestabstandszonen."},
     {"key": "natur", "category": "Natur", "label_de": "Natur", "description_de": "Amtliche Schutzgebiete und Schutzgebiete aus OpenStreetMap gelten als Ausschluss. In dieser Kategorie gibt es keine Abstandspuffer, Quellen und Zonen fallen daher zusammen."},
     {"key": "geo", "category": "Geografie", "label_de": "Geografie", "description_de": "Physische Kriterien aus Geländemodell, Windatlas und OpenStreetMap: Hangneigung, Seehöhe, Windleistungsdichte und größere Gewässer. Jedes Kriterium ist ein Schwellenwert, keine Abstandsregel."},
     {"key": "ergebnis", "category": "Total & Ergebnis", "label_de": "Ergebnis", "description_de": "Die Vereinigung aller Ausschlüsse und ihr Gegenstück, die verbleibende Fläche. Die um Splitter bereinigte Fläche ist das Endergebnis der Abschichtung."},
@@ -1184,6 +1227,7 @@ BAND_FAMILIE: dict[str, str] = {
     "road_federal_state": "verkehr",
     "rail_main": "verkehr",
     "cableway_people_150m": "verkehr",
+    "power_lines_110kv_plus": "energieleitungen",
     "military_restricted_area": "militaer",
     "airport_area_major": "luftfahrt",
     "airport_runway_corridor_5km": "luftfahrt",
@@ -1228,6 +1272,7 @@ BAND_STUFE: dict[str, str] = {
     "road_federal_state": "zone",
     "rail_main": "zone",
     "cableway_people_150m": "zone",
+    "power_lines_110kv_plus": "zone",
     "military_restricted_area": "zone",
     "airport_area_major": "zone",
     "airport_runway_corridor_5km": "zone",
@@ -1288,6 +1333,7 @@ DASHBOARD_LAYER_NAMES = frozenset({
     "military_restricted_area",              # 18
     "airport_area_major",                    # 19
     "airport_runway_corridor_5km",           # 20
+    "power_lines_110kv_plus",                # 45
     "geography_slope_too_steep",             # 23
     "geography_elevation_too_high",          # 24
     "geography_wind_too_low",                # 25
@@ -1299,7 +1345,7 @@ DASHBOARD_LAYER_NAMES = frozenset({
     "available_cleaned_min_10ha",            # 32
     "official_wind_zoning",                  # 37
     "wka_bestand_ausserhalb_zonen",          # 38
-})  # 23 von 44 Bändern
+})  # 24 von 45 Bändern
 
 DEFAULT_VISIBLE_NAMES = frozenset({
     "exclusion_human",                # 27 - Gesamt Mensch
@@ -1307,7 +1353,7 @@ DEFAULT_VISIBLE_NAMES = frozenset({
     "exclusion_geography",            # 29 - Gesamt Geografie
     "available_cleaned_min_10ha",     # 32 - Eignungsflächen
     "official_wind_zoning",           # 37 - amtliche Windzonen
-})  # 5 von 44 Bändern, Teilmenge von DASHBOARD_LAYER_NAMES
+})  # 5 von 45 Bändern, Teilmenge von DASHBOARD_LAYER_NAMES
 
 assert DEFAULT_VISIBLE_NAMES <= DASHBOARD_LAYER_NAMES, (
     "default_visible muss eine Teilmenge von dashboard_layer sein - ein "
@@ -1316,12 +1362,12 @@ assert DEFAULT_VISIBLE_NAMES <= DASHBOARD_LAYER_NAMES, (
 
 
 def band_dashboard_layer(name: str) -> bool:
-    """W7.6: feste Liste (``DASHBOARD_LAYER_NAMES``), 23 der 44 Bänder."""
+    """W7.6: feste Liste (``DASHBOARD_LAYER_NAMES``), 24 der 45 Bänder."""
     return name in DASHBOARD_LAYER_NAMES
 
 
 def band_default_visible(name: str, stufe: str) -> bool:
-    """W7.6: feste Liste (``DEFAULT_VISIBLE_NAMES``), 5 der 44 Bänder -
+    """W7.6: feste Liste (``DEFAULT_VISIBLE_NAMES``), 5 der 45 Bänder -
     die drei Kategoriesummen, die Eignungsflächen, die amtlichen Zonen.
     ``stufe`` wird nicht mehr verwendet, bleibt aber im Funktionskopf, weil
     ``band_entry()`` es ohnehin schon berechnet hat und der Aufruf sonst an
