@@ -1,5 +1,5 @@
-"""Finalisierung: das 38-Band-GeoTIFF plus Manifest (Paket W3.1,
-docs/rewrite/PLAN.md §7, §13.9).
+"""Finalisierung: das Abschichtungs-GeoTIFF (heute 45 Bänder) plus Manifest
+(Paket W3.1, docs/rewrite/PLAN.md §7, §13.9; Band 45 seit 30.09.2026).
 
 Reiner Komponist. Diese Stufe baut KEINEN einzigen Layer selbst - alle 33
 Checkpoints unter ``derived/layers/`` sind bereits von der Layer-Welle
@@ -131,7 +131,7 @@ PIPELINE_TAG = "widmung_v2"
 # muss über alle drei Stellen hinweg gleich bleiben, sonst würde
 # layer_done() (Fingerabdruck-Vergleich) Checkpoints fälschlich als veraltet
 # ansehen.
-BAND_SCHEMA = "clean-44-ohne-wichtige-objekte-aug-2026"
+BAND_SCHEMA = "clean-45-freileitungen-110kv-sep-2026"
 
 WKA_BESTAND_BAND = "wka_bestand_ausserhalb_zonen"
 WKA_CLUSTER_CHAIN_M = 750.0
@@ -145,6 +145,8 @@ WKA_HULL_MARGIN_M = 200.0
 # wie official_wind_zoning/wka_bestand_ausserhalb_zonen selbst (siehe deren
 # trailing_bands-Verwendung unten) - sie kommen deshalb an dieselbe Stelle,
 # nur danach. Reihenfolge = contract.LAYER_NAMES[-6:], siehe dort.
+POWER_LINE_BAND = "power_lines_110kv_plus"
+
 APPENDED_BAND_NAMES = [
     "haeuser_im_gruenen_source",
     "general_buildings_roh_osm",
@@ -152,6 +154,11 @@ APPENDED_BAND_NAMES = [
     "sources_human",
     "sources_nature",
     "sources_geography",
+    # 30.09.2026: Band 45, Freileitungen >= 110 kV (116 m bei 110 kV, 136 m bei 220/380/400 kV ab Leitungsachse).
+    # Steht auch in HUMAN_BANDS und geht so in exclusion_human/all_exclusions
+    # ein, obwohl es hinter den Aggregaten geschrieben wird - siehe
+    # compose_exclusion_geotiff() (human_bands ausserhalb der condition_bands).
+    POWER_LINE_BAND,
 ]
 
 
@@ -221,6 +228,7 @@ HUMAN_BANDS = [
     "military_restricted_area",
     "airport_area_major",
     "airport_runway_corridor_5km",
+    POWER_LINE_BAND,
 ]
 
 # Alle 33 Checkpoints, die diese Stufe als harte Vorbedingung verlangt -
@@ -317,7 +325,14 @@ def main(argv: list[str] | None = None) -> None:
         "HIG_SOURCE": "amtliche Widmung + NÖ-SekROP-PDF + DKM-Hüllen + BEV-Adressregister (build_hig_sources.py); NÖ-Streusiedlung durch PDF ersetzt",
         "WICHTIGE_OBJEKTE": "in haeuser_im_gruenen (750 m); vorher eigenes 250-m-Band",
         "BEWOHNTE_EINZELLAGEN": "in general_buildings_source (25 m); vorher eigenes 25-m-Bandpaar",
-        "POWER_LINES": "kein Ausschlusskriterium (Clean-Schema Aug 2026)",
+        "POWER_LINES": (
+            "Freileitungen >= 110 kV (OSM power=line, voltage 110/220/380/400 kV) als Band 45 "
+            "power_lines_110kv_plus, Puffer ab Leitungsachse 116 m bei 110 kV "
+            "(0,5*D V172 86 m + a_LTG 20 m + 10 m Achse-Leiter), 136 m bei 220/380/400 kV "
+            "(86 m + a_LTG 30 m + 20 m); gemischte Leitungen: groesserer Puffer; Vektorpuffer der Liniengeometrie, "
+            "gerastert mit all_touched (jede Zelle innerhalb des Nennabstands gesetzt, Rand hoechstens eine Zelle zu weit); "
+            "Mittelspannung nicht enthalten"
+        ),
         "AIRPORT_CORRIDOR_LENGTH_M": str(AIRPORT_CORRIDOR_LENGTH_M),
         "AIRPORT_CORRIDOR_HALF_ANGLE_DEG": str(AIRPORT_CORRIDOR_HALF_ANGLE_DEG),
         "WIEN": "amtliche Widmung Stadt Wien (GENFLWIDMUNGOGD), kein Vollausschluss mehr",

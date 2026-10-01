@@ -50,6 +50,21 @@ Zielzustand, die Abschnitte 1 bis 4 gelten für beide.
 > tatsächliche Stand nach W7.6 ist Schema **2.2.1**, `dashboard_layer: true`
 > für **23** (nicht mehr 40) der 44 Bänder — siehe datierter Kopf oben.
 
+## Nachtrag 30.09.2026 (Schema 2.3.0) — Band 45 ist vergeben
+
+Der Produzent hat als **Band 45** `power_lines_110kv_plus` (Hochspannungs-
+freileitungen ab 110 kV, 116 m bei 110 kV und 136 m bei 220/380/400 kV ab
+Leitungsachse; als Vektorpuffer der Liniengeometrie mit allen berührten Zellen
+gerastert, jede Zelle innerhalb des Nennabstands ist ausgeschlossen, der Rand
+überschießt um höchstens eine Zelle) angehängt; `band_count` ist
+45, `dashboard_layer: true` gilt für 24 Bänder (die 23 aus dem Kopf oben plus
+45), `default_visible` unverändert für 5. Die in den Abschnitten 6 und 7
+geplanten Zielbänder 45–47 (`gebaeude_zone`, `verkehr_zone`, `luftfahrt_zone`)
+sind damit **nicht mehr an diese Nummern gebunden**; falls sie kommen, erhalten
+sie 46 und höher. Das Band gehört in die Familie `energieleitungen` (Kategorie
+Mensch) und geht in `exclusion_human` (27) ein. Abschnitt 6 (17-Layer-Set) ist
+um diesen Layer noch nicht ergänzt.
+
 ## 1. Übergabe
 
 | Datei | Ziel im Dashboard | committet |

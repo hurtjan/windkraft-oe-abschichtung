@@ -1,5 +1,5 @@
 """Flaechenbilanz: eine feste Liste von Kennzahlen je Bundesland und AT,
-gerechnet auf dem 44-Band-Abschichtungs-GeoTIFF (und robust auch auf
+gerechnet auf dem 45-Band-Abschichtungs-GeoTIFF (und robust auch auf
 aelteren 38-/54-Band-Stufen: Baender werden ausschliesslich ueber ihren
 Namen aufgeloest, nie ueber eine feste Bandnummer).
 
@@ -116,6 +116,8 @@ AREA_KENNZAHLEN: list[tuple[str, tuple[str, ...], Mask]] = [
     ("kriterium.mensch.verkehr.bahn", ("rail_main",), lambda bb: bb["rail_main"]),
     ("kriterium.mensch.verkehr.seilbahn_personen", ("cableway_people_150m",),
      lambda bb: bb["cableway_people_150m"]),
+    ("kriterium.mensch.freileitungen", ("power_lines_110kv_plus",),
+     lambda bb: bb["power_lines_110kv_plus"]),
     ("kriterium.mensch.militaer", ("military_restricted_area",), lambda bb: bb["military_restricted_area"]),
     ("kriterium.mensch.luftfahrt", ("airport_area_major", "airport_runway_corridor_5km"),
      lambda bb: bb["airport_area_major"] | bb["airport_runway_corridor_5km"]),

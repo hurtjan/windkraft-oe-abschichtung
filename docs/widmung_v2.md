@@ -138,7 +138,14 @@ eigenes Band; Band 7 ist das gemeinsame Abstands-Aggregat.
 | 17 | `cableway_people_150m` | 150 m um personenbefördernde Seilbahnen und Lifte (OSM) — genau vier `aerialway`-Typen: `gondola`, `cable_car`, `chair_lift`, `mixed_lift` (Nutzerentscheidung 09.09.2026, W7.5). **Keine** Schlepplifte (`drag_lift`, `t-bar`, `j-bar`, `platter`, `rope_tow`), kein `magic_carpet`, nichts aus `goods`/`zip_line`/`explosive`/`avalanche`/`pylon`/`station`/`yes`/`proposed`/`abandoned`/`deflection_roller`. |
 | 18 | `military_restricted_area` | Militärische Sperr- und Übungsflächen (OSM), Fußabdruck ohne Zusatzabstand. |
 
-Stromleitungen sind **kein** Ausschlusskriterium.
+Stromleitungen ab 110 kV sind seit 30.09.2026 ein Ausschlusskriterium, aber
+kein Band dieser Tabelle: sie stehen als angehängtes **Band 45**
+`power_lines_110kv_plus` (OSM `power=line`, 110/220/380/400 kV, ab der Leitungsachse 116 m bei
+110 kV und 136 m bei 220/380/400 kV; Herleitung: halber Rotordurchmesser V172
+86 m + Sicherheitsabstand 20 m bzw. 30 m + 10 m bzw. 20 m Achse zum äußersten
+Leiter; gemischte Leitungen erhalten den größeren Puffer; Vektorpuffer der
+Liniengeometrie, mit allen berührten Zellen gerastert). Mittelspannung
+erzeugt keine Zone.
 
 ### Flughäfen (Bänder 19–20)
 

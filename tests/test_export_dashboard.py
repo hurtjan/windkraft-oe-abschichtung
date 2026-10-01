@@ -139,8 +139,7 @@ def test_kein_bandname_der_echten_kette_steht_im_quelltext():
     haltende Bandliste entstanden, die dieses ganze Modul vermeiden soll
     (PLAN.md §13.6).
 
-    Geprüft wird auf die Namen der **heutigen** 44 Bänder (Schema 2.2.0,
-    Paket W7.1). Der
+    Geprüft wird auf die Namen der **heutigen** 45 Bänder (Schema 2.3.0). Der
     Moduldocstring von ``dashboard.py`` nennt bewusst mehrere Bandnamen der
     alten 63-Band-Kette (``power_380_400kv`` und andere) als Beispiel für
     genau den Fehler, den es nicht wiederholt - die sind kein Verstoß,
@@ -150,8 +149,8 @@ def test_kein_bandname_der_echten_kette_steht_im_quelltext():
     manifest = json.loads(ECHTES_MANIFEST.read_text(encoding="utf-8"))
     bandnamen = [b["name"] for b in manifest["bands"]]
     # Erst nach der Integration (echtes Manifest neu geschrieben, Schema
-    # 2.2.0/W7.1, 44 Bänder) wieder grün - siehe Bericht Bahn 2, W7.1.
-    assert len(bandnamen) == 44, "Unerwartete Bandzahl im echten Manifest."
+    # 2.2.0/W7.1, 44 Bänder; seit 30.09.2026 45 Bänder, Schema 2.3.0) wieder grün - siehe Bericht Bahn 2, W7.1.
+    assert len(bandnamen) == 45, "Unerwartete Bandzahl im echten Manifest."
 
     quelltext = DASHBOARD_QUELLE.read_text(encoding="utf-8")
     treffer = sorted(name for name in bandnamen if name in quelltext)

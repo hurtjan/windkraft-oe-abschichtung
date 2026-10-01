@@ -1,14 +1,14 @@
 """Layer-Stufe: OSM-Restlayer + Infrastruktur-/Flughafenmasken (Paket W2.3,
 docs/rewrite/PLAN.md §7). Übernommen aus
 ``scripts/widmung_v2/03_build_osm_layers.py`` - genau der Teil, der die
-neun Checkpoints in ``OSM_LAYER_NAMES``/``INFRA_LAYER_NAMES``/
+zehn Checkpoints in ``OSM_LAYER_NAMES``/``INFRA_LAYER_NAMES``/
 ``AIRPORT_LAYER_NAMES`` erzeugt (die übrigen Checkpoints der v2-Kette
 kommen aus ``02_build_hig_sources.py`` bzw. den Paketen W2.1/W2.4).
 
 Erzeugt: cableway_buildings_source, general_buildings_source (OSM-Gebäude,
 zwei disjunkte Restklassen unter den amtlich nicht abgedeckten Gebäuden),
 road_motorway_trunk, road_federal_state, rail_main, cableway_people_150m,
-military_restricted_area (Infrastrukturmasken) sowie airport_area_major,
+military_restricted_area, power_lines_110kv_plus (Infrastrukturmasken) sowie airport_area_major,
 airport_runway_corridor_5km (Flughafen-Korridorbänder). Fachliche Regeln
 (Distanzen, Fahrzeugtypen, Militärflächen-Typenliste usw.) sind Regel 4
 gemäß UNVERÄNDERT aus ``calc/abschichtung_common.py`` übernommen
@@ -36,15 +36,28 @@ schon im Original nie. Ebenso entfallen die CLI-Parameter
 ``--osm-pbf``/``--osm-pbf-cache-dir``: die Quelle ist in dieser Stufe fest
 ``pipeline.contract.PREP["osm"]["b_layers"]``, nicht mehr konfigurierbar.
 
-## Punkt 27 - power_380_400kv bleibt unpersistiert (nur nachgebaut, siehe
-Auftrag): ``INFRA_LAYER_NAMES`` lässt ``power_380_400kv`` bewusst aus (seit
-dem Clean-Schema Aug 2026 kein Ausschlusskriterium mehr der v2-Kette,
-Kommentar im Original bei Zeile 92-93). ``build_infrastructure_masks``
-berechnet die Maske trotzdem bei jedem Lauf (liest ``powerlines.parquet``,
-klassifiziert, rasterisiert) - nur um sie nicht zu schreiben. Diese Stufe
-baut das unverändert nach: keine Bedingung, die den Aufwand überspringt,
-wenn ``power_380_400kv`` ohnehin nicht gebraucht wird. Kosten/Alternative:
-siehe Abschlussbericht zu W2.3 (nicht hier entschieden - Regel 4).
+## Punkt 27 - Freileitungen >= 110 kV (Stand 30.09.2026, geaendert)
+``power_380_400kv`` (v1, 150 m) war seit dem Clean-Schema Aug 2026 kein
+persistiertes Band mehr; ``build_infrastructure_masks`` rechnete die Maske
+trotzdem und verwarf sie. Seit 30.09.2026 ist sie wieder ein Ausschlusskriterium,
+als ``power_lines_110kv_plus`` (Band 45, angehaengt ans Ende von
+``contract.LAYER_NAMES``): ``power=line`` mit Spannung 110/220/380/400 kV
+(``POWER_LINE_BUFFERS_M``), spannungsabhaengiger Puffer ab der OSM-Leitungsachse:
+110 kV 116 m, 220/380/400 kV 136 m (Herleitung bei ``POWER_LINE_BUFFERS_M``).
+``rule_distance`` kennt nur EINEN Wert je Regel: ``INFRA_RULES`` traegt das
+Maximum (136 m) als dokumentarischen Wert und fuer die Bounds-Erweiterung; die
+eigentliche Pufferung laeuft hier in ``build_infrastructure_masks`` je
+Puffer-Stufe (Vereinigung der gepufferten Teilmengen). Anders als die uebrigen
+Infrastrukturmasken (Raster: Saatzellen + FFT-Dilation) wird dieses Band als
+VEKTORPUFFER der echten Liniengeometrie gerechnet und mit ``all_touched=True``
+rasterisiert (``vector_buffer_mask``, Kreisbogen umschrieben, ``quad_segs=16``):
+jede Zelle, deren Mitte innerhalb des Nennabstands liegt, ist gesetzt; der Rand
+ueberschiesst hoechstens um eine Zelle. Eine Leitung mit
+mehreren Spannungsebenen (``220000;110000``) erhaelt den groesseren Puffer. ``INFRA_LAYER_NAMES`` fuehrt den Layer;
+er entsteht in derselben Gruppe wie die uebrigen Infrastrukturmasken.
+Achtung: ``ensure_group_layers()`` erkennt nur FEHLENDE Checkpoints - wer
+Puffer oder Spannungsfilter aendert, muss ``--force-layers`` setzen (der
+Fingerabdruck erfasst den Quelltext dieser Stufe nicht).
 
 ## Fingerabdruck-Konvention für die Layer-Stufe (Antwort auf die in
 ``pipeline/fingerprint.py`` als Nebenbefund offene Frage, PLAN.md §12)
@@ -151,7 +164,9 @@ from calc.abschichtung_common import (
     TARGET_CRS,
     _corridor_wedge,
     _non_tunnel_mask,
-    _power_line_mask,
+    POWER_LINE_BUFFERS_M,
+    power_line_buffers_m,
+    vector_buffer_mask,
     _runway_axes,
     admin_boundaries,
     building_points,
@@ -198,16 +213,16 @@ OSM_LAYER_NAMES = [
 # build_osm_building_sources()-Berechnung, hier nur zusätzlich benannt.
 APPENDED_OSM_BAND_NAMES = ["general_buildings_roh_osm", "general_buildings_roh_dkm"]
 
-# power_380_400kv fehlt bewusst: Stromleitungen sind seit dem Clean-Schema
-# (Aug 2026) kein Ausschlusskriterium der v2-Kette mehr. Siehe Punkt 27 im
-# Moduldocstring - build_infrastructure_masks() (unten) berechnet die Maske
-# trotzdem, sie wird nur nicht persistiert.
+# power_lines_110kv_plus steht seit 30.09.2026 wieder hier (Punkt 27 im
+# Moduldocstring); als LETZTER Eintrag, passend zu Band 45 in
+# contract.LAYER_NAMES.
 INFRA_LAYER_NAMES = [
     "road_motorway_trunk",
     "road_federal_state",
     "rail_main",
     "cableway_people_150m",
     "military_restricted_area",
+    "power_lines_110kv_plus",
 ]
 AIRPORT_LAYER_NAMES = ["airport_area_major", "airport_runway_corridor_5km"]
 
@@ -460,16 +475,24 @@ def build_infrastructure_masks(cfg: dict, grid: dict, args: argparse.Namespace) 
     bounds = grid["bounds"]
     masks: dict[str, np.ndarray] = {}
 
-    power_bounds = expand_bounds(bounds, 150.0)
+    power_buffer = rule_distance("power_lines_110kv_plus", args.mode, args.total_height_m)
+    power_bounds = expand_bounds(bounds, power_buffer)
     power = _read_prep_layer("powerlines", power_bounds)
     if not power.empty:
-        high_voltage = _power_line_mask(power, {380, 400})
-        print(f"[info]  power line filter: features={len(power):,}, 380/400kV_lines={int(high_voltage.sum()):,}", flush=True)
-        masks["power_380_400kv"] = raster_mask(
-            power[high_voltage], rule_distance("power_380_400kv", args.mode, args.total_height_m), grid, "power_380_400kv"
-        )
+        # Spannungsabhaengiger Puffer: pro Puffer-Stufe die passenden Leitungen
+        # (Maximum ueber die Tokens einer Leitung) als VEKTOR puffern und mit
+        # all_touched rasterisieren (vector_buffer_mask), dann vereinigen.
+        per_line_buffer = power_line_buffers_m(power, POWER_LINE_BUFFERS_M)
+        high_voltage = per_line_buffer > 0
+        print(f"[info]  power line filter: features={len(power):,}, >=110kV_lines={int(high_voltage.sum()):,}", flush=True)
+        power_mask = np.zeros(grid["shape"], dtype=bool)
+        for buffer_m in sorted({float(b) for b in per_line_buffer[high_voltage]}):
+            sel = per_line_buffer == buffer_m
+            print(f"[info]  power line buffer {buffer_m:g} m: lines={int(sel.sum()):,}", flush=True)
+            power_mask |= vector_buffer_mask(power[sel], buffer_m, grid)
+        masks["power_lines_110kv_plus"] = power_mask
     else:
-        masks["power_380_400kv"] = np.zeros(grid["shape"], dtype=bool)
+        masks["power_lines_110kv_plus"] = np.zeros(grid["shape"], dtype=bool)
 
     max_road_buffer = max(
         rule_distance("road_motorway_trunk", args.mode, args.total_height_m),

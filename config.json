@@ -80,6 +80,7 @@
     "airport_minor": 2000,
     "road": 150,
     "railway": 150,
+    "_comment_powerline": "buffers.powerline (150) ist v1-Rest und wird von der Widmung-v2-Kette NICHT gelesen. Freileitungen >= 110 kV (Band 45 power_lines_110kv_plus, seit 30.09.2026) puffert calc/abschichtung_common.py mit POWER_LINE_BUFFERS_M ab OSM-Leitungsachse, spannungsabhaengig (110 kV 116 m; 220/380/400 kV 136 m; INFRA_RULES traegt das Maximum 136 m) - wie alle INFRA_RULES Konstanten, kein cfg-Wert. Herleitung fuer die Referenzanlage Vestas V172 (turbine.norm_turbine.rotor_d_m = 172): Mindestabstand Mastachse -> aeusserster ruhender Leiter = 0,5*D 86 m + a_LTG (20 m bei 110 kV, 30 m bei 220/380 kV) = 106 m bzw. 116 m (ohne Kranarbeitsflaeche; ohne Nachweis gegen nachlaufinduzierte Schwingungen 3*D = 516 m), plus Versatz Mastachse -> aeusserster Leiter (10 m bzw. 20 m) = 116 m bzw. 136 m. Leitungen mit mehreren Spannungsebenen erhalten den groesseren Puffer. Gepuffert wird als Vektor an der echten Liniengeometrie (vector_buffer_mask, Kreisbogen umschrieben, quad_segs=16) und mit all_touched gerastert - jede Zelle innerhalb des Nennabstands ist gesetzt, der Rand ueberschiesst hoechstens um eine Zelle; alle anderen Puffer bleiben Rastermethode. Mittelspannung (< 110 kV) ist nicht enthalten.",
     "powerline": 150,
     "major_airport_osm_ids": [75732093, 29566108, 30266004, 30514270, 98446291, 282147138]
   },
