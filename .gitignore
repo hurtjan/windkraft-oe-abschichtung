@@ -15,3 +15,12 @@ venv/
 .pytest_cache/
 .ipynb_checkpoints/
 .DS_Store
+
+# Abbildungen und Plots werden erzeugt (make whitepaper, README-Karten) und
+# nicht versioniert.
+/docs/img/
+/docs/whitepaper/abb/
+
+# Whitepaper-Arbeitsnotizen und das alte Gerüst vom 18.09. bleiben lokal.
+/docs/whitepaper/notizen/
+/docs/whitepaper/paper.md
