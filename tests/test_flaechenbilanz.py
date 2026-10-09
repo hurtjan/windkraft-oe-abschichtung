@@ -29,16 +29,9 @@ import rasterio
 from affine import Affine
 from shapely.geometry import box
 
-# Wie in pipeline/analysis/flaechenbilanz.py: solange diese Datei tatsaechlich
-# unter <repo>/tests/ liegt, loest sich der Root dynamisch auf; bis zur
-# "Graduierung" aus dem Scratch-Spiegelverzeichnis heraus faellt sie auf den
-# bekannten Repo-Pfad zurueck (dort liegt auch tests/test_referenz_tif.py,
-# dessen REFERENZ_SHA256 unten importiert wird).
-_CANDIDATE_ROOT = Path(__file__).resolve().parents[1]
-if (_CANDIDATE_ROOT / "pipeline" / "contract.py").is_file():
-    PROJECT_ROOT = _CANDIDATE_ROOT
-else:
-    PROJECT_ROOT = Path("/Users/jhurt/Documents/master_windkraft/abschichtung")
+# Projekt-Root relativ zu dieser Datei (<repo>/tests/); dort liegt auch
+# tests/test_referenz_tif.py, dessen REFERENZ_SHA256 unten importiert wird.
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 REPO_TESTS_DIR = PROJECT_ROOT / "tests"
