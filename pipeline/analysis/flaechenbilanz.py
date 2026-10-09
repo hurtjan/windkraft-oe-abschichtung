@@ -37,17 +37,9 @@ import rasterio
 from rasterio.windows import Window, transform as window_transform
 
 # ---------------------------------------------------------------------------
-# Projekt-Root: wenn diese Datei tatsaechlich unter <repo>/pipeline/analysis/
-# liegt, loest sich der Root dynamisch auf (wie in flaechenanteile.py). Bis
-# zur "Graduierung" aus einem Scratch-Spiegelverzeichnis heraus faellt sie
-# auf den bekannten Repo-Pfad zurueck - ohne dass beim Verschieben der Datei
-# etwas von Hand angepasst werden muesste.
-_THIS_FILE = Path(__file__).resolve()
-_CANDIDATE_ROOT = _THIS_FILE.parents[2] if len(_THIS_FILE.parents) > 2 else None
-if _CANDIDATE_ROOT is not None and (_CANDIDATE_ROOT / "pipeline" / "contract.py").is_file():
-    PROJECT_ROOT = _CANDIDATE_ROOT
-else:
-    PROJECT_ROOT = Path("/Users/jhurt/Documents/master_windkraft/abschichtung")
+# Projekt-Root relativ zu dieser Datei (<repo>/pipeline/analysis/), wie in
+# flaechenanteile.py.
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
