@@ -454,7 +454,7 @@ Danach liest sich die Kette von selbst:
 ### Welle 7 — Layer-Struktur v4
 
 **Beauftragt am 09.09.2026, und nicht von hier.** Der Auftrag kam über eine
-zweite Claude-Sitzung (`mwk-fable`) im Namen des Nutzers, mit eigenem
+zweite Sitzung (`mwk-fable`) im Namen des Nutzers, mit eigenem
 Umsetzungsplan, eigenen Abnahmekriterien und eigener Paketbenennung A, B,
 C. Er steht trotzdem in diesem Plan, weil zwei der drei Pakete in diesem
 Repo arbeiten — und weil die Ergänzung zu Regel 7 (§13.11) genau das

@@ -22,7 +22,7 @@ Import wie im Original, nur der Pfad hat sich geändert).
 Ausgabe: ein eigenständiges GeoParquet mit demselben 17-Spalten-Schema wie
 das kombinierte Endergebnis (``pipeline.prep.kataster.common.FIELD_NAMES``),
 nur mit den NÖ-Zeilen, unter
-``contract.PREP["kataster"]["a_noe_polygonize"]``.
+``contract.WORK["kataster"] / "a_noe_polygonize"`` (Zwischenstand).
 
 Fachliche Auffälligkeit, NICHT verändert (PLAN.md §8 Regel 4 - siehe Bericht
 zu W1.P2): ``--noe-min-area-m2`` (Default 4.0 m²) und die
@@ -46,6 +46,7 @@ from shapely.strtree import STRtree
 from shapely import set_precision
 
 from pipeline import contract, fingerprint, runtime
+from pipeline.prep.share import skip_without_raw
 from pipeline.prep.kataster.common import (
     GeoParquetBatchWriter,
     NsLookup,
@@ -66,9 +67,16 @@ from pipeline.prep.kataster.diagnostics import (
     transform_line,
 )
 
+def _streusiedlung_products() -> list[Path]:
+    files = contract.PREP_FILES["kataster"]
+    return [files["streusiedlung_kandidaten"], files["streusiedlung_garten"],
+            contract.PREP_REPORT_FILES["kataster"]["streusiedlung_bericht"]]
+
+
 RAW_STRIP_TO_CRS = {"M31": "EPSG:31255", "M34": "EPSG:31256"}
 
-PREP_DIR = contract.PREP["kataster"]["a_noe_polygonize"]
+# Zwischenstand (nur von Stufe b gelesen) -> derived/work/, nicht derived/prep/.
+PREP_DIR = contract.WORK["kataster"] / "a_noe_polygonize"
 DEFAULT_OUTPUT = PREP_DIR / "noe_dxf_polygonized.geoparquet"
 DEFAULT_SUMMARY_CSV = PREP_DIR / "noe_dxf_polygonized_summary.csv"
 DEFAULT_OVERVIEW_MD = PREP_DIR / "noe_dxf_polygonized_overview.md"
@@ -325,6 +333,12 @@ def main() -> None:
     overview_md = Path(args.overview_md)
     noe_dxf_zip = contract.RAW["kataster"]["noe_dxf_zip"]
     symbol_csv = contract.RAW["kataster"]["symbol_csv"]
+    if not args.overwrite and skip_without_raw(
+        "kataster", [noe_dxf_zip, symbol_csv], products=[output_path],
+        alt_products=_streusiedlung_products(),
+        hint="data/kataster/ (KAT_DKM_Niederoesterreich_DXF_*.zip, BEV_DKM_DXF_Symbole_V2.6.csv)",
+    ):
+        return
 
     # Selbst-Ueberspringer, gleiches Muster wie pipeline/prep/osm.py
     # (run_extract/run_layers): ein wiederholter `make all` ohne

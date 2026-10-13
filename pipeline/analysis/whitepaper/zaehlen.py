@@ -1,7 +1,7 @@
 """Ein Durchlauf ueber das Abschichtungs-TIF: Zellenzahlen je Bundesland/AT.
 
 Berechnet in einem einzigen blockweisen Durchlauf ueber das TIF:
-- die 18 Einzelband-Zonen (Mensch/Natur/Geografie, stufe='zone'),
+- die 19 Einzelband-Zonen (Mensch/Natur/Geografie, stufe='zone'),
 - die drei Familien-Vereinigungen verkehr/luftfahrt/schutzgebiet,
 - die drei Kategoriebaender (exclusion_human/_nature/_geography),
 - all_exclusions, available_after_all_exclusions_raw,
@@ -20,6 +20,8 @@ einer klaren Meldung ab. Ergebnisse werden in einem Temp-Verzeichnis
 zwischengespeichert (niemals im Repo).
 """
 from __future__ import annotations
+
+from pipeline import contract as _contract
 
 import json
 import tempfile
@@ -98,8 +100,13 @@ def run(
     idx_WKA_OUT = wc.band_index(manifest, "wka_bestand_ausserhalb_zonen")
 
     zone_bands = wc.zone_bands_for_categories(manifest, {"Mensch", "Natur", "Geografie"})
-    if len(zone_bands) != 18:
-        raise SelfCheckError(f"Erwartet 18 Zonen-Baender (Mensch/Natur/Geografie), gefunden {len(zone_bands)}.")
+    # 18 Zonen-Baender bis Schema 2.2.x; seit 2026-10-01 kommt Band 45
+    # ``power_lines_110kv_plus`` (Mensch, Freileitungen >= 110 kV) als 19. hinzu.
+    if len(zone_bands) != 19 or "power_lines_110kv_plus" not in {b["name"] for b in zone_bands}:
+        raise SelfCheckError(
+            "Erwartet 19 Zonen-Baender (Mensch/Natur/Geografie, inkl. power_lines_110kv_plus), "
+            f"gefunden {len(zone_bands)}."
+        )
     zone_band_names = [b["name"] for b in zone_bands]
     zone_band_index = {b["name"]: b["index"] for b in zone_bands}
 
@@ -443,7 +450,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--tif", required=True, type=Path)
     ap.add_argument("--manifest", required=True, type=Path)
-    ap.add_argument("--grenzen", required=True, type=Path)
+    ap.add_argument("--grenzen", type=Path, default=_contract.PREP_FILES["admin"]["bundesland_masken"])
     ap.add_argument("--sha256", default=None)
     args = ap.parse_args()
     out = run(args.tif, args.manifest, args.grenzen, args.sha256)

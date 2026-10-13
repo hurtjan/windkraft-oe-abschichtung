@@ -1,15 +1,19 @@
 # Layer-Manifest: wie `abschichtung.bands.json` das Dashboard steuert
 
+> **Aktueller Stand:** 45 Bänder, Schema 2.3.0, Referenz-sha256 `58caa8ff…` (siehe
+> `docs/HANDOFF.md`). Die Zielbilder mit 48, 44 oder 40 Bändern sowie die Pläne
+> für Schema 2.2.x unten sind **Historie** (Planungsstand September 2026).
+
 Verbindliche Beschreibung, Stand 2026-09-09. Sie gilt für das Bänder-Manifest des
 Produzenten und für seine Verwendung im Dashboard. Die Quelle dieses Dokuments
 liegt beim Produzenten (`docs/LAYER-MANIFEST.md`), das Erzeugnis wird mit jedem
 Export nach `out/LAYER-MANIFEST.md` kopiert und als fünfte Datei übergeben.
 
 Dieses Dokument enthält die Regeln. Die daraus abgeleiteten, fertigen Texte für
-alle 47 Bänder, die Kategorien, die Familien, die Stufen, die Schwellenwerte und
+alle 48 Bänder, die Kategorien, die Familien, die Stufen, die Schwellenwerte und
 den Tunnel-Vorbehalt stehen zum Einsetzen in `MANIFEST-TEXTE.md`.
 
-## Datierter Kopf (Paket W7.6, 09.09.2026 — hier eingefügt, im Original nicht vorhanden)
+## Datierter Kopf (historisch; Paket W7.6, 09.09.2026 — hier eingefügt, im Original nicht vorhanden)
 
 Diese Datei ist wortgleich aus dem Dashboard-Repo übernommen (dort entfernt,
 nichts verweist mehr darauf), mit drei Korrekturen gegen den produzierten
@@ -25,22 +29,22 @@ Produzenten-Vertrag unabhängig von der Bandzahl und gelten unverändert.
 Abschnitt 5 (Kategorie-, Familien- und Stufentexte) ist mit W7.6 **bereits
 ausgeliefert** — Schema 2.2.1, alle sieben Kategorien, alle 16 Familien, alle
 sieben Stufen tragen `description_de`, zeichengleich mit den Tabellen unten.
-Abschnitte 6 und 7 (das 17-Layer-Set des End-Dashboards, die Bänder 45–47)
+Abschnitte 6 und 7 (das 17-Layer-Set des End-Dashboards, die Bänder 46–48)
 beschreiben weiterhin den **Zielzustand nach W7.8** — heute (Schema 2.2.1)
-existieren nur 44 Bänder, nicht 47.
+existieren nur 44 Bänder, nicht 48.
 
 **Eine Abweichung vom in Abschnitt 8 beschriebenen Fahrplan:** `dashboard_layer`
 und `default_visible` sind mit W7.6 bereits gesetzt, nicht erst mit den Bändern
-45–47 (Nutzerentscheidung 09.09.2026 nachmittags, vorgezogen aus W7.8, weil
+46–48 (Nutzerentscheidung 09.09.2026 nachmittags, vorgezogen aus W7.8, weil
 beide Felder nachweislich nicht an den neuen Bändern hängen). Das sind **nicht**
-die 17/30-Werte aus Abschnitt 6 — die brauchen weiterhin die Bänder 45–47 —,
+die 17/30-Werte aus Abschnitt 6 — die brauchen weiterhin die Bänder 46–48 —,
 sondern ein Zwischenstand für die heutigen 44 Bänder: `dashboard_layer: true`
 für 23 Bänder (2, 7, 9, 11, 13, 14, 15, 16, 17, 18, 19, 20, 23, 24, 25, 26, 27,
 28, 29, 30, 32, 37, 38), `default_visible: true` für 5 Bänder (27, 28, 29, 32,
 37 — die drei Kategoriesummen, die Eignungsflächen, die amtlichen Zonen).
 
 Zwei Zustände sind zu unterscheiden. **Heute** liefert der Produzent Schema 2.2.0
-mit 44 Bändern, davon 40 im Dashboard sichtbar. **Ziel** ist Schema 2.2.x mit 47
+mit 44 Bändern, davon 40 im Dashboard sichtbar. **Ziel** ist Schema 2.2.x mit 48
 Bändern und 17 sichtbaren Layern; die Abschnitte 5 bis 7 beschreiben den
 Zielzustand, die Abschnitte 1 bis 4 gelten für beide.
 
@@ -59,13 +63,19 @@ gerastert, jede Zelle innerhalb des Nennabstands ist ausgeschlossen, der Rand
 überschießt um höchstens eine Zelle) angehängt; `band_count` ist
 45, `dashboard_layer: true` gilt für 24 Bänder (die 23 aus dem Kopf oben plus
 45), `default_visible` unverändert für 5. Die in den Abschnitten 6 und 7
-geplanten Zielbänder 45–47 (`gebaeude_zone`, `verkehr_zone`, `luftfahrt_zone`)
-sind damit **nicht mehr an diese Nummern gebunden**; falls sie kommen, erhalten
-sie 46 und höher. Das Band gehört in die Familie `energieleitungen` (Kategorie
+geplanten Zielbänder `gebaeude_zone`, `verkehr_zone` und `luftfahrt_zone` waren
+ursprünglich als 45–47 vorgesehen; da Band 45 jetzt `power_lines_110kv_plus`
+(Energieleitungen, Mensch) ist, sind sie **neu nummeriert: 46–48** (Zielstand
+48 Bänder). Das Band gehört in die Familie `energieleitungen` (Kategorie
 Mensch) und geht in `exclusion_human` (27) ein. Abschnitt 6 (17-Layer-Set) ist
-um diesen Layer noch nicht ergänzt.
+um diesen Layer noch nicht ergänzt. **Offene Entscheidung:** ob Band 45 im
+End-Set einen eigenen Layer bekommt (dann 18 statt 17 Layer, Abschnitt 6 und 7
+wären um eine Zeile zu ergänzen) oder in `exclusion_human` (27) aufgeht, ist
+nicht entschieden.
 
 ## 1. Übergabe
+
+(Pfade der Spalte „Ziel im Dashboard“ stammen aus dem Dashboard-Repo und sind historisch; das Produzenten-Repo liefert nach `out/`.)
 
 | Datei | Ziel im Dashboard | committet |
 |---|---|---|
@@ -222,7 +232,7 @@ Korridorgeometrie oder einen Puffer, der bereits im Quellband steckt.
 > Filter versucht; die Bänder 14–16 nennen ihn korrekt, weil er dort läuft
 > (siehe `_non_tunnel_mask()`, `calc/abschichtung_common.py`).
 
-## 5. Kategorie-, Familien- und Stufentexte
+## 5. (historisch, Schema-2.2.x-Plan) Kategorie-, Familien- und Stufentexte
 
 Form im Manifest:
 
@@ -256,8 +266,8 @@ Schwellenwerten stehen in `MANIFEST-TEXTE.md`.
 
 | Titel | Beschreibung |
 |---|---|
-| Mensch | Ausschlüsse wegen Nähe zu Menschen und ihrer Infrastruktur: Siedlungen, Häuser im Grünen, Gebäude, Verkehrswege, militärische Sperrgebiete und Luftfahrt. Quellen sind die Flächenwidmungen der neun Bundesländer, Kataster und Adressregister, OpenStreetMap sowie die niederösterreichischen Mindestabstandszonen. |
-| Natur | Amtliche Schutzgebiete und Schutzgebiete aus OpenStreetMap gelten als Ausschluss. In dieser Kategorie gibt es keine Abstandspuffer, Quellen und Zonen fallen daher zusammen. |
+| Mensch | Ausschlüsse wegen Nähe zu Menschen und ihrer Infrastruktur: Siedlungen, Häuser im Grünen, Gebäude, Verkehrswege, Hochspannungsfreileitungen, militärische Flächen und Luftfahrt. Quellen sind die Flächenwidmungen der neun Bundesländer, Kataster und Adressregister, OpenStreetMap sowie die niederösterreichischen Mindestabstandszonen. |
+| Natur | Nur amtliche Schutzgebiete, die per Verordnung oder Bescheid festgelegt sind, gelten als Ausschluss. In dieser Kategorie gibt es keine Abstandspuffer, Quellen und Zonen fallen daher zusammen. |
 | Geografie | Physische Kriterien aus Geländemodell, Windatlas und OpenStreetMap: Hangneigung, Seehöhe, Windleistungsdichte und größere Gewässer. Jedes Kriterium ist ein Schwellenwert, keine Abstandsregel. |
 | Ergebnis | Die Vereinigung aller Ausschlüsse und ihr Gegenstück, die verbleibende Fläche. Die um Splitter bereinigte Fläche ist das Endergebnis der Abschichtung. |
 | Varianten | Alternative Siedlungsabstände zum Vergleich mit dem Regelwert. Derzeit ist keine Variante konfiguriert, die Kategorie bleibt leer. |
@@ -269,15 +279,15 @@ Schwellenwerten stehen in `MANIFEST-TEXTE.md`.
 | Titel | Beschreibung |
 |---|---|
 | Siedlung | Abstand um amtlich gewidmetes Wohnbauland. |
-| Häuser im Grünen | Abstand um bewohnte Einzellagen außerhalb des Baulands. |
+| Häuser im Grünen | Abstand um amtliche Sonderwidmungen außerhalb des Baulands und um bewohnte Streusiedlungen mit mindestens fünf Adressen. |
 | Nicht-Wohn-Hüllen | Unbewohnte und industrieartige Kataster-Hüllen mit ihrem Fußabdruck. |
 | Seilbahn-Gebäude | Liftstationen und andere Gebäude an Seilbahnlinien. |
 | Gebäude | Übrige Gebäude aus OpenStreetMap und Kataster mit ihrem Fußabdruck. |
 | Verkehr | Abstand entlang Straßen, Bahnen und Personenseilbahnen. |
-| Militär | Militärische Sperrgebiete. |
+| Militär | Militärische Flächen aus OpenStreetMap: Übungsplätze, Kasernen, Militärflugplätze. |
 | Luftfahrt | Flughafenareale und ihre An- und Abflugkorridore. |
 | Gesamt Mensch | Alle Quellen und alle Ausschlussflächen der Kategorie Mensch, je als ein Band. |
-| Schutzgebiete | Amtliche und offene Schutzgebietsdaten, ohne Abstandspuffer. |
+| Schutzgebiete | Amtliche Schutzgebiete (inklusive Landschaftsschutzgebiete, geschützte Landschaftsteile, Naturdenkmäler, Ruhegebiete) ohne Abstandspuffer; Schutzgebiete aus OpenStreetMap nur zur Information. |
 | Gesamt Natur | Quellen und Ausschluss der Kategorie Natur, deckungsgleich, weil ohne Puffer. |
 | Kriterien | Schwellenwerte für Gelände, Wind und Gewässer. |
 | Gesamt Geografie | Quellen und Ausschluss der Kategorie Geografie, deckungsgleich, weil ohne Puffer. |
@@ -301,10 +311,10 @@ Schwellenwerten stehen in `MANIFEST-TEXTE.md`.
 > (Schema 2.2.1) geprüft: 7 `kategorien`, 16 `familien`, 7 `stufen`, jede
 > Beschreibung zeichengleich mit `description_de` im produzierten Manifest.
 
-## 6. Layer-Set des End-Dashboards
+## 6. (historisch: Zielbild 48 Bänder) Layer-Set des End-Dashboards
 
 **Zielzustand nach W7.8 — heute (Schema 2.2.1, 44 Bänder) noch nicht
-erreicht.** Die Bänder 45–47 existieren noch nicht; `dashboard_layer` und
+erreicht.** Die Bänder 46–48 existieren noch nicht; `dashboard_layer` und
 `default_visible` sind mit W7.6 zwar schon gesetzt (siehe datierter Kopf), aber
 auf den heutigen 44-Bänder-Zustand (23 bzw. 5 Bänder), nicht auf das 17-Layer-
 Set unten.
@@ -312,8 +322,8 @@ Set unten.
 Regel: **je Familie ein zusammenfassender Layer**, keine Quell-, Roh-, Aggregat-
 oder Detailzonen in der Karte. Alle Bänder bleiben im TIF und im Manifest, die
 Methodik-Seite listet weiterhin alle. Wo es je Familie kein zusammenfassendes
-Band gab, hängt der Produzent eines an: `gebaeude_zone` (45, Vereinigung von 9,
-11 und 13), `verkehr_zone` (46, aus 14 bis 17), `luftfahrt_zone` (47, aus 19 und
+Band gab, hängt der Produzent eines an: `gebaeude_zone` (46, Vereinigung von 9,
+11 und 13), `verkehr_zone` (47, aus 14 bis 17), `luftfahrt_zone` (48, aus 19 und
 20). Geografie bleibt vierfach, weil Hangneigung, Seehöhe, Wind und Gewässer vier
 verschiedene Gründe sind und nicht vier Quellen desselben Grundes.
 
@@ -323,10 +333,10 @@ verschiedene Gründe sind und nicht vier Quellen desselben Grundes.
 |---|---|---|---|
 | Mensch | 2 `settlement_buffer` | Siedlungsabstand | aus |
 | Mensch | 7 `haeuser_im_gruenen` | Häuser im Grünen | aus |
-| Mensch | 45 `gebaeude_zone` | Gebäude und Anlagen | aus |
-| Mensch | 46 `verkehr_zone` | Verkehr | aus |
-| Mensch | 18 `military_restricted_area` | Militärisches Sperrgebiet | aus |
-| Mensch | 47 `luftfahrt_zone` | Luftfahrt | aus |
+| Mensch | 46 `gebaeude_zone` | Gebäude und Anlagen | aus |
+| Mensch | 47 `verkehr_zone` | Verkehr | aus |
+| Mensch | 18 `military_restricted_area` | Militärische Flächen | aus |
+| Mensch | 48 `luftfahrt_zone` | Luftfahrt | aus |
 | Mensch | 27 `exclusion_human` | Ausschluss Mensch | **an** |
 | Natur | 28 `exclusion_nature` | Ausschluss Natur | **an** |
 | Geografie | 23 `geography_slope_too_steep` | Hangneigung zu steil | aus |
@@ -350,9 +360,9 @@ und zerfällt bei 25 m Auflösung in Millionen Einzelpolygone; es ist als Vektor
 nicht ausleitbar. Als Rasterband ist es unauffällig. Bänder aus 0-m-Linien sind
 generell keine Kandidaten für einen Vektor-Export.
 
-## 7. Zieltexte der sichtbaren Layer
+## 7. (historisch: Zielbild 48 Bänder) Zieltexte der sichtbaren Layer
 
-**Zielzustand nach W7.8**, ebenso wie Abschnitt 6 — die Bänder 45–47 fehlen
+**Zielzustand nach W7.8**, ebenso wie Abschnitt 6 — die Bänder 46–48 fehlen
 heute noch. Die Zeilen für bereits existierende Bänder (2, 7, 18, 27, 23, 24,
 25, 26, 29, 30, 32, 37, 38) sind dagegen schon mit W7.6 ausgeliefert und
 zeichengleich mit `out/abschichtung.bands.json`.
@@ -362,14 +372,14 @@ Schwellenwerte gelesen aus `config.json` und `calc/config.py`, Stand 2026-09-09.
 | Band | `label_de` | `description_de` |
 |---|---|---|
 | 2 | Siedlungsabstand | Abstand von 1.000 m um amtliches Wohn-, Misch-, Kern- und Dorfgebiet aller neun Bundesländer; in Niederösterreich 1.200 m. |
-| 7 | Häuser im Grünen | Abstand von 750 m um bewohnte Einzellagen außerhalb des Baulands: Ferienhaus- und Tourismusgebiete, amtliche Widmungen für Hofstellen, Camping, Golf, Kleingärten und Auffüllungsgebiete sowie Streusiedlungen. In Niederösterreich gelten stattdessen die Mindestabstandszonen des Sektoralen Raumordnungsprogramms, die den Abstand bereits enthalten. |
-| 45 | Gebäude und Anlagen | Fußabdrücke aller übrigen Gebäude mit ihrem Abstand: unbewohnte und industrieartige Kataster-Hüllen sowie sonstige Gebäude und Einzellagen mit je 25 m, Seilbahn-Gebäude mit 50 m. Transformatorhäuser, Transformatorentürme und Umspannstationen innerhalb von 200 m einer Bestands-WKA zählen nicht als Gebäude. |
-| 46 | Verkehr | Abstand von 150 m beiderseits von Autobahnen und Schnellstraßen, Bundes- und Landesstraßen, Hauptbahnen und Personenseilbahnen. Schlepplifte und Materialseilbahnen zählen nicht als Personenseilbahn. |
-| 18 | Militärisches Sperrgebiet | Militärische Sperrgebiete, ohne zusätzlichen Abstand. |
-| 47 | Luftfahrt | Areale der Hauptflughäfen sowie ihre An- und Abflugkorridore: 5 km ab beiden Landebahn-Enden, ±15° um die verlängerte Bahnachse. |
+| 7 | Häuser im Grünen | Abstand von 750 m um amtliche Sonderwidmungen außerhalb des Baulands (die Liste der Widmungsarten unterscheidet sich je Bundesland) und um bewohnte Streusiedlungen mit mindestens fünf Adressen, erkannt aus Kataster und Adressregister. In Niederösterreich gelten stattdessen die amtlichen Mindestabstandszonen des Sektoralen Raumordnungsprogramms, die den Abstand bereits enthalten. Einzelne Häuser und Gruppen mit weniger als fünf Adressen erhalten nur den Gebäudeabstand von 25 m. |
+| 46 | Gebäude und Anlagen | Fußabdrücke aller übrigen Gebäude mit ihrem Abstand: unbewohnte und industrieartige Kataster-Hüllen sowie sonstige Gebäude und Einzellagen mit je 25 m, Seilbahn-Gebäude mit 50 m. Transformatorhäuser, Transformatorentürme und Umspannstationen innerhalb von 200 m einer Bestands-WKA zählen nicht als Gebäude. |
+| 47 | Verkehr | Abstand von 150 m beiderseits von Autobahnen und Schnellstraßen, Bundes- und Landesstraßen, Hauptbahnen und Personenseilbahnen. Schlepplifte und Materialseilbahnen zählen nicht als Personenseilbahn. |
+| 18 | Militärische Flächen | Militärische Flächen aus OpenStreetMap, ohne zusätzlichen Abstand: Flächen mit landuse=military oder military=range, training_area, barracks, danger_area, airfield, naval_base oder base, also Truppen- und Schießübungsplätze, Kasernen, Militärflugplätze und Munitionslager. |
+| 48 | Luftfahrt | Areale der Hauptflughäfen sowie ihre An- und Abflugkorridore: 5 km ab beiden Landebahn-Enden, ±15° um die verlängerte Bahnachse. |
 | 27 | Ausschluss Mensch | Vereinigung aller Ausschlüsse der Kategorie Mensch: Siedlungsabstand, Häuser im Grünen, Gebäude und Anlagen, Verkehr, Militär und Luftfahrt; auf das Staatsgebiet zugeschnitten. |
-| 28 | Ausschluss Natur | Amtliche Schutzgebiete, also Nationalparks, Naturschutzgebiete, Europaschutzgebiete nach Natura 2000 und Ramsar-Gebiete, sowie Schutzgebiete aus OpenStreetMap, vereinigt und auf das Staatsgebiet zugeschnitten. Ohne Abstandspuffer. |
-| 23 | Hangneigung zu steil | Hangneigung über 15 Grad, ermittelt aus dem Geländemodell mit 25 m Auflösung. |
+| 28 | Ausschluss Natur | Amtliche Schutzgebiete, die nach Naturschutzrecht der Länder per Verordnung oder Bescheid festgelegt sind, einschließlich Naturdenkmälern (Band 21), auf das Staatsgebiet zugeschnitten. Schutzgebiete aus OpenStreetMap (Band 22) gehen nicht ein. Ohne Abstandspuffer. |
+| 23 | Hangneigung zu steil | Hangneigung über 15 Grad. Das Geländemodell mit 25 m Auflösung wird in 4×4-Blöcken zu 100-m-Zellen gemittelt, die Neigung aus der 3×3-Nachbarschaft dieses Rasters (rund 300 m) berechnet. |
 | 24 | Seehöhe zu hoch | Seehöhe über 2.500 m, ermittelt aus dem Geländemodell mit 25 m Auflösung. |
 | 25 | Wind zu gering | Windleistungsdichte in 150 m Höhe unter rund 160 W/m², aus dem Globalen Windatlas. Der Grenzwert entspricht 150 W/m² in 130 m Höhe, mit dem Windprofil auf 150 m hochgerechnet. |
 | 26 | Größere Gewässer | Seen, Stauseen und Flüsse aus OpenStreetMap, zusammenhängende Wasserflächen ab 1 ha. |
@@ -411,7 +421,7 @@ einer Gegenüberstellung alt gegen neu in Abschnitt 2.
   `default_visible`, mit neuem Schema-Namen und neuer Prüfsumme. Beide Schritte
   sind textlich fertig ausformuliert und warten nur auf den Einbau.
   **→ Erledigt (W7.6): der erste Schritt (Abschnitt 5, alle Bandtexte) ist
-  ausgeliefert, Schema 2.2.1. Nur der zweite Schritt (Bänder 45–47) steht noch
+  ausgeliefert, Schema 2.2.1. Nur der zweite Schritt (Bänder 46–48) steht noch
   aus, für W7.8.**
 - Der erste Schritt ist reine Textarbeit: `kategorien`, `stufen`, die
   Familienbeschreibungen, fünf neue Einträge in `parameters`, ein dritter

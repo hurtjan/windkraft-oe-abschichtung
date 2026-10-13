@@ -13,7 +13,7 @@ import re
 import subprocess
 from pathlib import Path
 
-ROOT = Path("/Users/jhurt/Documents/master_windkraft/abschichtung")
+ROOT = Path(__file__).resolve().parents[4]
 
 print("=" * 70)
 print("1) config.json paths-Block")

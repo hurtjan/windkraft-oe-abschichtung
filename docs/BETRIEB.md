@@ -18,7 +18,7 @@ data/   →   derived/prep/   →   derived/layers/   →   out/
 |---|---|
 | `make prep` | Überführt Rohdaten aus `data/` nach `derived/prep/` — zehn Domänen (`admin`, `adressen`, `gelaende`, `kataster`, `natur`, `noe_sekrop`, `osm`, `widmung`, `windkraft`, `zonen`), drei davon intern zweistufig: dreizehn einzeln überspringbare Stufen. |
 | `make layers` | Baut die 39 Checkpoint-Layer in `derived/layers/`, in der Reihenfolge `hig` → `osm` → `geo`. |
-| `make finalize` | Komponiert daraus das 44-Band-GeoTIFF plus Manifest nach `out/` (rund drei Minuten). |
+| `make finalize` | Komponiert daraus das 45-Band-GeoTIFF plus Manifest nach `out/` (rund drei Minuten). |
 | `make export` | Die Export-Ziele `dashboard`, `viewer`, `gemeinden`, `wka_bestand`, `layer_md`. |
 | `make all` (= `make`) | `prep` → `layers` → `finalize` → `export`. |
 | `make validate PAKET=<name>` | Vergleicht ein finalisiertes TIF bandweise gegen ein Vergleichsraster (`ABSCHICHTUNG_RUN1`) und bewertet jede Abweichung. Bewusst **nicht** Teil von `make all` — siehe `make/validate/README.md`. |
@@ -36,8 +36,8 @@ Alle unter `out/`, alle gitignored:
 
 | Datei | Inhalt |
 |---|---|
-| `abschichtung.tif` | Das 44-Band-Raster, `uint8`, EPSG:31287, 25 m (≈ 153 MB). |
-| `abschichtung.bands.json` | Das Sidecar-Manifest, Schema 2.2.0. |
+| `abschichtung.tif` | Das 45-Band-Raster, `uint8`, EPSG:31287, 25 m (≈ 153 MB). |
+| `abschichtung.bands.json` | Das Sidecar-Manifest, Schema 2.3.0. |
 | `dashboard/` | Kartenansicht: `index.html` mit Leaflet über OSM, ein PNG-Overlay je Band, dazu `report.json` mit Kennzahlen je Band. |
 | `gemeinden.geojson` | Gemeindegrenzen im Rasterbezug (≈ 27 MB). |
 | `wka_bestand_punkte.geojson` | Bestehende Windkraftanlagen aus dem gelieferten österreichischen Standortverzeichnis als Punkte (1 386 eindeutige Koordinaten). |
@@ -94,9 +94,31 @@ config.json Schwellwerte, Puffer, Windparameter
 - **`pipeline/contract.py`** ist **der eine Pfadvertrag** für Rohpfade,
   Prep-Ausgaben, Layernamen und Produktpfade. Wer einen Pfad braucht,
   importiert ihn von hier, statt ihn ein zweites Mal hinzuschreiben.
+### Weitergabe ohne Rohdaten
+
+Ein Paket darf `derived/prep` (ohne `data/`) mitbringen: Jeder Prep-Schritt
+prüft zuerst seine Rohdaten. Fehlen sie und liegen die Produkte der Domäne in
+`derived/prep/<domäne>/`, läuft er nicht und meldet „prep-<domäne>: Produkt
+vorhanden, Rohdaten fehlen – übersprungen“. Fehlen Rohdaten **und** Produkt,
+bricht er ab und nennt, was nach `data/` gehört (siehe `docs/rohdaten.md`).
+Mit Rohdaten ändert sich nichts (Fingerabdruck wie bisher).
+
+- Nicht im Paket: `osm` (Nutzer laden den Geofabrik-Auszug nach `data/osm/` und
+  bauen mit `make prep-osm`) und das große Kataster-GeoParquet. Aus dem Kataster
+  gibt es nur das kleine Produkt `derived/prep/kataster/streusiedlung_*.parquet`
+  (Stufe c, `make prep-kataster-c`); die Layer-Stufe `hig` liest nur dieses.
+- Im Paket: `admin`, `adressen`, `gelaende` (`dgm.tif`, `wind_pd_150.tif`),
+  `natur`, `noe_sekrop`, `widmung`, `windkraft`, `zonen`, `kataster/streusiedlung_*`,
+  dazu `derived/layers` und das Referenz-TIF.
+- `osm`-abhängige Layer (`derived/layers`) sind im Paket vorgerechnet; wer
+  `make layers` neu laufen lässt, braucht zuvor `make prep-osm`.
+
 - **`pipeline/prep/`** — zehn Domänen. `kataster/` läuft zweistufig
   (`a_noe_polygonize.py`, dann `b_export_parquet.py`), `osm.py` und
-  `noe_sekrop.py` haben je zwei intern geprüfte Stufen.
+  `noe_sekrop.py` haben je zwei intern geprüfte Stufen. Prep-Grenze:
+  `derived/prep/<domäne>/` enthält nur Endprodukte (GeoParquet EPSG:31287,
+  GeoTIFF auf dem 25-m-Zielgitter; Berichte als .md/.json), Zwischenstände
+  liegen in `derived/work/<domäne>/`. Alles nach prep liest nur `derived/prep`.
 - **`pipeline/layers/`** — `hig.py`, `osm.py`, `geo.py`, zusammen die
   39 Checkpoints.
 - **`pipeline/finalize.py`** — komponiert GeoTIFF plus Manifest.
@@ -115,7 +137,7 @@ config.json Schwellwerte, Puffer, Windparameter
 
 ## Das Band-Manifest
 
-Ein Raster mit 44 Bändern ist ohne Angabe, was Band 17 bedeutet, nicht
+Ein Raster mit 45 Bändern ist ohne Angabe, was Band 17 bedeutet, nicht
 auswertbar. Konsumenten, die Bandnamen und Reihenfolge selbst nachbauen,
 driften früher oder später vom tatsächlichen Raster weg, ohne dass es
 auffällt.
@@ -134,10 +156,13 @@ steht in [`HANDOFF.md`](HANDOFF.md).
 
 | | |
 |---|---|
-| Bänder | 44 |
-| Manifest | Schema 2.2.1 |
-| `sha256` | `bd5ddacc1d231cd43d507eece4536a6cfde57e5af912bdcbeec716212878bf1c` |
-| Größe | 152 645 657 Bytes |
+| Bänder | 45 |
+| Manifest | Schema 2.3.0 |
+| `sha256` | `58caa8ffa69454fdc691fff96d5734f0820dfac07be11238d38330a720ee3a93` |
+| Größe | 147 090 672 Bytes |
+
+*Historisch:* Die frühere Referenz (TIF `bd5ddacc…`, 44 Bänder, Schema 2.2.1,
+152 645 657 Bytes) ist überholt.
 
 Verdrahtet in `pipeline/validate.py` und `tests/test_referenz_tif.py`; läuft
 bei jedem `make test` mit. Die Kette ist deterministisch: gleiche Rohdaten,
@@ -159,13 +184,21 @@ Code, der sie herbeiführen könnte. Beide laufen in Sekunden und ohne
 Abhängigkeiten. Begründung und Details: [`rohdaten.md`](rohdaten.md),
 Abschnitt 9.
 
+## Weitere Ziele
+
+- `make whitepaper` — Zahlen, Tabellen und Abbildungen des Whitepapers, nur aus dem TIF.
+- `make abb-publish` — Trockenlauf der Abbildungs-Veröffentlichung als GitHub-Release
+  `abbildungen-latest`; `make abb-publish CONFIRM=1` führt aus
+  (siehe `docs/whitepaper/README.md`).
+- `make analyse-raster` — zweites Produkt `out/abschichtung_analyse.tif` (nur Analyse).
+
 ## Tests
 
 ```bash
 make test
 ```
 
-Stand: **245 bestanden, 3 übersprungen**, null Fehlschläge. Die drei
+Stand: **410 bestanden, 4 übersprungen**, null Fehlschläge. Die
 übersprungenen sind Langläufer beziehungsweise Vergleiche, die nur mit
 gesetzter `ABSCHICHTUNG_RUN1` oder `ABSCHICHTUNG_VERTRAGSTEST=1` laufen.
 `tests/conftest.py` zieht eine Untergrenze für die Zahl gesammelter Tests

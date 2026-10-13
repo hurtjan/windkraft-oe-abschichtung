@@ -1,10 +1,10 @@
 # Prep: Gelände und Wind (docs/rewrite/PLAN.md §7 W1.P6, Auflösung in §13.5).
 # Konvention siehe make/prep/README.md, Vorlage make/prep/_beispiel.mk.txt.
 #
-# Keine Umformung, nur Gitterprüfung: pipeline/prep/terrain.py liest die
-# beiden Rohraster aus contract.RAW["gelaende"], schreibt einen
-# menschenlesbaren Prüfbericht und den gemeinsamen Fingerabdruck nach
-# contract.PREP["gelaende"] (derived/prep/gelaende/) - kein neues TIF.
+# pipeline/prep/terrain.py liest die beiden Rohraster aus
+# contract.RAW["gelaende"] und schreibt dgm.tif und wind_pd_150.tif exakt auf
+# das 25-m-Zielgitter nach derived/prep/gelaende/ (plus Bericht und
+# Fingerabdruck). Layer und Finalize lesen nur noch diese beiden TIFs.
 
 .PHONY: prep-gelaende
 prep-gelaende:

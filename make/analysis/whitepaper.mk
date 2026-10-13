@@ -13,7 +13,7 @@
 
 WP_TIF ?= out/abschichtung.tif
 WP_MANIFEST ?= out/abschichtung.bands.json
-WP_GRENZEN ?= data/admin/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp
+WP_GRENZEN ?= derived/prep/admin/bundesland_masken.parquet
 
 .PHONY: whitepaper
 whitepaper:
@@ -21,3 +21,9 @@ whitepaper:
 		--tif $(WP_TIF) \
 		--manifest $(WP_MANIFEST) \
 		--grenzen $(WP_GRENZEN)
+
+# Abbildungen als Assets des festen Releases `abbildungen-latest` veroeffentlichen.
+# Standard = Trockenlauf; echt nur mit `make abb-publish CONFIRM=1`. Braucht `gh`.
+.PHONY: abb-publish
+abb-publish:
+	$(PYTHON) -m pipeline.analysis.whitepaper.abb_publish $(if $(CONFIRM),--confirm)

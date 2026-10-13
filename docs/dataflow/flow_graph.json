@@ -4458,7 +4458,7 @@
       "path": "tests/test_distance_engine_equivalence.py",
       "label": "test_distance_engine_equivalence.py",
       "raw_class": "code",
-      "notes": "[frag_F] Migrations-Verifikationsartefakt, KEIN dauerhafter Unittest: importiert kataster_layers.py direkt aus dem Alt-Repo /Users/jhurt/Documents/windkraft_ö_karten (Pfad existiert auf diesem System) und vergleicht fft_circle_dilation/ns_kind gegen windkraft/calc/distance_engine.py.",
+      "notes": "[frag_F] Migrations-Verifikationsartefakt, KEIN dauerhafter Unittest: importiert kataster_layers.py direkt aus dem Alt-Repo ../windkraft_ö_karten (Pfad existiert auf diesem System) und vergleicht fft_circle_dilation/ns_kind gegen windkraft/calc/distance_engine.py.",
       "sources": [
         "frag_F"
       ],
@@ -9229,7 +9229,7 @@
       "evidence": [
         "[frag_F] tests/test_distance_engine_equivalence.py:28-29"
       ],
-      "note": "Vergleicht fft_circle_dilation/ns_kind gegen unveraendertes Alt-Repo unter /Users/jhurt/Documents/windkraft_ö_karten/windkraft/calc/kataster_layers.py (existiert auf diesem System); Migrations-Verifikationsartefakt, kein dauerhafter Unittest.",
+      "note": "Vergleicht fft_circle_dilation/ns_kind gegen unveraendertes Alt-Repo unter ../windkraft_ö_karten/windkraft/calc/kataster_layers.py (existiert auf diesem System); Migrations-Verifikationsartefakt, kein dauerhafter Unittest.",
       "sources": [
         "frag_F"
       ],
@@ -11181,7 +11181,7 @@
       "evidence": [
         "[frag_F] tests/test_distance_engine_equivalence.py:28-29"
       ],
-      "note": "Vergleicht fft_circle_dilation/ns_kind gegen unveraendertes Alt-Repo unter /Users/jhurt/Documents/windkraft_ö_karten/windkraft/calc/kataster_layers.py (existiert auf diesem System); Migrations-Verifikationsartefakt, kein dauerhafter Unittest.",
+      "note": "Vergleicht fft_circle_dilation/ns_kind gegen unveraendertes Alt-Repo unter ../windkraft_ö_karten/windkraft/calc/kataster_layers.py (existiert auf diesem System); Migrations-Verifikationsartefakt, kein dauerhafter Unittest.",
       "sources": [
         "frag_F"
       ],

@@ -25,7 +25,8 @@ klassifiziert.
 Die drei Bündel (``wohn_misch``, ``haeuser_im_gruenen``,
 ``industrie_negativ`` - siehe ``calc/widmung_sources.py:BUCKETS``
 für die fachliche Bedeutung) entstehen als
-``<bucket>_combined.gpkg`` unter ``contract.PREP["widmung"]`` - derselbe
+``<bucket>_combined.parquet`` (GeoParquet, EPSG:31287) unter
+``contract.PREP["widmung"]`` - derselbe
 Dateiname wie damals (historisch, vor W6.1) im Zwischenstand unter
 ``output/abschichtung_widmung_v2/zoning_vectors/`` (dieses output/ existiert
 seit W6.1 nicht mehr im Repo), damit ein späterer
@@ -40,7 +41,7 @@ Fingerabdruck: die zehn tatsächlich gelesenen Rohdateien (neun
 Bundesländer, Steiermark zweifach - Bauland.zip UND Flaewi.shp.zip, siehe
 Auftrag). Kärnten wird intern aus dem ZIP in einen lokalen Cache entpackt
 (``_ensure_ktn_gpkg`` in ``widmung_sources.py``, wegen /vsizip-Performance
-auf GeoPackages) - der Fingerabdruck erfasst trotzdem das ZIP selbst
+auf GeoPackages; Ablage in ``contract.WORK["widmung"]``, nicht in PREP) - der Fingerabdruck erfasst trotzdem das ZIP selbst
 (``contract.RAW["widmung"]["kaernten"]``), nicht die entpackte Kopie: das
 ZIP ist die tatsächliche Rohquelle, die Entpackung ein Implementierungs-
 detail von ``widmung_sources.py``, das diese Stufe nicht anfasst. Tirol
@@ -66,9 +67,10 @@ import geopandas as gpd
 import pandas as pd
 
 from pipeline import contract, fingerprint, runtime
+from pipeline.prep.share import skip_without_raw
 from calc import widmung_sources as ws
 
-BUNDLE_FILENAME = "{bucket}_combined.gpkg"
+BUNDLE_FILENAME = "{bucket}_combined.parquet"
 
 
 def _build_all_buckets(cache_dir: Path) -> dict[str, gpd.GeoDataFrame]:
@@ -133,8 +135,13 @@ def _raw_input_for_dataset(dataset_key: str) -> Path:
 
 def run(force: bool = False) -> Path:
     out_dir = contract.PREP["widmung"]
+    if not force and skip_without_raw(
+        "widmung", list(contract.RAW["widmung"].values()), hint="data/widmung/ (Flächenwidmung der Bundesländer)"
+    ):
+        return out_dir
     runtime.ensure_dir(out_dir)
-    cache_dir = runtime.ensure_dir(out_dir / "_cache")
+    # Entpackter Kärnten-Cache ist ein Zwischenstand -> derived/work/widmung/.
+    cache_dir = runtime.ensure_dir(contract.WORK["widmung"] / "_cache")
 
     inputs = sorted({_raw_input_for_dataset(key) for key in ws.DATASETS})
     # Path(__file__) zaehlt zum Fingerabdruck mit (W6.4, Punkt 45): eine
@@ -142,7 +149,7 @@ def run(force: bool = False) -> Path:
     # nur eine Aenderung an data/. Konservativ - nur die eigene Quelldatei,
     # nicht die Importe (siehe pipeline/fingerprint.py).
     inputs.append(Path(__file__))
-    bundle_paths = [out_dir / BUNDLE_FILENAME.format(bucket=b) for b in ws.BUCKETS]
+    bundle_paths = [contract.PREP_FILES["widmung"][b] for b in ws.BUCKETS]
 
     # Selbst-Ueberspringer, gleiches Muster wie pipeline/prep/osm.py
     # (run_extract/run_layers): ein wiederholter `make all` ohne
@@ -160,8 +167,8 @@ def run(force: bool = False) -> Path:
 
     total = 0
     for bucket, gdf in built.items():
-        path = out_dir / BUNDLE_FILENAME.format(bucket=bucket)
-        gdf.to_file(path, layer=bucket, driver="GPKG")
+        path = contract.PREP_FILES["widmung"][bucket]
+        gdf.to_parquet(path, index=False)
         km2 = gdf.geometry.area.sum() / 1e6
         total += len(gdf)
         print(f"[done]  prep-widmung: {bucket}: {len(gdf):,} Flächen, {km2:,.1f} km² -> {path}", flush=True)

@@ -9,6 +9,8 @@ CSV-Dateien ausschliesslich nach ``docs/whitepaper/tabellen/``.
 """
 from __future__ import annotations
 
+from pipeline import contract as _contract
+
 import json
 import math
 from pathlib import Path
@@ -368,25 +370,22 @@ def build_herkunft(
 ) -> None:
     lines = ["# HERKUNFT — White-Paper-Analyse", ""]
     lines.append("## Eingaben")
-    lines.append(f"- TIF: `{prov['tif_path']}`, sha256 `{prov['tif_sha256']}`")
-    lines.append(f"  - erwarteter sha256 (Auftrag): `bd5ddacc1d231cd43d507eece4536a6cfde57e5af912bdcbeec716212878bf1c`")
-    lines.append(f"- Manifest: `{manifest_path}` (schema_version {prov['manifest_schema_version']}, "
+    lines.append(f"- TIF: `{wc.rel_path(prov['tif_path'])}`, sha256 `{prov['tif_sha256']}`")
+    lines.append(f"- Manifest: `{wc.rel_path(manifest_path)}` (schema_version {prov['manifest_schema_version']}, "
                  f"band_schema {prov['manifest_band_schema']})")
-    lines.append(f"- Bundeslandgrenzen (gewaehlte Rohquelle, nur fuer Regionszuordnung/Bezugsflaeche "
-                 f"und Kartenumrisse): `{grenzen_path}`")
+    lines.append(f"- Bundeslandgrenzen (prep-Produkt, nur fuer Regionszuordnung/Bezugsflaeche "
+                 f"und Kartenumrisse): `{wc.rel_path(grenzen_path)}`")
     lines.append("")
-    lines.append("## Wahl der Bundeslandgrenzen-Rohquelle")
+    lines.append("## Bundeslandgrenzen (prep-Produkt)")
     lines.append(
-        "`derived/` ist waehrend dieses Laufs im Umbau (Cold-Rebuild) und wurde nicht gelesen. "
-        "Stattdessen wurde die Kette bis zur Rohquelle zurueckverfolgt: "
-        "`pipeline/prep/admin.py` baut `derived/prep/admin/bundesland_masken.gpkg` per "
-        "`gdf.dissolve(by=\"BL\")` aus `contract.RAW[\"admin\"][\"vgd\"]` "
-        "(`data/admin/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp`, "
+        "Bundeslandgrenzen kommen aus dem prep-Produkt "
+        "`derived/prep/admin/bundesland_masken.parquet` (`pipeline/prep/admin`, dissolve nach 'BL' "
+        "aus der generalisierten Verwaltungsgrenzen-Datei VGD 50, BEV, Stand 02.10.2022, "
         "7850 Katastralgemeinde-Polygone, EPSG:31287, Spalte 'BL'). "
         "`pipeline/analysis/flaechenanteile.py:_load_regions/_make_region_raster` "
         "rasterisiert diese Maske per Zellmittelpunkt (all_touched=False). "
-        "Diese Analyse liest die Rohquelle direkt (kein Import aus pipeline/*) und "
-        "bildet denselben Dissolve/Rasterisierungs-Schritt in `wp_common.py` eigenstaendig nach."
+        "Diese Analyse liest das prep-Produkt direkt und "
+        "bildet denselben Rasterisierungs-Schritt in `wp_common.py` eigenstaendig nach."
     )
     lines.append("")
     lines.append("## TIF-Datum")
@@ -405,8 +404,8 @@ def build_herkunft(
     lines.append("```")
     lines.append(
         "uv run python -m pipeline.analysis.whitepaper.run_all "
-        f"--tif {prov['tif_path']} --manifest {manifest_path} "
-        f"--grenzen {grenzen_path}"
+        f"--tif {wc.rel_path(prov['tif_path'])} --manifest {wc.rel_path(manifest_path)} "
+        f"--grenzen {wc.rel_path(grenzen_path)}"
     )
     lines.append("```")
     lines.append("")
@@ -485,7 +484,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--cache-dir", required=True, type=Path)
     ap.add_argument("--manifest", required=True, type=Path)
-    ap.add_argument("--grenzen", required=True, type=Path)
+    ap.add_argument("--grenzen", type=Path, default=_contract.PREP_FILES["admin"]["bundesland_masken"])
     ap.add_argument("--out-root", required=True, type=Path)
     args = ap.parse_args()
     run(args.cache_dir, args.manifest, args.grenzen, args.out_root)

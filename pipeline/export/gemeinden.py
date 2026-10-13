@@ -3,7 +3,7 @@
 Erzeugt ``out/gemeinden.geojson`` (eines der vier Endprodukte, §3) aus den
 2093 politischen Gemeinden, die ``pipeline/prep/admin.py`` (W1.P1) bereits
 verlustfrei aus der VGD-Rohquelle dissolviert hat
-(``derived/prep/admin/gemeinden.gpkg``), und weist danach die
+(``derived/prep/admin/gemeinden.parquet``), und weist danach die
 Abnahmebedingung aus §7 nach: "Grenzen im Rasterbezug; Deckungsabweichung
 gegen das TIF ausgewiesen und unter Schwellwert."
 
@@ -101,8 +101,8 @@ Manifest) liest die volle, ungeklippte OSM-Wasserfläche und reicht damit
 über die Staatsgrenze hinaus (siehe ``pipeline/finalize.py``, Abschnitt
 "§13.9 / Regel 8" zum Bodensee-Fund von W2.4). Die "gültige Fläche" dieser
 Datei kommt aber NICHT aus Band 26, sondern direkt aus
-``bundesland_masken.gpkg`` (den 9 dissolvierten Bundesländern) - dieselbe
-Quelle wie ``gemeinden.gpkg``, nur anders gruppiert. Der Bodensee kann sich
+``bundesland_masken.parquet`` (den 9 dissolvierten Bundesländern) - dieselbe
+Quelle wie ``gemeinden.parquet``, nur anders gruppiert. Der Bodensee kann sich
 dort nicht einschleichen: er gehört zu keinem der 9 Bundesländer. Diese
 Datei prüft das messend nach (Ausgabe "außerhalb aller Bundesländer"),
 statt es nur zu behaupten - siehe ``main()``.
@@ -125,7 +125,6 @@ from rasterio.features import rasterize  # noqa: E402
 from scipy import ndimage  # noqa: E402
 
 from pipeline import contract, runtime  # noqa: E402
-from pipeline.prep import admin as prep_admin  # noqa: E402
 from pipeline.layers.geo import _build_valid_area_mask  # noqa: E402
 
 from calc.abschichtung_common import TARGET_CRS  # noqa: E402
@@ -143,15 +142,15 @@ _CONNECTIVITY = ndimage.generate_binary_structure(2, 1)
 # ---------------------------------------------------------------------------
 
 def load_gemeinden() -> gpd.GeoDataFrame:
-    """Liest ``derived/prep/admin/gemeinden.gpkg`` (W1.P1, 2093 Gemeinden).
+    """Liest ``derived/prep/admin/gemeinden.parquet`` (W1.P1, 2093 Gemeinden).
 
     Defensiver ``to_crs()`` wie überall sonst in dieser Kette (Punkt 18,
     siehe ``pipeline/layers/geo.py:_read_prep_vector``) - auch wenn
     ``pipeline/prep/admin.py`` das CRS bereits schreibt, wird hier nicht
     stillschweigend darauf vertraut.
     """
-    path = contract.PREP["admin"] / prep_admin.GEMEINDEN_FILENAME
-    gdf = gpd.read_file(path)
+    path = contract.PREP_FILES["admin"]["gemeinden"]
+    gdf = runtime.read_vector(path)
     if gdf.crs is None or str(gdf.crs).upper() != TARGET_CRS:
         gdf = gdf.to_crs(TARGET_CRS)
     return gdf
@@ -308,8 +307,8 @@ def measure_coverage(gdf: gpd.GeoDataFrame, grid: dict) -> CoverageResult:
     # Bodensee-Gegenprobe: wie viel der Rasterfläche liegt außerhalb aller
     # 9 Bundesländer? Erwartung laut Herleitung im Moduldocstring: praktisch
     # nichts - valid_area kommt direkt aus der 9-Bundesländer-Vereinigung.
-    bl_path = contract.PREP["admin"] / prep_admin.BUNDESLAND_MASKEN_FILENAME
-    bl = gpd.read_file(bl_path)
+    bl_path = contract.PREP_FILES["admin"]["bundesland_masken"]
+    bl = runtime.read_vector(bl_path)
     bl_touch = rasterize(
         ((g, 1) for g in bl.geometry if g is not None and not g.is_empty),
         out_shape=shape, transform=transform, fill=0, dtype="uint8", all_touched=False,

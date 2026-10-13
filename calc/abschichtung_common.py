@@ -10,13 +10,9 @@ could point the old script at this module too, but that is out of scope here.
 from __future__ import annotations
 
 import gc
-import hashlib
 import json
 import math
-import subprocess
-import tempfile
 import time
-import zipfile
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Callable
@@ -27,14 +23,13 @@ import numpy as np
 import pandas as pd
 import rasterio
 from rasterio.features import rasterize
-from rasterio.warp import Resampling, reproject, transform_bounds
 from rasterio.windows import from_bounds
 from scipy import ndimage
 from shapely.geometry import LineString, Polygon, box
 from shapely.ops import linemerge, unary_union
 
 from calc.distance_engine import fft_circle_dilation
-from calc.wind_zones import load_wind_zones
+from pipeline import contract
 
 TARGET_CRS = "EPSG:31287"
 
@@ -100,7 +95,7 @@ SETTLEMENT_BUFFER_VARIANTS = {
     "2000m": 2000.0,
 }
 
-# Wien and Burgenland have no official zoning source in data/widmung/;
+# Wien and Burgenland have no official zoning source in the prep widmung product;
 # they keep the OSM address-seed settlement/greenland detection as a fallback.
 WIEN_BGLD_FALLBACK_BL = {"Wien", "Burgenland"}
 
@@ -342,6 +337,9 @@ INFRA_RULES = {
 }
 
 NATURE_BANDS = ["nature_protection_areas", "osm_nature_protection_areas"]
+# Nur diese Baender bilden exclusion_nature (28): amtliche, per Verordnung
+# festgelegte Schutzgebiete. Band 22 (OSM) ist reine Information.
+NATURE_EXCLUSION_BANDS = ["nature_protection_areas"]
 GEOGRAPHY_BANDS = ["geography_slope_too_steep", "geography_elevation_too_high", "geography_wind_too_low"]
 OFFICIAL_ZONING_BANDS = ["official_wind_zoning"]
 
@@ -376,7 +374,17 @@ def parse_bbox(text: str | None):
 
 
 def load_grid(cfg: dict, bbox_text: str | None) -> dict:
-    template = Path(cfg["paths"].get("dgm") or cfg["paths"].get("wind_pd_150"))
+    """Zielraster (Transform, Form, CRS, Ausdehnung) aus dem prep-Produkt
+    ``derived/prep/gelaende/dgm.tif`` - nie aus einer Rohdatei.
+
+    ``cfg`` bleibt als Parameter erhalten (Aufrufer übergeben es), wird aber
+    nicht mehr für Pfade gebraucht."""
+    template = contract.PREP_FILES["gelaende"]["dgm"]
+    if not template.exists():
+        raise FileNotFoundError(
+            f"Zielraster-Vorlage fehlt: {template} - zuerst 'make prep-gelaende' "
+            "(das Gitter kommt aus einem prep-Produkt, nicht aus der Rohdatei)."
+        )
     bbox = parse_bbox(bbox_text)
     with rasterio.open(template) as src:
         if bbox:
@@ -393,215 +401,35 @@ def load_grid(cfg: dict, bbox_text: str | None) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# OSM PBF plumbing
+# Vektor-Eingaben (prep-Produkte)
 # ---------------------------------------------------------------------------
-
-OSM_PBF_FILTERS = {
-    "buildings": ["w/building", "r/building"],
-    "landuse": ["w/landuse", "r/landuse"],
-    "roads": ["w/highway"],
-    "railways": ["w/railway"],
-    "powerlines": ["w/power=line", "w/power=minor_line"],
-    "transport": ["n/aeroway", "w/aeroway", "r/aeroway"],
-    "aerialways": ["n/aerialway", "w/aerialway", "r/aerialway"],
-    "military": ["w/landuse=military", "r/landuse=military", "w/military", "r/military"],
-    "nature": [
-        "w/boundary=protected_area", "r/boundary=protected_area",
-        "w/boundary=national_park", "r/boundary=national_park",
-        "w/leisure=nature_reserve", "r/leisure=nature_reserve",
-        "w/protect_class", "r/protect_class",
-        "w/protection_title", "r/protection_title",
-    ],
-    "places": [*(f"n/place={x}" for x in sorted(PLACE_TYPES)), *(f"w/place={x}" for x in sorted(PLACE_TYPES)), *(f"r/place={x}" for x in sorted(PLACE_TYPES))],
-    "addresses": ["n/addr:housenumber", "w/addr:housenumber", "r/addr:housenumber"],
-    "windpower": WIND_POWER_OSM_FILTERS,
-    # natural=water ist das moderne Schema (water=lake/reservoir/river im
-    # Subtag); waterway=riverbank und landuse=reservoir sind die noch
-    # verbreiteten Altschemata für Flussufer bzw. Stauseen.
-    "water": [
-        "w/natural=water", "r/natural=water",
-        "w/waterway=riverbank", "r/waterway=riverbank",
-        "w/landuse=reservoir", "r/landuse=reservoir",
-    ],
-}
-
-OSM_PBF_INCLUDE_TAGS = {
-    "buildings": ["building"],
-    "landuse": ["landuse"],
-    "roads": ["highway", "tunnel"],
-    "railways": ["railway", "tunnel"],
-    "powerlines": ["power", "voltage"],
-    "transport": ["aeroway"],
-    "aerialways": ["aerialway"],
-    "military": ["landuse", "military"],
-    "nature": ["boundary", "leisure", "protect_class", "protection_title", "name"],
-    "places": ["place", "name"],
-    "addresses": ADDRESS_TAGS,
-    "windpower": ["power", "generator:source", "man_made", "name"],
-    "water": ["natural", "water", "waterway", "landuse", "name"],
-}
-
-# Kein "windpower"-Eintrag: der Layer ist winzig (Ö-weit ~1.600 Objekte, davon
-# nur ~13 Ways/Relations) und wird ohne Spaltenauswahl gelesen. `osmium export` schreibt nur Tags, die
-# mindestens ein Objekt trägt - eine feste Spaltenliste würde bei pyogrio
-# scheitern, sobald ein Tag (z.B. man_made) im Ausschnitt gar nicht vorkommt.
-# "water" fehlt aus demselben Grund: in Bbox-Ausschnitten ohne Stausee kommt
-# z.B. landuse=reservoir gar nicht vor; gebraucht wird ohnehin nur die Geometrie.
-OSM_PBF_COLUMNS = {
-    "buildings": ["building", "geometry"],
-    "landuse": ["landuse", "geometry"],
-    "roads": ["highway", "tunnel", "geometry"],
-    "railways": ["railway", "tunnel", "geometry"],
-    "powerlines": ["power", "voltage", "geometry"],
-    "transport": ["aeroway", "id", "@id", "geometry"],
-    "aerialways": ["aerialway", "geometry"],
-    "military": ["landuse", "military", "geometry"],
-    "nature": ["boundary", "leisure", "protect_class", "protection_title", "name", "geometry"],
-    "places": ["place", "name", "geometry"],
-    "addresses": ADDRESS_TAGS + ["geometry"],
-}
-
-OSM_PBF_CACHE: dict[str, Path] = {}
-OSM_PBF_EXTRACT_CACHE: dict[tuple, Path] = {}
-
-# Grid (m) used to snap an already layer-expanded bounds_31287 outward before it
-# enters the PBF cache key. Every call site expands grid["bounds"] by its own
-# margin (0-6000 m, see INFRA_RULES/rule_distance) before calling
-# pbf_for_bounds(); snapping erases that per-caller noise so all call sites
-# land on the identical canonical box regardless of which margin they applied.
-# Verified against the real Austria grid bounds: min/max corners sit far enough
-# from any 10-km line that every margin 0-6000 m snaps to the same box.
-PBF_CLIP_SNAP_M = 10000.0
-
-# Fixed key/clip margin added to the snapped canonical box. One shared cache
-# stem for the source PBF, no matter which caller asks first - layer-precise
-# filtering happens later in read_layer(bounds=...), so a generous fixed clip
-# is safe. Value = the largest total margin any call site needs: 6000 m
-# (airport_lateral_check_6km, the largest INFRA_RULES/rule_distance entry)
-# plus the historical 7000 m reprojection-safety buffer.
-PBF_CLIP_MARGIN_M = 13000.0
-
-
-def _run_osmium(cmd: list[str]) -> None:
-    subprocess.run(cmd, check=True)
-
-
-def osm_cache_stem(key: tuple) -> str:
-    """Derive the on-disk cache stem for a PBF clip key.
-
-    NEVER use the builtin hash() here. PYTHONHASHSEED randomises str hashing per
-    process, so an identical bbox mints a fresh stem on every run, the on-disk
-    cache never hits, and each run re-extracts the whole PBF under a new name.
-    That bug grew output/abschichtung/osm_pbf_layers to 124 GB: 141 distinct
-    stems for a handful of real bboxes, ~95 GB of byte-identical duplicates.
-    Keep this a content hash so the cache stays bounded.
-
-    Mirrored in scripts/main/create_osm_wka_distance_zones.py — fix both together.
-    """
-    return "clip_" + hashlib.sha1(repr(key).encode("utf-8")).hexdigest()[:12]
-
-
-def pbf_for_bounds(osm_pbf: str, osm_pbf_cache_dir: str, bounds_31287=None) -> Path:
-    """Return the full PBF or a spatially clipped PBF for the current grid bounds.
-
-    bounds_31287 arrives already expanded by the caller's own layer-specific
-    margin (0-6000 m depending on call site). To guarantee ONE shared cache
-    stem for the source PBF regardless of that margin, the incoming bounds are
-    first snapped outward to PBF_CLIP_SNAP_M (erasing the per-caller margin
-    noise) and then expanded by the fixed PBF_CLIP_MARGIN_M - never by the
-    caller-supplied margin directly. See PBF_CLIP_MARGIN_M docstring above.
-    """
-    pbf = Path(osm_pbf) if osm_pbf else Path("")
-    if not pbf.exists() or bounds_31287 is None:
-        return pbf
-    snap = PBF_CLIP_SNAP_M
-    snapped = (
-        math.floor(bounds_31287[0] / snap) * snap,
-        math.floor(bounds_31287[1] / snap) * snap,
-        math.ceil(bounds_31287[2] / snap) * snap,
-        math.ceil(bounds_31287[3] / snap) * snap,
-    )
-    minx, miny, maxx, maxy = expand_bounds(snapped, PBF_CLIP_MARGIN_M)
-    west, south, east, north = transform_bounds(TARGET_CRS, "EPSG:4326", minx, miny, maxx, maxy, densify_pts=21)
-    key = (str(pbf), (round(west, 7), round(south, 7), round(east, 7), round(north, 7)))
-    if key in OSM_PBF_EXTRACT_CACHE:
-        return OSM_PBF_EXTRACT_CACHE[key]
-    cache = Path(osm_pbf_cache_dir)
-    cache.mkdir(parents=True, exist_ok=True)
-    stem = osm_cache_stem(key)
-    clipped = cache / f"{stem}.osm.pbf"
-    if not clipped.exists() or clipped.stat().st_mtime < pbf.stat().st_mtime:
-        bbox = f"{west},{south},{east},{north}"
-        print(f"[start] spatial OSM PBF extract bbox={bbox}", flush=True)
-        _run_osmium(["osmium", "extract", "--bbox", bbox, str(pbf), "-O", "-o", str(clipped)])
-        print(f"[done]  spatial OSM PBF extract: {clipped}", flush=True)
-    OSM_PBF_EXTRACT_CACHE[key] = clipped
-    return clipped
-
-
-def osm_layer_path(cfg: dict, osm_pbf: str, osm_pbf_cache_dir: str, layer: str, bounds_31287=None) -> Path:
-    """Return an OSM-derived layer path, extracting it from the full/clipped PBF if available."""
-    pbf = pbf_for_bounds(osm_pbf, osm_pbf_cache_dir, bounds_31287)
-    if not pbf.exists():
-        osm = Path(cfg["paths"]["osm_dir"])
-        legacy = {
-            "buildings": "gis_osm_buildings_a_free_1.shp",
-            "landuse": "gis_osm_landuse_a_free_1.shp",
-            "roads": "gis_osm_roads_free_1.shp",
-            "railways": "gis_osm_railways_free_1.shp",
-            "powerlines": "gis_osm_powerlines_free_1.shp",
-            "transport": "gis_osm_transport_a_free_1.shp",
-        }
-        if layer not in legacy:
-            return Path("__missing_osm_layer__")
-        return osm / legacy[layer]
-    cache_key = f"{pbf.stem}_{layer}"
-    if cache_key in OSM_PBF_CACHE:
-        return OSM_PBF_CACHE[cache_key]
-    cache = Path(osm_pbf_cache_dir)
-    cache.mkdir(parents=True, exist_ok=True)
-    filtered = cache / f"{cache_key}.osm.pbf"
-    exported = cache / f"{cache_key}.geojsonseq"
-    if not exported.exists() or exported.stat().st_mtime < pbf.stat().st_mtime:
-        filters = OSM_PBF_FILTERS[layer]
-        export_config = {
-            "attributes": {"type": False, "id": True, "version": False, "changeset": False, "timestamp": False, "uid": False, "user": False, "way_nodes": False},
-            "format_options": {},
-            "linear_tags": True,
-            "area_tags": True,
-            "exclude_tags": [],
-            "include_tags": OSM_PBF_INCLUDE_TAGS[layer],
-        }
-        print(f"[start] extract OSM PBF layer {layer}: {' '.join(filters)}", flush=True)
-        _run_osmium(["osmium", "tags-filter", str(pbf), *filters, "-O", "-o", str(filtered)])
-        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as cfg_file:
-            json.dump(export_config, cfg_file)
-            cfg_path = cfg_file.name
-        try:
-            _run_osmium(["osmium", "export", str(filtered), "-c", cfg_path, "-O", "-f", "geojsonseq", "-o", str(exported)])
-        finally:
-            Path(cfg_path).unlink(missing_ok=True)
-        print(f"[done]  extract OSM PBF layer {layer}: {exported}", flush=True)
-    OSM_PBF_CACHE[cache_key] = exported
-    return exported
 
 
 def read_layer(path: Path, bounds=None, where: str | None = None, columns: list[str] | None = None) -> gpd.GeoDataFrame:
+    """Liest eine prep-Vektordatei (GeoParquet) oder, für Tests/Altformate,
+    GeoJSON/GPKG/... und schneidet optional auf ``bounds`` zu."""
     if not path.exists():
         return gpd.GeoDataFrame(geometry=[], crs=TARGET_CRS)
-    # Empty osmium GeoJSONSeq exports (no features in the bbox) are 0-1 bytes and
-    # make pyogrio raise DataSourceError; treat such tiny files as an empty layer.
-    if path.suffix.lower() in {".geojsonseq", ".geojson", ".json"} and path.stat().st_size < 10:
-        return gpd.GeoDataFrame(geometry=[], crs=TARGET_CRS)
-    kwargs = {"where": where}
-    if columns and path.suffix.lower() in {".geojsonseq", ".geojson", ".json", ".fgb", ".gpkg"}:
-        kwargs["columns"] = columns
-    try:
-        gdf = gpd.read_file(path, **{k: v for k, v in kwargs.items() if v is not None})
-    except TypeError:
-        gdf = gpd.read_file(path)
+    suffix = path.suffix.lower()
+    if suffix in {".parquet", ".geoparquet"}:
+        pq_columns = [*columns, "geometry"] if columns and "geometry" not in columns else columns
+        gdf = gpd.read_parquet(path, columns=pq_columns)
         if where and "fclass" in gdf.columns and "residential" in where:
             gdf = gdf[gdf["fclass"].astype(str).eq("residential")]
+    else:
+        # Empty GeoJSONSeq exports (no features in the bbox) are 0-1 bytes and
+        # make pyogrio raise DataSourceError; treat such tiny files as an empty layer.
+        if suffix in {".geojsonseq", ".geojson", ".json"} and path.stat().st_size < 10:
+            return gpd.GeoDataFrame(geometry=[], crs=TARGET_CRS)
+        kwargs = {"where": where}
+        if columns and suffix in {".geojsonseq", ".geojson", ".json", ".fgb", ".gpkg"}:
+            kwargs["columns"] = columns
+        try:
+            gdf = gpd.read_file(path, **{k: v for k, v in kwargs.items() if v is not None})
+        except TypeError:
+            gdf = gpd.read_file(path)
+            if where and "fclass" in gdf.columns and "residential" in where:
+                gdf = gdf[gdf["fclass"].astype(str).eq("residential")]
     if gdf.empty:
         return gpd.GeoDataFrame(geometry=[], crs=TARGET_CRS)
     if "fclass" not in gdf.columns:
@@ -744,17 +572,14 @@ def vector_buffer_mask(gdf: gpd.GeoDataFrame, buffer_m: float, grid: dict, quad_
     ).astype(bool)
 
 
-def admin_boundaries(cfg: dict, bounds) -> gpd.GeoDataFrame:
-    vgd = Path(cfg["paths"]["vgd"])
-    gdf = read_layer(vgd, bounds=bounds)
-    if gdf.empty:
-        return gdf
-    if "BL" not in gdf.columns:
-        for col in ["BL_NAME", "NAME", "NAME_1", "bundesland"]:
-            if col in gdf.columns:
-                gdf = gdf.rename(columns={col: "BL"})
-                break
-    return gdf
+def admin_boundaries(bounds=None) -> gpd.GeoDataFrame:
+    """Bundesland-Flächen (je ``BL`` eine dissolvte Geometrie) aus dem
+    prep-Produkt ``derived/prep/admin/bundesland_masken.parquet``, auf
+    ``bounds`` zugeschnitten. Fehlt es, bricht der Aufruf ab."""
+    path = contract.PREP_FILES["admin"]["bundesland_masken"]
+    if not path.exists():
+        raise FileNotFoundError(f"Bundeslandgrenzen fehlen: {path} - zuerst 'make prep-admin'.")
+    return read_layer(path, bounds=bounds)
 
 
 def add_bl_by_centroid(gdf: gpd.GeoDataFrame, bl: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
@@ -1110,35 +935,6 @@ def _power_line_mask(power: gpd.GeoDataFrame, allowed_kv: set[int]) -> np.ndarra
 # pipeline/layers/geo.py) und sind nicht tot.
 
 
-def build_airport_masks(cfg: dict, grid: dict, args) -> dict[str, np.ndarray]:
-    """Unchanged from create_osm_wka_distance_zones.py.
-
-    `args` needs attributes: osm_pbf, osm_pbf_cache_dir, mode, total_height_m.
-    """
-    transport_bounds = expand_bounds(grid["bounds"], rule_distance("airport_lateral_check_6km", args.mode, args.total_height_m))
-    transport = read_layer(osm_layer_path(cfg, args.osm_pbf, args.osm_pbf_cache_dir, "transport", transport_bounds), bounds=transport_bounds, columns=OSM_PBF_COLUMNS["transport"])
-    if transport.empty:
-        zero = np.zeros(grid["shape"], dtype=bool)
-        return {"airport_area": zero, "airport_lateral_check_6km": zero}
-
-    aeroway = transport.get("fclass", pd.Series("", index=transport.index)).fillna("").astype(str).str.lower()
-    area_types = {"aerodrome", "runway", "taxiway", "apron", "terminal", "hangar"}
-    airport_area = transport[aeroway.isin(area_types)]
-
-    ids = {str(x) for x in cfg.get("buffers", {}).get("_major_airport_ids", cfg.get("buffers", {}).get("major_airport_osm_ids", []))}
-    id_col = "osm_id" if "osm_id" in transport.columns else ("@id" if "@id" in transport.columns else None)
-    if ids and id_col:
-        major = transport[transport[id_col].astype(str).isin(ids)]
-    else:
-        major = transport.iloc[0:0]
-    if major.empty:
-        major = transport[aeroway.eq("aerodrome")]
-    return {
-        "airport_area": raster_mask(airport_area, 0.0, grid, "airport_area"),
-        "airport_lateral_check_6km": raster_mask(major, rule_distance("airport_lateral_check_6km", args.mode, args.total_height_m), grid, "airport_lateral_check_6km"),
-    }
-
-
 def _runway_axes(runways: gpd.GeoDataFrame) -> list[tuple[tuple[float, float], tuple[float, float]]]:
     """Längsachse (Endpunkt-Paar) je Landebahn.
 
@@ -1189,169 +985,36 @@ def _corridor_wedge(apex: tuple[float, float], direction: tuple[float, float], l
     return Polygon([apex, *arc])
 
 
-def build_airport_corridor_masks(cfg: dict, grid: dict, args) -> dict[str, np.ndarray]:
-    """v2-Flughafenbänder: Hauptflughafen-Areale + landebahn-orientierte Korridore.
-
-    Ersetzt build_airport_masks() in der v2-Kette: statt aller OSM-Flugplätze
-    plus 6-km-Lateral-Check nur noch die Hauptflughäfen aus
-    config buffers.major_airport_osm_ids, und je Landebahn-Ende ein
-    AIRPORT_CORRIDOR_LENGTH_M langer Sektor ±AIRPORT_CORRIDOR_HALF_ANGLE_DEG
-    um die verlängerte Bahnachse. `args` needs: osm_pbf, osm_pbf_cache_dir.
-    """
-    zero = np.zeros(grid["shape"], dtype=bool)
-    transport_bounds = expand_bounds(grid["bounds"], AIRPORT_CORRIDOR_LENGTH_M)
-    transport = read_layer(
-        osm_layer_path(cfg, args.osm_pbf, args.osm_pbf_cache_dir, "transport", transport_bounds),
-        bounds=transport_bounds, columns=OSM_PBF_COLUMNS["transport"],
-    )
-    if transport.empty:
-        print("[warn]  airport corridors: transport layer empty", flush=True)
-        return {"airport_area_major": zero, "airport_runway_corridor_5km": zero}
-
-    aeroway = transport.get("fclass", pd.Series("", index=transport.index)).fillna("").astype(str).str.lower()
-    is_aerodrome = aeroway.eq("aerodrome") & transport.geometry.geom_type.isin(["Polygon", "MultiPolygon"])
-    ids = {str(x) for x in cfg.get("buffers", {}).get("_major_airport_ids", cfg.get("buffers", {}).get("major_airport_osm_ids", []))}
-    id_col = next((c for c in ("osm_id", "id", "@id") if c in transport.columns), None)
-    major = transport[is_aerodrome & transport[id_col].astype(str).isin(ids)] if (ids and id_col) else transport.iloc[0:0]
-    if major.empty:
-        n = len(ids) or 6
-        candidates = transport[is_aerodrome]
-        major = candidates.loc[candidates.geometry.area.sort_values(ascending=False).head(n).index]
-        print(f"[warn]  airport corridors: major_airport_osm_ids nicht im Transport-Layer gefunden - Fallback auf die {len(major)} größten Aerodrome-Flächen", flush=True)
-
-    runways = transport[aeroway.eq("runway")]
-    if not major.empty and not runways.empty:
-        major_zone = unary_union(list(major.geometry)).buffer(300.0)
-        runways = runways[runways.geometry.intersects(major_zone)]
-
-    wedges: list[Polygon] = []
-    for (ax, ay), (bx, by) in _runway_axes(runways):
-        length = math.hypot(bx - ax, by - ay)
-        if length < AIRPORT_RUNWAY_MIN_LENGTH_M:
-            continue
-        u = ((bx - ax) / length, (by - ay) / length)
-        wedges.append(_corridor_wedge((bx, by), u, AIRPORT_CORRIDOR_LENGTH_M, AIRPORT_CORRIDOR_HALF_ANGLE_DEG))
-        wedges.append(_corridor_wedge((ax, ay), (-u[0], -u[1]), AIRPORT_CORRIDOR_LENGTH_M, AIRPORT_CORRIDOR_HALF_ANGLE_DEG))
-    print(
-        f"[info]  airport corridors: majors={len(major)}, runways={len(runways)}, "
-        f"achsen-sektoren={len(wedges)} (±{AIRPORT_CORRIDOR_HALF_ANGLE_DEG:g}°, {AIRPORT_CORRIDOR_LENGTH_M:g} m)",
-        flush=True,
-    )
-
-    corridor = gpd.GeoDataFrame(geometry=wedges, crs=TARGET_CRS)
-    return {
-        "airport_area_major": raster_mask(major[["geometry"]].copy(), 0.0, grid, "airport_area_major") if not major.empty else zero,
-        "airport_runway_corridor_5km": raster_mask(corridor, 0.0, grid, "airport_runway_corridor_5km") if wedges else zero,
-    }
-
-
 # ---------------------------------------------------------------------------
 # Valid-area, nature, geography, official-zoning masks (unchanged)
 # ---------------------------------------------------------------------------
 
-def build_valid_area_mask(cfg: dict, grid: dict) -> np.ndarray:
-    admin = admin_boundaries(cfg, grid["bounds"])
-    if admin.empty:
-        return np.ones(grid["shape"], dtype=bool)
-    return raster_mask(admin, 0.0, grid, "valid_area")
 
-
-def _build_official_nature_mask(cfg: dict, grid: dict) -> np.ndarray:
-    """Official protection-area exclusions: national parks, NSG, ESG/Natura2000, Ramsar."""
-    paths = cfg.get("paths", {})
-    nsg_zip = Path(paths.get("nsg_zip", ""))
-    nsg_gpkg = paths.get("nsg_gpkg")
-    nsg_layers = paths.get("nsg_layers", [])
-    if not nsg_zip.exists() or not nsg_gpkg or not nsg_layers:
-        return np.zeros(grid["shape"], dtype=bool)
-
-    parts = []
-    with tempfile.TemporaryDirectory() as tmpdir:
-        try:
-            with zipfile.ZipFile(nsg_zip) as z:
-                z.extract(nsg_gpkg, tmpdir)
-            gpkg_path = Path(tmpdir) / nsg_gpkg
-            for layer in nsg_layers:
-                try:
-                    gdf = gpd.read_file(gpkg_path, layer=layer)
-                except Exception as exc:
-                    print(f"Warnung: Naturschutz-Layer {layer} konnte nicht gelesen werden: {exc}")
-                    continue
-                if not gdf.empty:
-                    parts.append(gdf[["geometry"]])
-        except Exception as exc:
-            print(f"Warnung: Naturschutzdaten konnten nicht gelesen werden: {exc}")
-            return np.zeros(grid["shape"], dtype=bool)
-
-    if not parts:
-        return np.zeros(grid["shape"], dtype=bool)
-    nature = gpd.GeoDataFrame(pd.concat(parts, ignore_index=True), geometry="geometry", crs=parts[0].crs)
-    nature = nature[nature.geometry.notnull() & ~nature.geometry.is_empty]
-    nature = nature.to_crs(TARGET_CRS)
-    nature = nature[nature.geometry.intersects(box(*grid["bounds"]))].copy()
-    return raster_mask(nature, 0.0, grid, "nature_protection_areas")
-
-
-def _build_osm_nature_mask(cfg: dict, grid: dict, args) -> np.ndarray:
-    """OSM-derived nature/protection polygons. `args` needs: osm_pbf, osm_pbf_cache_dir."""
-    osm = read_layer(osm_layer_path(cfg, args.osm_pbf, args.osm_pbf_cache_dir, "nature", grid["bounds"]), bounds=grid["bounds"], columns=OSM_PBF_COLUMNS["nature"])
-    if osm.empty:
-        return np.zeros(grid["shape"], dtype=bool)
-
-    geom_area = osm.geometry.geom_type.isin(["Polygon", "MultiPolygon"])
-    boundary = osm.get("boundary", pd.Series("", index=osm.index)).fillna("").astype(str).str.lower()
-    leisure = osm.get("leisure", pd.Series("", index=osm.index)).fillna("").astype(str).str.lower()
-    protect_class = osm.get("protect_class", pd.Series("", index=osm.index)).fillna("").astype(str).str.lower()
-    title = osm.get("protection_title", pd.Series("", index=osm.index)).fillna("").astype(str).str.lower()
-    name = osm.get("name", pd.Series("", index=osm.index)).fillna("").astype(str).str.lower()
-    text = title + " " + name
-
-    requested_text = text.str.contains(
-        r"naturschutz|natura\s*2000|natura2000|vogelschutz|bird|landschaftsschutz|nationalpark|national park|nature reserve|nature_reserve",
-        regex=True,
-        na=False,
-    )
-    requested_tags = (
-        boundary.eq("national_park")
-        | leisure.eq("nature_reserve")
-        | protect_class.isin({"1", "1a", "1b", "2", "4", "5"})
-    )
-    selected = osm[geom_area & (requested_text | requested_tags)].copy()
-    return raster_mask(selected, 0.0, grid, "osm_nature_protection_areas")
-
-
-def build_nature_masks(cfg: dict, grid: dict, args) -> dict[str, np.ndarray]:
-    return {
-        "nature_protection_areas": _build_official_nature_mask(cfg, grid),
-        "osm_nature_protection_areas": _build_osm_nature_mask(cfg, grid, args),
-    }
-
-
-def _read_raster_on_grid(path: Path, grid: dict, resampling: Resampling, dst_nodata=np.nan) -> np.ndarray:
-    arr = np.full(grid["shape"], dst_nodata, dtype=np.float32)
+def read_prep_raster(path: Path, grid: dict) -> np.ndarray:
+    """float32-Array eines prep-Rasters (GeoTIFF exakt auf dem Zielraster)
+    für das ``grid`` (ganzes Raster oder ein Ausschnitt davon). Kein
+    Resampling: Reprojektion/Resampling passiert in pipeline/prep/terrain.py.
+    Nodata ist als NaN im Produkt gespeichert."""
     if not path.exists():
-        return arr
+        raise FileNotFoundError(f"prep-Raster fehlt: {path} - zuerst 'make prep-gelaende'.")
     with rasterio.open(path) as src:
-        reproject(
-            source=rasterio.band(src, 1),
-            destination=arr,
-            src_transform=src.transform,
-            src_crs=src.crs,
-            dst_transform=grid["transform"],
-            dst_crs=grid["crs"],
-            resampling=resampling,
-            src_nodata=src.nodata,
-            dst_nodata=dst_nodata,
+        win = from_bounds(*grid["bounds"], transform=src.transform).round_offsets().round_lengths()
+        arr = src.read(1, window=win)
+        win_transform = src.window_transform(win)
+    if arr.shape != tuple(grid["shape"]) or not all(
+        abs(a - b) < 1e-6 for a, b in zip(tuple(win_transform)[:6], tuple(grid["transform"])[:6])
+    ):
+        raise ValueError(
+            f"{path}: Raster liegt nicht auf dem Zielgitter (Form {arr.shape} vs {tuple(grid['shape'])})"
         )
-    return arr
+    return arr.astype(np.float32, copy=False)
 
 
 def build_geography_masks(cfg: dict, grid: dict) -> dict[str, np.ndarray]:
     """Geographic/technical exclusions: slope, elevation and weak wind. Unchanged."""
-    paths = cfg.get("paths", {})
     exc = cfg.get("exclusion", {})
     derived = cfg.get("_derived", {})
-    dem = _read_raster_on_grid(Path(paths.get("dgm", "")), grid, Resampling.bilinear)
+    dem = read_prep_raster(contract.PREP_FILES["gelaende"]["dgm"], grid)
     dem[dem == 0.0] = np.nan
 
     cell_x = abs(float(grid["transform"].a))
@@ -1377,7 +1040,7 @@ def build_geography_masks(cfg: dict, grid: dict) -> dict[str, np.ndarray]:
     slope_threshold_pct = float(derived.get("slope_threshold_pct", np.tan(np.radians(float(exc.get("slope_max_deg", 20.0)))) * 100.0))
     elev_max = float(exc.get("elevation_max", 2500.0))
 
-    pd150 = _read_raster_on_grid(Path(paths.get("wind_pd_150", "")), grid, Resampling.bilinear)
+    pd150 = read_prep_raster(contract.PREP_FILES["gelaende"]["wind_pd_150"], grid)
     wind_min = float(derived.get("power_density_min_150", cfg.get("wind", {}).get("pd_min", 180.0)))
 
     return {
@@ -1406,51 +1069,6 @@ def water_bodies_mask(water: gpd.GeoDataFrame, grid: dict, min_area_ha: float = 
         return np.zeros(grid["shape"], dtype=bool)
     footprint = raster_mask(polygons, 0.0, grid, "water_bodies")
     return min_area_filter(footprint, grid, min_area_ha)
-
-
-def build_water_masks(cfg: dict, grid: dict, args) -> dict[str, np.ndarray]:
-    """Größere offene Wasserflächen als Geography-Ausschluss. `args` needs: osm_pbf, osm_pbf_cache_dir."""
-    water = read_layer(osm_layer_path(cfg, args.osm_pbf, args.osm_pbf_cache_dir, "water", grid["bounds"]), bounds=grid["bounds"])
-    mask = water_bodies_mask(water, grid, WATER_MIN_AREA_HA)
-    print(
-        f"[info]  water bodies: features={len(water):,}, "
-        f"cells(>= {WATER_MIN_AREA_HA:g} ha verbunden)={int(mask.sum()):,}",
-        flush=True,
-    )
-    return {"geography_water_bodies": mask}
-
-
-def build_official_zoning_masks(cfg: dict, grid: dict, args) -> dict[str, np.ndarray]:
-    """One merged reference overlay of all official wind zones.
-
-    NÖ zoning geojson unioned with the Bundesland zones registered in
-    ``calc.wind_zones`` (Stmk/Sbg Vorrang, Bgld Eignung, Ktn RED III).
-
-    `args` needs: official_zoning_geojson, vorrangzonen_dir, vorrangzonen.
-    """
-    mask = np.zeros(grid["shape"], dtype=bool)
-    # --official-zoning-geojson defaults (see create_widmung_v2_distance_zones.py)
-    # to data/zonen/zonierung_noe.json: die amtliche data.gv.at-Rohquelle der NÖ-Windkraft-
-    # zonierung (71 Zonen, EPSG:4326). Das ist seit Sep 2026 der reguläre Weg für
-    # Band 37 - keine Abhängigkeit mehr zur Legacy-Webmap-Pipeline. Der frühere
-    # Default output/webmap_export/windkraft_export_v1/vector/official_zoning.geojson
-    # war NUR eine 1:1-Attribut-Ableitung derselben 71 Features (siehe
-    # export_visualizer_bundle.py::export_official_zoning), nicht umgekehrt; er
-    # kann bei Bedarf weiterhin per CLI-Flag übergeben werden, ein per CLI
-    # übergebener Pfad hat wie bisher Vorrang. Fehlt die Datei, wird wie bisher
-    # nur gewarnt statt hart abzustürzen.
-    path = Path(args.official_zoning_geojson)
-    if path.exists():
-        zones = read_layer(path, bounds=grid["bounds"])
-        mask = mask | raster_mask(zones, 0.0, grid, "official_wind_zoning")
-    else:
-        print(f"[warn]  official zoning geojson missing: {path}", flush=True)
-    bl = admin_boundaries(cfg, grid["bounds"])
-    bl_dissolved = bl.dissolve(by="BL").reset_index()[["BL", "geometry"]] if not bl.empty and "BL" in bl.columns else None
-    zones = load_wind_zones(args.vorrangzonen_dir, args.vorrangzonen, bl_dissolved)
-    if zones is not None:
-        mask = mask | raster_mask(zones, 0.0, grid, "official_wind_zones_by_bl")
-    return {"official_wind_zoning": mask}
 
 
 def min_area_filter(mask: np.ndarray, grid: dict, min_area_ha: float) -> np.ndarray:

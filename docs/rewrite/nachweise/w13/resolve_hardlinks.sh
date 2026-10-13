@@ -6,7 +6,7 @@
 # zum Schreiben geoeffnet.
 set -euo pipefail
 
-cd /Users/jhurt/Documents/master_windkraft/abschichtung
+cd "$(dirname "$0")/../../../.."
 
 INVENTAR="docs/rewrite/nachweise/w13/inventar_vorher.tsv"
 LOG="docs/rewrite/nachweise/w13/aufloesung_log.tsv"

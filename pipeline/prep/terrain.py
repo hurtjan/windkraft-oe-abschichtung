@@ -1,36 +1,34 @@
 """Prep: Gelände und Wind (docs/rewrite/PLAN.md §7 W1.P6, Auflösung in §13.5).
 
-Widerspruch im Plan: §4 sagt, die Domäne ``gelaende`` brauche "kein Prep".
-§7 sieht trotzdem dieses Paket vor. §13.5 löst das auf: **keine Umformung,
-aber eine Prüfstufe**. Die beiden Rohraster (``DGM_R25.tif``,
-``AUT_power-density_150m.tif``) liegen laut Anmerkung in §4 "bereits im
-Zielgitter" - diese Stufe prüft, ob das tatsächlich stimmt, bevor die
-Layer-Stufe es stillschweigend annimmt. Genau diese Sorte Annahme war in
-diesem Projekt schon mehrfach unbemerkt falsch (§13.5).
+Seit der prep-Grenze (CLAUDE.md) ist diese Stufe der EINZIGE Leser der beiden
+Rohraster (``DGM_R25.tif``, ``AUT_power-density_150m.tif``) und liefert der
+Layer-Stufe zwei GeoTIFFs exakt auf dem Zielraster (EPSG:31287, 25 m,
+24001 x 14001 Zellen, Transform/Ausdehnung des DGM):
 
-Diese Stufe schreibt deshalb **keinen umgeformten Datensatz** - kein
-Resampling, keine Reprojektion, kein neues TIF -, sondern einen
-menschenlesbaren Prüfbericht (``pruefbericht.md``) und den gemeinsamen
-Fingerabdruck (``pipeline/fingerprint.py``) nach
-``contract.PREP["gelaende"]``. Weicht ein Raster vom Zielgitter ab, ist
-das laut Auftrag ein **Befund, kein Fehler**: der Bericht hält die
-Abweichung fest, diese Stufe ändert an den Rohdaten nichts und entscheidet
-auch nicht, was mit der Abweichung geschieht - das ist laut Auftrag Sache
-von Welle 2 (der Layer-Stufe, die die Raster tatsächlich liest). Diese
-Stufe bricht deshalb bei einer Gitterabweichung NICHT ab - anders als der
-Wortlaut der Abnahme-Spalte in PLAN.md §7 ("Bricht ab, wenn Gitter oder
-CRS abweichen") nahelegt; siehe Bericht zu W1.P6 für die Einordnung dieses
-Unterschieds. Ein Lesefehler (Datei fehlt, Raster nicht öffenbar) ist
-dagegen ein echter Fehler dieser Stufe und bricht sehr wohl ab.
+- ``dgm.tif`` - das Geländemodell. Das Zielraster ist per Definition das
+  Gitter der DGM-Rohdatei; ``load_grid()`` (calc/abschichtung_common.py) liest
+  Transform/Form/CRS jetzt aus dieser Datei, nicht mehr aus ``data/``.
+- ``wind_pd_150.tif`` - die Leistungsdichte 150 m. Die Rohdatei liegt in
+  EPSG:4326 (0,0025 Grad), also NICHT auf dem Zielraster; sie wird hier
+  einmal nach EPSG:31287 gebracht.
+
+Beide Produkte entstehen mit exakt derselben Resampling-Logik, die vorher bei
+jedem Layer-Lauf in ``_read_raster_on_grid()`` steckte (``rasterio.warp.
+reproject``, bilinear, ``src_nodata`` = Nodata der Quelle, ``dst_nodata`` =
+NaN, float32). Die Layer-Stufe bekommt dadurch dieselben Arrays wie früher
+(Voraussetzung für die Byte-Identität von ``out/abschichtung.tif``). Nodata
+wird als NaN im Produkt gespeichert; Kompression: Deflate + Gleitkomma-
+Prädiktor, verlustfrei.
 
 Zielgitter (PLAN.md §13.5): EPSG:31287, 25 m, 24001 × 14001 Zellen. Das
-ist keine freie Erfindung dieser Datei - im heutigen Code
-(``calc/abschichtung_common.py:load_grid``) IST ``DGM_R25.tif``
-selbst die Vorlage, aus der die gesamte Kette ihr Rasterraster ableitet;
-das Zielgitter ist also per Definition das Gitter der DGM-Datei. Diese
-Konstanten hier sind der Schnappschuss dieses Gitters, damit die Prüfung
-nicht bei jedem Lauf erneut gegen "sich selbst" prüft, sondern gegen einen
-festgeschriebenen Sollwert.
+ist keine freie Erfindung - ``DGM_R25.tif`` IST die Vorlage, aus der die
+gesamte Kette ihr Rasterraster ableitet. Die Konstanten unten sind der
+festgeschriebene Sollwert; weicht das DGM davon ab, bricht diese Stufe ab
+(anders als bis W1.P6, wo die Abweichung nur ein Befund im Bericht war: seit
+die Stufe selbst auf das Zielgitter bringt, wäre ein abweichendes DGM-Gitter
+ein stiller Gitterwechsel der ganzen Kette). Daneben schreibt die Stufe den
+Prüfbericht ``pruefbericht.md`` und den Fingerabdruck
+(``pipeline/fingerprint.py``) nach ``contract.PREP["gelaende"]``.
 """
 
 from __future__ import annotations
@@ -39,13 +37,16 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+import numpy as np
 import rasterio
+from rasterio.warp import Resampling, reproject
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from pipeline import contract, fingerprint, runtime  # noqa: E402
+from pipeline.prep.share import skip_without_raw
 
 REPORT_FILENAME = "pruefbericht.md"
 
@@ -175,39 +176,100 @@ def _profile_section(label: str, p: RasterProfile) -> str:
     return "\n".join(lines)
 
 
-def build_report(profiles: dict[str, RasterProfile]) -> str:
-    any_mismatch = any(not all(grid_matches_target(p).values()) for p in profiles.values())
+def build_report(
+    profiles: dict[str, RasterProfile], products: dict[str, RasterProfile] | None = None
+) -> str:
     header = [
         "# Prüfbericht: Gelände und Wind (W1.P6)",
         "",
         (
-            "Prüfstufe ohne Umformung (docs/rewrite/PLAN.md §13.5): kein "
-            "Resampling, keine Reprojektion. Diese Stufe stellt die "
-            "tatsächlich gemessenen Gitter-Eigenschaften der beiden "
-            "Rohraster gegen das Zielgitter (EPSG:31287, 25 m, "
-            f"{TARGET_WIDTH} × {TARGET_HEIGHT} Zellen)."
+            "Diese Stufe bringt die beiden Rohraster auf das Zielgitter "
+            f"(EPSG:31287, 25 m, {TARGET_WIDTH} × {TARGET_HEIGHT} Zellen) und "
+            "schreibt sie als GeoTIFF (`dgm.tif`, `wind_pd_150.tif`) nach "
+            "`derived/prep/gelaende/`. Resampling: bilinear, wie früher beim "
+            "Lesen in der Layer-Stufe; Nodata = NaN. Abschnitt 1: die Rohraster, "
+            "Abschnitt 2: die Produkte."
         ),
         "",
     ]
-    if any_mismatch:
+    if any(not all(grid_matches_target(p).values()) for p in profiles.values()):
         header.append(
-            "**Mindestens ein Raster weicht vom Zielgitter ab.** Das ist "
-            "laut Auftrag ein Befund, kein Fehler: die Rohdaten wurden "
-            "nicht verändert. Was mit der Abweichung geschieht (z. B. "
-            "Reprojektion beim Lesen), entscheidet die Layer-Stufe "
-            "(Welle 2) - siehe Abschnitt unten je Raster."
+            "Mindestens ein Rohraster liegt nicht auf dem Zielgitter (erwartet "
+            "für die Leistungsdichte: EPSG:4326, 0,0025 Grad) und wurde "
+            "deshalb hier umgerechnet."
         )
     else:
-        header.append("Beide Raster passen vollständig zum Zielgitter.")
+        header.append("Beide Rohraster liegen bereits auf dem Zielgitter.")
     header.append("")
 
-    sections = [_profile_section(label, p) for label, p in profiles.items()]
-    return "\n".join(header) + "\n" + "\n".join(sections)
+    parts = ["\n".join(header), "## 1. Rohraster\n"]
+    parts += [_profile_section(label, p) for label, p in profiles.items()]
+    if products:
+        parts.append("## 2. Produkte (derived/prep/gelaende/)\n")
+        parts += [_profile_section(label, p) for label, p in products.items()]
+    return "\n".join(parts)
+
+
+def resample_to_grid(path: Path, transform, crs, shape: tuple[int, int]) -> np.ndarray:
+    """Bringt Band 1 von ``path`` auf das Zielraster - exakt die Logik des
+    früheren ``abschichtung_common._read_raster_on_grid()`` (bilinear,
+    src_nodata = Nodata der Quelle, dst_nodata = NaN, float32)."""
+    arr = np.full(shape, np.nan, dtype=np.float32)
+    with rasterio.open(path) as src:
+        reproject(
+            source=rasterio.band(src, 1),
+            destination=arr,
+            src_transform=src.transform,
+            src_crs=src.crs,
+            dst_transform=transform,
+            dst_crs=crs,
+            resampling=Resampling.bilinear,
+            src_nodata=src.nodata,
+            dst_nodata=np.nan,
+        )
+    return arr
+
+
+def write_target_raster(path: Path, arr: np.ndarray, transform, crs) -> None:
+    """Schreibt ``arr`` (float32, NaN = Nodata) als verlustfrei komprimiertes,
+    gekacheltes GeoTIFF auf das Zielraster."""
+    runtime.ensure_parent(path)
+    with rasterio.open(
+        path,
+        "w",
+        driver="GTiff",
+        height=arr.shape[0],
+        width=arr.shape[1],
+        count=1,
+        dtype="float32",
+        crs=crs,
+        transform=transform,
+        nodata=np.nan,
+        tiled=True,
+        blockxsize=256,
+        blockysize=256,
+        compress="zstd",
+        predictor=3,
+    ) as dst:
+        dst.write(arr, 1)
+
+
+def build_products(dgm_raw: Path, wind_raw: Path, dgm_out: Path, wind_out: Path) -> None:
+    """Erzeugt dgm.tif und wind_pd_150.tif. Das Zielraster (Transform, CRS,
+    Form) ist das der DGM-Rohdatei."""
+    with rasterio.open(dgm_raw) as tmpl:
+        transform, crs, shape = tmpl.transform, tmpl.crs, (tmpl.height, tmpl.width)
+    for raw, out in ((dgm_raw, dgm_out), (wind_raw, wind_out)):
+        arr = resample_to_grid(raw, transform, crs, shape)
+        write_target_raster(out, arr, transform, crs)
+        del arr
+        print(f"[done]  prep-gelaende: {out}", flush=True)
 
 
 def run(force: bool = False) -> Path:
-    """Liest beide Rohraster aus ``contract.RAW["gelaende"]``, schreibt den
-    Prüfbericht und den Fingerabdruck nach ``contract.PREP["gelaende"]``.
+    """Liest beide Rohraster aus ``contract.RAW["gelaende"]``, schreibt
+    ``dgm.tif`` und ``wind_pd_150.tif`` (auf dem Zielraster), den Prüfbericht
+    und den Fingerabdruck nach ``contract.PREP["gelaende"]``.
 
     Schreibt nirgends nach ``data/`` - nur lesender Zugriff auf die
     Rohraster, alle Schreibzugriffe gehen nach ``derived/prep/gelaende/``.
@@ -219,7 +281,13 @@ def run(force: bool = False) -> Path:
     Neulauf.
     """
     out_dir = contract.PREP["gelaende"]
+    if not force and skip_without_raw(
+        "gelaende", list(contract.RAW["gelaende"].values()), hint="data/gelaende/ (DGM_R25.tif, AUT_power-density_150m.tif)"
+    ):
+        return out_dir / REPORT_FILENAME
     runtime.ensure_dir(out_dir)
+    dgm_out = contract.PREP_FILES["gelaende"]["dgm"]
+    wind_out = contract.PREP_FILES["gelaende"]["wind_pd_150"]
 
     inputs = {
         "DGM_R25.tif (Digitales Geländemodell)": contract.RAW["gelaende"]["dgm"],
@@ -235,13 +303,34 @@ def run(force: bool = False) -> Path:
     input_paths = list(inputs.values()) + [Path(__file__)]
     report_path = out_dir / REPORT_FILENAME
 
-    if not force and report_path.exists() and fingerprint.matches(out_dir, input_paths):
+    if (
+        not force
+        and report_path.exists()
+        and dgm_out.exists()
+        and wind_out.exists()
+        and fingerprint.matches(out_dir, input_paths)
+    ):
         print(f"[skip]  prep-gelaende: Fingerabdruck unveraendert -> {out_dir}", flush=True)
         return report_path
 
     profiles = {label: read_profile(path) for label, path in inputs.items()}
+    dgm_profile = profiles["DGM_R25.tif (Digitales Geländemodell)"]
+    if not all(grid_matches_target(dgm_profile).values()):
+        raise SystemExit(
+            f"[fehler] {dgm_profile.path} weicht vom Zielgitter ab "
+            f"({grid_matches_target(dgm_profile)}) - das Zielraster der ganzen Kette "
+            "wäre damit ein anderes. Abbruch."
+        )
 
-    report_text = build_report(profiles)
+    build_products(
+        contract.RAW["gelaende"]["dgm"], contract.RAW["gelaende"]["wind_pd_150"], dgm_out, wind_out
+    )
+
+    products = {
+        "dgm.tif (Produkt)": read_profile(dgm_out),
+        "wind_pd_150.tif (Produkt)": read_profile(wind_out),
+    }
+    report_text = build_report(profiles, products)
     report_path.write_text(report_text, encoding="utf-8")
 
     fingerprint.write(out_dir, input_paths)

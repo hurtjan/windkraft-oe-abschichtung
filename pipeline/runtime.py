@@ -36,3 +36,16 @@ def ensure_parent(file_path: Path) -> Path:
     """
     file_path.parent.mkdir(parents=True, exist_ok=True)
     return file_path
+
+
+def read_vector(path: Path):
+    """Liest eine Vektordatei als GeoDataFrame: GeoParquet (das Format aller
+    prep-Vektorprodukte, CLAUDE.md) über ``read_parquet``, alles andere
+    (z. B. GPKG in Tests) über ``read_file``. ``geopandas`` wird erst hier
+    importiert, damit der Rest dieses Moduls leichtgewichtig bleibt."""
+    import geopandas as gpd
+
+    path = Path(path)
+    if path.suffix.lower() in {".parquet", ".geoparquet"}:
+        return gpd.read_parquet(path)
+    return gpd.read_file(path)

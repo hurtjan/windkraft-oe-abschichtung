@@ -1,6 +1,6 @@
 #!/bin/bash
 set -uo pipefail
-cd /Users/jhurt/Documents/master_windkraft/abschichtung
+cd "$(dirname "$0")/../../../.."
 
 OUT=docs/rewrite/nachweise/w13/vorgaenger_unversehrt.tsv
 : > "$OUT"

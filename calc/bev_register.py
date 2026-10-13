@@ -1,8 +1,9 @@
 """BEV-Adressregister ("Adresse Relationale Tabellen - Stichtagsdaten") einlesen.
 
-Liefert zwei Punktwolken in EPSG:31287, beide mit Parquet-Cache, weil das
-Umprojizieren der 2,5 Mio Zeilen aus drei Gauß-Krüger-Streifen je Lauf ~1 min
-kostet:
+Liefert zwei Punktwolken in EPSG:31287. Das Einlesen der Rohdaten (CSV/ZIP,
+Umprojizieren der 2,5 Mio Zeilen aus drei Gauß-Krüger-Streifen) passiert
+ausschließlich in pipeline/prep/adressen.py (prep-Grenze, CLAUDE.md); dieses
+Modul liest nur noch die beiden prep-Produkte (GeoParquet):
 
 ``load_address_points``   ADRESSE.csv  -> (N, 2) Koordinaten. Das "es gibt hier
                           eine Adresse"-Signal der Hüllen-Klassifikation.
@@ -19,24 +20,21 @@ unten), und es steht in derselben Zeile wie die Koordinate, sodass der im Plan
 vorgesehene Join über GEBAEUDE.csv entfällt.
 
 Der Datensatz hat datierte Dateinamen (Stichtage 1.4. / 1.10.); das jeweils
-jüngste ZIP in ``data/adressen/`` wird automatisch genommen.
+jüngste ZIP wird in der prep-Stufe automatisch genommen.
 """
 from __future__ import annotations
 
-import zipfile
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from pyproj import Transformer
 
 from pipeline import contract
-from pipeline.runtime import ensure_dir
 
 TARGET_EPSG = 31287
 
-ADDRESS_CACHE_NAME = "adressen_31287.parquet"
-BUILDING_CACHE_NAME = "bev_gebaeude_31287.parquet"
+ADDRESS_CACHE_NAME = contract.PREP_FILES["adressen"]["adressen"].name
+BUILDING_CACHE_NAME = contract.PREP_FILES["adressen"]["gebaeude"].name
 
 ADDRESS_CSV = "ADRESSE.csv"
 BUILDING_CSV = "GEBAEUDE.csv"
@@ -63,78 +61,31 @@ RESIDENTIAL_EIGENSCHAFTEN = frozenset({
 INDUSTRIAL_EIGENSCHAFTEN = frozenset({EIGENSCHAFT_INDUSTRIE_LAGER})
 
 
-def _newest_zip(data_dir: Path) -> Path | None:
-    candidates = sorted(data_dir.glob("Adresse_Relationale_Tabellen_Stichtagsdaten_*.zip"))
-    return candidates[-1] if candidates else None
-
-
-def _read_csv(data_dir: Path, name: str, usecols: list[str]) -> pd.DataFrame:
-    """CSV aus dem entpackten Ordner oder direkt aus dem jüngsten Stichtags-ZIP."""
-    plain = data_dir / name
-    if plain.exists():
-        return pd.read_csv(plain, sep=";", usecols=usecols, dtype=str, encoding="utf-8-sig")
-    archive = _newest_zip(data_dir)
-    if archive is None:
+def _read_prepared(path: Path, columns: list[str]) -> pd.DataFrame:
+    if not path.exists():
         raise FileNotFoundError(
-            f"Weder {plain} noch ein Adresse_Relationale_Tabellen_Stichtagsdaten_*.zip in {data_dir}"
+            f"BEV-Adressregister-Produkt fehlt: {path} - zuerst 'make prep-adressen' "
+            "(das Einlesen der Rohdaten gehört ausschließlich in pipeline/prep/adressen.py)."
         )
-    with zipfile.ZipFile(archive) as zf, zf.open(name) as fh:
-        return pd.read_csv(fh, sep=";", usecols=usecols, dtype=str, encoding="utf-8-sig")
+    return pd.read_parquet(path, columns=columns)
 
 
-def _to_target_crs(df: pd.DataFrame) -> pd.DataFrame:
-    """RW/HW/EPSG (GK West/Central/East) -> x/y in EPSG:31287, streifenweise.
-
-    Koordinaten außerhalb des zulässigen Wertebereichs liefert das BEV als "#";
-    solche Zeilen werden verworfen statt zu einem Parse-Fehler zu führen.
-    """
-    rw = pd.to_numeric(df["RW"], errors="coerce")
-    hw = pd.to_numeric(df["HW"], errors="coerce")
-    epsg = pd.to_numeric(df["EPSG"], errors="coerce")
-    ok = rw.notna() & hw.notna() & epsg.notna()
-    dropped = int((~ok).sum())
-    if dropped:
-        print(f"[warn]  BEV: {dropped:,} Zeilen ohne verwertbare Koordinate verworfen", flush=True)
-    df = df[ok]
-    parts = []
-    for code, group in df.groupby(epsg[ok].astype(int)):
-        transformer = Transformer.from_crs(int(code), TARGET_EPSG, always_xy=True)
-        x, y = transformer.transform(
-            pd.to_numeric(group["RW"]).to_numpy(), pd.to_numeric(group["HW"]).to_numpy()
-        )
-        part = pd.DataFrame({"x": x, "y": y}, index=group.index)
-        for col in group.columns:
-            if col not in {"RW", "HW", "EPSG"}:
-                part[col.lower()] = group[col].to_numpy()
-        parts.append(part)
-        print(f"[info]  BEV EPSG {code}: {len(group):,} Punkte transformiert", flush=True)
-    return pd.concat(parts, ignore_index=True)
-
-
-def load_address_points(data_dir: Path, cache_dir: Path | None = None, rebuild: bool = False) -> np.ndarray:
-    """(N, 2)-Array aller BEV-Adresskoordinaten in EPSG:31287."""
-    cache = ensure_dir(cache_dir or contract.PREP["adressen"]) / ADDRESS_CACHE_NAME
-    if cache.exists() and not rebuild:
-        frame = pd.read_parquet(cache)
-        print(f"[info]  BEV-Adress-Cache: {len(frame):,} Punkte aus {cache}", flush=True)
-    else:
-        frame = _to_target_crs(_read_csv(data_dir, ADDRESS_CSV, ["RW", "HW", "EPSG"]))
-        frame[["x", "y"]].to_parquet(cache)
-        print(f"[info]  BEV-Adressen gecacht: {len(frame):,} -> {cache}", flush=True)
+def load_address_points(path: Path | None = None) -> np.ndarray:
+    """(N, 2)-Array aller BEV-Adresskoordinaten in EPSG:31287, aus dem
+    prep-Produkt (GeoParquet ``derived/prep/adressen/adressen_31287.parquet``).
+    Fehlt es, bricht der Aufruf ab - kein Rückfall auf die Rohdaten."""
+    path = Path(path) if path is not None else contract.PREP_FILES["adressen"]["adressen"]
+    frame = _read_prepared(path, ["x", "y"])
+    print(f"[info]  BEV-Adressen: {len(frame):,} Punkte aus {path}", flush=True)
     return frame[["x", "y"]].to_numpy()
 
 
-def load_building_points(data_dir: Path, cache_dir: Path | None = None, rebuild: bool = False) -> pd.DataFrame:
-    """DataFrame(x, y, eigenschaft) aller BEV-Gebäude in EPSG:31287."""
-    cache = ensure_dir(cache_dir or contract.PREP["adressen"]) / BUILDING_CACHE_NAME
-    if cache.exists() and not rebuild:
-        frame = pd.read_parquet(cache)
-        print(f"[info]  BEV-Gebäude-Cache: {len(frame):,} Punkte aus {cache}", flush=True)
-        return frame
-    frame = _to_target_crs(_read_csv(data_dir, BUILDING_CSV, ["RW", "HW", "EPSG", "EIGENSCHAFT"]))
-    frame = frame[["x", "y", "eigenschaft"]]
-    frame.to_parquet(cache)
-    print(f"[info]  BEV-Gebäude gecacht: {len(frame):,} -> {cache}", flush=True)
+def load_building_points(path: Path | None = None) -> pd.DataFrame:
+    """DataFrame(x, y, eigenschaft) aller BEV-Gebäude in EPSG:31287, aus dem
+    prep-Produkt (``derived/prep/adressen/bev_gebaeude_31287.parquet``)."""
+    path = Path(path) if path is not None else contract.PREP_FILES["adressen"]["gebaeude"]
+    frame = _read_prepared(path, ["x", "y", "eigenschaft"])
+    print(f"[info]  BEV-Gebäude: {len(frame):,} Punkte aus {path}", flush=True)
     return frame
 
 

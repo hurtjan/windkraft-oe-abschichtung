@@ -1,8 +1,8 @@
 """Distanz-/Dilationskern, byte-genau aus kataster_layers.py des Alt-Repos
 (windkraft_ö_karten) herausgelöst.
 
-Quelle (Alt-Repo, absoluter Pfad):
-    /Users/jhurt/Documents/windkraft_ö_karten/windkraft/calc/kataster_layers.py
+Quelle (Alt-Repo, Geschwisterverzeichnis):
+    ../windkraft_ö_karten/windkraft/calc/kataster_layers.py
 
 Uebernommene Abschnitte (Original-Zeilennummern im Alt-Repo):
     Zeilen  14      import math

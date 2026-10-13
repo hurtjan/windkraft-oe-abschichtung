@@ -175,7 +175,7 @@ endif
 ## (run1 selbst liegt seither im Archiv, siehe
 ## ~/Documents/master_windkraft/archiv/README.md) - sie war ohnehin nie Teil
 ## von `all`.
-all: prep layers finalize export
+all: prep layers finalize analyse-raster export
 
 ## Verdrahtet die 131 heute unerreichbaren Tests (kein `make test` bisher,
 ## siehe PLAN.md Ausgangslage: "12 unerreichbare Skripte, davon 8 Tests

@@ -29,15 +29,13 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-import geopandas as gpd  # noqa: E402
 import numpy as np  # noqa: E402
 import rasterio  # noqa: E402
 from affine import Affine  # noqa: E402
 from rasterio.features import rasterize  # noqa: E402
 from rasterio.windows import Window, transform as window_transform  # noqa: E402
 
-from pipeline import contract  # noqa: E402
-from pipeline.prep import admin as prep_admin  # noqa: E402
+from pipeline import contract, runtime  # noqa: E402
 
 TARGET_CRS = "EPSG:31287"
 BLOCK_ROWS = 256
@@ -100,7 +98,7 @@ def _criteria(include_general_buildings: bool) -> tuple[Criterion, ...]:
 def _load_regions(path: Path) -> list[tuple[str, str, object]]:
     if not path.is_file():
         raise FileNotFoundError(f"Bundeslandgrenzen fehlen: {path} (zuerst make prep-admin ausführen).")
-    gdf = gpd.read_file(path)
+    gdf = runtime.read_vector(path)
     if "BL" not in gdf.columns:
         raise ValueError(f"{path}: erwartete Spalte 'BL' fehlt.")
     if gdf.crs is None:
@@ -199,7 +197,7 @@ def analyze(
     block_rows: int = BLOCK_ROWS,
 ) -> tuple[Path, Path]:
     """Berechnet die Auswertung blockweise; optionale Pfade erleichtern Tests."""
-    regions_path = regions_path or (contract.PREP["admin"] / prep_admin.BUNDESLAND_MASKEN_FILENAME)
+    regions_path = regions_path or contract.PREP_FILES["admin"]["bundesland_masken"]
     output_dir = output_dir or (contract.OUT / "analysis" / "flaechenanteile")
     criteria = _criteria(include_general_buildings)
     paths = layer_paths or {criterion.layer: contract.LAYERS[criterion.layer] for criterion in criteria}

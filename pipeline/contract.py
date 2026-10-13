@@ -16,9 +16,12 @@ braucht, prüft selbst - siehe tests/test_contract.py.
 Abschnitte: RAW ist der Zielzustand des unveränderlichen Rohbaums (33
 Pfade je Domäne). LEGACY_TOT und LEGACY_ENTFAELLT sind zwei verschiedene
 Sorten Altlast, die deshalb nicht unter RAW stehen - Unterschied siehe
-Kommentar dort. PREP sind die Prep-Ausgaben, LAYERS die 33
-Checkpoint-Layernamen samt abgeleitetem Pfad, PRODUCTS die vier
-Endprodukte.
+Kommentar dort. PREP/PREP_FILES sind die Prep-Endprodukte (derived/prep/),
+WORK die Zwischenstände der Prep-Stufe (derived/work/), LAYERS die
+Checkpoint-Layernamen samt abgeleitetem Pfad, PRODUCTS die Endprodukte.
+
+Regel (CLAUDE.md): RAW (data/) liest nur pipeline/prep/ - alles danach liest
+nur PREP/PREP_FILES bzw. LAYERS/PRODUCTS.
 
 Verwendung, zum Beispiel:
     from pipeline import contract
@@ -40,11 +43,26 @@ ROOT = Path(
     os.environ.get("ABSCHICHTUNG_ROOT", str(Path(__file__).resolve().parents[1]))
 ).resolve()
 
+
+def _dir_override(env_name: str, default: Path) -> Path:
+    """Ausgabeverzeichnis, per Umgebungsvariable umlenkbar (Prüfläufe)."""
+    value = os.environ.get(env_name)
+    return Path(value).resolve() if value else default
+
+
 DATA = ROOT / "data"
 DERIVED = ROOT / "derived"
 DERIVED_PREP = DERIVED / "prep"
-DERIVED_LAYERS = DERIVED / "layers"
-OUT = ROOT / "out"
+# Zwischenstände, Extrakte und Caches der Prep-Stufe (CLAUDE.md: nicht nach
+# derived/prep/). Unterverzeichnis je Domäne, siehe WORK unten.
+DERIVED_WORK = _dir_override("ABSCHICHTUNG_WORK_DIR", DERIVED / "work")
+# Ausgabe der Layer-Stufe und der Finalisierung sind per Umgebungsvariable
+# umlenkbar, damit ein Prüflauf (z. B. sha256-Vergleich des End-TIFs) weder
+# derived/layers/ noch out/ überschreibt:
+#   ABSCHICHTUNG_LAYERS_DIR  -> DERIVED_LAYERS (33+ Checkpoint-TIFs)
+#   ABSCHICHTUNG_OUT_DIR     -> OUT (alle Endprodukte aus PRODUCTS)
+DERIVED_LAYERS = _dir_override("ABSCHICHTUNG_LAYERS_DIR", DERIVED / "layers")
+OUT = _dir_override("ABSCHICHTUNG_OUT_DIR", ROOT / "out")
 
 # run1 - die Vergleichsbasis der alten Kette (osm_wka_distance_zones_widmung_v2_run1.tif,
 # sha256 dc58b011…9e3df1). W6.1 hat output/ aus dem Repo herausbewegt, nach
@@ -210,16 +228,10 @@ RAW = {
 # entfällt. Je Eintrag steht, welches Paket sie entfernt.
 # ---------------------------------------------------------------------------
 
-LEGACY_TOT = {
-    # config.json:osm_dir - zeigt auf ein nie existiertes Shapefile
-    # ("austria-260328-free.shp"); die tatsächliche OSM-Quelle ist
-    # RAW["osm"]["pbf"] ("austria-260330.osm.pbf" - anderer Stichtag,
-    # anderes Format).
-    "osm_dir": DATA / "osm" / "austria-260328-free.shp",
-    # config.json:wind_pd_100 - deklariert, kein Konsument, Datei existiert
-    # nicht. RAW["gelaende"]["wind_pd_150"] ist die tatsächlich gelesene
-    # Leistungsdichtehöhe.
-    "wind_pd_100": DATA / "gelaende" / "AUT_power-density_100m.tif",
+LEGACY_TOT: dict[str, Path] = {
+    # Leer: "osm_dir" (nie existiertes Shapefile) und "wind_pd_100" (kein
+    # Konsument) sind mit der prep-Grenze (CLAUDE.md) aus calc/config.py und
+    # dem Legacy-Fallback in calc/abschichtung_common.py entfallen.
 }
 
 LEGACY_ENTFAELLT: dict[str, Path] = {
@@ -231,55 +243,75 @@ LEGACY_ENTFAELLT: dict[str, Path] = {
 
 
 # ---------------------------------------------------------------------------
-# PREP - Ausgaben der Prep-Stufe(n) je Domäne (PLAN.md §4, Spalte "Prep";
-# §7, Pakete W1.P1-W1.P9). Zielzustand: existiert nach W0.2 noch nicht, die
-# die Prep-Pakete legen die Verzeichnisse tatsächlich an und schreiben
-# hinein. Alle Rohdaten-Domänen sind hier vorab erklärt (Paket W1.P0, PLAN.md
-# §13.4) - so bräuchte kein Prep-Paket beim parallelen Start selbst einen
-# Eintrag hier anlegen, und ein mehrfacher Konflikt an dieser einen Stelle
-# entsteht gar nicht erst. Jedes Prep-Paket importiert seinen eigenen
-# Eintrag, statt den Pfad selbst zu konstruieren (siehe Modul-Docstring).
+# PREP / WORK - Ausgaben der Prep-Stufe je Domäne (CLAUDE.md: Stufentrennung
+# und einheitliches Format).
 #
-# "gelaende" hat laut PLAN.md §4 "kein Prep" im Sinn von Reprojizieren oder
-# Filtern - die beiden Raster liegen schon im Zielgitter. §7 führt trotzdem
-# ein eigenes Paket W1.P6 (`pipeline/prep/terrain.py`), das laut dortiger
-# Abnahme "nur Durchreichen und Gitterprüfung" macht und bei abweichendem
-# Gitter oder CRS abbricht. Ein Durchreichen ist noch ein Schreiben - nach
-# PLAN.md §3 darf die Layer-Stufe ohnehin nur aus der Prep-Stufe lesen, nie
-# zwei Stufen überspringen. Der Eintrag steht deshalb hier, auch ohne
-# inhaltliche Transformation. ANNAHME (von W1.P6 zu prüfen): einstufig wie
-# admin/adressen/widmung/natur/zonen, keine a_/b_-Aufteilung - dafür spricht
-# weder Anmerkung noch Abnahme in §7 eine zweite Stufe an.
+# derived/prep/<domäne>/ enthält ausschließlich die Endprodukte, die die
+# nächste Stufe liest (und die man zum Weitergeben ohne Rohdaten mitschickt):
+#   Vektor -> GeoParquet, EPSG:31287 (mit Geo-Metadaten)
+#   Raster -> GeoTIFF exakt auf dem Zielraster (EPSG:31287, 25 m, 24001x14001)
+# daneben je Domäne höchstens Berichte (*.md, *.json inkl. .fingerprint.json).
+# Zwischenstände, Extrakte und Caches liegen in derived/work/<domäne>/.
+#
+# PREP und WORK sind flach: ein Verzeichnis je Domäne (keine a_/b_-Stufen
+# mehr in PREP). Die Dateien der Endprodukte stehen in PREP_FILES.
 # ---------------------------------------------------------------------------
 
-PREP = {
-    "admin": DERIVED_PREP / "admin",
-    # Kataster: zwei Stufen, weil die NÖ-Polygonisierung teuer ist und vom
-    # billigeren Parquet-Export getrennt bleibt (PLAN.md §4/§3).
+PREP_DOMAINS = (
+    "admin", "kataster", "adressen", "widmung", "osm",
+    "windkraft", "gelaende", "natur", "zonen", "noe_sekrop",
+)
+
+PREP = {domain: DERIVED_PREP / domain for domain in PREP_DOMAINS}
+WORK = {domain: DERIVED_WORK / domain for domain in PREP_DOMAINS}
+
+# Die Dateien in PREP[domain], die nachfolgende Stufen lesen. Wer einen
+# Dateinamen braucht, holt ihn hier - nicht aus einem prep-Modul.
+_OSM_LAYER_KEYS = (
+    "buildings", "windpower", "aerialways", "powerlines",
+    "roads", "railways", "military", "transport", "nature", "water",
+)
+_ZONEN_KEYS = ("Stmk", "Sbg", "Bgld", "RED3", "NOE")
+_WIDMUNG_BUCKETS = ("wohn_misch", "haeuser_im_gruenen", "industrie_negativ")
+_NOE_SEKROP_LAYERS = ("pdf_750m_geb", "pdf_750m_gwr", "pdf_750m_gruenland_widmung")
+
+PREP_FILES: dict[str, dict[str, Path]] = {
+    "admin": {
+        "gemeinden": PREP["admin"] / "gemeinden.parquet",
+        "bundesland_masken": PREP["admin"] / "bundesland_masken.parquet",
+    },
     "kataster": {
-        "a_noe_polygonize": DERIVED_PREP / "kataster" / "a_noe_polygonize",
-        "b_export_parquet": DERIVED_PREP / "kataster" / "b_export_parquet",
+        # Große DKM-Datei (nur noch pipeline/analyse_raster.py liest sie; wird
+        # NICHT weitergegeben). Alles andere nach prep liest die kleinen
+        # Streusiedlungs-Produkte (Stufe c, pipeline/prep/kataster/c_streusiedlung.py).
+        "at_dkm_gst_nfl": PREP["kataster"] / "at_dkm_gst_nfl_epsg31287.geoparquet",
+        "streusiedlung_kandidaten": PREP["kataster"] / "streusiedlung_kandidaten.parquet",
+        "streusiedlung_garten": PREP["kataster"] / "streusiedlung_garten.parquet",
     },
-    "adressen": DERIVED_PREP / "adressen",
-    "widmung": DERIVED_PREP / "widmung",
-    # OSM: zwei Stufen, weil die osmium-Extraktion teuer ist und die
-    # Layer-Ableitung oft wiederholt wird (PLAN.md §4).
-    "osm": {
-        "a_extract": DERIVED_PREP / "osm" / "a_extract",
-        "b_layers": DERIVED_PREP / "osm" / "b_layers",
+    "adressen": {
+        "adressen": PREP["adressen"] / "adressen_31287.parquet",
+        "gebaeude": PREP["adressen"] / "bev_gebaeude_31287.parquet",
     },
-    # Geliefertes WKA-Verzeichnis: eine Normalisierung (CRS, Point- und
-    # Duplikatprüfung) vor den Layer- und Export-Konsumenten.
-    "windkraft": DERIVED_PREP / "windkraft",
-    # Gelände & Wind: ein Durchreichen/Gitterprüfung, keine zwei Stufen -
-    # siehe Kommentar oben (ANNAHME, von W1.P6 zu prüfen).
-    "gelaende": DERIVED_PREP / "gelaende",
-    "natur": DERIVED_PREP / "natur",
-    "zonen": DERIVED_PREP / "zonen",
-    # NÖ SekROP: zwei Stufen, Karten-Alignment vor Vektorisierung (PLAN.md §4).
-    "noe_sekrop": {
-        "a_align": DERIVED_PREP / "noe_sekrop" / "a_align",
-        "b_vectorize": DERIVED_PREP / "noe_sekrop" / "b_vectorize",
+    "widmung": {b: PREP["widmung"] / f"{b}_combined.parquet" for b in _WIDMUNG_BUCKETS},
+    "osm": {k: PREP["osm"] / f"{k}.parquet" for k in _OSM_LAYER_KEYS},
+    "windkraft": {"standorte": PREP["windkraft"] / "standorte.parquet"},
+    "gelaende": {
+        "dgm": PREP["gelaende"] / "dgm.tif",
+        "wind_pd_150": PREP["gelaende"] / "wind_pd_150.tif",
+    },
+    "natur": {"schutzgebiete": PREP["natur"] / "schutzgebiete.parquet"},
+    "zonen": {k: PREP["zonen"] / f"{k}.parquet" for k in _ZONEN_KEYS},
+    "noe_sekrop": {n: PREP["noe_sekrop"] / f"{n}.parquet" for n in _NOE_SEKROP_LAYERS},
+}
+
+# Zulässige Endungen in derived/prep/ (tests/test_prep_grenze.py).
+PREP_PRODUCT_SUFFIXES = (".parquet", ".geoparquet", ".tif")
+PREP_REPORT_SUFFIXES = (".md", ".json")
+
+# Zu den Produkten gehörende Berichte (Zählwerte, Parameter) - kein eigenes Produkt.
+PREP_REPORT_FILES = {
+    "kataster": {
+        "streusiedlung_bericht": PREP["kataster"] / "streusiedlung_bericht.json",
     },
 }
 
@@ -382,4 +414,16 @@ PRODUCTS = {
     # lesen ist (docs/LAYER-MANIFEST.md), gelesen nicht kopiert bis hierher,
     # ab W7.6 auch nach out/ übergeben (make/export/layer_manifest_md.mk).
     "layer_manifest_md": OUT / "LAYER-MANIFEST.md",
+    # Zweites Produkt, nur Analyse (nicht Teil des Konsumentenvertrags,
+    # von Viewer/Dashboard/Export nicht gelesen): Kataster-Nutzungsklassen auf
+    # exakt dem Raster von abschichtung.tif (pipeline/analyse_raster.py).
+    "abschichtung_analyse_tif": OUT / "abschichtung_analyse.tif",
+    "abschichtung_analyse_bands_json": OUT / "abschichtung_analyse.bands.json",
 }
+
+# Fingerabdruck-Ablage der Stufe analyse-raster (Skip-if-unchanged).
+# Folgt OUT, wenn ABSCHICHTUNG_OUT_DIR gesetzt ist (Prüflauf schreibt nicht
+# nach derived/).
+DERIVED_ANALYSE_RASTER = (
+    OUT / ".analyse_raster" if os.environ.get("ABSCHICHTUNG_OUT_DIR") else DERIVED / "analyse_raster"
+)

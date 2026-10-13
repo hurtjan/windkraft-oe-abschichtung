@@ -5,7 +5,9 @@
     "_comment_paths": "vgd/osm_dir/wind_pd_150/wind_pd_100/dgm/nsg_zip kommen seit W0.2 aus pipeline/contract.py (RAW, LEGACY_TOT oder LEGACY_ENTFAELLT) - windkraft/config.py:load_config() befuellt sie beim Laden, hier stehen sie bewusst nicht mehr als Literal (docs/rewrite/PLAN.md §8, Regel 2: der Vertrag wird gelesen, nicht kopiert).",
     "data_dir": "data",
     "nsg_gpkg": "SG_AT_2024_v_April.gpkg",
-    "nsg_layers": ["NP_AT_2024", "NSG_AT_2024", "ESG_AT_2024", "RAMSAR_AT_2024"],
+    "nsg_layers": ["NP_AT_2024", "NSG_AT_2024", "ESG_AT_2024", "RAMSAR_AT_2024", "LSG_AT_2024", "GLT_AT_2024", "S_AT_2024", "NDKM_AT_2024"],
+    "_comment_nsg_layer_filter": "Grundsatz: Natur-Ausschluss nur fuer Schutzkategorien, die nach Naturschutzrecht der Laender per Verordnung oder Bescheid festgelegt sind. Layer ohne Eintrag hier werden ganz gelesen; mit Eintrag nur Zeilen, deren Attribut in der Liste steht. Weitere Layer/Codes = eine Zeile in nsg_layers bzw. ein Code hier. Ausgeschlossen bleiben die von UBA als nicht gueltig markierten Codes SGNOG und SZSFFG (im Layer nicht vorhanden).",
+    "nsg_layer_filter": {"S_AT_2024": {"KAT_SUB": ["RG", "RZ", "PSG", "SSG", "SAFM", "SG §26", "GB", "GLR", "GNÖB", "ÖE", "ÖSG"]}},
     "_comment_powerlines_gpkg_entfernt": "powerlines_gpkg gab es hier nie als Literal (siehe _comment_paths), nur ueber den Vertrag befuellt. Paket W1.2 hat data/osm_power_lines.gpkg geloescht und den Registereintrag pipeline.contract.LEGACY_ENTFAELLT['powerlines_gpkg'] ausgetragen - der einzige Codeleser (abschichtung_common.py:966) war ohnehin nur ein Fallback, der nie griff, solange das OSM-PBF vorhanden ist; das daraus gebaute Band power_380_400kv wird seit dem Clean-Schema ohnehin nicht mehr gespeichert. cfg['paths'] traegt den Schluessel powerlines_gpkg seither nicht mehr.",
     "output_dir": "output"
   },

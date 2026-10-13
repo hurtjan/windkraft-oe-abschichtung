@@ -34,10 +34,10 @@ STATE_NAMES_IN_GRID_ORDER = list(wc.STATE_CODES)  # Burgenland, Kaernten, ...
 
 def _write_boundaries(tmp_path: Path) -> Path:
     geoms = [box(x, 2 - y, x + 1, 3 - y) for y in range(3) for x in range(3)]
-    path = tmp_path / "bundesland_masken.gpkg"
+    path = tmp_path / "bundesland_masken.parquet"
     gpd.GeoDataFrame(
         {"BL": STATE_NAMES_IN_GRID_ORDER}, geometry=geoms, crs=wc.TARGET_CRS,
-    ).to_file(path, driver="GPKG")
+    ).to_parquet(path)
     return path
 
 
@@ -50,7 +50,7 @@ def _zone_band(index: int, name: str, category: str, familie: str | None = None)
 
 def _build_manifest() -> dict:
     bands = []
-    # 18 Zonen-Baender: 6 Mensch, 6 Natur, 6 Geografie (Baender 1..18).
+    # 18 Zonen-Baender (+ Band 45-Analogon unten): 6 Mensch, 6 Natur, 6 Geografie (Baender 1..18).
     idx = 1
     for i in range(6):
         familie = "verkehr" if i == 0 else ("luftfahrt" if i == 1 else None)
@@ -76,6 +76,9 @@ def _build_manifest() -> dict:
         bands.append({"name": name, "index": idx, "category": "sonstige", "stufe": "ergebnis"})
         idx += 1
     assert idx - 1 == 26
+
+    # 19. Zonen-Band (Schema 2.3.0): Freileitungen >= 110 kV, Mensch (leer).
+    bands.append(_zone_band(idx, "power_lines_110kv_plus", "Mensch", "energieleitungen"))
 
     return {
         "schema_version": "test",
@@ -220,10 +223,10 @@ def _write_boundaries_with_outside_row(tmp_path: Path) -> Path:
     auszuloesen.
     """
     geoms = [box(x, 3 - y, x + 1, 4 - y) for y in range(3) for x in range(3)]
-    path = tmp_path / "bundesland_masken_4row.gpkg"
+    path = tmp_path / "bundesland_masken_4row.parquet"
     gpd.GeoDataFrame(
         {"BL": STATE_NAMES_IN_GRID_ORDER}, geometry=geoms, crs=wc.TARGET_CRS,
-    ).to_file(path, driver="GPKG")
+    ).to_parquet(path)
     return path
 
 

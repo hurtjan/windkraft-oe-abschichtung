@@ -217,8 +217,8 @@ from calc.band_manifest import manifest_path_for  # noqa: E402
 # (Zahlen 27/30 oben: Stand Vektorpuffer). Vorheriger Wert (Sechster Wechsel,
 # s.o.): sha256 bd5ddacc…878bf1c, 152 645 657 Bytes - bleibt als historischer
 # Zeuge dokumentiert.
-REFERENZ_SHA256 = "b596fd021dbc42eb4bfa19b9caf8fead78cad6489f6f91e344dd3e645cf87700"
-REFERENZ_BYTES = 154_134_192
+REFERENZ_SHA256 = "58caa8ffa69454fdc691fff96d5734f0820dfac07be11238d38330a720ee3a93"
+REFERENZ_BYTES = 147_090_672
 
 # Bisheriges Soll, ab 08.09.2026 nur noch Vergleichsbasis - aber als solche
 # unveränderlich.

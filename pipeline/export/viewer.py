@@ -109,6 +109,41 @@ ROLE_GROUP_LABELS = {
 ROLE_GROUP_ORDER = ["Bedingungen", "Kategorien", "Gesamt", "Verfügbarkeit", "Unschärfe", "Referenz"]
 
 
+def _pos(order: list, value) -> int:
+    """Position in einer Reihenfolge-Liste; Unbekanntes sortiert hinten."""
+    try:
+        return order.index(value)
+    except ValueError:
+        return len(order)
+
+
+def sort_layers(layers: list[dict], band_manifest: dict) -> list[dict]:
+    """Ebenen thematisch sortieren: Kategorie -> Familie -> Stufe -> Index.
+
+    Die Reihenfolgen kommen aus dem exportierten Bandmanifest
+    (category_order, familien[] als (category, key), stufe_order) - keine
+    fest verdrahteten Listen. Unbekannte Werte sortieren hinten; die
+    Sortierung ist stabil."""
+    category_order = list(band_manifest.get("category_order") or [])
+    familien = [(f.get("category"), f.get("key")) for f in band_manifest.get("familien") or []]
+    stufe_order = list(band_manifest.get("stufe_order") or [])
+
+    def key(layer: dict):
+        return (
+            _pos(category_order, layer.get("category")),
+            _pos(familien, (layer.get("category"), layer.get("familie"))),
+            _pos(stufe_order, layer.get("stufe")),
+            layer["index"],
+        )
+
+    return sorted(layers, key=key)
+
+
+def category_labels(band_manifest: dict) -> dict[str, str]:
+    """category -> deutscher Anzeigename (kategorien[].label_de), sonst die category selbst."""
+    return {k["category"]: k.get("label_de", k["category"]) for k in band_manifest.get("kategorien") or [] if "category" in k}
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(
         description=(
@@ -273,6 +308,7 @@ HTML_TEMPLATE = r'''<!doctype html>
     #layers::-webkit-scrollbar-thumb { background: #c0c0c0; border-radius: 5px; }
     #layers::-webkit-scrollbar-track { background: #f0f0f0; border-radius: 5px; }
     .group h3 { font-size: 13px; margin: 10px 0 4px; color: #444; text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid #eee; }
+    .group h4 { font-size: 12px; margin: 8px 0 2px; color: #666; font-weight: 600; }
     .layer-row { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
     .swatch { width: 14px; height: 14px; border: 1px solid #777; flex: 0 0 14px; }
     .layer-row label { flex: 1; word-break: break-word; }
@@ -311,7 +347,15 @@ for (const group of manifest.groups) {
   const groupEl = document.createElement('div'); groupEl.className = 'group';
   const title = document.createElement('h3'); title.textContent = group.title;
   groupEl.appendChild(title);
+  const multiCategory = new Set(group.layers.map(l => l.category)).size > 1;
+  let lastCategory = null;
   for (const layer of group.layers) {
+    if (multiCategory && layer.category !== lastCategory) {
+      const sub = document.createElement('h4'); sub.className = 'subgroup';
+      sub.textContent = layer.category_label || layer.category;
+      groupEl.appendChild(sub);
+    }
+    lastCategory = layer.category;
     const ov = L.imageOverlay(layer.file, bounds, {opacity: Number(opacity.value), interactive: false});
     overlays[layer.key] = ov;
     count += 1;
@@ -352,6 +396,7 @@ def main(argv: list[str] | None = None) -> int:
 
     band_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     bands = band_manifest["bands"]
+    cat_labels = category_labels(band_manifest)
 
     layer_dir = out_dir / "layers"
     layer_dir.mkdir(parents=True, exist_ok=True)
@@ -402,6 +447,9 @@ def main(argv: list[str] | None = None) -> int:
                 "label_de": band.get("label_de", band["name"]),
                 "description_de": band.get("description_de", ""),
                 "category": band.get("category", "Sonstige"),
+                "category_label": cat_labels.get(band.get("category", "Sonstige"), band.get("category", "Sonstige")),
+                "familie": band.get("familie"),
+                "stufe": band.get("stufe"),
                 "rolle": role,
                 "value_type": value_type,
                 "color_rgba": band.get("color_rgba", [255, 0, 0, 140]),
@@ -413,9 +461,11 @@ def main(argv: list[str] | None = None) -> int:
 
     groups = []
     for label in ROLE_GROUP_ORDER:
-        layers_in_group = [e for e in layer_entries if ROLE_GROUP_LABELS.get(e["rolle"]) == label]
+        layers_in_group = sort_layers(
+            [e for e in layer_entries if ROLE_GROUP_LABELS.get(e["rolle"]) == label], band_manifest
+        )
         groups.append({"title": label, "layers": layers_in_group})
-    sonstige = [e for e in layer_entries if ROLE_GROUP_LABELS.get(e["rolle"]) is None]
+    sonstige = sort_layers([e for e in layer_entries if ROLE_GROUP_LABELS.get(e["rolle"]) is None], band_manifest)
     if sonstige:
         groups.append({"title": "Sonstige", "layers": sonstige})
 

@@ -283,7 +283,7 @@ Kompression erklärt, nicht untersucht), `distance_layers` 40 MB,
   — `cmp` bestätigt byte-identisch. (Unterschiedliche Inodes, 137771182 im
   Alt-Repo vs. 139711915 hier — also keine Hardlink-Kopplung zwischen den
   Repos bei dieser Datei, aber inhaltlich exakt gleich.)
-- `git -C /Users/jhurt/Documents/windkraft_ö_karten status --short`: leere
+- `git -C ../windkraft_ö_karten status --short`: leere
   Ausgabe — Alt-Repo unverändert.
 - `make check-hardlinks`:
   `OK: 79 Dateien geprüft (77 unter output/, 2 deklarierte Schreibziele

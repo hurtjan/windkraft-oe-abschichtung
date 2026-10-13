@@ -41,7 +41,7 @@ Rolle als eingebaute Pass/Fail-Schranke:
 
 Der frühere Satz an dieser Stelle - "alle 38 Bänder müssen bitgleich zu
 ``run1`` sein" - stammte aus der Zeit vor der Nutzerentscheidung und ist
-seit dem 08.09.2026 falsch: neun der mittlerweile 44 Bänder (26, 29-36) weichen
+seit dem 08.09.2026 falsch: neun der mittlerweile 45 Bänder (26, 29-36) weichen
 **bewusst und angenommen** von ``run1`` ab. Die Bitgleichheits-Anforderung
 gilt unverändert, nur eben gegen die aktuelle Referenz, nicht mehr gegen
 ``run1`` (siehe Abschnitt "Referenzbänder 37/38" weiter unten, der davon
@@ -167,7 +167,6 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-import geopandas as gpd
 import numpy as np
 import rasterio
 from rasterio.features import rasterize
@@ -177,8 +176,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from pipeline import contract  # noqa: E402
-from pipeline.prep import admin as prep_admin  # noqa: E402
+from pipeline import contract, runtime  # noqa: E402
 from calc.band_manifest import (  # noqa: E402
     ROLE_BEDINGUNG,
     ROLE_REFERENZ,
@@ -234,7 +232,7 @@ REFERENCE_TIF = contract.RUN1_TIF
 # ``derived/layers/``-Checkpoints mit dem UNVERÄNDERTEN
 # ``pipeline/finalize.py`` (git stash) reproduzieren exakt den vorherigen
 # Wert (Determinismus bestätigt); (2) ein bandweiser Vergleich (rasterio,
-# alle 44 Bänder einzeln gelesen) zwischen diesem Lauf und dem W7.6-Lauf
+# alle 45 Bänder einzeln gelesen) zwischen diesem Lauf und dem W7.6-Lauf
 # ergibt ``diff=0`` für jedes Band, ``a.descriptions == b.descriptions``,
 # und der einzige Unterschied in den Datei-Tags sind exakt die fünf neu
 # hinzugekommenen Schlüssel (siehe ``tests/test_referenz_tif.py``, dortiger
@@ -266,7 +264,7 @@ REFERENCE_TIF = contract.RUN1_TIF
 # Rasterpuffer >= 110 kV ``87649de3b67b7ada183d282f281d2a073cae04dafcc78eef7c087fc874e81194``
 # (Saatzellen + FFT-Dilation, verfehlte Zellen im Nennabstand), ersetzt durch den
 # Vektorpuffer.
-AKTUELLE_REFERENZ_SHA256 = "b596fd021dbc42eb4bfa19b9caf8fead78cad6489f6f91e344dd3e645cf87700"
+AKTUELLE_REFERENZ_SHA256 = "58caa8ffa69454fdc691fff96d5734f0820dfac07be11238d38330a720ee3a93"
 
 REGISTER_PATH = contract.ROOT / "docs" / "rewrite" / "abweichungen.tsv"
 
@@ -362,14 +360,14 @@ class BandResult:
 def _build_bundesland_code_raster(grid: dict) -> tuple[np.ndarray, dict[int, str]]:
     """Rasterisiert die 9 Bundesland-Polygone einmal auf das Zielgitter.
 
-    Liest ``derived/prep/admin/bundesland_masken.gpkg`` (dieselbe Datei, die
+    Liest ``derived/prep/admin/bundesland_masken.parquet`` (dieselbe Datei, die
     ``pipeline.layers.geo._build_valid_area_mask()`` für die Staatsgebiets-
     maske liest) - nur lesend, wie im Auftrag verlangt. Code 0 = außerhalb
     aller 9 Bundesländer (Rasterfenster reicht über die Staatsgrenze
     hinaus, siehe geography_water_bodies/Bodensee).
     """
-    path = contract.PREP["admin"] / prep_admin.BUNDESLAND_MASKEN_FILENAME
-    gdf = gpd.read_file(path)
+    path = contract.PREP_FILES["admin"]["bundesland_masken"]
+    gdf = runtime.read_vector(path)
     codes = {i + 1: name for i, name in enumerate(gdf["BL"].tolist())}
     arr = rasterize(
         ((geom, code) for code, geom in zip(codes.keys(), gdf.geometry, strict=True)),

@@ -121,7 +121,7 @@ def bilanz_tsv():
 def test_tif_sha256_matches_referenz_tif_contract(bilanz_tsv):
     """Erwartungsgemaess rot, bis die TSV auf der neuen Referenz erzeugt wurde:
     die Probe-TSV in diesem Auftrag ist auf dem Backup-TIF
-    (sha256 bd5ddacc...) gerechnet, der Repo-Vertrag (tests/test_referenz_tif.py)
+    (sha256 58caa8ff...) gerechnet, der Repo-Vertrag (tests/test_referenz_tif.py)
     steht noch auf c1809c4c... . Das ist kein Bug dieses Tests, sondern genau
     die im Auftrag angekuendigte, noch ausstehende Aktualisierung."""
     comment_kv, _fehlt, _rows = bilanz_tsv

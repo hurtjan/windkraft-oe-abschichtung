@@ -177,3 +177,69 @@ def test_bounding_box_des_echten_rasters_liegt_ueber_oesterreich():
     assert 15.0 < east < 20.0
     assert 45.0 < south < 48.0
     assert 47.5 < north < 51.0
+
+
+def _manifest_mit_themen() -> dict:
+    """Bedingungen ueber zwei Kategorien/Familien, absichtlich in 'falscher' Indexreihenfolge."""
+    def b(i, cat, fam, stufe):
+        return {"index": i, "name": f"b{i}", "label_de": f"B{i}", "description_de": "",
+                "category": cat, "familie": fam, "stufe": stufe, "value_type": "binary",
+                "rolle": "bedingung", "color_rgba": [1, 2, 3, 100], "default_visible": False}
+    return {
+        "schema_version": "2.0.0", "generated_at": "2026-01-01T00:00:00Z",
+        "raster": {"crs": "EPSG:31287", "width": 8, "height": 8, "pixel_size_m": 100.0,
+                   "bounds": [400000, 300000, 400800, 300800], "dtype": "uint8", "nodata": 0},
+        "category_order": ["Mensch", "Natur"],
+        "stufe_order": ["roh", "quelle", "zone"],
+        "familien": [
+            {"key": "verkehr", "category": "Mensch"},
+            {"key": "leitungen", "category": "Mensch"},
+            {"key": "schutz", "category": "Natur"},
+        ],
+        "kategorien": [
+            {"key": "mensch", "category": "Mensch", "label_de": "Mensch-Label"},
+            {"key": "natur", "category": "Natur", "label_de": "Natur-Label"},
+        ],
+        "band_count": 5,
+        "bands": [
+            b(1, "Natur", "schutz", "zone"),
+            b(2, "Mensch", "leitungen", "zone"),
+            b(3, "Mensch", "verkehr", "zone"),
+            b(4, "Mensch", "verkehr", "roh"),
+            b(5, "Unbekannt", "x", "zone"),
+        ],
+    }
+
+
+def test_ebenen_folgen_kategorie_familie_stufe_und_haben_unterueberschriften(tmp_path):
+    manifest = _manifest_mit_themen()
+    manifest_pfad = tmp_path / "t.bands.json"
+    manifest_pfad.write_text(json.dumps(manifest, ensure_ascii=False), encoding="utf-8")
+    raster_pfad = _schreibe_mini_tif(tmp_path / "t.tif", manifest)
+    out_dir = tmp_path / "dashboard"
+    assert viewer.main([
+        "--manifest", str(manifest_pfad), "--raster", str(raster_pfad),
+        "--out", str(out_dir), "--max-size", "16",
+    ]) == 0
+
+    vm = json.loads((out_dir / "manifest.json").read_text(encoding="utf-8"))
+    bed = next(g for g in vm["groups"] if g["title"] == "Bedingungen")
+    # Mensch: verkehr (roh 4, zone 3) -> leitungen 2; dann Natur 1; Unbekanntes zuletzt.
+    assert [l["index"] for l in bed["layers"]] == [4, 3, 2, 1, 5]
+    assert [l["category_label"] for l in bed["layers"]][:4] == ["Mensch-Label"] * 3 + ["Natur-Label"]
+    assert all("familie" in l and "stufe" in l for l in bed["layers"])
+
+    html_text = (out_dir / "index.html").read_text(encoding="utf-8")
+    assert "multiCategory" in html_text and "subgroup" in html_text
+
+
+@pytest.mark.skipif(not ECHTES_MANIFEST.exists(), reason=f"{ECHTES_MANIFEST} fehlt.")
+def test_sort_layers_echtes_manifest_energieleitungen_neben_verkehr():
+    manifest = json.loads(ECHTES_MANIFEST.read_text(encoding="utf-8"))
+    layers = [
+        {"index": b["index"], "category": b.get("category"), "familie": b.get("familie"), "stufe": b.get("stufe")}
+        for b in manifest["bands"] if b.get("rolle") == "bedingung"
+    ]
+    reihenfolge = [l["index"] for l in viewer.sort_layers(layers, manifest)]
+    assert reihenfolge.index(45) == reihenfolge.index(17) + 1
+    assert reihenfolge.index(39) < reihenfolge.index(7)

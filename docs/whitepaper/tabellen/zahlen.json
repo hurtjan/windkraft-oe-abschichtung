@@ -1,0 +1,6878 @@
+{
+ "beispiel_haselbach.abstand_siedlungspuffer_m": {
+  "wert": 400.0,
+  "einheit": "m",
+  "quelle": "Illustrationsabbildung Abb. 3: TIF (Baender Wohnbauland, Siedlungspuffer, Streusiedlungs-Huellen), BEV-Kataster DKM, BEV-Adressregister",
+  "stand": "58caa8ffa694"
+ },
+ "beispiel_haselbach.abstand_wohnbauland_m": {
+  "wert": 1391.0,
+  "einheit": "m",
+  "quelle": "Illustrationsabbildung Abb. 3: TIF (Baender Wohnbauland, Siedlungspuffer, Streusiedlungs-Huellen), BEV-Kataster DKM, BEV-Adressregister",
+  "stand": "58caa8ffa694"
+ },
+ "beispiel_haselbach.flaeche_ha": {
+  "wert": 11.75,
+  "einheit": "ha",
+  "quelle": "Illustrationsabbildung Abb. 3: TIF (Baender Wohnbauland, Siedlungspuffer, Streusiedlungs-Huellen), BEV-Kataster DKM, BEV-Adressregister",
+  "stand": "58caa8ffa694"
+ },
+ "beispiel_haselbach.hausnummer_max": {
+  "wert": 50,
+  "einheit": "",
+  "quelle": "Illustrationsabbildung Abb. 3: TIF (Baender Wohnbauland, Siedlungspuffer, Streusiedlungs-Huellen), BEV-Kataster DKM, BEV-Adressregister",
+  "stand": "58caa8ffa694"
+ },
+ "beispiel_haselbach.hausnummer_min": {
+  "wert": 19,
+  "einheit": "",
+  "quelle": "Illustrationsabbildung Abb. 3: TIF (Baender Wohnbauland, Siedlungspuffer, Streusiedlungs-Huellen), BEV-Kataster DKM, BEV-Adressregister",
+  "stand": "58caa8ffa694"
+ },
+ "beispiel_haselbach.n_bauflaechen": {
+  "wert": 48,
+  "einheit": "Bauflaechen",
+  "quelle": "Illustrationsabbildung Abb. 3: TIF (Baender Wohnbauland, Siedlungspuffer, Streusiedlungs-Huellen), BEV-Kataster DKM, BEV-Adressregister",
+  "stand": "58caa8ffa694"
+ },
+ "beispiel_haselbach.n_bauflaechen_ns41": {
+  "wert": 43,
+  "einheit": "Bauflaechen",
+  "quelle": "Illustrationsabbildung Abb. 3: TIF (Baender Wohnbauland, Siedlungspuffer, Streusiedlungs-Huellen), BEV-Kataster DKM, BEV-Adressregister",
+  "stand": "58caa8ffa694"
+ },
+ "beispiel_haselbach.n_bauflaechen_ns83": {
+  "wert": 5,
+  "einheit": "Bauflaechen",
+  "quelle": "Illustrationsabbildung Abb. 3: TIF (Baender Wohnbauland, Siedlungspuffer, Streusiedlungs-Huellen), BEV-Kataster DKM, BEV-Adressregister",
+  "stand": "58caa8ffa694"
+ },
+ "beispiel_haselbach.n_bev_gebaeude": {
+  "wert": 48,
+  "einheit": "Gebaeude",
+  "quelle": "Illustrationsabbildung Abb. 3: TIF (Baender Wohnbauland, Siedlungspuffer, Streusiedlungs-Huellen), BEV-Kataster DKM, BEV-Adressregister",
+  "stand": "58caa8ffa694"
+ },
+ "beispiel_haselbach.n_hausnummern": {
+  "wert": 21,
+  "einheit": "Adressen",
+  "quelle": "Illustrationsabbildung Abb. 3: TIF (Baender Wohnbauland, Siedlungspuffer, Streusiedlungs-Huellen), BEV-Kataster DKM, BEV-Adressregister",
+  "stand": "58caa8ffa694"
+ },
+ "beispiel_haselbach.n_wohn": {
+  "wert": 48,
+  "einheit": "Gebaeude",
+  "quelle": "Illustrationsabbildung Abb. 3: TIF (Baender Wohnbauland, Siedlungspuffer, Streusiedlungs-Huellen), BEV-Kataster DKM, BEV-Adressregister",
+  "stand": "58caa8ffa694"
+ },
+ "beispiel_haselbach.wohnanteil_pct": {
+  "wert": 100.0,
+  "einheit": "%",
+  "quelle": "Illustrationsabbildung Abb. 3: TIF (Baender Wohnbauland, Siedlungspuffer, Streusiedlungs-Huellen), BEV-Kataster DKM, BEV-Adressregister; = n_wohn / n_bauflaechen",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_alle_drei_at": {
+  "wert": 4991.401875,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_alle_drei_b": {
+  "wert": 55.79,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_alle_drei_k": {
+  "wert": 388.141875,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_alle_drei_n": {
+  "wert": 1181.751875,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_alle_drei_o": {
+  "wert": 244.789375,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_alle_drei_s": {
+  "wert": 381.948125,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_alle_drei_st": {
+  "wert": 2172.536875,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_alle_drei_t": {
+  "wert": 427.684375,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_alle_drei_v": {
+  "wert": 127.921875,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_alle_drei_w": {
+  "wert": 10.8375,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_frei_at": {
+  "wert": 3709.731875,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_frei_b": {
+  "wert": 654.71875,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_frei_k": {
+  "wert": 318.2125,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_frei_n": {
+  "wert": 1333.35125,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_frei_o": {
+  "wert": 427.615,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_frei_s": {
+  "wert": 213.665,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_frei_st": {
+  "wert": 365.675625,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_frei_t": {
+  "wert": 314.2925,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_frei_v": {
+  "wert": 81.90375,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_frei_w": {
+  "wert": 0.2975,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_mensch_geografie_at": {
+  "wert": 20374.795,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_mensch_geografie_b": {
+  "wert": 42.959375,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_mensch_geografie_k": {
+  "wert": 5388.24375,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_mensch_geografie_n": {
+  "wert": 1070.335,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_mensch_geografie_o": {
+  "wert": 1443.68375,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_mensch_geografie_s": {
+  "wert": 2301.825,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_mensch_geografie_st": {
+  "wert": 4888.071875,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_mensch_geografie_t": {
+  "wert": 4024.536875,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_mensch_geografie_v": {
+  "wert": 1199.666875,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_mensch_geografie_w": {
+  "wert": 15.4725,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_mensch_natur_at": {
+  "wert": 6781.673125,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_mensch_natur_b": {
+  "wert": 804.869375,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_mensch_natur_k": {
+  "wert": 34.41,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_mensch_natur_n": {
+  "wert": 3883.73,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_mensch_natur_o": {
+  "wert": 204.87625,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_mensch_natur_s": {
+  "wert": 101.018125,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_mensch_natur_st": {
+  "wert": 1575.37625,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_mensch_natur_t": {
+  "wert": 39.828125,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_mensch_natur_v": {
+  "wert": 20.35375,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_mensch_natur_w": {
+  "wert": 117.21125,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_natur_geografie_at": {
+  "wert": 9372.695,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_natur_geografie_b": {
+  "wert": 141.493125,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_natur_geografie_k": {
+  "wert": 699.381875,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_natur_geografie_n": {
+  "wert": 568.9525,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_natur_geografie_o": {
+  "wert": 354.755,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_natur_geografie_s": {
+  "wert": 1608.023125,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_natur_geografie_st": {
+  "wert": 2887.754375,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_natur_geografie_t": {
+  "wert": 2853.594375,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_natur_geografie_v": {
+  "wert": 257.1475,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_natur_geografie_w": {
+  "wert": 1.593125,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_geografie_at": {
+  "wert": 11465.02125,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_geografie_b": {
+  "wert": 4.271875,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_geografie_k": {
+  "wert": 1857.383125,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_geografie_n": {
+  "wert": 300.28125,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_geografie_o": {
+  "wert": 1035.898125,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_geografie_s": {
+  "wert": 1597.539375,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_geografie_st": {
+  "wert": 1486.790625,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_geografie_t": {
+  "wert": 4437.53375,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_geografie_v": {
+  "wert": 744.729375,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_geografie_w": {
+  "wert": 0.59375,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_mensch_at": {
+  "wert": 24681.085,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_mensch_b": {
+  "wert": 1852.150625,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_mensch_k": {
+  "wert": 779.765625,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_mensch_n": {
+  "wert": 10104.10375,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_mensch_o": {
+  "wert": 8125.549375,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_mensch_s": {
+  "wert": 734.854375,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_mensch_st": {
+  "wert": 2308.14,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_mensch_t": {
+  "wert": 401.8625,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_mensch_v": {
+  "wert": 126.5125,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_mensch_w": {
+  "wert": 248.14625,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_natur_at": {
+  "wert": 2502.65,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_natur_b": {
+  "wert": 405.643125,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_natur_k": {
+  "wert": 72.47125,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_natur_n": {
+  "wert": 743.486875,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_natur_o": {
+  "wert": 141.195625,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_natur_s": {
+  "wert": 217.01375,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_natur_st": {
+  "wert": 718.349375,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_natur_t": {
+  "wert": 140.810625,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_natur_v": {
+  "wert": 43.148125,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_km2_nur_natur_w": {
+  "wert": 20.53125,
+  "einheit": "km²",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_alle_drei_at": {
+  "wert": 5.950713,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_alle_drei_b": {
+  "wert": 1.408164,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_alle_drei_k": {
+  "wert": 4.069422,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_alle_drei_n": {
+  "wert": 6.159451,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_alle_drei_o": {
+  "wert": 2.043596,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_alle_drei_s": {
+  "wert": 5.337537,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_alle_drei_st": {
+  "wert": 13.245,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_alle_drei_t": {
+  "wert": 3.383541,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_alle_drei_v": {
+  "wert": 4.917455,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_alle_drei_w": {
+  "wert": 2.613441,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_frei_at": {
+  "wert": 4.422715,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_frei_b": {
+  "wert": 16.525389,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_frei_k": {
+  "wert": 3.336257,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_frei_n": {
+  "wert": 6.949608,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_frei_o": {
+  "wert": 3.569895,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_frei_s": {
+  "wert": 2.985863,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_frei_st": {
+  "wert": 2.229363,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_frei_t": {
+  "wert": 2.486463,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_frei_v": {
+  "wert": 3.148469,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_frei_w": {
+  "wert": 0.071742,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_mensch_geografie_at": {
+  "wert": 24.290683,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_mensch_geografie_b": {
+  "wert": 1.084313,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_mensch_geografie_k": {
+  "wert": 56.492326,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_mensch_geografie_n": {
+  "wert": 5.578731,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_mensch_geografie_o": {
+  "wert": 12.05243,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_mensch_geografie_s": {
+  "wert": 32.166872,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_mensch_geografie_st": {
+  "wert": 29.800419,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_mensch_geografie_t": {
+  "wert": 31.83933,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_mensch_geografie_v": {
+  "wert": 46.11649,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_mensch_geografie_w": {
+  "wert": 3.731162,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_mensch_natur_at": {
+  "wert": 8.085062,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_mensch_natur_b": {
+  "wert": 20.315256,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_mensch_natur_k": {
+  "wert": 0.360767,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_mensch_natur_n": {
+  "wert": 20.242529,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_mensch_natur_o": {
+  "wert": 1.710386,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_mensch_natur_s": {
+  "wert": 1.411679,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_mensch_natur_st": {
+  "wert": 9.604374,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_mensch_natur_t": {
+  "wert": 0.315092,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_mensch_natur_v": {
+  "wert": 0.78242,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_mensch_natur_w": {
+  "wert": 28.265257,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_natur_geografie_at": {
+  "wert": 11.174059,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_natur_geografie_b": {
+  "wert": 3.571349,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_natur_geografie_k": {
+  "wert": 7.332576,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_natur_geografie_n": {
+  "wert": 2.965458,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_natur_geografie_o": {
+  "wert": 2.961632,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_natur_geografie_s": {
+  "wert": 22.471332,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_natur_geografie_st": {
+  "wert": 17.605365,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_natur_geografie_t": {
+  "wert": 22.575649,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_natur_geografie_v": {
+  "wert": 9.885028,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_natur_geografie_w": {
+  "wert": 0.384179,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_geografie_at": {
+  "wert": 13.668515,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_geografie_b": {
+  "wert": 0.107824,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_geografie_k": {
+  "wert": 19.473487,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_geografie_n": {
+  "wert": 1.565107,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_geografie_o": {
+  "wert": 8.648078,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_geografie_s": {
+  "wert": 22.324827,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_geografie_st": {
+  "wert": 9.064307,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_geografie_t": {
+  "wert": 35.106673,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_geografie_v": {
+  "wert": 28.628201,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_geografie_w": {
+  "wert": 0.143182,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_mensch_at": {
+  "wert": 29.424611,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_mensch_b": {
+  "wert": 46.749095,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_mensch_k": {
+  "wert": 8.175349,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_mensch_n": {
+  "wert": 52.663962,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_mensch_o": {
+  "wert": 67.835227,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_mensch_s": {
+  "wert": 10.269229,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_mensch_st": {
+  "wert": 14.071712,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_mensch_t": {
+  "wert": 3.179256,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_mensch_v": {
+  "wert": 4.863277,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_mensch_w": {
+  "wert": 59.839968,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_natur_at": {
+  "wert": 2.983641,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_natur_b": {
+  "wert": 10.23861,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_natur_k": {
+  "wert": 0.759815,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_natur_n": {
+  "wert": 3.875155,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_natur_o": {
+  "wert": 1.178756,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_natur_s": {
+  "wert": 3.03266,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_natur_st": {
+  "wert": 4.379459,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_natur_t": {
+  "wert": 1.113995,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_natur_v": {
+  "wert": 1.658661,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d1_pct_nur_natur_w": {
+  "wert": 4.95107,
+  "einheit": "%",
+  "quelle": "D1_exklusiv",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_airport_area_major_at": {
+  "wert": 19.3075,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_airport_area_major_b": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_airport_area_major_k": {
+  "wert": 2.234375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_airport_area_major_n": {
+  "wert": 8.55375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_airport_area_major_o": {
+  "wert": 2.44,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_airport_area_major_s": {
+  "wert": 1.704375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_airport_area_major_st": {
+  "wert": 3.07375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_airport_area_major_t": {
+  "wert": 1.30125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_airport_area_major_v": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_airport_area_major_w": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_airport_runway_corridor_5km_at": {
+  "wert": 112.194375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_airport_runway_corridor_5km_b": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_airport_runway_corridor_5km_k": {
+  "wert": 18.72875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_airport_runway_corridor_5km_n": {
+  "wert": 21.913125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_airport_runway_corridor_5km_o": {
+  "wert": 19.128125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_airport_runway_corridor_5km_s": {
+  "wert": 8.48875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_airport_runway_corridor_5km_st": {
+  "wert": 23.009375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_airport_runway_corridor_5km_t": {
+  "wert": 15.87375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_airport_runway_corridor_5km_v": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_airport_runway_corridor_5km_w": {
+  "wert": 5.0525,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_all_exclusions_at": {
+  "wert": 80169.32125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_all_exclusions_b": {
+  "wert": 3307.1775,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_all_exclusions_k": {
+  "wert": 9219.7975,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_all_exclusions_n": {
+  "wert": 17852.64125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_all_exclusions_o": {
+  "wert": 11550.7475,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_all_exclusions_s": {
+  "wert": 6942.221875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_all_exclusions_st": {
+  "wert": 16037.019375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_all_exclusions_t": {
+  "wert": 12325.850625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_all_exclusions_v": {
+  "wert": 2519.48,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_all_exclusions_w": {
+  "wert": 414.385625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_available_cleaned_min_10ha_at": {
+  "wert": 3176.624375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_available_cleaned_min_10ha_b": {
+  "wert": 651.605625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_available_cleaned_min_10ha_k": {
+  "wert": 237.734375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_available_cleaned_min_10ha_n": {
+  "wert": 1290.893125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_available_cleaned_min_10ha_o": {
+  "wert": 371.250625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_available_cleaned_min_10ha_s": {
+  "wert": 142.338125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_available_cleaned_min_10ha_st": {
+  "wert": 259.57375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_available_cleaned_min_10ha_t": {
+  "wert": 173.909375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_available_cleaned_min_10ha_v": {
+  "wert": 49.1625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_available_cleaned_min_10ha_w": {
+  "wert": 0.156875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_cableway_buildings_buffer_at": {
+  "wert": 55.290625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_cableway_buildings_buffer_b": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_cableway_buildings_buffer_k": {
+  "wert": 2.56125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_cableway_buildings_buffer_n": {
+  "wert": 0.409375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_cableway_buildings_buffer_o": {
+  "wert": 1.686875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_cableway_buildings_buffer_s": {
+  "wert": 13.260625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_cableway_buildings_buffer_st": {
+  "wert": 4.8475,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_cableway_buildings_buffer_t": {
+  "wert": 25.205,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_cableway_buildings_buffer_v": {
+  "wert": 7.32,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_cableway_buildings_buffer_w": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_cableway_people_150m_at": {
+  "wert": 504.188125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_cableway_people_150m_b": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_cableway_people_150m_k": {
+  "wert": 31.45125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_cableway_people_150m_n": {
+  "wert": 8.01375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_cableway_people_150m_o": {
+  "wert": 14.971875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_cableway_people_150m_s": {
+  "wert": 120.1275,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_cableway_people_150m_st": {
+  "wert": 41.319375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_cableway_people_150m_t": {
+  "wert": 228.790625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_cableway_people_150m_v": {
+  "wert": 59.51375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_cableway_people_150m_w": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_geography_at": {
+  "wert": 46203.913125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_geography_b": {
+  "wert": 244.514375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_geography_k": {
+  "wert": 8333.150625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_geography_n": {
+  "wert": 3121.320625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_geography_o": {
+  "wert": 3079.12625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_geography_s": {
+  "wert": 5889.335625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_geography_st": {
+  "wert": 11435.15375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_geography_t": {
+  "wert": 11743.349375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_geography_v": {
+  "wert": 2329.465625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_geography_w": {
+  "wert": 28.496875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_human_at": {
+  "wert": 56828.955,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_human_b": {
+  "wert": 2755.769375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_human_k": {
+  "wert": 6590.56125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_human_n": {
+  "wert": 16239.920625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_human_o": {
+  "wert": 10018.89875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_human_s": {
+  "wert": 3519.645625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_human_st": {
+  "wert": 10944.125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_human_t": {
+  "wert": 4893.911875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_human_v": {
+  "wert": 1474.455,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_human_w": {
+  "wert": 391.6675,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_nature_at": {
+  "wert": 23648.42,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_nature_b": {
+  "wert": 1407.795625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_nature_k": {
+  "wert": 1194.405,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_nature_n": {
+  "wert": 6377.92125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_nature_o": {
+  "wert": 945.61625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_nature_s": {
+  "wert": 2308.003125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_nature_st": {
+  "wert": 7354.016875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_nature_t": {
+  "wert": 3461.9175,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_nature_v": {
+  "wert": 448.57125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_exclusion_nature_w": {
+  "wert": 150.173125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_frei_at": {
+  "wert": 3709.731875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_frei_b": {
+  "wert": 654.71875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_frei_k": {
+  "wert": 318.2125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_frei_n": {
+  "wert": 1333.35125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_frei_o": {
+  "wert": 427.615,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_frei_s": {
+  "wert": 213.665,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_frei_st": {
+  "wert": 365.675625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_frei_t": {
+  "wert": 314.2925,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_frei_v": {
+  "wert": 81.90375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_frei_w": {
+  "wert": 0.2975,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_general_buildings_buffer_at": {
+  "wert": 2611.721875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_general_buildings_buffer_b": {
+  "wert": 61.04625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_general_buildings_buffer_k": {
+  "wert": 165.673125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_general_buildings_buffer_n": {
+  "wert": 81.600625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_general_buildings_buffer_o": {
+  "wert": 705.86125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_general_buildings_buffer_s": {
+  "wert": 265.4175,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_general_buildings_buffer_st": {
+  "wert": 744.968125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_general_buildings_buffer_t": {
+  "wert": 395.414375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_general_buildings_buffer_v": {
+  "wert": 132.193125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_general_buildings_buffer_w": {
+  "wert": 59.5475,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_elevation_too_high_at": {
+  "wert": 2301.72,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_elevation_too_high_b": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_elevation_too_high_k": {
+  "wert": 239.69875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_elevation_too_high_n": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_elevation_too_high_o": {
+  "wert": 6.211875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_elevation_too_high_s": {
+  "wert": 259.630625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_elevation_too_high_st": {
+  "wert": 4.16375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_elevation_too_high_t": {
+  "wert": 1737.990625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_elevation_too_high_v": {
+  "wert": 54.024375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_elevation_too_high_w": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_slope_too_steep_at": {
+  "wert": 35290.1225,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_slope_too_steep_b": {
+  "wert": 50.305625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_slope_too_steep_k": {
+  "wert": 5497.57375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_slope_too_steep_n": {
+  "wert": 2742.7525,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_slope_too_steep_o": {
+  "wert": 2349.5475,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_slope_too_steep_s": {
+  "wert": 4944.949375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_slope_too_steep_st": {
+  "wert": 7953.44125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_slope_too_steep_t": {
+  "wert": 10053.380625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_slope_too_steep_v": {
+  "wert": 1691.2325,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_slope_too_steep_w": {
+  "wert": 6.939375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_water_bodies_at": {
+  "wert": 1131.668125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_water_bodies_b": {
+  "wert": 165.055625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_water_bodies_k": {
+  "wert": 143.7125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_water_bodies_n": {
+  "wert": 220.69125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_water_bodies_o": {
+  "wert": 230.375625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_water_bodies_s": {
+  "wert": 87.296875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_water_bodies_st": {
+  "wert": 108.77625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_water_bodies_t": {
+  "wert": 93.85125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_water_bodies_v": {
+  "wert": 60.34875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_water_bodies_w": {
+  "wert": 21.56,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_wind_too_low_at": {
+  "wert": 16404.860625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_wind_too_low_b": {
+  "wert": 29.865625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_wind_too_low_k": {
+  "wert": 4315.431875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_wind_too_low_n": {
+  "wert": 322.16875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_wind_too_low_o": {
+  "wert": 1034.544375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_wind_too_low_s": {
+  "wert": 1903.884375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_wind_too_low_st": {
+  "wert": 4301.799375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_wind_too_low_t": {
+  "wert": 3312.518125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_wind_too_low_v": {
+  "wert": 1184.648125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_geography_wind_too_low_w": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_haeuser_im_gruenen_at": {
+  "wert": 40744.230625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_haeuser_im_gruenen_b": {
+  "wert": 382.78,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_haeuser_im_gruenen_k": {
+  "wert": 4939.605625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_haeuser_im_gruenen_n": {
+  "wert": 11898.825,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_haeuser_im_gruenen_o": {
+  "wert": 8702.594375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_haeuser_im_gruenen_s": {
+  "wert": 2400.111875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_haeuser_im_gruenen_st": {
+  "wert": 7661.093125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_haeuser_im_gruenen_t": {
+  "wert": 3725.57875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_haeuser_im_gruenen_v": {
+  "wert": 755.880625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_haeuser_im_gruenen_w": {
+  "wert": 277.76125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_luftfahrt_at": {
+  "wert": 126.351875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_luftfahrt_b": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_luftfahrt_k": {
+  "wert": 20.004375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_luftfahrt_n": {
+  "wert": 29.20625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_luftfahrt_o": {
+  "wert": 20.66625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_luftfahrt_s": {
+  "wert": 10.115625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_luftfahrt_st": {
+  "wert": 24.44875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_luftfahrt_t": {
+  "wert": 16.858125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_luftfahrt_v": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_luftfahrt_w": {
+  "wert": 5.0525,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_military_restricted_area_at": {
+  "wert": 328.99875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_military_restricted_area_b": {
+  "wert": 36.318125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_military_restricted_area_k": {
+  "wert": 2.568125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_military_restricted_area_n": {
+  "wert": 194.25,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_military_restricted_area_o": {
+  "wert": 7.555,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_military_restricted_area_s": {
+  "wert": 2.6025,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_military_restricted_area_st": {
+  "wert": 18.79375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_military_restricted_area_t": {
+  "wert": 65.3625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_military_restricted_area_v": {
+  "wert": 0.1825,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_military_restricted_area_w": {
+  "wert": 1.36625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_nature_protection_areas_at": {
+  "wert": 23648.42,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_nature_protection_areas_b": {
+  "wert": 1407.795625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_nature_protection_areas_k": {
+  "wert": 1194.405,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_nature_protection_areas_n": {
+  "wert": 6377.92125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_nature_protection_areas_o": {
+  "wert": 945.61625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_nature_protection_areas_s": {
+  "wert": 2308.003125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_nature_protection_areas_st": {
+  "wert": 7354.016875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_nature_protection_areas_t": {
+  "wert": 3461.9175,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_nature_protection_areas_v": {
+  "wert": 448.57125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_nature_protection_areas_w": {
+  "wert": 150.173125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_nonresidential_hulls_buffer_at": {
+  "wert": 603.12125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_nonresidential_hulls_buffer_b": {
+  "wert": 16.04625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_nonresidential_hulls_buffer_k": {
+  "wert": 73.74,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_nonresidential_hulls_buffer_n": {
+  "wert": 31.285625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_nonresidential_hulls_buffer_o": {
+  "wert": 48.51375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_nonresidential_hulls_buffer_s": {
+  "wert": 91.53375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_nonresidential_hulls_buffer_st": {
+  "wert": 115.73,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_nonresidential_hulls_buffer_t": {
+  "wert": 182.01125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_nonresidential_hulls_buffer_v": {
+  "wert": 39.976875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_nonresidential_hulls_buffer_w": {
+  "wert": 4.28375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_osm_nature_protection_areas_at": {
+  "wert": 6663.9525,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_osm_nature_protection_areas_b": {
+  "wert": 101.58,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_osm_nature_protection_areas_k": {
+  "wert": 464.920625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_osm_nature_protection_areas_n": {
+  "wert": 139.15875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_osm_nature_protection_areas_o": {
+  "wert": 239.865625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_osm_nature_protection_areas_s": {
+  "wert": 874.881875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_osm_nature_protection_areas_st": {
+  "wert": 2833.87,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_osm_nature_protection_areas_t": {
+  "wert": 1560.19375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_osm_nature_protection_areas_v": {
+  "wert": 402.60875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_osm_nature_protection_areas_w": {
+  "wert": 46.873125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_power_lines_110kv_plus_at": {
+  "wert": 2611.89875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_power_lines_110kv_plus_b": {
+  "wert": 113.395,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_power_lines_110kv_plus_k": {
+  "wert": 307.176875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_power_lines_110kv_plus_n": {
+  "wert": 679.675,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_power_lines_110kv_plus_o": {
+  "wert": 370.301875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_power_lines_110kv_plus_s": {
+  "wert": 227.515,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_power_lines_110kv_plus_st": {
+  "wert": 444.26,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_power_lines_110kv_plus_t": {
+  "wert": 349.475,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_power_lines_110kv_plus_v": {
+  "wert": 100.13,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_power_lines_110kv_plus_w": {
+  "wert": 19.97,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_rail_main_at": {
+  "wert": 1905.339375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_rail_main_b": {
+  "wert": 77.42875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_rail_main_k": {
+  "wert": 174.634375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_rail_main_n": {
+  "wert": 623.289375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_rail_main_o": {
+  "wert": 332.865,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_rail_main_s": {
+  "wert": 109.431875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_rail_main_st": {
+  "wert": 347.594375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_rail_main_t": {
+  "wert": 142.551875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_rail_main_v": {
+  "wert": 43.274375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_rail_main_w": {
+  "wert": 54.269375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_road_federal_state_at": {
+  "wert": 11156.260625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_road_federal_state_b": {
+  "wert": 557.94,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_road_federal_state_k": {
+  "wert": 968.7625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_road_federal_state_n": {
+  "wert": 4075.795,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_road_federal_state_o": {
+  "wert": 2075.71625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_road_federal_state_s": {
+  "wert": 507.323125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_road_federal_state_st": {
+  "wert": 1817.709375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_road_federal_state_t": {
+  "wert": 726.7925,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_road_federal_state_v": {
+  "wert": 256.599375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_road_federal_state_w": {
+  "wert": 169.6225,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_road_motorway_trunk_at": {
+  "wert": 847.52625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_road_motorway_trunk_b": {
+  "wert": 76.593125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_road_motorway_trunk_k": {
+  "wert": 98.645,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_road_motorway_trunk_n": {
+  "wert": 207.988125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_road_motorway_trunk_o": {
+  "wert": 115.35875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_road_motorway_trunk_s": {
+  "wert": 50.845,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_road_motorway_trunk_st": {
+  "wert": 168.47125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_road_motorway_trunk_t": {
+  "wert": 80.355625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_road_motorway_trunk_v": {
+  "wert": 26.44875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_road_motorway_trunk_w": {
+  "wert": 22.820625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_schutzgebiet_at": {
+  "wert": 23815.744375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_schutzgebiet_b": {
+  "wert": 1408.306875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_schutzgebiet_k": {
+  "wert": 1195.386875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_schutzgebiet_n": {
+  "wert": 6378.200625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_schutzgebiet_o": {
+  "wert": 946.534375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_schutzgebiet_s": {
+  "wert": 2308.795,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_schutzgebiet_st": {
+  "wert": 7354.24,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_schutzgebiet_t": {
+  "wert": 3624.514375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_schutzgebiet_v": {
+  "wert": 449.55125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_schutzgebiet_w": {
+  "wert": 150.215,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_settlement_buffer_at": {
+  "wert": 45686.591875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_settlement_buffer_b": {
+  "wert": 2546.763125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_settlement_buffer_k": {
+  "wert": 5695.643125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_settlement_buffer_n": {
+  "wert": 13447.55625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_settlement_buffer_o": {
+  "wert": 9060.105625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_settlement_buffer_s": {
+  "wert": 2258.7425,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_settlement_buffer_st": {
+  "wert": 7931.1525,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_settlement_buffer_t": {
+  "wert": 3260.39375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_settlement_buffer_v": {
+  "wert": 1113.145625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_settlement_buffer_w": {
+  "wert": 373.089375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_verkehr_at": {
+  "wert": 13162.346875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_verkehr_b": {
+  "wert": 671.666875,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_verkehr_k": {
+  "wert": 1147.194375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_verkehr_n": {
+  "wert": 4552.4725,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_verkehr_o": {
+  "wert": 2347.40625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_verkehr_s": {
+  "wert": 709.585625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_verkehr_st": {
+  "wert": 2131.434375,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_verkehr_t": {
+  "wert": 1052.340625,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_verkehr_v": {
+  "wert": 348.753125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_km2_verkehr_w": {
+  "wert": 201.493125,
+  "einheit": "km²",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_airport_area_major_at": {
+  "wert": 0.023018,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_airport_area_major_b": {
+  "wert": 0.0,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_airport_area_major_k": {
+  "wert": 0.023426,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_airport_area_major_n": {
+  "wert": 0.044583,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_airport_area_major_o": {
+  "wert": 0.02037,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_airport_area_major_s": {
+  "wert": 0.023818,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_airport_area_major_st": {
+  "wert": 0.018739,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_airport_area_major_t": {
+  "wert": 0.010295,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_airport_area_major_v": {
+  "wert": 0.0,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_airport_area_major_w": {
+  "wert": 0.0,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_airport_runway_corridor_5km_at": {
+  "wert": 0.133757,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_airport_runway_corridor_5km_b": {
+  "wert": 0.0,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_airport_runway_corridor_5km_k": {
+  "wert": 0.196359,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_airport_runway_corridor_5km_n": {
+  "wert": 0.114214,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_airport_runway_corridor_5km_o": {
+  "wert": 0.159689,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_airport_runway_corridor_5km_s": {
+  "wert": 0.118626,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_airport_runway_corridor_5km_st": {
+  "wert": 0.140278,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_airport_runway_corridor_5km_t": {
+  "wert": 0.125582,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_airport_runway_corridor_5km_v": {
+  "wert": 0.0,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_airport_runway_corridor_5km_w": {
+  "wert": 1.2184,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_all_exclusions_at": {
+  "wert": 95.577285,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_all_exclusions_b": {
+  "wert": 83.474611,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_all_exclusions_k": {
+  "wert": 96.663743,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_all_exclusions_n": {
+  "wert": 93.050392,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_all_exclusions_o": {
+  "wert": 96.430105,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_all_exclusions_s": {
+  "wert": 97.014137,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_all_exclusions_st": {
+  "wert": 97.770637,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_all_exclusions_t": {
+  "wert": 97.513537,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_all_exclusions_v": {
+  "wert": 96.851531,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_all_exclusions_w": {
+  "wert": 99.928258,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_available_cleaned_min_10ha_at": {
+  "wert": 3.787149,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_available_cleaned_min_10ha_b": {
+  "wert": 16.446812,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_available_cleaned_min_10ha_k": {
+  "wert": 2.492495,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_available_cleaned_min_10ha_n": {
+  "wert": 6.72831,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_available_cleaned_min_10ha_o": {
+  "wert": 3.099344,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_available_cleaned_min_10ha_s": {
+  "wert": 1.989105,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_available_cleaned_min_10ha_st": {
+  "wert": 1.582507,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_available_cleaned_min_10ha_t": {
+  "wert": 1.37585,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_available_cleaned_min_10ha_v": {
+  "wert": 1.88986,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_available_cleaned_min_10ha_w": {
+  "wert": 0.03783,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_cableway_buildings_buffer_at": {
+  "wert": 0.065917,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_cableway_buildings_buffer_b": {
+  "wert": 0.0,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_cableway_buildings_buffer_k": {
+  "wert": 0.026853,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_cableway_buildings_buffer_n": {
+  "wert": 0.002134,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_cableway_buildings_buffer_o": {
+  "wert": 0.014083,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_cableway_buildings_buffer_s": {
+  "wert": 0.185311,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_cableway_buildings_buffer_st": {
+  "wert": 0.029553,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_cableway_buildings_buffer_t": {
+  "wert": 0.199404,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_cableway_buildings_buffer_v": {
+  "wert": 0.281389,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_cableway_buildings_buffer_w": {
+  "wert": 0.0,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_cableway_people_150m_at": {
+  "wert": 0.601089,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_cableway_people_150m_b": {
+  "wert": 0.0,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_cableway_people_150m_k": {
+  "wert": 0.329746,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_cableway_people_150m_n": {
+  "wert": 0.041769,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_cableway_people_150m_o": {
+  "wert": 0.124991,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_cableway_people_150m_s": {
+  "wert": 1.678723,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_cableway_people_150m_st": {
+  "wert": 0.251906,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_cableway_people_150m_t": {
+  "wert": 1.810032,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_cableway_people_150m_v": {
+  "wert": 2.287773,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_cableway_people_150m_w": {
+  "wert": 0.0,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_geography_at": {
+  "wert": 55.083971,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_geography_b": {
+  "wert": 6.17165,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_geography_k": {
+  "wert": 87.367812,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_geography_n": {
+  "wert": 16.268747,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_geography_o": {
+  "wert": 25.705736,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_geography_s": {
+  "wert": 82.300569,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_geography_st": {
+  "wert": 69.715091,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_geography_t": {
+  "wert": 92.905193,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_geography_v": {
+  "wert": 89.547174,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_geography_w": {
+  "wert": 6.871964,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_human_at": {
+  "wert": 67.751069,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_human_b": {
+  "wert": 69.556828,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_human_k": {
+  "wert": 69.097865,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_human_n": {
+  "wert": 84.644673,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_human_o": {
+  "wert": 83.641639,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_human_s": {
+  "wert": 49.185317,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_human_st": {
+  "wert": 66.721505,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_human_t": {
+  "wert": 38.717219,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_human_v": {
+  "wert": 56.679642,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_human_w": {
+  "wert": 94.449828,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_nature_at": {
+  "wert": 28.193475,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_nature_b": {
+  "wert": 35.533379,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_nature_k": {
+  "wert": 12.522581,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_nature_n": {
+  "wert": 33.242592,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_nature_o": {
+  "wert": 7.89437,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_nature_s": {
+  "wert": 32.253209,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_nature_st": {
+  "wert": 44.834199,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_nature_t": {
+  "wert": 27.388278,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_nature_v": {
+  "wert": 17.243563,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_exclusion_nature_w": {
+  "wert": 36.213946,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_frei_at": {
+  "wert": 4.422715,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_frei_b": {
+  "wert": 16.525389,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_frei_k": {
+  "wert": 3.336257,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_frei_n": {
+  "wert": 6.949608,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_frei_o": {
+  "wert": 3.569895,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_frei_s": {
+  "wert": 2.985863,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_frei_st": {
+  "wert": 2.229363,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_frei_t": {
+  "wert": 2.486463,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_frei_v": {
+  "wert": 3.148469,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_frei_w": {
+  "wert": 0.071742,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_general_buildings_buffer_at": {
+  "wert": 3.113676,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_general_buildings_buffer_b": {
+  "wert": 1.540834,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_general_buildings_buffer_k": {
+  "wert": 1.736978,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_general_buildings_buffer_n": {
+  "wert": 0.425314,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_general_buildings_buffer_o": {
+  "wert": 5.892803,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_general_buildings_buffer_s": {
+  "wert": 3.709079,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_general_buildings_buffer_st": {
+  "wert": 4.541742,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_general_buildings_buffer_t": {
+  "wert": 3.128243,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_general_buildings_buffer_v": {
+  "wert": 5.081646,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_general_buildings_buffer_w": {
+  "wert": 14.35976,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_elevation_too_high_at": {
+  "wert": 2.744094,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_elevation_too_high_b": {
+  "wert": 0.0,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_elevation_too_high_k": {
+  "wert": 2.51309,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_elevation_too_high_n": {
+  "wert": 0.0,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_elevation_too_high_o": {
+  "wert": 0.051859,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_elevation_too_high_s": {
+  "wert": 3.62821,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_elevation_too_high_st": {
+  "wert": 0.025385,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_elevation_too_high_t": {
+  "wert": 13.74977,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_elevation_too_high_v": {
+  "wert": 2.076755,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_elevation_too_high_w": {
+  "wert": 0.0,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_slope_too_steep_at": {
+  "wert": 42.072629,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_slope_too_steep_b": {
+  "wert": 1.269736,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_slope_too_steep_k": {
+  "wert": 57.638582,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_slope_too_steep_n": {
+  "wert": 14.295599,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_slope_too_steep_o": {
+  "wert": 19.614931,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_slope_too_steep_s": {
+  "wert": 69.103236,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_slope_too_steep_st": {
+  "wert": 48.488625,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_slope_too_steep_t": {
+  "wert": 79.535339,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_slope_too_steep_v": {
+  "wert": 65.012803,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_slope_too_steep_w": {
+  "wert": 1.673416,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_water_bodies_at": {
+  "wert": 1.349167,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_water_bodies_b": {
+  "wert": 4.166076,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_water_bodies_k": {
+  "wert": 1.506735,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_water_bodies_n": {
+  "wert": 1.150273,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_water_bodies_o": {
+  "wert": 1.923265,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_water_bodies_s": {
+  "wert": 1.219931,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_water_bodies_st": {
+  "wert": 0.663161,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_water_bodies_t": {
+  "wert": 0.742486,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_water_bodies_v": {
+  "wert": 2.319871,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_water_bodies_w": {
+  "wert": 5.199151,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_wind_too_low_at": {
+  "wert": 19.557756,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_wind_too_low_b": {
+  "wert": 0.753821,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_wind_too_low_k": {
+  "wert": 45.244573,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_wind_too_low_n": {
+  "wert": 1.679187,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_wind_too_low_o": {
+  "wert": 8.636776,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_wind_too_low_s": {
+  "wert": 26.605848,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_wind_too_low_st": {
+  "wert": 26.226174,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_wind_too_low_t": {
+  "wert": 26.206334,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_wind_too_low_v": {
+  "wert": 45.539153,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_geography_wind_too_low_w": {
+  "wert": 0.0,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_haeuser_im_gruenen_at": {
+  "wert": 48.574977,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_haeuser_im_gruenen_b": {
+  "wert": 9.661535,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_haeuser_im_gruenen_k": {
+  "wert": 51.78864,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_haeuser_im_gruenen_n": {
+  "wert": 62.018293,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_haeuser_im_gruenen_o": {
+  "wert": 72.652622,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_haeuser_im_gruenen_s": {
+  "wert": 33.540383,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_haeuser_im_gruenen_st": {
+  "wert": 46.706307,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_haeuser_im_gruenen_t": {
+  "wert": 29.474182,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_haeuser_im_gruenen_v": {
+  "wert": 29.056867,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_haeuser_im_gruenen_w": {
+  "wert": 66.981566,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_luftfahrt_at": {
+  "wert": 0.150636,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_luftfahrt_b": {
+  "wert": 0.0,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_luftfahrt_k": {
+  "wert": 0.209733,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_luftfahrt_n": {
+  "wert": 0.152227,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_luftfahrt_o": {
+  "wert": 0.17253,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_luftfahrt_s": {
+  "wert": 0.141361,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_luftfahrt_st": {
+  "wert": 0.149053,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_luftfahrt_t": {
+  "wert": 0.13337,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_luftfahrt_v": {
+  "wert": 0.0,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_luftfahrt_w": {
+  "wert": 1.2184,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_military_restricted_area_at": {
+  "wert": 0.39223,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_military_restricted_area_b": {
+  "wert": 0.916685,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_military_restricted_area_k": {
+  "wert": 0.026925,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_military_restricted_area_n": {
+  "wert": 1.012457,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_military_restricted_area_o": {
+  "wert": 0.063072,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_military_restricted_area_s": {
+  "wert": 0.036369,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_military_restricted_area_st": {
+  "wert": 0.114577,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_military_restricted_area_t": {
+  "wert": 0.517103,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_military_restricted_area_v": {
+  "wert": 0.007015,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_military_restricted_area_w": {
+  "wert": 0.329468,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_nature_protection_areas_at": {
+  "wert": 28.193475,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_nature_protection_areas_b": {
+  "wert": 35.533379,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_nature_protection_areas_k": {
+  "wert": 12.522581,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_nature_protection_areas_n": {
+  "wert": 33.242592,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_nature_protection_areas_o": {
+  "wert": 7.89437,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_nature_protection_areas_s": {
+  "wert": 32.253209,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_nature_protection_areas_st": {
+  "wert": 44.834199,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_nature_protection_areas_t": {
+  "wert": 27.388278,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_nature_protection_areas_v": {
+  "wert": 17.243563,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_nature_protection_areas_w": {
+  "wert": 36.213946,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_nonresidential_hulls_buffer_at": {
+  "wert": 0.719037,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_nonresidential_hulls_buffer_b": {
+  "wert": 0.405014,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_nonresidential_hulls_buffer_k": {
+  "wert": 0.773117,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_nonresidential_hulls_buffer_n": {
+  "wert": 0.163065,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_nonresidential_hulls_buffer_o": {
+  "wert": 0.405012,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_nonresidential_hulls_buffer_s": {
+  "wert": 1.279139,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_nonresidential_hulls_buffer_st": {
+  "wert": 0.705555,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_nonresidential_hulls_buffer_t": {
+  "wert": 1.439946,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_nonresidential_hulls_buffer_v": {
+  "wert": 1.536754,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_nonresidential_hulls_buffer_w": {
+  "wert": 1.033018,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_osm_nature_protection_areas_at": {
+  "wert": 7.944716,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_osm_nature_protection_areas_b": {
+  "wert": 2.563924,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_osm_nature_protection_areas_k": {
+  "wert": 4.874399,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_osm_nature_protection_areas_n": {
+  "wert": 0.725314,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_osm_nature_protection_areas_o": {
+  "wert": 2.002491,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_osm_nature_protection_areas_s": {
+  "wert": 12.226044,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_osm_nature_protection_areas_st": {
+  "wert": 17.276856,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_osm_nature_protection_areas_t": {
+  "wert": 12.343165,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_osm_nature_protection_areas_v": {
+  "wert": 15.476715,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_osm_nature_protection_areas_w": {
+  "wert": 11.30336,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_power_lines_110kv_plus_at": {
+  "wert": 3.113887,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_power_lines_110kv_plus_b": {
+  "wert": 2.86214,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_power_lines_110kv_plus_k": {
+  "wert": 3.220555,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_power_lines_110kv_plus_n": {
+  "wert": 3.542558,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_power_lines_110kv_plus_o": {
+  "wert": 3.091423,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_power_lines_110kv_plus_s": {
+  "wert": 3.17941,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_power_lines_110kv_plus_st": {
+  "wert": 2.708457,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_power_lines_110kv_plus_t": {
+  "wert": 2.764803,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_power_lines_110kv_plus_v": {
+  "wert": 3.849105,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_power_lines_110kv_plus_w": {
+  "wert": 4.815725,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_rail_main_at": {
+  "wert": 2.271532,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_rail_main_b": {
+  "wert": 1.954336,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_rail_main_k": {
+  "wert": 1.830931,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_rail_main_n": {
+  "wert": 3.248669,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_rail_main_o": {
+  "wert": 2.778886,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_rail_main_s": {
+  "wert": 1.529257,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_rail_main_st": {
+  "wert": 2.11913,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_rail_main_t": {
+  "wert": 1.127771,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_rail_main_v": {
+  "wert": 1.663514,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_rail_main_w": {
+  "wert": 13.08695,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_road_federal_state_at": {
+  "wert": 13.300413,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_road_federal_state_b": {
+  "wert": 14.08265,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_road_federal_state_k": {
+  "wert": 10.156862,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_road_federal_state_n": {
+  "wert": 21.243597,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_road_federal_state_o": {
+  "wert": 17.328882,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_road_federal_state_s": {
+  "wert": 7.089591,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_road_federal_state_st": {
+  "wert": 11.081773,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_road_federal_state_t": {
+  "wert": 5.749876,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_road_federal_state_v": {
+  "wert": 9.863957,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_road_federal_state_w": {
+  "wert": 40.904124,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_road_motorway_trunk_at": {
+  "wert": 1.010415,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_road_motorway_trunk_b": {
+  "wert": 1.933244,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_road_motorway_trunk_k": {
+  "wert": 1.03423,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_road_motorway_trunk_n": {
+  "wert": 1.084062,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_road_motorway_trunk_o": {
+  "wert": 0.963059,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_road_motorway_trunk_s": {
+  "wert": 0.710534,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_road_motorway_trunk_st": {
+  "wert": 1.027095,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_road_motorway_trunk_t": {
+  "wert": 0.635718,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_road_motorway_trunk_v": {
+  "wert": 1.016719,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_road_motorway_trunk_w": {
+  "wert": 5.503148,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_schutzgebiet_at": {
+  "wert": 28.392958,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_schutzgebiet_b": {
+  "wert": 35.546284,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_schutzgebiet_k": {
+  "wert": 12.532875,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_schutzgebiet_n": {
+  "wert": 33.244048,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_schutzgebiet_o": {
+  "wert": 7.902035,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_schutzgebiet_s": {
+  "wert": 32.264275,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_schutzgebiet_st": {
+  "wert": 44.835559,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_schutzgebiet_t": {
+  "wert": 28.674631,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_schutzgebiet_v": {
+  "wert": 17.281235,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_schutzgebiet_w": {
+  "wert": 36.224045,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_settlement_buffer_at": {
+  "wert": 54.467224,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_settlement_buffer_b": {
+  "wert": 64.281419,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_settlement_buffer_k": {
+  "wert": 59.715214,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_settlement_buffer_n": {
+  "wert": 70.09049,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_settlement_buffer_o": {
+  "wert": 75.637264,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_settlement_buffer_s": {
+  "wert": 31.564816,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_settlement_buffer_st": {
+  "wert": 48.35274,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_settlement_buffer_t": {
+  "wert": 25.793962,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_settlement_buffer_v": {
+  "wert": 42.79052,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_settlement_buffer_w": {
+  "wert": 89.969751,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_verkehr_at": {
+  "wert": 15.692055,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_verkehr_b": {
+  "wert": 16.953167,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_verkehr_k": {
+  "wert": 12.027607,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_verkehr_n": {
+  "wert": 23.728105,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_verkehr_o": {
+  "wert": 19.597055,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_verkehr_s": {
+  "wert": 9.91611,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_verkehr_st": {
+  "wert": 12.994416,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_verkehr_t": {
+  "wert": 8.325385,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_verkehr_v": {
+  "wert": 13.406447,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d2_pct_verkehr_w": {
+  "wert": 48.589661,
+  "einheit": "%",
+  "quelle": "D2_kriterien",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_available_cleaned_min_10ha_at": {
+  "wert": 3176.624375,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_available_cleaned_min_10ha_b": {
+  "wert": 651.605625,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_available_cleaned_min_10ha_k": {
+  "wert": 237.734375,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_available_cleaned_min_10ha_n": {
+  "wert": 1290.893125,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_available_cleaned_min_10ha_o": {
+  "wert": 371.250625,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_available_cleaned_min_10ha_s": {
+  "wert": 142.338125,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_available_cleaned_min_10ha_st": {
+  "wert": 259.57375,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_available_cleaned_min_10ha_t": {
+  "wert": 173.909375,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_available_cleaned_min_10ha_v": {
+  "wert": 49.1625,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_available_cleaned_min_10ha_w": {
+  "wert": 0.156875,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_frei_at": {
+  "wert": 3709.731875,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_frei_b": {
+  "wert": 654.71875,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_frei_k": {
+  "wert": 318.2125,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_frei_n": {
+  "wert": 1333.35125,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_frei_o": {
+  "wert": 427.615,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_frei_s": {
+  "wert": 213.665,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_frei_st": {
+  "wert": 365.675625,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_frei_t": {
+  "wert": 314.2925,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_frei_v": {
+  "wert": 81.90375,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_frei_w": {
+  "wert": 0.2975,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_kleinflaechen_at": {
+  "wert": 533.1075,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_kleinflaechen_b": {
+  "wert": 3.113125,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_kleinflaechen_k": {
+  "wert": 80.478125,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_kleinflaechen_n": {
+  "wert": 42.458125,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_kleinflaechen_o": {
+  "wert": 56.364375,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_kleinflaechen_s": {
+  "wert": 71.326875,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_kleinflaechen_st": {
+  "wert": 106.101875,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_kleinflaechen_t": {
+  "wert": 140.383125,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_kleinflaechen_v": {
+  "wert": 32.74125,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_km2_kleinflaechen_w": {
+  "wert": 0.140625,
+  "einheit": "km²",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_available_cleaned_min_10ha_at": {
+  "wert": 3.787149,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_available_cleaned_min_10ha_b": {
+  "wert": 16.446812,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_available_cleaned_min_10ha_k": {
+  "wert": 2.492495,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_available_cleaned_min_10ha_n": {
+  "wert": 6.72831,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_available_cleaned_min_10ha_o": {
+  "wert": 3.099344,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_available_cleaned_min_10ha_s": {
+  "wert": 1.989105,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_available_cleaned_min_10ha_st": {
+  "wert": 1.582507,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_available_cleaned_min_10ha_t": {
+  "wert": 1.37585,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_available_cleaned_min_10ha_v": {
+  "wert": 1.88986,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_available_cleaned_min_10ha_w": {
+  "wert": 0.03783,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_frei_at": {
+  "wert": 4.422715,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_frei_b": {
+  "wert": 16.525389,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_frei_k": {
+  "wert": 3.336257,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_frei_n": {
+  "wert": 6.949608,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_frei_o": {
+  "wert": 3.569895,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_frei_s": {
+  "wert": 2.985863,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_frei_st": {
+  "wert": 2.229363,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_frei_t": {
+  "wert": 2.486463,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_frei_v": {
+  "wert": 3.148469,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_frei_w": {
+  "wert": 0.071742,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_kleinflaechen_at": {
+  "wert": 0.635567,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_kleinflaechen_b": {
+  "wert": 0.078577,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_kleinflaechen_k": {
+  "wert": 0.843762,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_kleinflaechen_n": {
+  "wert": 0.221298,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_kleinflaechen_o": {
+  "wert": 0.470552,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_kleinflaechen_s": {
+  "wert": 0.996758,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_kleinflaechen_st": {
+  "wert": 0.646856,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_kleinflaechen_t": {
+  "wert": 1.110613,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_kleinflaechen_v": {
+  "wert": 1.258609,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "d3_pct_kleinflaechen_w": {
+  "wert": 0.033911,
+  "einheit": "%",
+  "quelle": "D3_eignung",
+  "stand": "58caa8ffa694"
+ },
+ "hig_gesamt_km2": {
+  "wert": 40744.230625000004,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*)",
+  "stand": "58caa8ffa694"
+ },
+ "k_abfolge_nach_10_ha_filter_pct_von_at": {
+  "wert": 3.8,
+  "einheit": "% von AT",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_abfolge_nach_geografie_pct_von_at": {
+  "wert": 4.4,
+  "einheit": "% von AT",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_abfolge_nach_mensch_pct_von_at": {
+  "wert": 32.2,
+  "einheit": "% von AT",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_abfolge_nach_natur_pct_von_at": {
+  "wert": 18.1,
+  "einheit": "% von AT",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_amtliche_windzone_burgenland_km2": {
+  "wert": 26.4,
+  "einheit": "km²",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_amtliche_windzone_kaernten_km2": {
+  "wert": 8.1,
+  "einheit": "km²",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_amtliche_windzone_niederoesterreich_km2": {
+  "wert": 294.3,
+  "einheit": "km²",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_amtliche_windzone_oberoesterreich_km2": {
+  "wert": 0.1,
+  "einheit": "km²",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_amtliche_windzone_oesterreich_km2": {
+  "wert": 396.2,
+  "einheit": "km²",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_amtliche_windzone_salzburg_km2": {
+  "wert": 18.0,
+  "einheit": "km²",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_amtliche_windzone_steiermark_km2": {
+  "wert": 49.2,
+  "einheit": "km²",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_amtliche_windzone_tirol_km2": {
+  "wert": 0.1,
+  "einheit": "km²",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_amtliche_windzone_vorarlberg_km2": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_amtliche_windzone_wien_km2": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_anteil_burgenland_niederoesterreich_an_eignung_pct": {
+  "wert": 61.1,
+  "einheit": "%",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_anteil_natur_auch_durch_mensch_geografie_ausgeschlossen_pct": {
+  "wert": 89.4,
+  "einheit": "%",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_ausschluss_gesamt_km2": {
+  "wert": 80169.3,
+  "einheit": "km²",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_ausschluss_gesamt_pct": {
+  "wert": 95.6,
+  "einheit": "%",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_eignung_ge_10_ha_km2": {
+  "wert": 3176.6,
+  "einheit": "km²",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_eignung_ge_10_ha_pct": {
+  "wert": 3.8,
+  "einheit": "%",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_frei_roh_vor_10_ha_filter_km2": {
+  "wert": 3709.7,
+  "einheit": "km²",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_frei_roh_vor_10_ha_filter_pct": {
+  "wert": 4.4,
+  "einheit": "%",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_kleinflaechen_lt_10_ha_km2": {
+  "wert": 533.1,
+  "einheit": "km²",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_kleinflaechen_lt_10_ha_pct": {
+  "wert": 0.6,
+  "einheit": "%",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "k_referenzflaeche_at_km2": {
+  "wert": 83879.1,
+  "einheit": "km²",
+  "quelle": "K_kernzahlen (angezeigte Rundung)",
+  "stand": "58caa8ffa694"
+ },
+ "l1_at_bestand_c48_km2": {
+  "wert": 348.08,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_at_bestand_c48_pct": {
+  "wert": 64.31982519376398,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_at_bestand_km2": {
+  "wert": 541.170625,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_at_bestand_pct": {
+  "wert": 0.6451797020091837,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_at_bestand_wald_km2": {
+  "wert": 134.7725,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_at_bestand_wald_pct": {
+  "wert": 24.90388313297678,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_at_land_c48_km2": {
+  "wert": 23541.916875,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_at_land_c48_pct": {
+  "wert": 28.066502896637218,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_at_land_km2": {
+  "wert": 83879.053125,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_at_land_pct": {
+  "wert": 100.0,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_at_land_wald_km2": {
+  "wert": 36460.7875,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_at_land_wald_pct": {
+  "wert": 43.46828694604437,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_at_pot_c48_km2": {
+  "wert": 775.65625,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_at_pot_c48_pct": {
+  "wert": 27.619729261890807,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_at_pot_km2": {
+  "wert": 2808.34125,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_at_pot_pct": {
+  "wert": 3.3480841108386077,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_at_pot_wald_km2": {
+  "wert": 1477.279375,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_at_pot_wald_pct": {
+  "wert": 52.603271593151305,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_b_bestand_c48_km2": {
+  "wert": 115.886875,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_b_bestand_c48_pct": {
+  "wert": 84.17461492016942,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_b_bestand_km2": {
+  "wert": 137.674375,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_b_bestand_pct": {
+  "wert": 3.474961642420596,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_b_bestand_wald_km2": {
+  "wert": 9.16875,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_b_bestand_wald_pct": {
+  "wert": 6.659736061994106,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_b_land_c48_km2": {
+  "wert": 1841.766875,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_b_land_c48_pct": {
+  "wert": 46.48700417129803,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_b_land_km2": {
+  "wert": 3961.89625,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_b_land_pct": {
+  "wert": 100.0,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_b_land_wald_km2": {
+  "wert": 1218.79,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_b_land_wald_pct": {
+  "wert": 30.762794457325832,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_b_pot_c48_km2": {
+  "wert": 241.810625,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_b_pot_c48_pct": {
+  "wert": 44.31667712833952,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_b_pot_km2": {
+  "wert": 545.6425,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_b_pot_pct": {
+  "wert": 13.772256151331577,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_b_pot_wald_km2": {
+  "wert": 262.54,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_b_pot_wald_pct": {
+  "wert": 48.11575344662485,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_k_bestand_c48_km2": {
+  "wert": 0.00375,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_k_bestand_c48_pct": {
+  "wert": 0.04538234626730201,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_k_bestand_km2": {
+  "wert": 8.263125,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_k_bestand_pct": {
+  "wert": 0.08663363741493246,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_k_bestand_wald_km2": {
+  "wert": 6.935,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_k_bestand_wald_pct": {
+  "wert": 83.9270856969972,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_k_land_c48_km2": {
+  "wert": 1673.220625,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_k_land_c48_pct": {
+  "wert": 17.54265957993334,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_k_land_km2": {
+  "wert": 9538.01,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_k_land_pct": {
+  "wert": 100.0,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_k_land_wald_km2": {
+  "wert": 5193.2675,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_k_land_wald_pct": {
+  "wert": 54.44812387489634,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_k_pot_c48_km2": {
+  "wert": 0.36375,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_k_pot_c48_pct": {
+  "wert": 0.1576987898921037,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_k_pot_km2": {
+  "wert": 230.66125,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_k_pot_pct": {
+  "wert": 2.41833726322367,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_k_pot_wald_km2": {
+  "wert": 116.66125,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_k_pot_wald_pct": {
+  "wert": 50.5768740956706,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_n_bestand_c48_km2": {
+  "wert": 229.26,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_n_bestand_c48_pct": {
+  "wert": 71.8482086719434,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_n_bestand_km2": {
+  "wert": 319.089375,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_n_bestand_pct": {
+  "wert": 1.663137181983158,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_n_bestand_wald_km2": {
+  "wert": 62.500625,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_n_bestand_wald_pct": {
+  "wert": 19.587184624997306,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_n_land_c48_km2": {
+  "wert": 8667.29875,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_n_land_c48_pct": {
+  "wert": 45.17513884152722,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_n_land_km2": {
+  "wert": 19185.9925,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_n_land_pct": {
+  "wert": 100.0,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_n_land_wald_km2": {
+  "wert": 6882.984375,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_n_land_wald_pct": {
+  "wert": 35.87504985733732,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_n_pot_c48_km2": {
+  "wert": 508.64875,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_n_pot_c48_pct": {
+  "wert": 48.04431346712855,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_n_pot_km2": {
+  "wert": 1058.7075,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_n_pot_pct": {
+  "wert": 5.518127352546395,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_n_pot_wald_km2": {
+  "wert": 433.954375,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_n_pot_wald_pct": {
+  "wert": 40.98907158020511,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_o_bestand_c48_km2": {
+  "wert": 1.526875,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_o_bestand_c48_pct": {
+  "wert": 26.02258201959949,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_o_bestand_km2": {
+  "wert": 5.8675,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_o_bestand_pct": {
+  "wert": 0.04898415789303421,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_o_bestand_wald_km2": {
+  "wert": 4.196875,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_o_bestand_wald_pct": {
+  "wert": 71.52748189177674,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_o_land_c48_km2": {
+  "wert": 5408.899375,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_o_land_c48_pct": {
+  "wert": 45.15558261824185,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_o_land_km2": {
+  "wert": 11978.3625,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_o_land_pct": {
+  "wert": 100.0,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_o_land_wald_km2": {
+  "wert": 4728.946875,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_o_land_wald_pct": {
+  "wert": 39.479076334515675,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_o_pot_c48_km2": {
+  "wert": 14.393125,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_o_pot_c48_pct": {
+  "wert": 3.914945268286546,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_o_pot_km2": {
+  "wert": 367.645625,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_o_pot_pct": {
+  "wert": 3.0692477790682995,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_o_pot_wald_km2": {
+  "wert": 325.995625,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_o_pot_wald_pct": {
+  "wert": 88.6711558175077,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_s_bestand_c48_km2": {
+  "wert": 0.004375,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_s_bestand_c48_pct": {
+  "wert": 0.02431399791594304,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_s_bestand_km2": {
+  "wert": 17.99375,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_s_bestand_pct": {
+  "wert": 0.2514538073940695,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_s_bestand_wald_km2": {
+  "wert": 13.09125,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_s_bestand_wald_pct": {
+  "wert": 72.75442862104899,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_s_land_c48_km2": {
+  "wert": 985.93625,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_s_land_c48_pct": {
+  "wert": 13.777974236072591,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_s_land_km2": {
+  "wert": 7155.886875,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_s_land_pct": {
+  "wert": 100.0,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_s_land_wald_km2": {
+  "wert": 2893.320625,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_s_land_wald_pct": {
+  "wert": 40.43273287491706,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_s_pot_c48_km2": {
+  "wert": 0.896875,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_s_pot_c48_pct": {
+  "wert": 0.6548325271515926,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_s_pot_km2": {
+  "wert": 136.9625,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_s_pot_pct": {
+  "wert": 1.9139835829224172,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_s_pot_wald_km2": {
+  "wert": 74.045,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_s_pot_wald_pct": {
+  "wert": 54.06224331477594,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_st_bestand_c48_km2": {
+  "wert": 0.665,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_st_bestand_c48_pct": {
+  "wert": 1.301290283128478,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_st_bestand_km2": {
+  "wert": 51.103125,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_st_bestand_pct": {
+  "wert": 0.3115532234184687,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_st_bestand_wald_km2": {
+  "wert": 38.8125,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_st_bestand_wald_pct": {
+  "wert": 75.9493670886076,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_st_land_c48_km2": {
+  "wert": 3521.746875,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_st_land_c48_pct": {
+  "wert": 21.470538073164196,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_st_land_km2": {
+  "wert": 16402.695,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_st_land_pct": {
+  "wert": 100.0,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_st_land_wald_km2": {
+  "wert": 9495.844375,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_st_land_wald_pct": {
+  "wert": 57.89197674528484,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_st_pot_c48_km2": {
+  "wert": 7.631875,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_st_pot_c48_pct": {
+  "wert": 3.1083743591571165,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_st_pot_km2": {
+  "wert": 245.52625,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_st_pot_pct": {
+  "wert": 1.4968653017080427,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_st_pot_wald_km2": {
+  "wert": 200.135625,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_st_pot_wald_pct": {
+  "wert": 81.5129237708799,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_t_bestand_c48_km2": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_t_bestand_km2": {
+  "wert": 0.081875,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_t_bestand_pct": {
+  "wert": 0.0006477379187112646,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_t_bestand_wald_km2": {
+  "wert": 0.009375,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_t_land_c48_km2": {
+  "wert": 994.14875,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_t_land_c48_pct": {
+  "wert": 7.8650118133057125,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_t_land_km2": {
+  "wert": 12640.143125,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_t_land_pct": {
+  "wert": 100.0,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_t_land_wald_km2": {
+  "wert": 5037.40375,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_t_land_wald_pct": {
+  "wert": 39.85242651277337,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_t_pot_c48_km2": {
+  "wert": 0.95375,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_t_pot_c48_pct": {
+  "wert": 0.5485144101852585,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_t_pot_km2": {
+  "wert": 173.87875,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_t_pot_pct": {
+  "wert": 1.375607445900657,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_t_pot_wald_km2": {
+  "wert": 54.934375,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_t_pot_wald_pct": {
+  "wert": 31.593495467387477,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_v_bestand_c48_km2": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_v_bestand_km2": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_v_bestand_pct": {
+  "wert": 0.0,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_v_bestand_wald_km2": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_v_land_c48_km2": {
+  "wert": 399.140625,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_v_land_c48_pct": {
+  "wert": 15.343396567307687,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_v_land_km2": {
+  "wert": 2601.38375,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_v_land_pct": {
+  "wert": 100.0,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_v_land_wald_km2": {
+  "wert": 931.2625,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_v_land_wald_pct": {
+  "wert": 35.79873596119757,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_v_pot_c48_km2": {
+  "wert": 0.805,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_v_pot_c48_pct": {
+  "wert": 1.6374269005847955,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_v_pot_km2": {
+  "wert": 49.1625,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_v_pot_pct": {
+  "wert": 1.8898595795410806,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_v_pot_wald_km2": {
+  "wert": 9.013125,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_v_pot_wald_pct": {
+  "wert": 18.333333333333336,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_w_bestand_c48_km2": {
+  "wert": 0.733125,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_w_bestand_c48_pct": {
+  "wert": 66.7995444191344,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_w_bestand_km2": {
+  "wert": 1.0975,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_w_bestand_pct": {
+  "wert": 0.26465991351830387,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_w_bestand_wald_km2": {
+  "wert": 0.058125,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_w_bestand_wald_pct": {
+  "wert": 5.29612756264237,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_w_land_c48_km2": {
+  "wert": 49.75875,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_w_land_c48_pct": {
+  "wert": 11.999222297748432,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_w_land_km2": {
+  "wert": 414.683125,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_w_land_pct": {
+  "wert": 100.0,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_w_land_wald_km2": {
+  "wert": 78.9675,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_w_land_wald_pct": {
+  "wert": 19.042853504106297,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_w_pot_c48_km2": {
+  "wert": 0.1525,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_w_pot_km2": {
+  "wert": 0.154375,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_w_pot_pct": {
+  "wert": 0.03722722018167486,
+  "einheit": "%",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "l1_w_pot_wald_km2": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "L1_landnutzung",
+  "stand": "58caa8ffa694"
+ },
+ "natur_amtlich_km2": {
+  "wert": 23648.42,
+  "einheit": "km²",
+  "quelle": "amtliche Schutzgebiete (Band 21); = d2_km2_nature_protection_areas_at",
+  "stand": "58caa8ffa694"
+ },
+ "natur_amtlich_pct": {
+  "wert": 28.193475,
+  "einheit": "%",
+  "quelle": "amtliche Schutzgebiete (Band 21); = d2_pct_nature_protection_areas_at",
+  "stand": "58caa8ffa694"
+ },
+ "natur_ausschluss_km2": {
+  "wert": 23648.42,
+  "einheit": "km²",
+  "quelle": "Ausschluss Natur (Band 28); = d2_km2_exclusion_nature_at",
+  "stand": "58caa8ffa694"
+ },
+ "natur_ausschluss_pct": {
+  "wert": 28.193475,
+  "einheit": "%",
+  "quelle": "Ausschluss Natur (Band 28); = d2_pct_exclusion_nature_at",
+  "stand": "58caa8ffa694"
+ },
+ "natur_nur_natur_pct": {
+  "wert": 2.983641,
+  "einheit": "%",
+  "quelle": "nur Natur (D1); = d1_pct_nur_natur_at",
+  "stand": "58caa8ffa694"
+ },
+ "natur_osm_ausserhalb_amtlich_km2": {
+  "wert": 167.324375,
+  "einheit": "km²",
+  "quelle": "Zellen mit Band osm_nature_protection_areas ohne Band nature_protection_areas im Staatsgebiet (Bundeslandmaske, Zellmittelpunkt)",
+  "stand": "58caa8ffa694"
+ },
+ "natur_osm_km2": {
+  "wert": 6663.9525,
+  "einheit": "km²",
+  "quelle": "OSM-Schutzgebiete (Band 22, nur Information); = d2_km2_osm_nature_protection_areas_at",
+  "stand": "58caa8ffa694"
+ },
+ "natur_osm_pct": {
+  "wert": 7.944716,
+  "einheit": "%",
+  "quelle": "OSM-Schutzgebiete (Band 22, nur Information); = d2_pct_osm_nature_protection_areas_at",
+  "stand": "58caa8ffa694"
+ },
+ "seilbahn_station_in_150m_pct": {
+  "wert": 99.14084177447933,
+  "einheit": "%",
+  "quelle": "Anteil Band cableway_buildings_buffer innerhalb cableway_people_150m (Zellzahl, ganzes Raster)",
+  "stand": "58caa8ffa694"
+ },
+ "streu_eignung_mit_km2": {
+  "wert": 3176.624375,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*)",
+  "stand": "58caa8ffa694"
+ },
+ "streu_eignung_ohne_km2": {
+  "wert": 3886.055625,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*)",
+  "stand": "58caa8ffa694"
+ },
+ "streu_gewinn_km2": {
+  "wert": 709.43125,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*)",
+  "stand": "58caa8ffa694"
+ },
+ "streu_gewinn_pct": {
+  "wert": 22.332865528049727,
+  "einheit": "%",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*)",
+  "stand": "58caa8ffa694"
+ },
+ "streu_gruppen": {
+  "wert": 10852,
+  "einheit": "Anzahl",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*)",
+  "stand": "58caa8ffa694"
+ },
+ "streu_gruppenflaeche_km2": {
+  "wert": 614.69625,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*)",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_b_gewinn_km2": {
+  "wert": 14.855,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_b_nur_km2": {
+  "wert": 14.948125000000001,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_b_zone_km2": {
+  "wert": 84.89,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_k_gewinn_km2": {
+  "wert": 22.080000000000002,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_k_nur_km2": {
+  "wert": 27.275625,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_k_zone_km2": {
+  "wert": 376.85812500000003,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_n_gewinn_km2": {
+  "wert": 0.949375,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_n_nur_km2": {
+  "wert": 1.074375,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_n_zone_km2": {
+  "wert": 34.524375,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_o_gewinn_km2": {
+  "wert": 165.52812500000002,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_o_nur_km2": {
+  "wert": 174.68375,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_o_zone_km2": {
+  "wert": 2713.63,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_s_gewinn_km2": {
+  "wert": 122.565625,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_s_nur_km2": {
+  "wert": 135.62125,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_s_zone_km2": {
+  "wert": 2270.29,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_st_gewinn_km2": {
+  "wert": 326.570625,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_st_nur_km2": {
+  "wert": 387.25125,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_st_zone_km2": {
+  "wert": 6904.1775,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_t_gewinn_km2": {
+  "wert": 39.78875,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_t_nur_km2": {
+  "wert": 56.423125,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_t_zone_km2": {
+  "wert": 1721.185,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_v_gewinn_km2": {
+  "wert": 17.09375,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_v_nur_km2": {
+  "wert": 21.2875,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_v_zone_km2": {
+  "wert": 660.31875,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_w_gewinn_km2": {
+  "wert": 0.0,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_w_nur_km2": {
+  "wert": 0.00125,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_land_w_zone_km2": {
+  "wert": 51.639375,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*), Zellmittelpunkt-Zuordnung",
+  "stand": "58caa8ffa694"
+ },
+ "streu_nur_km2": {
+  "wert": 818.56625,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*)",
+  "stand": "58caa8ffa694"
+ },
+ "streu_zone_km2": {
+  "wert": 14817.513125,
+  "einheit": "km²",
+  "quelle": "streusiedlung_umfang (TIF-Baender haeuser_im_gruenen_*, all_exclusions, available_*)",
+  "stand": "58caa8ffa694"
+ },
+ "t1_ausschluss_gesamt_at": {
+  "wert": 95.577285,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_ausschluss_gesamt_b": {
+  "wert": 83.474611,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_ausschluss_gesamt_k": {
+  "wert": 96.663743,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_ausschluss_gesamt_n": {
+  "wert": 93.050392,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_ausschluss_gesamt_o": {
+  "wert": 96.430105,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_ausschluss_gesamt_s": {
+  "wert": 97.014137,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_ausschluss_gesamt_st": {
+  "wert": 97.770637,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_ausschluss_gesamt_t": {
+  "wert": 97.513537,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_ausschluss_gesamt_v": {
+  "wert": 96.851531,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_ausschluss_gesamt_w": {
+  "wert": 99.928258,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_eignung_ge_10_ha_at": {
+  "wert": 3.787149,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_eignung_ge_10_ha_b": {
+  "wert": 16.446812,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_eignung_ge_10_ha_k": {
+  "wert": 2.492495,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_eignung_ge_10_ha_n": {
+  "wert": 6.72831,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_eignung_ge_10_ha_o": {
+  "wert": 3.099344,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_eignung_ge_10_ha_s": {
+  "wert": 1.989105,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_eignung_ge_10_ha_st": {
+  "wert": 1.582507,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_eignung_ge_10_ha_t": {
+  "wert": 1.37585,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_eignung_ge_10_ha_v": {
+  "wert": 1.88986,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_eignung_ge_10_ha_w": {
+  "wert": 0.03783,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_eignung_in_km2_at": {
+  "wert": 3176.624375,
+  "einheit": "km²",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_eignung_in_km2_b": {
+  "wert": 651.605625,
+  "einheit": "km²",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_eignung_in_km2_k": {
+  "wert": 237.734375,
+  "einheit": "km²",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_eignung_in_km2_n": {
+  "wert": 1290.893125,
+  "einheit": "km²",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_eignung_in_km2_o": {
+  "wert": 371.250625,
+  "einheit": "km²",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_eignung_in_km2_s": {
+  "wert": 142.338125,
+  "einheit": "km²",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_eignung_in_km2_st": {
+  "wert": 259.57375,
+  "einheit": "km²",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_eignung_in_km2_t": {
+  "wert": 173.909375,
+  "einheit": "km²",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_eignung_in_km2_v": {
+  "wert": 49.1625,
+  "einheit": "km²",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_eignung_in_km2_w": {
+  "wert": 0.156875,
+  "einheit": "km²",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_geografie_at": {
+  "wert": 55.083971,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_geografie_b": {
+  "wert": 6.17165,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_geografie_k": {
+  "wert": 87.367812,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_geografie_n": {
+  "wert": 16.268747,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_geografie_o": {
+  "wert": 25.705736,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_geografie_s": {
+  "wert": 82.300569,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_geografie_st": {
+  "wert": 69.715091,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_geografie_t": {
+  "wert": 92.905193,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_geografie_v": {
+  "wert": 89.547174,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_geografie_w": {
+  "wert": 6.871964,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_mensch_at": {
+  "wert": 67.751069,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_mensch_b": {
+  "wert": 69.556828,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_mensch_k": {
+  "wert": 69.097865,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_mensch_n": {
+  "wert": 84.644673,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_mensch_o": {
+  "wert": 83.641639,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_mensch_s": {
+  "wert": 49.185317,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_mensch_st": {
+  "wert": 66.721505,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_mensch_t": {
+  "wert": 38.717219,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_mensch_v": {
+  "wert": 56.679642,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_mensch_w": {
+  "wert": 94.449828,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_natur_at": {
+  "wert": 28.193475,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_natur_b": {
+  "wert": 35.533379,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_natur_k": {
+  "wert": 12.522581,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_natur_n": {
+  "wert": 33.242592,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_natur_o": {
+  "wert": 7.89437,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_natur_s": {
+  "wert": 32.253209,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_natur_st": {
+  "wert": 44.834199,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_natur_t": {
+  "wert": 27.388278,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_natur_v": {
+  "wert": 17.243563,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_natur_w": {
+  "wert": 36.213946,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_geografie_at": {
+  "wert": 13.668515,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_geografie_b": {
+  "wert": 0.107824,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_geografie_k": {
+  "wert": 19.473487,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_geografie_n": {
+  "wert": 1.565107,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_geografie_o": {
+  "wert": 8.648078,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_geografie_s": {
+  "wert": 22.324827,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_geografie_st": {
+  "wert": 9.064307,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_geografie_t": {
+  "wert": 35.106673,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_geografie_v": {
+  "wert": 28.628201,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_geografie_w": {
+  "wert": 0.143182,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_mensch_at": {
+  "wert": 29.424611,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_mensch_b": {
+  "wert": 46.749095,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_mensch_k": {
+  "wert": 8.175349,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_mensch_n": {
+  "wert": 52.663962,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_mensch_o": {
+  "wert": 67.835227,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_mensch_s": {
+  "wert": 10.269229,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_mensch_st": {
+  "wert": 14.071712,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_mensch_t": {
+  "wert": 3.179256,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_mensch_v": {
+  "wert": 4.863277,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_mensch_w": {
+  "wert": 59.839968,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_natur_at": {
+  "wert": 2.983641,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_natur_b": {
+  "wert": 10.23861,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_natur_k": {
+  "wert": 0.759815,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_natur_n": {
+  "wert": 3.875155,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_natur_o": {
+  "wert": 1.178756,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_natur_s": {
+  "wert": 3.03266,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_natur_st": {
+  "wert": 4.379459,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_natur_t": {
+  "wert": 1.113995,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_natur_v": {
+  "wert": 1.658661,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "t1_nur_natur_w": {
+  "wert": 4.95107,
+  "einheit": "%",
+  "quelle": "T1_haupttabelle",
+  "stand": "58caa8ffa694"
+ },
+ "uba_n_esg": {
+  "wert": 368,
+  "einheit": "Gebiete",
+  "quelle": "N1_natur_ebenen (Zählung UBA-Eingabedaten)",
+  "stand": "58caa8ffa694"
+ },
+ "uba_n_glt": {
+  "wert": 325,
+  "einheit": "Gebiete",
+  "quelle": "N1_natur_ebenen (Zählung UBA-Eingabedaten)",
+  "stand": "58caa8ffa694"
+ },
+ "uba_n_lsg": {
+  "wert": 277,
+  "einheit": "Gebiete",
+  "quelle": "N1_natur_ebenen (Zählung UBA-Eingabedaten)",
+  "stand": "58caa8ffa694"
+ },
+ "uba_n_ndkm": {
+  "wert": 4517,
+  "einheit": "Gebiete",
+  "quelle": "N1_natur_ebenen (Zählung UBA-Eingabedaten)",
+  "stand": "58caa8ffa694"
+ },
+ "uba_n_ndkm_punkte": {
+  "wert": 1414,
+  "einheit": "Punkte",
+  "quelle": "N1_natur_ebenen (Zählung UBA-Eingabedaten)",
+  "stand": "58caa8ffa694"
+ },
+ "uba_n_np": {
+  "wert": 29,
+  "einheit": "Gebiete",
+  "quelle": "N1_natur_ebenen (Zählung UBA-Eingabedaten)",
+  "stand": "58caa8ffa694"
+ },
+ "uba_n_nsg": {
+  "wert": 499,
+  "einheit": "Gebiete",
+  "quelle": "N1_natur_ebenen (Zählung UBA-Eingabedaten)",
+  "stand": "58caa8ffa694"
+ },
+ "uba_n_ramsar": {
+  "wert": 24,
+  "einheit": "Gebiete",
+  "quelle": "N1_natur_ebenen (Zählung UBA-Eingabedaten)",
+  "stand": "58caa8ffa694"
+ },
+ "uba_n_s": {
+  "wert": 58,
+  "einheit": "Gebiete",
+  "quelle": "N1_natur_ebenen (Zählung UBA-Eingabedaten)",
+  "stand": "58caa8ffa694"
+ },
+ "uba_n_s_gb": {
+  "wert": 3,
+  "einheit": "Gebiete",
+  "quelle": "N1_natur_ebenen (Zählung UBA-Eingabedaten)",
+  "stand": "58caa8ffa694"
+ },
+ "uba_n_s_glr": {
+  "wert": 6,
+  "einheit": "Gebiete",
+  "quelle": "N1_natur_ebenen (Zählung UBA-Eingabedaten)",
+  "stand": "58caa8ffa694"
+ },
+ "uba_n_s_gnoeb": {
+  "wert": 18,
+  "einheit": "Gebiete",
+  "quelle": "N1_natur_ebenen (Zählung UBA-Eingabedaten)",
+  "stand": "58caa8ffa694"
+ },
+ "uba_n_s_oee": {
+  "wert": 3,
+  "einheit": "Gebiete",
+  "quelle": "N1_natur_ebenen (Zählung UBA-Eingabedaten)",
+  "stand": "58caa8ffa694"
+ },
+ "uba_n_s_oesg": {
+  "wert": 9,
+  "einheit": "Gebiete",
+  "quelle": "N1_natur_ebenen (Zählung UBA-Eingabedaten)",
+  "stand": "58caa8ffa694"
+ },
+ "uba_n_s_psg": {
+  "wert": 5,
+  "einheit": "Gebiete",
+  "quelle": "N1_natur_ebenen (Zählung UBA-Eingabedaten)",
+  "stand": "58caa8ffa694"
+ },
+ "uba_n_s_rg": {
+  "wert": 8,
+  "einheit": "Gebiete",
+  "quelle": "N1_natur_ebenen (Zählung UBA-Eingabedaten)",
+  "stand": "58caa8ffa694"
+ },
+ "uba_n_s_rz": {
+  "wert": 1,
+  "einheit": "Gebiete",
+  "quelle": "N1_natur_ebenen (Zählung UBA-Eingabedaten)",
+  "stand": "58caa8ffa694"
+ },
+ "uba_n_s_safm": {
+  "wert": 1,
+  "einheit": "Gebiete",
+  "quelle": "N1_natur_ebenen (Zählung UBA-Eingabedaten)",
+  "stand": "58caa8ffa694"
+ },
+ "uba_n_s_sg_26": {
+  "wert": 1,
+  "einheit": "Gebiete",
+  "quelle": "N1_natur_ebenen (Zählung UBA-Eingabedaten)",
+  "stand": "58caa8ffa694"
+ },
+ "uba_n_s_ssg": {
+  "wert": 3,
+  "einheit": "Gebiete",
+  "quelle": "N1_natur_ebenen (Zählung UBA-Eingabedaten)",
+  "stand": "58caa8ffa694"
+ }
+}
