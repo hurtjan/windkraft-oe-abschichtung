@@ -25,11 +25,12 @@ from pathlib import Path
 import geopandas as gpd
 
 from pipeline import contract, fingerprint, runtime
+from pipeline.prep.share import skip_without_raw
 
 SOURCE_CRS = "EPSG:4326"
 TARGET_CRS = "EPSG:31287"
 TARGET_EPSG = 31287
-OUTPUT_FILENAME = "standorte.parquet"
+OUTPUT_FILENAME = contract.PREP_FILES["windkraft"]["standorte"].name
 ID_COLUMN = "wka_id"
 EXPECTED_RAW_FEATURES = 1_388
 EXPECTED_UNIQUE_COORDINATES = 1_386
@@ -37,7 +38,7 @@ EXPECTED_UNIQUE_COORDINATES = 1_386
 
 def output_path() -> Path:
     """The sole prepared-input path shared by the two WKA consumers."""
-    return contract.PREP["windkraft"] / OUTPUT_FILENAME
+    return contract.PREP_FILES["windkraft"]["standorte"]
 
 
 def _raw_features(path: Path) -> list[dict]:
@@ -109,6 +110,8 @@ def run(force: bool = False) -> Path:
     source = contract.RAW["windkraft"]["standorte"]
     out_dir = contract.PREP["windkraft"]
     out_path = output_path()
+    if not force and skip_without_raw("windkraft", [source], hint="data/windkraft/ (windkraft_standorte_at.geojson)"):
+        return out_path
     inputs = [source, Path(__file__)]
     runtime.ensure_dir(out_dir)
 

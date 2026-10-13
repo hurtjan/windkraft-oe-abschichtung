@@ -47,24 +47,25 @@ bei W2.3/W2.4.
 jetzt aus der Prep-Stufe bezieht:
 
     zoning_masks()          -> derived/prep/widmung/{wohn_misch,
-                               haeuser_im_gruenen,industrie_negativ}_combined.gpkg
+                               haeuser_im_gruenen,industrie_negativ}_combined.parquet
                                (pipeline/prep/widmung.py, W1.P4) statt
                                --zoning-dir (vormals
                                output/abschichtung_widmung_v2/zoning_vectors,
                                ein Zwischenstand aus 01_build_official_zoning_layers.py)
-    noe_pdf_mask()           -> derived/prep/noe_sekrop/b_vectorize/pdf_750m_*.geojson
+    noe_pdf_mask()           -> derived/prep/noe_sekrop/pdf_750m_*.parquet
                                (pipeline/prep/noe_sekrop.py, W1.P9) statt
                                --noe-dir (vormals output/noe)
-    scan_dkm_candidates()    -> derived/prep/kataster/b_export_parquet/
-                               at_dkm_gst_nfl_epsg31287.geoparquet
-                               (pipeline/prep/kataster/b_export_parquet.py,
-                               W1.P2) statt --dkm-parquet (vormals
-                               output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet)
+    scan_dkm_candidates()    -> läuft nicht mehr hier, sondern einmal in
+                               pipeline/prep/kataster/c_streusiedlung.py; diese
+                               Stufe liest nur dessen Produkte
+                               derived/prep/kataster/streusiedlung_*.parquet
+                               (load_candidate_scan) - kein Zugriff auf das
+                               große Kataster-GeoParquet mehr
     load_address_points(),
     load_building_points()   -> derived/prep/adressen/{adressen_31287,
                                bev_gebaeude_31287}.parquet
                                (pipeline/prep/adressen.py, W1.P3) statt
-                               data/adressen direkt - der --cache-dir-Default
+                               die Rohdaten direkt - der alte --cache-dir-Default
                                war schon vor diesem Paket derived/prep/adressen
                                (Fix aus W1.1, siehe dortiger Bericht), ändert
                                sich hier nicht.
@@ -74,7 +75,7 @@ Vorgabewert ``output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet`` ist eine
 5,3-GB-Datei vom 15. Mai 2026 - ein Überbleibsel des Vorgängerprojekts,
 vier Monate älter als der erste Commit dieses Repos. Diese Datei rührt sie
 an KEINER Stelle an (weder als Vorgabewert noch lesend noch schreibend);
-der neue Default ist ``pipeline.prep.kataster.b_export_parquet.DEFAULT_OUTPUT``
+der frühere Default ``contract.PREP_FILES["kataster"]["at_dkm_gst_nfl"]`` (Option entfällt, siehe oben)
 (importiert, nicht neu als Literal geschrieben - Regel 2).
 
 ## Fingerabdruck-Konvention (folgt W2.4, nicht W2.3 - Entscheidung bereits
@@ -101,13 +102,13 @@ Wiederverwendung.
 
 Nein. ``widmung_sources._ensure_ktn_gpkg()`` (die Cache-Weiche, die nur
 prüft OB die entpackte Datei existiert, nicht ob sich
-``data/widmung/kaernten/flawi_ktn_gpkg.zip`` seither geändert hat) wird
+das Kärnten-Rohzip seither geändert hat) wird
 ausschließlich von ``calc/widmung_sources.py`` selbst aufgerufen,
 und zwar nur über ``pipeline/prep/widmung.py`` (Paket W1.P4, bereits
 abgeschlossen). Diese Datei hier importiert ``widmung_sources`` nicht und
 ruft auch nichts auf, was es täte - ``zoning_masks()`` (aus
 ``hig_source_masks.py``) liest ausschließlich die bereits fertigen
-``*_combined.gpkg``-Bündel aus ``derived/prep/widmung/``. Der eigene
+``*_combined.parquet``-Bündel aus ``derived/prep/widmung/``. Der eigene
 ``PREP_FINGERPRINT``-Tag dieser Stufe erfasst diese drei GPKGs über
 Größe/Änderungszeit (siehe ``pipeline/fingerprint.py``); sollte die
 Kärnten-Cache-Lücke die Prep-Stufe dazu bringen, ein GPKG mit falschem
@@ -162,8 +163,10 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from pipeline import contract, fingerprint, runtime  # noqa: E402
-from pipeline.prep import widmung as prep_widmung  # noqa: E402
-from pipeline.prep.kataster.b_export_parquet import DEFAULT_OUTPUT as KATASTER_PARQUET  # noqa: E402
+
+KANDIDATEN_PARQUET = contract.PREP_FILES["kataster"]["streusiedlung_kandidaten"]
+GARTEN_PARQUET = contract.PREP_FILES["kataster"]["streusiedlung_garten"]
+SCAN_BERICHT = contract.PREP_REPORT_FILES["kataster"]["streusiedlung_bericht"]
 
 from calc.config import load_config  # noqa: E402
 from calc.abschichtung_common import (  # noqa: E402
@@ -197,14 +200,12 @@ from calc.hig_detection import (  # noqa: E402
     hull_polygons,
     label_mask,
     sample_labels,
-    scan_dkm_candidates,
+    load_candidate_scan,
 )
 from calc.streusiedlung import chain_hull_params  # noqa: E402
 from calc.hig_source_masks import (  # noqa: E402
     NOE_PDF_LAYER_NAMES,
-    candidate_filter_mask,
     noe_pdf_mask,
-    widmung_seed,
     zoning_masks,
 )
 
@@ -237,19 +238,14 @@ HULL_GPKG_NAME = "hig_huellen.gpkg"
 
 def _prep_inputs() -> list[Path]:
     """Alle tatsächlich gelesenen Prep-Ausgaben dieser Stufe."""
-    widmung_dir = contract.PREP["widmung"]
-    noe_dir = contract.PREP["noe_sekrop"]["b_vectorize"]
-    adressen_dir = contract.PREP["adressen"]
     return sorted(
         [
-            *(
-                widmung_dir / prep_widmung.BUNDLE_FILENAME.format(bucket=bucket)
-                for bucket in ("wohn_misch", "haeuser_im_gruenen", "industrie_negativ")
-            ),
-            *(noe_dir / f"{name}.geojson" for name in NOE_PDF_LAYER_NAMES),
-            KATASTER_PARQUET,
-            adressen_dir / ADDRESS_CACHE_NAME,
-            adressen_dir / BUILDING_CACHE_NAME,
+            *contract.PREP_FILES["widmung"].values(),
+            *(contract.PREP_FILES["noe_sekrop"][name] for name in NOE_PDF_LAYER_NAMES),
+            KANDIDATEN_PARQUET,
+            GARTEN_PARQUET,
+            contract.PREP_FILES["adressen"]["adressen"],
+            contract.PREP_FILES["adressen"]["gebaeude"],
         ]
     )
 
@@ -261,9 +257,9 @@ def _fingerprint_tag() -> str:
 
 # ---------------------------------------------------------------------------
 # Wortgleich aus 02_build_hig_sources.py:build_sources() übernommen (Regel
-# 4) - einzige Änderung: liest zoning_dir/noe_dir/dkm_parquet/address_dir/
-# cache_dir jetzt aus den (auf derived/prep/ umgestellten) Vorgabewerten in
-# parse_args(), statt hartkodierter output/-/data/-Pfade (dieses output/
+# 4) - einzige Änderung: liest zoning_dir/noe_dir/dkm_parquet/adressen_dir
+# jetzt aus den (auf derived/prep/ umgestellten) Vorgabewerten in
+# parse_args(), statt hartkodierter Roh-/Zwischenpfade (dieses output/
 # existiert seit W6.1 nicht mehr im Repo); hig_huellen.gpkg
 # geht nach ``out_dir`` statt einem separaten ``--out-dir``, siehe
 # Moduldocstring. 02_build_hig_sources.py selbst ist seit W6.1 aus dem Repo
@@ -279,35 +275,25 @@ def build_sources(cfg: dict, grid: dict, args: argparse.Namespace, out_dir: Path
         zoning = zoning_masks(zoning_dir, grid)
         noe_pdf = noe_pdf_mask(Path(args.noe_dir), grid)
 
-    with timed(f"Stufe A: Kandidaten-Filter (+{args.filter_buffer_m:g} m)"):
-        # NÖ-PDF-Zonen sind schon 750-m-Zonen; sie filtern ohne weitere Aufweitung.
-        filter_mask = candidate_filter_mask(zoning, noe_pdf, args.filter_buffer_m, grid)
-        print(
-            f"[info]  Filter: Widmung {int(widmung_seed(zoning).sum()):,} Zellen -> "
-            f"{int(filter_mask.sum()):,} Filterzellen (inkl. NÖ-PDF)",
-            flush=True,
-        )
-
     bl_filter = set(args.bl) if args.bl else None
     hull_dilate_m, hull_erode_m = chain_hull_params(args.chain_m)
-    address_dir = Path(args.address_dir)
-    cache_dir = Path(args.cache_dir)
+    adressen_dir = Path(args.adressen_dir)
     with timed("Stufe A: BEV-Adressen laden"):
         # Vor dem DKM-Scan geladen (nicht erst in Stufe C wie bisher): der
         # Scan braucht den Adressbestand jetzt selbst, um adresslose
         # Riesen-Footprints (Punkt 34, W5.P2) als Kandidaten zu verwerfen.
-        address_xy = load_address_points(address_dir, cache_dir=cache_dir)
+        address_xy = load_address_points(adressen_dir / ADDRESS_CACHE_NAME)
 
-    with timed("Stufe B: DKM-Scan"):
-        scan = scan_dkm_candidates(
-            Path(args.dkm_parquet), grid, filter_mask, args.max_footprint_m2, bl_filter=bl_filter,
-            margin_m=hull_dilate_m, address_xy=address_xy,
+    with timed("Stufe B: Kandidaten aus dem Prep-Produkt (DKM-Scan in prep-kataster Stufe c)"):
+        scan = load_candidate_scan(
+            KANDIDATEN_PARQUET, GARTEN_PARQUET, SCAN_BERICHT, grid,
+            bl_filter=bl_filter, margin_m=hull_dilate_m,
         )
         n_oversized_kept = scan.n_oversized - scan.n_addressless_dropped
         print(
             f"[info]  Bauflächen {scan.n_buildings_total:,} | gefiltert {scan.n_filtered:,} "
             f"({100 * scan.n_filtered / max(scan.n_buildings_total, 1):.1f}%) | "
-            f"Kandidaten {len(scan):,} | >{args.max_footprint_m2:g}m2 gesamt {scan.n_oversized:,} "
+            f"Kandidaten {len(scan):,} | >{HIG_MAX_FOOTPRINT_M2:g}m2 gesamt {scan.n_oversized:,} "
             f"(Scheibe {n_oversized_kept:,}, adresslos entfallen {scan.n_addressless_dropped:,}) | "
             f"Garten-Punkte {len(scan.garden_xy):,}",
             flush=True,
@@ -320,7 +306,7 @@ def build_sources(cfg: dict, grid: dict, args: argparse.Namespace, out_dir: Path
         print(f"[info]  Hüllen: {n_labels:,} ({int(hull_mask.sum()):,} Zellen)", flush=True)
 
     with timed("Stufe C: Signale + Klassifikation"):
-        bev_buildings = load_building_points(address_dir, cache_dir=cache_dir)
+        bev_buildings = load_building_points(adressen_dir / BUILDING_CACHE_NAME)
         signals = building_signals(
             scan, address_xy, bev_buildings, args.address_radius_m, args.garden_radius_m,
             industrie_widmung_mask=zoning["industrie_negativ"], grid=grid,
@@ -392,24 +378,18 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument(
         "--zoning-dir",
         default=str(contract.PREP["widmung"]),
-        help="Prep-Ausgabe von pipeline/prep/widmung.py (drei *_combined.gpkg-Bündel).",
+        help="Prep-Ausgabe von pipeline/prep/widmung.py (drei *_combined.parquet-Bündel).",
     )
     p.add_argument(
         "--noe-dir",
-        default=str(contract.PREP["noe_sekrop"]["b_vectorize"]),
-        help="Prep-Ausgabe von pipeline/prep/noe_sekrop.py (pdf_750m_*.geojson).",
+        default=str(contract.PREP["noe_sekrop"]),
+        help="Prep-Ausgabe von pipeline/prep/noe_sekrop.py (pdf_750m_*.parquet).",
     )
     p.add_argument(
-        "--dkm-parquet",
-        default=str(KATASTER_PARQUET),
-        help="Prep-Ausgabe von pipeline/prep/kataster/b_export_parquet.py. "
-             "NIEMALS output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet (Vorgängerprojekt-Altlast).",
-    )
-    p.add_argument("--address-dir", default=str(contract.RAW["adressen"]["address_dir"]))
-    p.add_argument(
-        "--cache-dir",
+        "--adressen-dir",
         default=str(contract.PREP["adressen"]),
-        help="Prep-Ausgabe von pipeline/prep/adressen.py (BEV-Parquet-Caches).",
+        help="Prep-Ausgabe von pipeline/prep/adressen.py (BEV-GeoParquet). "
+             "Fehlt sie, bricht die Stufe ab ('make prep-adressen'); es gibt keinen Rohdaten-Rückfall.",
     )
     p.add_argument(
         "--out-dir",
@@ -419,14 +399,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     p.add_argument("--bbox", default=None, help="EPSG:31287 bbox minx,miny,maxx,maxy für Smoke-Tests")
     p.add_argument("--bl", action="append", default=None, help="Nur diese Bundesländer scannen (wiederholbar)")
-    p.add_argument("--filter-buffer-m", type=float, default=HIG_FILTER_BUFFER_M)
     p.add_argument("--chain-m", type=float, default=HIG_CHAIN_M,
                    help="Verkettungsdistanz des Closings (Knie-Analyse: 200 m)")
     p.add_argument("--min-adressen", type=int, default=HIG_MIN_ADRESSEN,
                    help="Streusiedlungs-Schwelle: adressierte Objekte je bewohnter Hülle")
     p.add_argument("--address-radius-m", type=float, default=HIG_ADDRESS_RADIUS_M)
     p.add_argument("--garden-radius-m", type=float, default=HIG_GARDEN_RADIUS_M)
-    p.add_argument("--max-footprint-m2", type=float, default=HIG_MAX_FOOTPRINT_M2)
     p.add_argument("--wohnanteil-min-share", type=float, default=HIG_WOHNANTEIL_MIN_SHARE)
     p.add_argument("--industrie-widmung-min-share", type=float, default=HIG_INDUSTRIE_WIDMUNG_MIN_SHARE)
     p.add_argument("--force-layers", action="store_true")
@@ -439,7 +417,7 @@ def _params_tag(args: argparse.Namespace) -> dict[str, str]:
     seit W6.1 aus dem Repo entfernt; letzter Stand im Commit ``f1d00f7``,
     abrufbar mit ``git show f1d00f7:scripts/widmung_v2/02_build_hig_sources.py``)."""
     return {
-        "HIG_FILTER_BUFFER_M": f"{args.filter_buffer_m:g}",
+        "HIG_FILTER_BUFFER_M": f"{HIG_FILTER_BUFFER_M:g}",
         "HIG_CHAIN_M": f"{args.chain_m:g}",
         "HIG_MIN_ADRESSEN": str(args.min_adressen),
         # Input-Provenienz: ohne diesen Tag würde ein Lauf gegen das falsche
@@ -447,7 +425,7 @@ def _params_tag(args: argparse.Namespace) -> dict[str, str]:
         "HIG_ZONING_DIR": str(args.zoning_dir),
         "HIG_ADDRESS_RADIUS_M": f"{args.address_radius_m:g}",
         "HIG_GARDEN_RADIUS_M": f"{args.garden_radius_m:g}",
-        "HIG_MAX_FOOTPRINT_M2": f"{args.max_footprint_m2:g}",
+        "HIG_MAX_FOOTPRINT_M2": f"{HIG_MAX_FOOTPRINT_M2:g}",
         "HIG_WOHNANTEIL_MIN_SHARE": f"{args.wohnanteil_min_share:g}",
         "HIG_INDUSTRIE_WIDMUNG_MIN_SHARE": f"{args.industrie_widmung_min_share:g}",
     }

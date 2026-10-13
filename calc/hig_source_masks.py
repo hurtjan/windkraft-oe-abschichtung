@@ -27,9 +27,9 @@ NOE_PDF_LAYER_NAMES = ("pdf_750m_geb", "pdf_750m_gwr", "pdf_750m_gruenland_widmu
 def zoning_masks(zoning_dir: Path, grid: dict) -> dict[str, np.ndarray]:
     """Rasterisierte Widmungs-Buckets: Siedlung, Ferienhaus, HiG-Rest, Industrie."""
     bounds = grid["bounds"]
-    wohn = read_layer(zoning_dir / "wohn_misch_combined.gpkg", bounds=bounds)
-    hig = read_layer(zoning_dir / "haeuser_im_gruenen_combined.gpkg", bounds=bounds)
-    industrie = read_layer(zoning_dir / "industrie_negativ_combined.gpkg", bounds=bounds)
+    wohn = read_layer(zoning_dir / "wohn_misch_combined.parquet", bounds=bounds)
+    hig = read_layer(zoning_dir / "haeuser_im_gruenen_combined.parquet", bounds=bounds)
+    industrie = read_layer(zoning_dir / "industrie_negativ_combined.parquet", bounds=bounds)
 
     if "category" in hig.columns:
         is_ferienhaus = hig["category"].eq(FERIENHAUS_CATEGORY)
@@ -49,7 +49,7 @@ def noe_pdf_layer_masks(noe_dir: Path, grid: dict) -> dict[str, np.ndarray]:
     """Die drei SekROP-750-m-Klassen einzeln (für Validierung gegen die GWR-Klasse)."""
     out = {}
     for name in NOE_PDF_LAYER_NAMES:
-        path = noe_dir / f"{name}.geojson"
+        path = noe_dir / f"{name}.parquet"
         if not path.exists():
             print(f"[warn]  NÖ-PDF-Zone fehlt: {path}", flush=True)
             out[name] = np.zeros(grid["shape"], dtype=bool)

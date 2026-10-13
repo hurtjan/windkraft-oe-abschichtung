@@ -66,7 +66,7 @@ die Aggregat-/Ergebnisbänder verschneidet) steht nicht in
 persistierter Bandtyp, sondern wurde in ``main()`` jedes Mal frisch aus den
 Verwaltungsgrenzen gebaut. Diese Datei importiert dafür
 ``pipeline.layers.geo._build_valid_area_mask()`` (liest
-``derived/prep/admin/bundesland_masken.gpkg``, siehe dessen Modul) statt sie
+``derived/prep/admin/bundesland_masken.parquet``, siehe dessen Modul) statt sie
 ein drittes Mal zu duplizieren oder auf die VGD-Rohquelle
 (``abschichtung_common.build_valid_area_mask()``) zurückzugreifen - Letzteres
 wäre ein Sprung von Stufe 5 direkt auf Stufe 1 und würde §3 verletzen ("nie
@@ -110,6 +110,7 @@ from calc.abschichtung_common import (  # noqa: E402
     HIG_FAMILY_BUFFER_M,
     HIG_MIN_ADRESSEN,
     NATURE_BANDS,
+    NATURE_EXCLUSION_BANDS,
     NONRESIDENTIAL_HULL_BUFFER_M,
     OFFICIAL_ZONING_BANDS,
     SETTLEMENT_BUFFER_BY_BL,
@@ -190,7 +191,7 @@ BANDS = [
     Band("haeuser_im_gruenen_widmung", "Amtliche Widmungen für Hofstellen, Camping, Golf, Kleingärten und Auffüllungsgebiete, ohne Abstand. Ohne Niederösterreich, dort tragen die Zonen des Sektoralen Raumordnungsprogramms den Abstand bereits."),
     Band("haeuser_im_gruenen_streusiedlung", "Hüllen bewohnter Streusiedlungen, gebildet aus mindestens fünf adressierten Objekten mit höchstens 200 m Abstand zueinander, ohne Abstand nach außen. Ohne Niederösterreich."),
     Band("haeuser_im_gruenen_noe_pdf", "Mindestabstandszonen des niederösterreichischen Sektoralen Raumordnungsprogramms um Gebäude, Adressen und Grünland-Widmungen. Sie enthalten den Abstand von 750 m bereits und werden deshalb nicht erneut gepuffert."),
-    Band("haeuser_im_gruenen", "Abstand von 750 m um bewohnte Einzellagen außerhalb des Baulands: Ferienhaus- und Tourismusgebiete, amtliche Widmungen für Hofstellen, Camping, Golf, Kleingärten und Auffüllungsgebiete sowie Streusiedlungen. In Niederösterreich gelten stattdessen die Mindestabstandszonen des Sektoralen Raumordnungsprogramms, die den Abstand bereits enthalten."),
+    Band("haeuser_im_gruenen", "Abstand von 750 m um amtliche Sonderwidmungen außerhalb des Baulands (die Liste der Widmungsarten unterscheidet sich je Bundesland) und um bewohnte Streusiedlungen mit mindestens fünf Adressen, erkannt aus Kataster und Adressregister. In Niederösterreich gelten stattdessen die amtlichen Mindestabstandszonen des Sektoralen Raumordnungsprogramms, die den Abstand bereits enthalten. Einzelne Häuser und Gruppen mit weniger als fünf Adressen erhalten nur den Gebäudeabstand von 25 m."),
     Band("nonresidential_hulls_source", "Unbewohnte und industrieartige Kataster-Hüllen, ohne Abstand."),
     Band("nonresidential_hulls_buffer", "Abstand von 25 m um unbewohnte und industrieartige Kataster-Hüllen; das entspricht praktisch dem Fußabdruck."),
     Band("cableway_buildings_source", "Gebäude aus OpenStreetMap in unmittelbarer Nähe einer Seilbahnlinie, vor allem Liftstationen, ohne Abstand."),
@@ -201,12 +202,12 @@ BANDS = [
     Band("road_federal_state", "Abstand von 150 m beiderseits von Bundes- und Landesstraßen aus OpenStreetMap, einschließlich der nachgeordneten Landesstraßen. Als Tunnel ausgewiesene Abschnitte bleiben unberücksichtigt."),
     Band("rail_main", "Abstand von 150 m beiderseits von Haupt- und Schmalspurbahnen aus OpenStreetMap. Als Tunnel ausgewiesene Abschnitte bleiben unberücksichtigt."),
     Band("cableway_people_150m", "Abstand von 150 m um Personenseilbahnen aus OpenStreetMap: Gondelbahnen, Kabinen- und Pendelbahnen, Sessellifte und Kombibahnen. Schlepplifte und Materialseilbahnen erzeugen keine Zone."),
-    Band("military_restricted_area", "Militärische Sperrgebiete aus OpenStreetMap, ohne zusätzlichen Abstand."),
+    Band("military_restricted_area", "Militärische Flächen aus OpenStreetMap, ohne zusätzlichen Abstand: Flächen mit landuse=military oder military=range, training_area, barracks, danger_area, airfield, naval_base oder base, also Truppen- und Schießübungsplätze, Kasernen, Militärflugplätze und Munitionslager."),
     Band("airport_area_major", "Areale der Hauptflughäfen aus OpenStreetMap, ohne zusätzlichen Abstand."),
     Band("airport_runway_corridor_5km", "Korridore ab beiden Landebahn-Enden der Hauptflughäfen: 5 km lang, ±15 Grad um die verlängerte Bahnachse."),
-    Band("nature_protection_areas", "Nationalparks, Naturschutzgebiete, Europaschutzgebiete nach Natura 2000 und Ramsar-Gebiete aus den amtlichen Datensätzen, ohne Abstand."),
-    Band("osm_nature_protection_areas", "Als Schutzgebiet ausgewiesene Flächen aus OpenStreetMap, ohne Abstand."),
-    Band("geography_slope_too_steep", "Hangneigung über 15 Grad, ermittelt aus dem Geländemodell mit 25 m Auflösung."),
+    Band("nature_protection_areas", "Amtliche Schutzgebiete des Umweltbundesamts, die nach Naturschutzrecht der Länder per Verordnung oder Bescheid festgelegt sind, ohne Abstand: Nationalparks, Naturschutzgebiete, Europaschutzgebiete nach Natura 2000 (einschließlich FFH- und Vogelschutzgebiete), Ramsar-Gebiete, Landschaftsschutzgebiete, geschützte Landschaftsteile, Naturdenkmäler, geschützte Biotope, örtliche Schutzgebiete, Ruhegebiete, Ruhezonen und Pflanzenschutzgebiete."),
+    Band("osm_nature_protection_areas", "Schutzgebiete aus OpenStreetMap, ohne Abstand, nur zur Information: Sie gehen nicht in den Ausschluss ein. Enthalten sind Nationalparks, Naturschutzgebiete und Flächen der Schutzklassen 1, 1a, 1b, 2, 4 und 5 mit passendem Titel oder Namen; Naturparks, Biosphärenparks und Landschaftsschutzgebiete sind ausgenommen."),
+    Band("geography_slope_too_steep", "Hangneigung über 15 Grad. Das Geländemodell mit 25 m Auflösung wird in 4×4-Blöcken zu 100-m-Zellen gemittelt, die Neigung aus der 3×3-Nachbarschaft dieses Rasters (rund 300 m) berechnet."),
     Band("geography_elevation_too_high", "Seehöhe über 2.500 m, ermittelt aus dem Geländemodell mit 25 m Auflösung."),
     Band("geography_wind_too_low", "Windleistungsdichte in 150 m Höhe unter rund 160 W/m², aus dem Globalen Windatlas. Der Grenzwert entspricht 150 W/m² in 130 m Höhe, mit dem Windprofil auf 150 m hochgerechnet."),
     Band("geography_water_bodies", "Seen, Stauseen und Flüsse aus OpenStreetMap, zusammenhängende Wasserflächen ab 1 ha."),
@@ -371,7 +372,7 @@ def main(argv: list[str] | None = None) -> None:
             layer_dir=layer_dir,
             condition_bands=[b.name for b in BANDS],
             human_bands=HUMAN_BANDS,
-            nature_band_names=NATURE_BANDS,
+            nature_band_names=NATURE_EXCLUSION_BANDS,
             geography_band_names=[*GEOGRAPHY_BANDS, *WATER_BANDS],
             valid_area=valid_area,
             min_fragment_area_ha=args.min_fragment_area_ha,

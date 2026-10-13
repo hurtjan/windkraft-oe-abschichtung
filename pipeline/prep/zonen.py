@@ -13,19 +13,19 @@ wurde), die fünfte über einen eigenen Codepfad in
 ``abschichtung_common.build_official_zoning_masks()`` - und schreibt je
 Quelle eine eigene, normalisierte Ableitung nach ``contract.PREP["zonen"]``:
 
-- ``Stmk.gpkg``, ``Sbg.gpkg`` - direkt aus
+- ``Stmk.parquet``, ``Sbg.parquet`` (GeoParquet, EPSG:31287) - direkt aus
   ``<luca_zonen_dir>/<Stmk|Sbg>.shp`` (kein eigener ``source_path`` in der
   Registrierung -> ``<zone_dir>/<key>.shp``).
-- ``Bgld.gpkg`` - aus ``data/zonen/WK_Eignungszonen.zip``, über
+- ``Bgld.parquet`` - aus ``data/zonen/WK_Eignungszonen.zip``, über
   ``zip://<pfad>!<innerer Shapefile-Name>`` gelesen (kein Entpacken auf
   Platte - GDAL/OGR liest per VSIZIP direkt aus dem Archiv, wie es
   ``wind_zones._resolve_path()`` heute schon tut). Attributfilter
   ``Status`` beginnt mit ``Eignungszone`` - die Datei enthält im selben
   Layer 40 Eignungs- UND 31 Ausschlusszonen (gemessen, siehe Abnahmebericht),
   ohne den Filter würden Ausschlusszonen ins Positivband rutschen.
-- ``RED3.gpkg`` - aus ``data/zonen/RED_III_Windkraftbeschleunigungszone.zip``,
+- ``RED3.parquet`` - aus ``data/zonen/RED_III_Windkraftbeschleunigungszone.zip``,
   ebenfalls per ``zip://``, ohne Attributfilter.
-- ``NOE.gpkg`` - aus ``data/zonen/zonierung_noe.json``
+- ``NOE.parquet`` - aus ``data/zonen/zonierung_noe.json``
   (``contract.RAW["zonen"]["official_zoning_noe"]``), 71 niederösterreichische
   Zonen, EPSG:4326 im Rohformat. Läuft in der Kette NICHT über
   ``WIND_ZONE_SOURCES``, sondern wird per Kommandozeilenschalter
@@ -97,6 +97,7 @@ from pathlib import Path
 import geopandas as gpd
 
 from pipeline import contract, fingerprint, runtime
+from pipeline.prep.share import skip_without_raw
 
 TARGET_CRS = "EPSG:31287"
 
@@ -189,6 +190,18 @@ def _load_noe() -> gpd.GeoDataFrame:
     return gdf.to_crs(TARGET_CRS)[["geometry"]]
 
 
+# Zuständiges Bundesland je Zonen-Quelle (die vier WIND_ZONE_SOURCES-Quellen;
+# NOE wird nicht geklippt). Konsument (pipeline/layers/geo.py) klippt die
+# Zonen darauf - hier deklariert, damit die Layer-Stufe nichts aus calc/
+# wind_zones.py (das Rohpfade trägt) importieren muss.
+ZONE_BUNDESLAND = {
+    "Stmk": "Steiermark",
+    "Sbg": "Salzburg",
+    "Bgld": "Burgenland",
+    "RED3": "Kärnten",
+}
+
+
 # Reihenfolge ist die Ausgabereihenfolge im Log - inhaltlich unabhängig,
 # jede Quelle bekommt ihre eigene Datei.
 SOURCES = {
@@ -220,10 +233,17 @@ def _fingerprint_inputs() -> list[Path]:
 
 def run(force: bool = False) -> Path:
     out_dir = contract.PREP["zonen"]
+    _raw = contract.RAW["zonen"]
+    if not force and skip_without_raw(
+        "zonen",
+        [_raw["eignungszonen_zip"], _raw["red3_zip"], _raw["official_zoning_noe"], _raw["luca_zonen_dir"]],
+        hint="data/zonen/ (Eignungszonen-ZIP, RED3-ZIP, NÖ-Zonierung, luca_zonen/)",
+    ):
+        return out_dir
     runtime.ensure_dir(out_dir)
 
     inputs = _fingerprint_inputs()
-    output_paths = [out_dir / f"{key}.gpkg" for key in SOURCES]
+    output_paths = [contract.PREP_FILES["zonen"][key] for key in SOURCES]
 
     # Selbst-Ueberspringer, gleiches Muster wie pipeline/prep/osm.py
     # (run_extract/run_layers): ein wiederholter `make all` ohne
@@ -244,7 +264,7 @@ def run(force: bool = False) -> Path:
             raise ValueError(
                 f"wind zone source '{key}' liefert nach Filter/Bereinigung keine Geometrie"
             )
-        gdf.to_file(out_dir / f"{key}.gpkg", driver="GPKG")
+        gdf.to_parquet(contract.PREP_FILES["zonen"][key], index=False)
         counts[key] = (len(gdf), float(gdf.area.sum()) / 1e6)
 
     fingerprint.write(out_dir, inputs)

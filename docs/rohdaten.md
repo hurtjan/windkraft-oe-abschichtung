@@ -64,7 +64,7 @@ gelagert: strukturell unklar, siehe Block 1.
 |---|---|
 | Dateien | `data/zonen/luca_zonen/Stmk.shp` (72 KB, 18 Features), `data/zonen/luca_zonen/Sbg.shp` (148 KB, 13 Features) |
 | CRS | EPSG:25833 |
-| Herkunft | Handdigitalisierte Nachzeichnung amtlicher Windkraft-Vorrangzonen; Auskunft des Projektinhabers über eine parallele Claude-Session — **nicht aus den Daten selbst belegbar** |
+| Herkunft | Handdigitalisierte Nachzeichnung amtlicher Windkraft-Vorrangzonen; Auskunft des Projektinhabers, separat recherchiert — **nicht aus den Daten selbst belegbar** |
 | Genauigkeit | Unbekannt — eine Nachzeichnung weicht in unbekanntem Ausmaß vom amtlichen Original ab (Digitalisierungsfehler, Generalisierung, veraltete Basis) |
 | Lizenz | Strukturell unklar, nicht nur unrecherchiert: ein abgeleitetes Werk, dessen Status vom amtlichen Original **und** von der (unbekannten) Vereinbarung mit der zeichnenden Person abhängt → `unbekannt — zu klären`, aber aus anderem Grund als bei den übrigen Quellen |
 | Neu beschaffbar | **Nein** — nur durch erneutes manuelles Nachzeichnen, kein Download möglich |
@@ -89,8 +89,8 @@ Verifiziert am Quellcode von `windkraft_ö_karten` (Stand dieser Prüfung):
 
 | Mechanismus | Fundstelle | Verhalten |
 |---|---|---|
-| `wind_zones._resolve_path()` | `windkraft/calc/wind_zones.py:177-190` | Prüft `path.exists()`; fehlt die Datei, wird **nur** `[warn] wind zone source missing: <path>` geloggt und die Quelle übersprungen — kein Abbruch. Bei defektem ZIP ohne lesbares `.shp` ebenfalls nur `[warn]`, keine Exception |
-| `osm_layer_path()` | `windkraft/calc/abschichtung_common.py:470-503` (zweite, ältere Kopie in `scripts/main/create_osm_wka_distance_zones.py:746`) | Fehlt das PBF, fällt die Funktion **kommentarlos** auf die Legacy-Shapefile-Namen zurück (`gis_osm_*_free_1.shp`); ist der Layer nicht in der Legacy-Fallback-Tabelle enthalten, wird der nicht existierende Pfad `Path("__missing_osm_layer__")` zurückgegeben — **kein Log an dieser Stelle** |
+| `wind_zones._resolve_path()` | `windkraft/calc/wind_zones.py:177-190` (historisch, Alt-Repo) | Prüft `path.exists()`; fehlt die Datei, wird **nur** `[warn] wind zone source missing: <path>` geloggt und die Quelle übersprungen — kein Abbruch. Bei defektem ZIP ohne lesbares `.shp` ebenfalls nur `[warn]`, keine Exception |
+| `osm_layer_path()` | `windkraft/calc/abschichtung_common.py:470-503` (historisch, Alt-Repo; zweite, ältere Kopie in `scripts/main/create_osm_wka_distance_zones.py:746`) | Fehlt das PBF, fällt die Funktion **kommentarlos** auf die Legacy-Shapefile-Namen zurück (`gis_osm_*_free_1.shp`); ist der Layer nicht in der Legacy-Fallback-Tabelle enthalten, wird der nicht existierende Pfad `Path("__missing_osm_layer__")` zurückgegeben — **kein Log an dieser Stelle** |
 | `read_layer()` | `windkraft/calc/abschichtung_common.py:518-519` | Prüft nur `path.exists()`; fehlt die Datei (z. B. weil `osm_layer_path()` gerade `__missing_osm_layer__` geliefert hat oder die Legacy-Shapefile fehlt), wird ein **leerer** `GeoDataFrame` zurückgegeben — **komplett still, kein Log irgendeiner Art** |
 | `kataster_layers.py` — osmium-Fallback | `windkraft/calc/kataster_layers.py`, `pbf_buffer_mask()` (Zeilen ~858–876) | Fehlt `osmium-tool` im PATH (`osmium_available()`, Zeile 826) oder schlägt der `osmium`-Aufruf fehl, wird `subprocess.CalledProcessError` gefangen; die Funktion loggt `WARN osmium filter failed …` bzw. `WARN osmium not found in PATH; PBF-only layers stay empty.` und liefert ein reines `np.zeros(shape, dtype=bool)` zurück — die betroffenen Bänder (Gas-Hochdruck, Seilbahn, Radar, Richtfunk, Militärflugplatz) werden lautlos komplett leer, die Pipeline läuft normal weiter |
 
@@ -224,10 +224,10 @@ data/
 §2/§3.1 für den historischen Befund): `osm_power_lines.gpkg` (13 MB —
 Codeleser `abschichtung_common.py:966` bestand nur als toter Fallback, der
 nie griff, solange das OSM-PBF vorhanden ist, und dessen Ergebnisband
-`power_380_400kv` seit dem Clean-38-Schema ohnehin nicht mehr gespeichert
+`power_380_400kv` seit dem Clean-38-Schema (historisch) ohnehin nicht mehr gespeichert
 wurde; Stand 30.09.2026: Freileitungen >= 110 kV sind als Band 45
 `power_lines_110kv_plus` wieder ein Kriterium, gelesen aus dem OSM-PBF über
-`derived/prep/osm/b_layers/powerlines.parquet`, nicht aus dieser Datei), `WINDKRAFT_AUSSCHLUSSZONE.zip` (4,4 MB — kein Codeleser mehr, seit
+`derived/prep/osm/powerlines.parquet`, nicht aus dieser Datei), `WINDKRAFT_AUSSCHLUSSZONE.zip` (4,4 MB — kein Codeleser mehr, seit
 W1.7 die Registrierung in `wind_zones.py` entfernt hat) und
 `windkraftzonen_shapefile_2024.json` (588 KB — nie von einem Skript der
 Referenzkette gelesen, siehe §3.1). `data/README.md` ist nach
@@ -258,6 +258,23 @@ Artefakte, insbesondere `output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet`
 | Leistungsdichte 150 m | `data/gelaende/AUT_power-density_150m.tif` | Global Wind Atlas | https://globalwindatlas.info | 29.03.2026 | **6,6 MB** | unbekannt — zu klären | ja |
 | Verwaltungsgrenzen | `data/admin/VGD_Oesterreich_gen_50_20221002/` | BEV, generalisiert 1:50.000 | unbekannt — zu klären | 02.10.2022 | **20 MB** | unbekannt — zu klären | ja, eingeschränkt |
 | Naturschutzgebiete | `data/natur/SG_AT_2024_v_April_Stand_3_April_2024.zip` | Umweltbundesamt / DORIS (OGD) | unbekannt — zu klären | 03.04.2024 | **73 MB** | unbekannt — zu klären | ja, eingeschränkt |
+
+**Verwendung des Naturschutz-ZIPs (Stand Siebter Referenzwechsel).** Grundsatz:
+Natur-Ausschluss für Schutzkategorien, die nach Naturschutzrecht der Länder
+per Verordnung oder Bescheid festgelegt sind, ohne Abstand, unabhängig von der
+Datenquelle. Prädikate/Programme ohne eigenen Schutzstatus (Naturpark,
+Biosphärenpark, UNESCO, IUCN-Einstufungen), jagdrechtliche Wildruheflächen und
+die „Schutzzonen Bergwelt Tirol" (Empfehlungen) schließen nicht aus.
+
+- Verwendet: `NP_AT_2024`, `NSG_AT_2024`, `ESG_AT_2024`, `RAMSAR_AT_2024`,
+  `LSG_AT_2024`, `GLT_AT_2024` (geschützte Landschaftsteile), `NDKM_AT_2024`
+  (Naturdenkmäler, Polygone und Punkte; Punkte belegen ihre 25-m-Zelle) und
+  `S_AT_2024` mit allen `KAT_SUB`-Codes: `RG`, `RZ`, `PSG`, `SSG`, `SAFM`,
+  `SG §26`, `GB`, `GLR`, `GNÖB`, `ÖE`, `ÖSG` (Filter:
+  `config.json:paths.nsg_layer_filter`). Ausgenommen sind nur die von UBA als
+  nicht gültig markierten Codes `SGNOG` und `SZSFFG` (im Layer nicht vorhanden).
+- Nicht verwendet (ohne eigenen Schutzstatus): IUCN-Kategorien, Biosphärenparke,
+  Naturparke, UNESCO-Gebiete.
 | OSM-Stromleitungen (**entfernt, Paket W1.2**) | war `data/osm_power_lines.gpkg` | abgeleitet aus Geofabrik-OSM | — (Export aus OSM-PBF) | 31.03.2026 | **13 MB** | ODbL 1.0 | entfällt |
 
 **WKA-Standortverzeichnis.** Das GeoJSON folgt RFC 7946: ohne den
@@ -277,7 +294,7 @@ Datei hatte einen einzigen Codeleser, `abschichtung_common.py:966`
 ausschließlich greift, wenn das konfigurierte OSM-PBF fehlt
 (`pbf.exists()` ist `False`). Mit gepflegtem PBF (`data/osm/austria-260330.osm.pbf`,
 Regelfall) wurde die Datei nie geöffnet. Das daraus gebaute Band
-`power_380_400kv` ist zudem im **Clean-38-Schema nicht mehr enthalten** —
+`power_380_400kv` ist zudem im **Clean-38-Schema (historisch) nicht mehr enthalten** —
 Stromleitungen waren seit `build_widmung_v2_layers.py` kein
 Ausschlusskriterium mehr, das Ergebnis wäre also verworfen worden. Seit
 30.09.2026 gilt das nicht mehr: Freileitungen >= 110 kV bilden Band 45

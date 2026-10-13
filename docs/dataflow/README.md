@@ -25,7 +25,7 @@
 **Interaktive Ansicht:** [`flow_diagram.html`](flow_diagram.html) — lokal per
 Doppelklick im Browser öffnbar, keine Abhängigkeiten und keine
 Netzwerkzugriffe außer dem Nachladen der Google-Fonts-Stylesheets.
-Veröffentlichte Fassung: https://claude.ai/code/artifact/3299cc50-4e57-4dc8-a4bd-22fecbe2beea
+Eine veröffentlichte Fassung gibt es nicht; die HTML-Datei liegt im Repo.
 `flow_graph.json` ist die Quelle der Wahrheit; `flow_diagram.html` ist eine
 daraus erzeugte Momentaufnahme — wer den Graphen ändert, muss das HTML neu
 erzeugen.

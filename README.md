@@ -5,51 +5,35 @@ Frage durch **Abschichtung**: Von der Landesfläche werden nacheinander alle
 Flächen abgezogen, auf denen Windkraft aus Gründen des Siedlungsschutzes,
 des Naturschutzes oder der Geografie ausscheidet — Wohngebiete samt
 Abstandspuffer, Schutzgebiete, steiles oder zu hoch gelegenes Gelände,
-windschwache Lagen. Was übrig bleibt, ist die **Potentialfläche** — derzeit
-rund 3 660 km², gut 4 % der Landesfläche.
+windschwache Lagen. Was übrig bleibt (zusammenhängend mindestens 10 ha), ist
+die Eignungs- bzw. Potentialfläche. Es ist keine Standortprüfung und keine
+Genehmigungsgrundlage.
 
-Das Ergebnis ist ein GeoTIFF mit 44 Bändern in 25 m Auflösung (EPSG:31287):
-jedes Ausschlusskriterium als eigene Maske, dazu die Summen je Familie und
-die bereinigte Potentialfläche.
+![Anteil der Ausschlussgruppen und der Eignungsfläche je Bundesland](https://github.com/hurtjan/windkraft-oe-abschichtung/releases/download/abbildungen-latest/abb2_balken.png)
 
-![Österreich: Ausschlussflächen nach Familie und verbleibende Potentialfläche](docs/img/oesterreich.png)
+## Whitepaper in Kürze
 
-*Österreich gesamt — Ausschlüsse nach Familie (Mensch, Natur, Geografie),
-darüber die verbleibende Potentialfläche.*
+Zahlen wörtlich aus `docs/whitepaper/paper.md` (erzeugt mit `make whitepaper`).
 
-![Bezirk Mistelbach: amtliche Windkraftzonen, Potentialfläche und Ausschlüsse](docs/img/bezirk_mistelbach.png)
+- Ein bundesweit einheitliches Kriterienset in drei Gruppen: Mensch, Natur, Geografie.
+- Rechenbasis: Raster mit 25 × 25 m (EPSG:31287); Abstände als Kreise um betroffene Zellen.
+- Siedlung: 1 000 m Abstand zu gewidmetem Wohnbauland, in Niederösterreich 1 200 m.
+- Häuser im Grünen: 750 m; Streusiedlungen werden aus Kataster und Adressregister erkannt (10 852 Gruppen außerhalb Niederösterreichs).
+- Ohne Streusiedlungs-Erkennung wäre die Eignungsfläche ab 10 ha um 709 km² (+22 %) größer.
+- Häuser im Grünen gesamt, mit Abstand: 40 744 km².
+- Natur: amtliche Schutzgebiete des Umweltbundesamts, 23 648 km² oder 28,2 % des Staatsgebiets.
+- Geografie: Hangneigung über 15°, Seehöhe über 2 500 m, Wind unter 150 W/m², Gewässer ab 1 ha.
+- Landesfläche Österreich: 83 879,1 km²; Wald 36 460,8 km² (43 %), Äcker, Wiesen, Weiden 23 541,9 km² (28 %).
+- Potentialfläche (Eignung ≥ 10 ha ohne Bestand): 2 808,3 km² (3,3 % der Landesfläche), davon Wald 1 477,3 km² (53 %).
+- Bestand (Windkraftzonen und Bestandsanlagen außerhalb): 541,2 km² (0,6 %).
 
-*Bezirk Mistelbach (NÖ) — berechnete Potentialfläche gegen die amtlich
-ausgewiesenen Windkraftzonen. Die Zonen gehen nicht in die Berechnung ein;
-sie laufen als Referenz mit, damit man sieht, wo beides zusammenfällt und
-wo nicht.*
+## Produkt
 
-## Die Ausschlüsse
-
-| Familie | Kriterium | Quelle | Regel |
-|---|---|---|---|
-| Mensch | Wohnbauland | Flächenwidmung der Länder | Puffer 1 000 m, NÖ 1 200 m |
-| Mensch | Häuser im Grünen — Ferienhaus- und Tourismuswidmung, Streusiedlungen ab 5 Adressen, NÖ-Mindestabstandszonen | Widmung, Adressregister, OSM, NÖ SekROP | Puffer 750 m |
-| Mensch | Gebäude allgemein, bewohnte Einzellagen, Nicht-Wohngebäude | Kataster (DKM), OSM | Fußabdruck, 25 m |
-| Mensch | Seilbahngebäude | OSM | Puffer 50 m |
-| Mensch | Autobahnen, Schnell-, Bundes- und Landesstraßen; Haupt- und Schmalspurbahnen; Personenseilbahnen | OSM, ohne Tunnel | Puffer 150 m |
-| Mensch | Militärische Sperrgebiete | OSM | Fläche |
-| Mensch | Hauptflughäfen samt An- und Abflugkorridor | OSM | Areal; Korridor 5 km, ±15° je Landebahn |
-| Natur | Nationalparks, Naturschutz-, Europaschutz-, Ramsar-Gebiete; ergänzend Natura 2000 und Landschaftsschutz aus OSM | Schutzgebietskataster, OSM | Fläche, kein Puffer |
-| Geografie | Hangneigung | Geländemodell 25 m | über 15° |
-| Geografie | Höhenlage | Geländemodell 25 m | über 2 500 m |
-| Geografie | Windhöffigkeit | Global Wind Atlas, 150 m Höhe | unter 150 W/m² |
-| Geografie | Gewässer | OSM | ab 1 ha |
-
-Die Vereinigung aller Kriterien ist `all_exclusions`. Was danach übrig
-bleibt, wird um zusammenhängende Restflächen **unter 10 ha** bereinigt —
-das ist die Potentialfläche, Band `available_cleaned_min_10ha`. Vier
-zusätzlich geglättete Varianten (Gauß, σ 100 bis 300 m) zeigen, wie robust
-eine Fläche gegen kleine Verschiebungen der Puffer ist.
-
-Alle Abstände und Schwellwerte stehen in `config.json` und
-`calc/abschichtung_common.py`; jedes Band ist in `out/abschichtung.bands.json`
-beschrieben.
+`out/abschichtung.tif`: **45 Bänder**, 25 m, EPSG:31287, `uint8`; jedes
+Ausschlusskriterium als eigene Maske, dazu Summen je Familie und die
+bereinigte Potentialfläche. Manifest `out/abschichtung.bands.json`, Schema
+**2.3.0**; aktueller sha256-Präfix `58caa8ff`. TIF und Manifest nur zusammen
+weitergeben. Die Ausgaben liegen nicht im Repo (`out/` ist gitignored).
 
 ## Zum Laufen bringen
 
@@ -58,60 +42,41 @@ Voraussetzungen: Python ≥ 3.10 mit [uv](https://docs.astral.sh/uv/),
 
 ```bash
 uv sync                # Abhängigkeiten
-# Rohdaten nach data/ — siehe "Datenquellen"
+# Rohdaten nach data/ — siehe docs/rohdaten.md
 make check-guards      # Wächter: data/ wird nur gelesen
-make                   # prep → layers → finalize → export
+make                   # prep → layers → finalize → analyse-raster → export
 make test
+make whitepaper        # Tabellen und Abbildungen, nur aus dem TIF
+make analyse-raster    # zweites Produkt out/abschichtung_analyse.tif
+make abb-publish       # Trockenlauf; make abb-publish CONFIRM=1 veröffentlicht
 ```
 
-Ein Kaltstart dauert rund eine Stunde, ein zweiter Lauf mit unveränderten
-Eingaben wenige Minuten — die Kette merkt sich, was schon gerechnet ist.
-Danach liegt unter `out/`:
+Ein Kaltstart dauert rund eine Stunde. Unvollständige Rohdaten führen
+**nicht** zum Abbruch, sondern zu einem plausibel aussehenden, aber falschen
+Ergebnis — vorher `docs/rohdaten.md`, Abschnitt 0, lesen.
 
-| Datei | Inhalt |
-|---|---|
-| `abschichtung.tif` + `abschichtung.bands.json` | Das 44-Band-Raster und sein Manifest — nur zusammen weitergeben |
-| `dashboard/index.html` | Kartenansicht aller Bänder (Leaflet über OSM) |
-| `gemeinden.geojson` | Gemeindegrenzen im Rasterbezug |
-| `wka_bestand_punkte.geojson` | Bestehende Windkraftanlagen aus dem gelieferten österreichischen Standortverzeichnis |
-| `LAYER.md` | Bandbeschreibungen in lesbarer Form |
+## Dokumentation
 
-> ⚠️ **Fehlende Rohdaten führen nicht zum Abbruch.** Eine unvollständige
-> `data/`-Kopie erzeugt ein plausibel aussehendes, aber falsches Ergebnis.
-> Vor dem ersten Lauf [`docs/rohdaten.md`](docs/rohdaten.md), Abschnitt 0,
-> lesen.
-
-Betrieb, Wiederholbarkeit, Umgebungsvariablen, Tests und bekannte
-Einschränkungen: [`docs/BETRIEB.md`](docs/BETRIEB.md).
-
-## Datenquellen
-
-`data/` ist nicht Teil des Repos (rund 13 GB). Provenienz, Bezugsweg und
-Lizenz jeder einzelnen Datei stehen in [`docs/rohdaten.md`](docs/rohdaten.md).
-
-| Quelle | Anbieter | Verwendung |
-|---|---|---|
-| Flächenwidmung, 9 Bundesländer | OGD-Portale der Länder | Wohnbauland, Häuser im Grünen |
-| Digitale Katastralmappe (DKM) | BEV | Gebäudefußabdrücke |
-| Adressregister | BEV | Streusiedlungen, Einzellagen |
-| Verwaltungsgrenzen | BEV | Österreich-Maske, Gemeinden |
-| Geländemodell 25 m | BEV | Hangneigung, Höhe, Rasterbezug |
-| Windatlas, Leistungsdichte 150 m | Global Wind Atlas | Windhöffigkeit |
-| Schutzgebiete | Umweltbundesamt | Naturschutz |
-| NÖ SekROP Windkraft | Amt der NÖ Landesregierung | Mindestabstandszonen, Referenzzonen |
-| OSM Österreich-Extrakt | Geofabrik | Straßen, Bahn, Seilbahnen, Gebäude, Gewässer, Militär, Flughäfen |
-| WKA-Standortverzeichnis Österreich | geliefert | Autoritative Bestands-WKA für Referenzband und Punkte-Export |
-
-Direkt herunterladbar sind nur OSM und Windatlas; die übrigen Quellen
-müssen manuell bei den jeweiligen Stellen bezogen werden. Belegte Lizenzen:
-OSM unter ODbL, Flächenwidmung OÖ und Tirol unter CC-BY 4.0 — für die
-übrigen Quellen ist die Lizenzlage in `rohdaten.md` als offen vermerkt und
-vor jeder Weitergabe zu klären.
-
-## Weiterführend
-
-- [`docs/HANDOFF.md`](docs/HANDOFF.md) — Vertrag für alle, die das GeoTIFF
-  weiterverarbeiten
-- [`docs/BETRIEB.md`](docs/BETRIEB.md) — Kette im Detail, Wiederholbarkeit,
-  Tests
+- [`docs/BETRIEB.md`](docs/BETRIEB.md) — Kette im Detail, Wiederholbarkeit, Tests
+- [`docs/HANDOFF.md`](docs/HANDOFF.md) — Vertrag für alle, die das GeoTIFF weiterverarbeiten
+- [`docs/LAYER-MANIFEST.md`](docs/LAYER-MANIFEST.md) — Bänder und Manifest
+- [`docs/rohdaten.md`](docs/rohdaten.md) — Herkunft und Lizenz jeder Eingangsdatei
+- [`docs/whitepaper/README.md`](docs/whitepaper/README.md) — Whitepaper und Abbildungs-Veröffentlichung
 - [`docs/dataflow/`](docs/dataflow/) — Datenfluss-Diagramm
+
+## Datenquellen und deren Lizenzen
+
+Die Rohdaten sind nicht Teil des Repos und behalten ihre eigenen Bedingungen
+(Details und Bezugswege: [`docs/rohdaten.md`](docs/rohdaten.md)):
+
+- OpenStreetMap (Geofabrik-Extrakt): ODbL 1.0, © OpenStreetMap-Mitwirkende
+- BEV (Adressregister, Digitale Katastralmappe, Verwaltungsgrenzen, Geländemodell): CC BY 4.0, soweit dort ausgewiesen
+- Flächenwidmung der neun Länder: je Land eigene Bedingungen (OÖ und Tirol CC BY 4.0); Lage siehe `docs/rohdaten.md`
+- Schutzgebiete: Umweltbundesamt (SG_AT_2024)
+- NÖ SekROP Windkraft: Land Niederösterreich
+- Global Wind Atlas: Zitat und Bedingungen wie in `docs/rohdaten.md` und im Whitepaper (Davis et al. 2023)
+
+## Lizenz
+
+Code: MIT ([`LICENSE`](LICENSE)). Texte, Dokumentation und Abbildungen:
+CC BY 4.0 ([`LICENSE-docs`](LICENSE-docs)), © 2026 Jan Hurt.

@@ -32,33 +32,30 @@ Bänder (``settlement_buffer_<variante>`` u.a.) stehen NICHT in
 per Default aus; sie gehören weder zu den 17 Pflicht-Checkpoints noch zur
 Endkomposition dieses Pakets.
 
-## Eingaben: derived/prep/ statt data/
+## Eingaben: derived/prep/ statt Rohdaten
 
 Vier der sieben Gruppen lasen bisher Rohdaten direkt: Verwaltungsgrenzen
 (VGD-Shapefile), amtlicher Naturschutz (NSG-ZIP), amtliche Windzonen (fünf
 Quellen) und zwei OSM-Objektgruppen (nature/water, per Osmium
 gegen die PBF-Rohquelle). Diese Datei liest sie jetzt aus der Prep-Stufe:
 
-    admin_boundaries()        -> derived/prep/admin/bundesland_masken.gpkg
+    admin_boundaries()        -> derived/prep/admin/bundesland_masken.parquet
                                   (pipeline/prep/admin.py, W1.P1)
-    _build_official_nature_mask -> derived/prep/natur/schutzgebiete.gpkg
+    _build_official_nature_mask -> derived/prep/natur/schutzgebiete.parquet
                                   (pipeline/prep/natur.py, W1.P7)
-    official_wind_zoning      -> derived/prep/zonen/{Stmk,Sbg,Bgld,RED3,NOE}.gpkg
+    official_wind_zoning      -> derived/prep/zonen/{Stmk,Sbg,Bgld,RED3,NOE}.parquet
                                   (pipeline/prep/zonen.py, W1.P8)
     osm_nature_protection_areas,
-    geography_water_bodies -> derived/prep/osm/b_layers/{nature,water}.parquet
+    geography_water_bodies -> derived/prep/osm/{nature,water}.parquet
                                   (pipeline/prep/osm.py, W1.P5)
     wka_bestand_ausserhalb_zonen -> derived/prep/windkraft/standorte.parquet
                                   (pipeline/prep/windkraft.py)
 
-``geography_*`` (Hangneigung/Höhe/Wind) ist die Ausnahme: W1.P6
-(``pipeline/prep/terrain.py``) schreibt laut eigenem Auftrag bewusst KEINE
-umgeformte Ableitung der beiden Rohraster (DGM/Leistungsdichte), nur einen
-Prüfbericht - "keine Umformung" steht da wörtlich. ``build_geography_masks()``
-wird deshalb UNVERÄNDERT aus ``abschichtung_common`` importiert und liest
-weiter über ``cfg["paths"]["dgm"]``/``["wind_pd_150"]`` (die laut
-``calc/config.py`` ohnehin schon auf ``contract.RAW["gelaende"]``
-zeigen) - es gibt keinen Prep-Pfad, auf den umgestellt werden könnte.
+``geography_*`` (Hangneigung/Höhe/Wind) liest ebenfalls aus der Prep-Stufe:
+``pipeline/prep/terrain.py`` bringt DGM und Leistungsdichte einmalig auf das
+Zielraster (``derived/prep/gelaende/dgm.tif``, ``wind_pd_150.tif``);
+``build_geography_masks()`` (aus ``abschichtung_common``) liest sie ohne
+Resampling. Auch das Zielgitter (``load_grid``) kommt aus ``dgm.tif``.
 
 ## Zwei getrennte Checkpoint-Verzeichnisse
 
@@ -96,11 +93,9 @@ Entscheidung dieses Pakets: JA, prüfen. Jeder der sieben
 ``ensure_group_layers()``-Aufrufe bekommt ``extra_tags``/``extra_ok`` mit
 einem Tag ``PREP_FINGERPRINT`` - dem SHA-256 über
 ``pipeline.fingerprint.compute()`` der tatsächlich gelesenen Dateien
-(_prep_inputs() unten: die fünf Zonen-GPKGs, das Naturschutz-GPKG, das
-Bundesland-GPKG, die drei OSM-Parquets UND die beiden gelaende-Rohraster -
-letztere sind kein Prep-Ergebnis, aber eine echte Eingabe von
-``build_geography_masks()`` und ohne sie bliebe genau die Lücke bestehen,
-die §12 beschreibt). Dieselbe ``pipeline.fingerprint``-Bibliothek wie die
+(_prep_inputs() unten: die fünf Zonen-Parquets, das Naturschutz-Parquet, das
+Bundesland-Parquet, die OSM-Parquets, die WKA-Standorte UND die beiden
+gelaende-Rasterprodukte dgm.tif/wind_pd_150.tif). Dieselbe ``pipeline.fingerprint``-Bibliothek wie die
 neun Prep-Stufen, nicht neu erfunden - genau der in ihrem Modul-Docstring
 angekündigte Wiederverwendungsfall. Ob W2.1/W2.3 dieselbe Konvention
 wählen, war beim Schreiben dieser Datei nicht bekannt (parallele Pakete);
@@ -109,9 +104,9 @@ falls nicht, ist das beim Zusammenführen anzugleichen (siehe Berichtstext).
 ## Punkt 18: erbt admin_boundaries() beim Umstieg die "Rohdatei ist schon
 EPSG:31287"-Annahme der drei betroffenen Skripte?
 
-Nein. ``pipeline/prep/admin.py`` schreibt ``bundesland_masken.gpkg`` erst
+Nein. ``pipeline/prep/admin.py`` schreibt ``bundesland_masken.parquet`` erst
 NACH einem eigenen defensiven ``to_crs(TARGET_CRS)`` (dort Zeile ~68-69),
-und GeoPackage trägt sein CRS als Metadatenfeld, nicht als separate,
+und GeoParquet trägt sein CRS in den Geo-Metadaten, nicht als separate,
 verlierbare ``.prj``-Sidecar-Datei wie ein Shapefile. ``_admin_boundaries()``
 unten ruft zusätzlich selbst defensiv ``to_crs(TARGET_CRS)`` auf (genau das
 Sicherheitsnetz, das ``read_layer()`` für jeden Konsumenten schon immer
@@ -121,8 +116,8 @@ also an keiner Stelle stillschweigend auf ein angenommenes CRS.
 ## Punkt 20: Geometrietyp-Empfindlichkeit gegen den GPKG-Promotionseffekt
 
 Siehe Bericht zu diesem Paket für die vollständige Fundstellenliste. Kurz:
-alle GPKG-gelesenen Polygon-Eingaben dieses Moduls (``schutzgebiete.gpkg``,
-die vier ``WIND_ZONE_SOURCES``-GPKGs plus ``NOE.gpkg``) laufen ausschließlich
+alle (früher GPKG-, jetzt GeoParquet-)gelesenen Polygon-Eingaben dieses Moduls
+(``schutzgebiete.parquet``, die vier Zonen-Dateien plus ``NOE.parquet``) laufen ausschließlich
 über ``raster_mask()`` (-> ``rasterio.features.rasterize()``) in eine
 Rastermaske - keine Verzweigung dazwischen unterscheidet Polygon von
 MultiPolygon. Die einzige tatsächliche ``geom_type``-Verzweigung in diesem
@@ -149,13 +144,10 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from pipeline import contract, fingerprint, runtime  # noqa: E402
-from pipeline.prep import admin as prep_admin  # noqa: E402
-from pipeline.prep import natur as prep_natur  # noqa: E402
-from pipeline.prep import zonen as prep_zonen  # noqa: E402
-from pipeline.prep import windkraft as prep_windkraft  # noqa: E402
+from pipeline.prep import zonen as prep_zonen  # noqa: E402  (nur ZONE_BUNDESLAND-Konstante)
+from pipeline.prep import windkraft as prep_windkraft  # noqa: E402  (load_prepared: liest nur das prep-Produkt)
 
 from calc.config import load_config  # noqa: E402
-from calc.wind_zones import WIND_ZONE_SOURCES  # noqa: E402
 from calc.abschichtung_common import (  # noqa: E402
     CABLEWAY_BUILDING_BUFFER_M,
     GENERAL_BUILDING_BUFFER_M,
@@ -218,14 +210,13 @@ BUFFER_BANDS = [
 ]
 
 # ---------------------------------------------------------------------------
-# I/O-Adapter: derived/prep/ statt data/ (siehe Moduldocstring)
+# I/O-Adapter: derived/prep/ statt Rohdaten (siehe Moduldocstring)
 # ---------------------------------------------------------------------------
 
-# key -> Bundesland, wortgleich aus calc.wind_zones.WIND_ZONE_SOURCES
-# übernommen (dort die Quelle der Wahrheit für Band official_wind_zoning;
-# hier nur die vier Schlüssel gebraucht, die pipeline/prep/zonen.py als
-# eigene GPKGs ablegt - NOE läuft separat, siehe unten).
-_ZONE_BUNDESLAND = {s.key: s.bundesland for s in WIND_ZONE_SOURCES}
+# key -> Bundesland der vier geklippten Zonen-Quellen (NOE läuft separat, siehe
+# unten); deklariert in pipeline/prep/zonen.py (gleiche Werte wie
+# calc.wind_zones.WIND_ZONE_SOURCES, ohne dessen Rohpfade zu importieren).
+_ZONE_BUNDESLAND = dict(prep_zonen.ZONE_BUNDESLAND)
 
 
 def _read_prep_vector(path: Path, bounds=None) -> gpd.GeoDataFrame:
@@ -251,7 +242,7 @@ def _read_prep_vector(path: Path, bounds=None) -> gpd.GeoDataFrame:
 
 def _admin_boundaries(bounds=None) -> gpd.GeoDataFrame:
     """Ersetzt ``abschichtung_common.admin_boundaries()`` für diese Stufe:
-    liest ``derived/prep/admin/bundesland_masken.gpkg`` (9 Bundesländer,
+    liest ``derived/prep/admin/bundesland_masken.parquet`` (9 Bundesländer,
     bereits nach ``BL`` dissolviert - pipeline/prep/admin.py) statt der
     VGD-Rohquelle. Einziger Layer-Konsument der Verwaltungsgrenzen, der
     tatsächlich Bundesland-spezifisch PUFFERT (``province_buffer_cell_mask``),
@@ -260,7 +251,7 @@ def _admin_boundaries(bounds=None) -> gpd.GeoDataFrame:
     für ``general_buildings_source``), das ist aber W2.3s eigener Bereich,
     hier unverändert.
     """
-    path = contract.PREP["admin"] / prep_admin.BUNDESLAND_MASKEN_FILENAME
+    path = contract.PREP_FILES["admin"]["bundesland_masken"]
     return _read_prep_vector(path, bounds=bounds)
 
 
@@ -295,18 +286,20 @@ def _prep_inputs() -> list[Path]:
     """Alle tatsächlich gelesenen Eingaben dieser Stufe - Prep-Ausgaben UND
     die beiden gelaende-Rohraster (siehe Moduldocstring, Fingerabdruck-
     Konvention)."""
-    osm_b = contract.PREP["osm"]["b_layers"]
-    zonen_dir = contract.PREP["zonen"]
     return sorted(
         [
-            contract.PREP["admin"] / prep_admin.BUNDESLAND_MASKEN_FILENAME,
-            contract.PREP["natur"] / prep_natur.OUTPUT_FILENAME,
-            *(zonen_dir / f"{key}.gpkg" for key in prep_zonen.SOURCES),
-            osm_b / "nature.parquet",
-            osm_b / "water.parquet",
+            contract.PREP_FILES["admin"]["bundesland_masken"],
+            contract.PREP_FILES["natur"]["schutzgebiete"],
+            *contract.PREP_FILES["zonen"].values(),
+            contract.PREP_FILES["osm"]["nature"],
+            contract.PREP_FILES["osm"]["water"],
+            # Eigene Quelldatei: die OSM-Naturfilter (_build_osm_nature_mask)
+            # liegen hier, nicht im Prep - eine Filteraenderung muss den
+            # Selbst-Ueberspringer aufheben (Register Punkt 75).
+            Path(__file__),
             prep_windkraft.output_path(),
-            contract.RAW["gelaende"]["dgm"],
-            contract.RAW["gelaende"]["wind_pd_150"],
+            contract.PREP_FILES["gelaende"]["dgm"],
+            contract.PREP_FILES["gelaende"]["wind_pd_150"],
         ]
     )
 
@@ -420,11 +413,11 @@ def _build_official_nature_mask(grid: dict) -> np.ndarray:
     """Wie 04_create_distance_zones.py:_build_official_nature_mask() (seit
     W6.1 aus dem Repo entfernt, letzter Stand im Commit f1d00f7 - git show
     f1d00f7:scripts/widmung_v2/04_create_distance_zones.py), Eingabe
-    jetzt ``derived/prep/natur/schutzgebiete.gpkg`` (920 Flächen, geometrieonly,
+    jetzt ``derived/prep/natur/schutzgebiete.parquet`` (Flächen aus NP, NSG, ESG, Ramsar und LSG; geometrieonly,
     schon EPSG:31287) statt des NSG-ZIPs. Der notnull/not-empty-Filter ist
     hier ein No-op (Prep garantiert das schon beim Schreiben), bleibt aber
     stehen - dieselbe Prüfung wie im Original, nicht mehr und nicht weniger."""
-    path = contract.PREP["natur"] / prep_natur.OUTPUT_FILENAME
+    path = contract.PREP_FILES["natur"]["schutzgebiete"]
     nature = _read_prep_vector(path, bounds=grid["bounds"])
     if nature.empty:
         return np.zeros(grid["shape"], dtype=bool)
@@ -436,9 +429,16 @@ def _build_osm_nature_mask(grid: dict) -> np.ndarray:
     """Wie 04_create_distance_zones.py:_build_osm_nature_mask() (seit W6.1
     aus dem Repo entfernt, letzter Stand im Commit f1d00f7 - git show
     f1d00f7:scripts/widmung_v2/04_create_distance_zones.py), Eingabe
-    jetzt ``derived/prep/osm/b_layers/nature.parquet`` statt eines frischen
-    Osmium-Exports gegen die PBF-Rohquelle. Tag-/Text-Heuristik wortgleich."""
-    path = contract.PREP["osm"]["b_layers"] / "nature.parquet"
+    jetzt ``derived/prep/osm/nature.parquet`` statt eines frischen
+    Osmium-Exports gegen die PBF-Rohquelle. Tag-/Text-Heuristik wortgleich,
+    seit 2026-10 mit zusätzlichem Filter (Naturpark/Biosphärenpark, schwache
+    protect_class 5).
+
+    Band 22 ist nur Information und geht NICHT in den Ausschluss (Band 28)
+    ein. Grundsatz: Ausschluss nur für Kategorien, die nach Naturschutzrecht
+    der Länder per Verordnung festgelegt sind (siehe pipeline/prep/natur.py);
+    Naturpark/Biosphärenpark haben keinen eigenen Schutzstatus."""
+    path = contract.PREP_FILES["osm"]["nature"]
     osm = _read_prep_vector(path, bounds=grid["bounds"])
     if osm.empty:
         return np.zeros(grid["shape"], dtype=bool)
@@ -452,7 +452,7 @@ def _build_osm_nature_mask(grid: dict) -> np.ndarray:
     text = title + " " + name
 
     requested_text = text.str.contains(
-        r"naturschutz|natura\s*2000|natura2000|vogelschutz|bird|landschaftsschutz|nationalpark|national park|nature reserve|nature_reserve",
+        r"naturschutz|natura\s*2000|natura2000|vogelschutz|bird|nationalpark|national park|nature reserve|nature_reserve",
         regex=True,
         na=False,
     )
@@ -461,7 +461,19 @@ def _build_osm_nature_mask(grid: dict) -> np.ndarray:
         | leisure.eq("nature_reserve")
         | protect_class.isin({"1", "1a", "1b", "2", "4", "5"})
     )
-    selected = osm[geom_area & (requested_text | requested_tags)].copy()
+    # Landschaftsschutzgebiete nur aus UBA (LSG_AT_2024), Nutzerentscheidung
+    # 2026-10-12: hier raus, auch wenn protect_class sie sonst selektieren wuerde.
+    is_lsg = text.str.contains("landschaftsschutz", regex=False, na=False)
+    # Naturpark/Biosphaerenpark: Praedikate ohne eigenen Schutzstatus -> raus.
+    is_park = text.str.contains(r"naturpark|biosph", regex=True, na=False)
+    # protect_class 5 nur mit eindeutigem Schutztext; sonst raus.
+    strong_text = text.str.contains(
+        r"naturschutz|nationalpark|natura|vogelschutz|ruhegebiet", regex=True, na=False
+    )
+    pc5_only = protect_class.eq("5") & ~strong_text
+    selected = osm[
+        geom_area & (requested_text | requested_tags) & ~is_lsg & ~is_park & ~pc5_only
+    ].copy()
     return raster_mask(selected, 0.0, grid, "osm_nature_protection_areas")
 
 
@@ -476,10 +488,10 @@ def build_water_masks(grid: dict) -> dict[str, np.ndarray]:
     """Wie 04_create_distance_zones.py:build_water_masks() (seit W6.1 aus
     dem Repo entfernt, letzter Stand im Commit f1d00f7 - git show
     f1d00f7:scripts/widmung_v2/04_create_distance_zones.py), Eingabe jetzt
-    ``derived/prep/osm/b_layers/water.parquet``. ``water_bodies_mask()`` selbst
+    ``derived/prep/osm/water.parquet``. ``water_bodies_mask()`` selbst
     (Fußabdruck + Mindestfläche über verbundene Rasterflächen) unverändert
     aus abschichtung_common importiert - reine Rechenlogik, kein I/O."""
-    path = contract.PREP["osm"]["b_layers"] / "water.parquet"
+    path = contract.PREP_FILES["osm"]["water"]
     water = _read_prep_vector(path, bounds=grid["bounds"])
     mask = water_bodies_mask(water, grid, WATER_MIN_AREA_HA)
     print(
@@ -494,16 +506,16 @@ def build_official_zoning_masks(grid: dict) -> dict[str, np.ndarray]:
     """Wie 04_create_distance_zones.py:build_official_zoning_masks() (seit
     W6.1 aus dem Repo entfernt, letzter Stand im Commit f1d00f7 - git show
     f1d00f7:scripts/widmung_v2/04_create_distance_zones.py). Die
-    fünfte Quelle (NÖ) kommt jetzt aus ``derived/prep/zonen/NOE.gpkg`` statt
+    fünfte Quelle (NÖ) kommt jetzt aus ``derived/prep/zonen/NOE.parquet`` statt
     ``--official-zoning-geojson``; die vier ``WIND_ZONE_SOURCES``-Quellen aus
-    ``derived/prep/zonen/{Stmk,Sbg,Bgld,RED3}.gpkg`` statt
+    ``derived/prep/zonen/{Stmk,Sbg,Bgld,RED3}.parquet`` statt
     ``load_wind_zones()`` (das wiederum roh Shapefiles/ZIPs liest). Das
     Klippen auf die zuständige Bundesland-Grenze (per ``_clip_to_bundesland``)
     bleibt Sache dieser Stufe - pipeline/prep/zonen.py klippt laut eigenem
     Docstring bewusst nicht."""
     mask = np.zeros(grid["shape"], dtype=bool)
 
-    noe_path = contract.PREP["zonen"] / "NOE.gpkg"
+    noe_path = contract.PREP_FILES["zonen"]["NOE"]
     noe_zones = _read_prep_vector(noe_path, bounds=grid["bounds"])
     if not noe_zones.empty:
         mask = mask | raster_mask(noe_zones, 0.0, grid, "official_wind_zoning")
@@ -513,7 +525,7 @@ def build_official_zoning_masks(grid: dict) -> dict[str, np.ndarray]:
     bl = _admin_boundaries(grid["bounds"])
     zone_frames = []
     for key, bundesland in _ZONE_BUNDESLAND.items():
-        gdf = _read_prep_vector(contract.PREP["zonen"] / f"{key}.gpkg")
+        gdf = _read_prep_vector(contract.PREP_FILES["zonen"][key])
         if gdf.empty:
             continue
         if not bl.empty and "BL" in bl.columns:
@@ -649,7 +661,7 @@ def build_appended_source_aggregates(grid: dict, out_dir: Path) -> dict[str, np.
     (Personenseilbahnen), keine Material-/Warenseilbahnen. Vorher (bis
     W7.5) ging hier jede aerialway-Linie ungefiltert ein.
 
-    Band 43 (sources_nature) = 21 ∪ 22, Band 44 (sources_geography) =
+    Band 43 (sources_nature) = 21 (nur amtlich, wie Band 28), Band 44 (sources_geography) =
     23 ∪ 24 ∪ 25 ∪ 26 - beide reine Checkpoint-Unionen.
 
     Maßgeblich für alle drei Zusammensetzungen ist die Schnittstelle, nicht
@@ -676,7 +688,7 @@ def build_appended_source_aggregates(grid: dict, out_dir: Path) -> dict[str, np.
     )
     bounds = grid["bounds"]
     for key in ("roads", "railways", "aerialways"):
-        gdf = _read_prep_vector(contract.PREP["osm"]["b_layers"] / f"{key}.parquet", bounds=bounds)
+        gdf = _read_prep_vector(contract.PREP_FILES["osm"][key], bounds=bounds)
         if not gdf.empty:
             gdf = gdf[_non_tunnel_mask(gdf)]
         if key == "aerialways" and not gdf.empty:
@@ -688,7 +700,7 @@ def build_appended_source_aggregates(grid: dict, out_dir: Path) -> dict[str, np.
         if not gdf.empty:
             sources_human = sources_human | raster_mask(gdf, 0.0, grid, f"sources_human:{key}")
 
-    sources_nature = own("nature_protection_areas") | own("osm_nature_protection_areas")
+    sources_nature = own("nature_protection_areas")
     sources_geography = (
         own("geography_slope_too_steep")
         | own("geography_elevation_too_high")
@@ -716,7 +728,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             "Checkpoints aus scripts/widmung_v2/04_create_distance_zones.py "
             "(seit W6.1 aus dem Repo entfernt, letzter Stand im Commit "
             "f1d00f7: git show f1d00f7:scripts/widmung_v2/04_create_distance_zones.py), "
-            "Eingaben aus derived/prep/ statt data/. Keine Endkomposition "
+            "Eingaben aus derived/prep/ statt Rohdaten. Keine Endkomposition "
             "(GeoTIFF/Manifest) - das ist W3.1."
         )
     )

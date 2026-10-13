@@ -8,7 +8,7 @@ das alte Repo (`windkraft_ö_karten`) wertlos gemacht — der Abgleich muss
 zeigen, dass neu und alt exakt dasselbe tun, nicht dass neu bereits besser
 ist. Fixes gehören deshalb in eigene, spätere Commits mit eigener
 Verifikation. Zeilennummern beziehen sich, sofern nicht anders vermerkt, auf
-dieses Repo (`/Users/jhurt/Documents/master_windkraft/abschichtung`).
+dieses Repo (Repo-Wurzel).
 
 ## Pfad-/Konfigurationsfragen
 

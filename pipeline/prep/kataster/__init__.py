@@ -2,18 +2,18 @@
 
 Zwei Stufen, weil die NÖ-Polygonisierung teuer ist und vom billigeren
 Parquet-Export für die acht SHP-Bundesländer getrennt bleibt
-(``pipeline.contract.PREP["kataster"]``, ein ``a_``/``b_``-Paar):
+(Stufe a in ``pipeline.contract.WORK["kataster"]``, Stufe b in ``pipeline.contract.PREP["kataster"]``):
 
 - ``a_noe_polygonize`` — liest ausschließlich die niederösterreichische
   DXF-Kette (``contract.RAW["kataster"]["noe_dxf_zip"]`` +
   ``symbol_csv``), rekonstruiert Polygone per Kachelung, Linienverschmelzung
   und NS-Symbol-Mehrheitsvotum und schreibt sie als eigenständiges
-  GeoParquet nach ``contract.PREP["kataster"]["a_noe_polygonize"]``.
+  GeoParquet nach ``contract.WORK["kataster"]/a_noe_polygonize`` (Zwischenstand).
 - ``b_export_parquet`` — liest die acht SHP-Archive der übrigen
   Bundesländer direkt aus ``contract.RAW["kataster"]`` sowie das Ergebnis
   von ``a_noe_polygonize`` (ohne es erneut zu berechnen) und vereinigt
   beides zum kombinierten Kataster-GeoParquet unter
-  ``contract.PREP["kataster"]["b_export_parquet"]`` — Feldschema identisch
+  ``contract.PREP["kataster"]`` (Endprodukt) — Feldschema identisch
   zum bisherigen ``output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet``
   (historisch, existiert seit W6.1 nicht mehr im Repo).
 

@@ -6,20 +6,22 @@ sondern ein GeoPDF (``contract.RAW["noe_sekrop"]["pdf"]``, 16,6 MB, TeilC
 als echte Vektor-Pfade (``page.get_drawings()``), nicht als Rasterbild -
 Bilderkennung ist nicht nötig, nur Farbfilterung und Georeferenzierung.
 
-Zwei Stufen, wie ``contract.PREP["noe_sekrop"]`` es vorgibt (Alignment vor
-Vektorisierung, PLAN.md §4):
+Zwei Stufen (Alignment vor Vektorisierung, PLAN.md §4):
 
-- ``run_align()`` -> ``contract.PREP["noe_sekrop"]["a_align"]``: liest nur
+- ``run_align()`` -> ``contract.WORK["noe_sekrop"]/a_align`` (Zwischenstand): liest nur
   die vier georeferenzierten Eckpunkte (``/GPTS`` des GeoPDFs, hier als
   Konstante übernommen - siehe ``calc/noe/pdf_align.py``) und die
   Seitenhöhe, transformiert MGI (EPSG:4312) nach EPSG:31287 und passt eine
   affine Pixel<->Geo-Transformation. Schreibt ``alignment_mindestabstand.json``.
-- ``run_vectorize()`` -> ``contract.PREP["noe_sekrop"]["b_vectorize"]``:
+- ``run_vectorize()`` -> ``contract.PREP["noe_sekrop"]`` (Endprodukt):
   liest die Alignment-Datei von Stufe a (harte Vorbedingung), filtert die
   PDF-Vektorpfade nach den sechs amtlichen Füllfarben, rekonstruiert
   geschlossene Ringe (inkl. Bézier-Sampling), löst sie even-odd auf,
   vereinigt gleichfarbige Pfade, clippt auf NÖ und vereinfacht leicht.
-  Schreibt sechs GeoJSON-Layer (+ WGS84-Variante je Layer).
+  Schreibt die drei von der Layer-Stufe gelesenen ``pdf_750m_*``-Layer als
+  GeoParquet (EPSG:31287) nach PREP; die drei übrigen Layer (kein Abnehmer)
+  als GeoJSON nach ``contract.WORK["noe_sekrop"]/b_vectorize``. Die früheren
+  ``*_wgs84.geojson``-Zwillinge (kein Leser) entfallen.
 
 Verschoben, unverändert in der Verarbeitungslogik (Regel 4 - Farbschwellen,
 Toleranzen, Bézier-Sampling, Vereinfachungstoleranz sind willkürlich, aber
@@ -54,7 +56,7 @@ pdf_hig_sources.py`` wurde deshalb mit diesem Paket gelöscht, nicht
 mitverschoben - eine Sackgasse eine Ebene über der, die W1.6 beseitigt
 hat. Der einzige echte Abnehmer dieser Domäne ist ``noe_pdf_750m_zones``
 (über ``calc/hig_source_masks.py:noe_pdf_mask()``, liest exakt
-die drei ``pdf_750m_*.geojson`` unten) - dieser Pfad bleibt unverändert
+die drei ``pdf_750m_*.parquet`` unten) - dieser Pfad bleibt unverändert
 erhalten und wird von diesem Paket nicht angefasst (Abgrenzung laut
 Auftrag: Konsumenten von ``noe_pdf_750m_zones`` ändert diese Welle nicht).
 
@@ -82,13 +84,19 @@ from shapely.affinity import affine_transform
 from shapely.geometry import Polygon
 
 from pipeline import contract, fingerprint, runtime
+from pipeline.prep.share import skip_without_raw
 from calc.noe.pdf_align import GPTS_LATLON_MINDESTABSTAND
 
 PDF_PATH = contract.RAW["noe_sekrop"]["pdf"]
 VGD_PATH = contract.RAW["admin"]["vgd"]
 
-ALIGN_DIR = contract.PREP["noe_sekrop"]["a_align"]
-VECTORIZE_DIR = contract.PREP["noe_sekrop"]["b_vectorize"]
+# Endprodukte (drei pdf_750m_*-Layer als GeoParquet) liegen direkt in
+# PREP["noe_sekrop"]; Stufe a (Alignment-JSON) und die drei ohne Abnehmer
+# (wohnbauland, siedlungsabstand_1200m, abstand_sondergebiet_1200m) sind
+# Zwischenstände in derived/work/noe_sekrop/.
+ALIGN_DIR = contract.WORK["noe_sekrop"] / "a_align"
+VECTORIZE_DIR = contract.PREP["noe_sekrop"]
+UNUSED_LAYER_DIR = contract.WORK["noe_sekrop"] / "b_vectorize"
 
 ALIGNMENT_FILENAME = "alignment_mindestabstand.json"
 
@@ -146,6 +154,13 @@ def _shapefile_sidecars(shp_path: Path) -> list[Path]:
 # ---------------------------------------------------------------------------
 
 
+def _share_skip() -> bool:
+    """Weitergabe ohne Rohdaten: drei pdf_750m_*-Produkte da, PDF/VGD fehlen."""
+    return skip_without_raw(
+        "noe_sekrop", [PDF_PATH, VGD_PATH], hint="data/noe_sekrop/ (SekROP-Karten-PDF) und data/admin/ (VGD)"
+    )
+
+
 def run_align(force: bool = False) -> Path:
     """Georeferenziert die Kartenseite: vier GPTS-Eckpunkte (MGI) ->
     EPSG:31287, affine Pixel<->Geo-Transformation. Schreibt
@@ -161,6 +176,8 @@ def run_align(force: bool = False) -> Path:
     Eingabeaenderung soll diese Stufe nicht neu rechnen (Punkt 52,
     docs/rewrite/PLAN.md). `--force` erzwingt einen Neulauf.
     """
+    if not force and _share_skip():
+        return ALIGN_DIR / ALIGNMENT_FILENAME
     runtime.ensure_dir(ALIGN_DIR)
 
     out_path = ALIGN_DIR / ALIGNMENT_FILENAME
@@ -395,7 +412,9 @@ def robust_union(polys, grid=0.05):
 
 
 def export_layer(out_dir, key, polys, dissolve, crs, noe_geom):
-    """Validiert, clippt auf NÖ, vereinfacht und schreibt GeoJSON (31287 + WGS84)."""
+    """Validiert, clippt auf NÖ, vereinfacht und schreibt den Layer: die drei
+    Layer mit Abnehmer als GeoParquet nach ``contract.PREP_FILES``, die übrigen
+    als GeoJSON nach ``out_dir`` (derived/work/)."""
     if not polys:
         print(f"  [{key}] keine Pfade gefunden!")
         return None
@@ -415,12 +434,15 @@ def export_layer(out_dir, key, polys, dissolve, crs, noe_geom):
     gdf["area_ha"] = (gdf.geometry.area / 1e4).round(2)
 
     base = LAYERS[key][1]
-    out_path = out_dir / f"{base}.geojson"
-    gdf.to_file(out_path, driver="GeoJSON")
-    gdf.to_crs("EPSG:4326").to_file(out_dir / f"{base}_wgs84.geojson", driver="GeoJSON")
+    if base in contract.PREP_FILES["noe_sekrop"]:
+        out_path = contract.PREP_FILES["noe_sekrop"][base]
+        gdf.to_parquet(out_path, index=False)
+    else:
+        out_path = runtime.ensure_dir(Path(out_dir)) / f"{base}.geojson"
+        gdf.to_file(out_path, driver="GeoJSON")
     print(
         f"  [{key}] {len(gdf)} Flächen, {gdf.geometry.area.sum()/1e6:.1f} km² "
-        f"-> {base}.geojson (+_wgs84)"
+        f"-> {out_path.name}"
     )
     return out_path
 
@@ -457,6 +479,8 @@ def run_vectorize(align: dict | None = None, force: bool = False) -> Path:
     Stufe-a-Ausgabe hebt den Ueberspringer hier also mit auf, obwohl sie
     nicht unter ``data/`` liegt.
     """
+    if not force and _share_skip():
+        return VECTORIZE_DIR
     runtime.ensure_dir(VECTORIZE_DIR)
 
     vectorize_inputs = [
@@ -465,8 +489,10 @@ def run_vectorize(align: dict | None = None, force: bool = False) -> Path:
     ]
     output_paths = []
     for _key, (_color, base, _dissolve) in LAYERS.items():
-        output_paths.append(VECTORIZE_DIR / f"{base}.geojson")
-        output_paths.append(VECTORIZE_DIR / f"{base}_wgs84.geojson")
+        if base in contract.PREP_FILES["noe_sekrop"]:
+            output_paths.append(contract.PREP_FILES["noe_sekrop"][base])
+        else:
+            output_paths.append(UNUSED_LAYER_DIR / f"{base}.geojson")
 
     if (
         not force
@@ -508,7 +534,7 @@ def run_vectorize(align: dict | None = None, force: bool = False) -> Path:
         polys = extract_polys_by_color(drawings, scale, px_left, px_top, color, geo_params)
         raw_km2 = sum(p.area for p in polys) / 1e6
         print(f"  {len(polys)} Pfad-Geometrien, Roh-Summe {raw_km2:.1f} km² (vor Auflösung/Clip)")
-        out_path = export_layer(VECTORIZE_DIR, key, polys, dissolve, crs, noe_geom)
+        out_path = export_layer(UNUSED_LAYER_DIR, key, polys, dissolve, crs, noe_geom)
         if out_path is not None:
             written.append(out_path)
     doc.close()
@@ -525,6 +551,8 @@ def run(force: bool = False) -> tuple[Path, Path]:
     """Beide Stufen nacheinander (Stufe b liest das Alignment direkt aus dem
     Rückgabewert von Stufe a, nicht erneut von der Platte - beide laufen
     hier im selben Prozess)."""
+    if not force and _share_skip():
+        return ALIGN_DIR, VECTORIZE_DIR
     run_align(force=force)
     align = json.loads((ALIGN_DIR / ALIGNMENT_FILENAME).read_text(encoding="utf-8"))
     run_vectorize(align, force=force)

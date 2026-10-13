@@ -5,11 +5,11 @@ auf Katastralgemeinde-Ebene mit 7850 Zeilen, siehe ``docs/rewrite/nachweise/
 w01p1/``) genau einmal und schreibt zwei Ableitungen nach
 ``contract.PREP["admin"]``:
 
-- ``gemeinden.gpkg`` - Dissolve nach ``GKZ`` (Gemeindekennziffer): die
+- ``gemeinden.parquet`` (GeoParquet, EPSG:31287) - Dissolve nach ``GKZ`` (Gemeindekennziffer): die
   tatsächlichen 2093 politischen Gemeinden. Verlustfrei, weil PG/BL/BL_KZ/
   PB/BKZ je GKZ konstant sind (geprüft, siehe Bericht zu W1.P1) - "first"
   beim Dissolve nimmt also nichts Uneindeutiges weg.
-- ``bundesland_masken.gpkg`` - Dissolve nach ``BL``: dieselbe Operation,
+- ``bundesland_masken.parquet`` (GeoParquet, EPSG:31287) - Dissolve nach ``BL``: dieselbe Operation,
   die ``calc/abschichtung_common.py`` heute bei *jedem* Aufruf
   von ``official_wind_zoning_mask`` erneut auf einem bounds-gefilterten
   Ausschnitt rechnet (Zeile ~1351: ``bl.dissolve(by="BL").reset_index()``).
@@ -25,8 +25,8 @@ bei dieser Quelle), siehe PLAN.md §7, Abnahme von W1.P1.
 Was diese Stufe NICHT tut: sie filtert nicht nach ``bounds`` (das bleibt
 Sache der Konsumenten, vgl. ``read_layer(..., bounds=...)``), und sie
 ändert keine Werte, Puffer oder Schwellwerte (Regel 4). Die Konsumenten
-lesen in dieser Welle weiterhin die Rohdatei - die Umstellung auf dieses
-Prep-Ergebnis ist Aufgabe von Welle 2 (siehe PLAN.md §3).
+(Layer-Stufe, Finalisierung, Export, Analyse) lesen ausschließlich diese
+Prep-Ergebnisse, nie die Rohdatei (CLAUDE.md: prep-Grenze).
 """
 
 from __future__ import annotations
@@ -37,11 +37,12 @@ from pathlib import Path
 import geopandas as gpd
 
 from pipeline import contract, fingerprint, runtime
+from pipeline.prep.share import skip_without_raw
 
 TARGET_CRS = "EPSG:31287"
 
-GEMEINDEN_FILENAME = "gemeinden.gpkg"
-BUNDESLAND_MASKEN_FILENAME = "bundesland_masken.gpkg"
+GEMEINDEN_FILENAME = contract.PREP_FILES["admin"]["gemeinden"].name
+BUNDESLAND_MASKEN_FILENAME = contract.PREP_FILES["admin"]["bundesland_masken"].name
 
 # Nur diese Spalten überleben den Gemeinden-Dissolve (Katastralgemeinde-
 # spezifische Spalten wie KG_NR/KG/FL wären nach dem Dissolve nur noch die
@@ -63,6 +64,8 @@ def _shapefile_sidecars(shp_path: Path) -> list[Path]:
 def run(force: bool = False) -> Path:
     vgd_path = contract.RAW["admin"]["vgd"]
     out_dir = contract.PREP["admin"]
+    if not force and skip_without_raw("admin", [vgd_path], hint="data/admin/VGD_Oesterreich_gen_50_20221002/ (Verwaltungsgrenzen, VGD_50_generalisiert.shp)"):
+        return out_dir
     runtime.ensure_dir(out_dir)
 
     # Path(__file__) zaehlt zum Fingerabdruck mit (W6.4, Punkt 45): eine
@@ -70,8 +73,8 @@ def run(force: bool = False) -> Path:
     # nur eine Aenderung an data/. Konservativ - nur die eigene Quelldatei,
     # nicht die Importe (siehe pipeline/fingerprint.py).
     inputs = _shapefile_sidecars(vgd_path) + [Path(__file__)]
-    gemeinden_path = out_dir / GEMEINDEN_FILENAME
-    bundesland_path = out_dir / BUNDESLAND_MASKEN_FILENAME
+    gemeinden_path = contract.PREP_FILES["admin"]["gemeinden"]
+    bundesland_path = contract.PREP_FILES["admin"]["bundesland_masken"]
 
     # Selbst-Ueberspringer, gleiches Muster wie pipeline/prep/osm.py
     # (run_extract/run_layers): ein wiederholter `make all` ohne
@@ -91,10 +94,10 @@ def run(force: bool = False) -> Path:
         gdf = gdf.to_crs(TARGET_CRS)
 
     gemeinden = gdf.dissolve(by="GKZ", aggfunc="first").reset_index()[GEMEINDEN_COLUMNS]
-    gemeinden.to_file(gemeinden_path, driver="GPKG")
+    gemeinden.to_parquet(gemeinden_path, index=False)
 
     bundeslaender = gdf.dissolve(by="BL").reset_index()[["BL", "geometry"]]
-    bundeslaender.to_file(bundesland_path, driver="GPKG")
+    bundeslaender.to_parquet(bundesland_path, index=False)
 
     fingerprint.write(out_dir, inputs)
 

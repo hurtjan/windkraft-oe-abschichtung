@@ -268,7 +268,7 @@ LABELS_DE = {
     "road_federal_state": "Bundes- und Landesstraßen",
     "rail_main": "Hauptbahnen",
     "cableway_people_150m": "Personenseilbahnen",
-    "military_restricted_area": "Militärisches Sperrgebiet",
+    "military_restricted_area": "Militärische Flächen",
     "airport_area_major": "Hauptflughafen-Areale",
     "airport_runway_corridor_5km": "An- und Abflugkorridore",
     "nature_protection_areas": "Amtliche Schutzgebiete",
@@ -312,10 +312,10 @@ DESCRIPTIONS_DE = {
         "auf das Staatsgebiet zugeschnitten."
     ),
     "exclusion_nature": (
-        "Amtliche Schutzgebiete, also Nationalparks, Naturschutzgebiete, "
-        "Europaschutzgebiete nach Natura 2000 und Ramsar-Gebiete, sowie "
-        "Schutzgebiete aus OpenStreetMap, vereinigt und auf das Staatsgebiet "
-        "zugeschnitten. Ohne Abstandspuffer."
+        "Amtliche Schutzgebiete, die nach Naturschutzrecht der Länder per "
+        "Verordnung oder Bescheid festgelegt sind, einschließlich Naturdenkmälern (Band 21), auf das Staatsgebiet "
+        "zugeschnitten. Schutzgebiete aus OpenStreetMap (Band 22) gehen nicht "
+        "ein. Ohne Abstandspuffer."
     ),
     "exclusion_geography": (
         "Vereinigung der Kriterien Hangneigung, Seehöhe, Wind und Gewässer; auf "
@@ -357,10 +357,9 @@ DESCRIPTIONS_DE = {
         "Objektquelle und fehlen deshalb."
     ),
     "sources_nature": (
-        "Vereinigung der amtlichen Schutzgebiete und der Schutzgebiete aus "
-        "OpenStreetMap. In der Kategorie Natur gibt es keinen Abstand, das Band "
-        "ist deshalb inhaltsgleich mit dem Ausschluss Natur und existiert nur, "
-        "damit jede Kategorie denselben Aufbau hat."
+        "Die amtlichen Schutzgebiete (Band 21). In der Kategorie Natur gibt es "
+        "keinen Abstand, das Band ist deshalb inhaltsgleich mit dem Ausschluss "
+        "Natur und existiert nur, damit jede Kategorie denselben Aufbau hat."
     ),
     "sources_geography": (
         "Vereinigung der Kriterien Hangneigung, Seehöhe, Wind und Gewässer. Es "
@@ -943,6 +942,8 @@ _HUMAN_BANDS = [
     "power_lines_110kv_plus",
 ]
 _NATURE_BANDS = ["nature_protection_areas", "osm_nature_protection_areas"]
+# exclusion_nature (28) und sources_nature (43) = nur amtlich (Band 21).
+_NATURE_EXCLUSION_BANDS = ["nature_protection_areas"]
 _GEOGRAPHY_AND_WATER_BANDS = [
     "geography_slope_too_steep",
     "geography_elevation_too_high",
@@ -970,7 +971,7 @@ BAND_DERIVED_FROM: dict[str, list[str]] = {
     # Kategorie-/Ergebnisaggregate, gebaut in compose_exclusion_geotiff()
     # (calc/abschichtung_common.py).
     "exclusion_human": list(_HUMAN_BANDS),
-    "exclusion_nature": list(_NATURE_BANDS),
+    "exclusion_nature": list(_NATURE_EXCLUSION_BANDS),
     "exclusion_geography": list(_GEOGRAPHY_AND_WATER_BANDS),
     "all_exclusions": ["exclusion_human", "exclusion_nature", "exclusion_geography"],
     "available_after_all_exclusions_raw": ["all_exclusions"],
@@ -996,7 +997,7 @@ BAND_DERIVED_FROM: dict[str, list[str]] = {
         "military_restricted_area",
         "airport_area_major",
     ],
-    "sources_nature": ["nature_protection_areas", "osm_nature_protection_areas"],
+    "sources_nature": list(_NATURE_EXCLUSION_BANDS),
     "sources_geography": list(_GEOGRAPHY_AND_WATER_BANDS),
 }
 
@@ -1154,16 +1155,16 @@ STUFE_ORDER = [
 # (key, category), nicht label_de allein, siehe test_familien_top_level_field).
 FAMILIEN = [
     {"key": "siedlung", "category": "Mensch", "label_de": "Siedlung", "description_de": "Abstand um amtlich gewidmetes Wohnbauland."},
-    {"key": "haeuser_im_gruenen", "category": "Mensch", "label_de": "Häuser im Grünen", "description_de": "Abstand um bewohnte Einzellagen außerhalb des Baulands."},
+    {"key": "haeuser_im_gruenen", "category": "Mensch", "label_de": "Häuser im Grünen", "description_de": "Abstand um amtliche Sonderwidmungen außerhalb des Baulands und um bewohnte Streusiedlungen mit mindestens fünf Adressen."},
     {"key": "nichtwohn_huellen", "category": "Mensch", "label_de": "Nicht-Wohn-Hüllen", "description_de": "Unbewohnte und industrieartige Kataster-Hüllen mit ihrem Fußabdruck."},
     {"key": "seilbahn_gebaeude", "category": "Mensch", "label_de": "Seilbahn-Gebäude", "description_de": "Liftstationen und andere Gebäude an Seilbahnlinien."},
     {"key": "gebaeude", "category": "Mensch", "label_de": "Gebäude", "description_de": "Übrige Gebäude aus OpenStreetMap und Kataster mit ihrem Fußabdruck."},
     {"key": "verkehr", "category": "Mensch", "label_de": "Verkehr", "description_de": "Abstand entlang Straßen, Bahnen und Personenseilbahnen."},
     {"key": "energieleitungen", "category": "Mensch", "label_de": "Energieleitungen", "description_de": "Abstand entlang von Hochspannungsfreileitungen."},
-    {"key": "militaer", "category": "Mensch", "label_de": "Militär", "description_de": "Militärische Sperrgebiete."},
+    {"key": "militaer", "category": "Mensch", "label_de": "Militär", "description_de": "Militärische Flächen aus OpenStreetMap: Übungsplätze, Kasernen, Militärflugplätze."},
     {"key": "luftfahrt", "category": "Mensch", "label_de": "Luftfahrt", "description_de": "Flughafenareale und ihre An- und Abflugkorridore."},
     {"key": "summe", "category": "Mensch", "label_de": "Gesamt Mensch", "description_de": "Alle Quellen und alle Ausschlussflächen der Kategorie Mensch, je als ein Band."},
-    {"key": "schutzgebiet", "category": "Natur", "label_de": "Schutzgebiete", "description_de": "Amtliche und offene Schutzgebietsdaten, ohne Abstandspuffer."},
+    {"key": "schutzgebiet", "category": "Natur", "label_de": "Schutzgebiete", "description_de": "Amtliche Schutzgebiete (inklusive Landschaftsschutzgebiete, geschützte Landschaftsteile, Naturdenkmäler, Ruhegebiete) ohne Abstandspuffer; Schutzgebiete aus OpenStreetMap nur zur Information."},
     {"key": "summe", "category": "Natur", "label_de": "Gesamt Natur", "description_de": "Quellen und Ausschluss der Kategorie Natur, deckungsgleich, weil ohne Puffer."},
     {"key": "kriterien", "category": "Geografie", "label_de": "Kriterien", "description_de": "Schwellenwerte für Gelände, Wind und Gewässer."},
     {"key": "summe", "category": "Geografie", "label_de": "Gesamt Geografie", "description_de": "Quellen und Ausschluss der Kategorie Geografie, deckungsgleich, weil ohne Puffer."},
@@ -1180,8 +1181,8 @@ FAMILIEN = [
 # "category" ist zeichengleich mit category_order übernommen (Verbindungs-
 # String zu bands[].category), "label_de" die kurze Überschrift im Baum.
 KATEGORIEN = [
-    {"key": "mensch", "category": "Mensch", "label_de": "Mensch", "description_de": "Ausschlüsse wegen Nähe zu Menschen und ihrer Infrastruktur: Siedlungen, Häuser im Grünen, Gebäude, Verkehrswege, Hochspannungsfreileitungen, militärische Sperrgebiete und Luftfahrt. Quellen sind die Flächenwidmungen der neun Bundesländer, Kataster und Adressregister, OpenStreetMap sowie die niederösterreichischen Mindestabstandszonen."},
-    {"key": "natur", "category": "Natur", "label_de": "Natur", "description_de": "Amtliche Schutzgebiete und Schutzgebiete aus OpenStreetMap gelten als Ausschluss. In dieser Kategorie gibt es keine Abstandspuffer, Quellen und Zonen fallen daher zusammen."},
+    {"key": "mensch", "category": "Mensch", "label_de": "Mensch", "description_de": "Ausschlüsse wegen Nähe zu Menschen und ihrer Infrastruktur: Siedlungen, Häuser im Grünen, Gebäude, Verkehrswege, Hochspannungsfreileitungen, militärische Flächen und Luftfahrt. Quellen sind die Flächenwidmungen der neun Bundesländer, Kataster und Adressregister, OpenStreetMap sowie die niederösterreichischen Mindestabstandszonen."},
+    {"key": "natur", "category": "Natur", "label_de": "Natur", "description_de": "Nur amtliche Schutzgebiete, die per Verordnung oder Bescheid festgelegt sind, gelten als Ausschluss. In dieser Kategorie gibt es keine Abstandspuffer, Quellen und Zonen fallen daher zusammen."},
     {"key": "geo", "category": "Geografie", "label_de": "Geografie", "description_de": "Physische Kriterien aus Geländemodell, Windatlas und OpenStreetMap: Hangneigung, Seehöhe, Windleistungsdichte und größere Gewässer. Jedes Kriterium ist ein Schwellenwert, keine Abstandsregel."},
     {"key": "ergebnis", "category": "Total & Ergebnis", "label_de": "Ergebnis", "description_de": "Die Vereinigung aller Ausschlüsse und ihr Gegenstück, die verbleibende Fläche. Die um Splitter bereinigte Fläche ist das Endergebnis der Abschichtung."},
     {"key": "varianten", "category": "Siedlungsabstand-Varianten", "label_de": "Varianten", "description_de": "Alternative Siedlungsabstände zum Vergleich mit dem Regelwert. Derzeit ist keine Variante konfiguriert, die Kategorie bleibt leer."},

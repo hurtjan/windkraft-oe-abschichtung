@@ -22,9 +22,11 @@ dieselbe Zeile im `Makefile` ändern müssen. Das `Makefile` liest
   out_dir = contract.PREP["admin"]
   ```
 
-  Bei den drei zweistufigen Domänen (`kataster`, `osm`, `noe_sekrop`)
-  ist `contract.PREP["<domäne>"]` selbst ein dict mit den Schlüsseln
-  `a_...`/`b_...` — siehe die Kommentare dort.
+  `contract.PREP["<domäne>"]` ist flach (`derived/prep/<domäne>/`); die
+  einzelnen Endprodukte stehen in `contract.PREP_FILES`, Zwischenstände
+  und Caches gehören nach `contract.WORK["<domäne>"]` (`derived/work/`).
+  Endprodukte: Vektor = GeoParquet EPSG:31287, Raster = GeoTIFF auf dem
+  25-m-Zielgitter.
 - `make prep` ruft am Ende alle vorhandenen `prep-*`-Ziele auf. Das
   geschieht automatisch über `PREP_TARGETS` im `Makefile` (aus den
   Dateinamen unter `make/prep/` abgeleitet) — du musst `prep:` selbst

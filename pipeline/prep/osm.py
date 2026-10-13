@@ -2,9 +2,10 @@
 
 Liest die OSM-Rohquelle (``contract.RAW["osm"]["pbf"]`` -
 ``austria-260330.osm.pbf``, 760 MB laut PLAN.md §4) und schreibt zwei
-Ableitungen nach ``contract.PREP["osm"]``:
+Ableitungen:
 
-- ``a_extract`` - die teure Hälfte: für jede der zehn tatsächlich
+- ``a_extract`` (Zwischenstand, ``contract.WORK["osm"]/a_extract`` - NICHT
+  in derived/prep/, siehe CLAUDE.md) - die teure Hälfte: für jede der zehn tatsächlich
   gelesenen Objektgruppen ein ``osmium tags-filter`` (Rohquelle ->
   gefiltertes ``.osm.pbf``) gefolgt von einem ``osmium export``
   (gefiltertes ``.osm.pbf`` -> ``.geojsonseq``). Genau die zwei
@@ -12,7 +13,8 @@ Ableitungen nach ``contract.PREP["osm"]``:
   osm_layer_path()`` heute bei jedem Kettenlauf pro Objektgruppe absetzt
   (Zeile ~504/509), hier einmalig für die GANZE Landesfläche statt für
   einen bbox-Ausschnitt.
-- ``b_layers`` - die billige, "oft wiederholte" Hälfte: liest jede
+- ``b_layers`` (Endprodukt, direkt unter ``contract.PREP["osm"]``) - die
+  billige, "oft wiederholte" Hälfte: liest jede
   ``.geojsonseq``-Datei aus ``a_extract`` mit GeoPandas, leitet
   ``fclass``/``type`` genau wie ``read_layer()`` (Zeile ~517-546) ab und
   reprojiziert nach EPSG:31287. Ergebnis: eine GeoParquet-Datei je
@@ -133,9 +135,8 @@ laut eigenem Docstring ebenfalls Unterpakete ``kataster/``, ``osm/``,
 dieses Paket verlangt stattdessen eine einzelne flache Datei
 ``pipeline/prep/osm.py`` neben ``pipeline/prep/__init__.py`` - beide
 Stufen als zwei Funktionen in einer Datei statt als zwei Dateien in einem
-Unterpaket. Beides ist mit ``contract.PREP["osm"]`` (ein Dict mit
-``a_extract``/``b_layers``) vereinbar; das Dict selbst schreibt keine
-Dateilayout-Form vor. Abweichung von PLAN.md §7/``__init__.py``
+Unterpaket. Beides ist mit dem Vertrag (``contract.WORK["osm"]`` für a_extract,
+``contract.PREP["osm"]`` für die Endprodukte) vereinbar. Abweichung von PLAN.md §7/``__init__.py``
 festgehalten, nicht aufgelöst (Regel 6: PLAN.md/FORTSCHRITT.md bleiben in
 diesem Paket unangetastet).
 
@@ -158,6 +159,7 @@ from pathlib import Path
 import geopandas as gpd
 
 from pipeline import contract, fingerprint, runtime
+from pipeline.prep.share import skip_without_raw
 
 TARGET_CRS = "EPSG:31287"
 
@@ -261,7 +263,11 @@ def run_extract(force: bool = False) -> Path:
     """Stufe a: osmium tags-filter + export je Objektgruppe, gegen die volle
     Rohquelle. Teuer (dominiert die Laufzeit der ganzen Stufe)."""
     pbf_path = contract.RAW["osm"]["pbf"]
-    out_dir = contract.PREP["osm"]["a_extract"]
+    out_dir = contract.WORK["osm"] / "a_extract"
+    if not force and skip_without_raw(
+        "osm", [pbf_path], hint="data/osm/ (Geofabrik-Extrakt Österreich als .osm.pbf)"
+    ):
+        return out_dir
     runtime.ensure_dir(out_dir)
 
     # Path(__file__) zaehlt zum Fingerabdruck mit (W6.4, Punkt 45): eine
@@ -313,8 +319,12 @@ def run_layers(force: bool = False) -> Path:
     """Stufe b: pro Objektgruppe read_layer()-Ableitung (fclass/type,
     Reprojektion) einmalig vorrechnen, als GeoParquet. Billig, aber heute
     bei jedem bbox-Aufruf wiederholt (siehe Moduldocstring)."""
-    a_dir = contract.PREP["osm"]["a_extract"]
-    b_dir = contract.PREP["osm"]["b_layers"]
+    a_dir = contract.WORK["osm"] / "a_extract"
+    b_dir = contract.PREP["osm"]
+    if not force and skip_without_raw(
+        "osm", [a_dir / f"{key}.geojsonseq" for key in LAYER_KEYS], hint="make prep-osm mit data/osm/ (.osm.pbf von Geofabrik)"
+    ):
+        return b_dir
     runtime.ensure_dir(b_dir)
 
     inputs = [a_dir / f"{key}.geojsonseq" for key in LAYER_KEYS]
@@ -322,7 +332,7 @@ def run_layers(force: bool = False) -> Path:
     # Kommentar in run_extract() oben.
     inputs.append(Path(__file__))
     if not force and fingerprint.matches(b_dir, inputs) and all(
-        (b_dir / f"{key}.parquet").exists() for key in LAYER_KEYS
+        contract.PREP_FILES["osm"][key].exists() for key in LAYER_KEYS
     ):
         print(f"[skip]  prep-osm b_layers: Fingerabdruck unveraendert -> {b_dir}", flush=True)
         return b_dir
@@ -330,7 +340,7 @@ def run_layers(force: bool = False) -> Path:
     counts: dict[str, int] = {}
     for key in LAYER_KEYS:
         gdf = _read_exported(a_dir / f"{key}.geojsonseq")
-        gdf.to_parquet(b_dir / f"{key}.parquet")
+        gdf.to_parquet(contract.PREP_FILES["osm"][key])
         counts[key] = len(gdf)
 
     fingerprint.write(b_dir, inputs)

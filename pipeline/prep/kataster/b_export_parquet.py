@@ -11,7 +11,7 @@ wiederholen - genau die Trennung, die PLAN.md §4 für diese Domäne nennt:
 Schreibt das kombinierte GeoParquet - Feldschema identisch zum bisherigen
 ``output/kataster/at_dkm_gst_nfl_epsg31287.geoparquet`` (historisch,
 existiert seit W6.1 nicht mehr im Repo) - unter
-``contract.PREP["kataster"]["b_export_parquet"]``.
+``contract.PREP["kataster"]``.
 
 Verschoben, unverändert in der Verarbeitungslogik, aus
 ``scripts/preprocessing/export_at_dkm_geoparquet.py`` (``main``/
@@ -32,6 +32,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 from pipeline import contract, fingerprint, runtime
+from pipeline.prep.share import skip_without_raw
 from pipeline.prep.kataster.a_noe_polygonize import DEFAULT_OUTPUT as NOE_STAGE_OUTPUT
 from pipeline.prep.kataster.a_noe_polygonize import PREP_DIR as NOE_STAGE_DIR
 from pipeline.prep.kataster.a_noe_polygonize import MODULE_PATH as NOE_STAGE_MODULE_PATH
@@ -46,13 +47,14 @@ from pipeline.prep.kataster.common import (
     write_summary_csv,
 )
 
-PREP_DIR = contract.PREP["kataster"]["b_export_parquet"]
+PREP_DIR = contract.PREP["kataster"]
 # Gleicher Dateiname wie das bisherige Ziel (output/kataster/…, historisch,
 # existiert seit W6.1 nicht mehr im Repo) - nur der Ort hat sich geändert
 # (PLAN.md §8 Regel 2: Prep-Ausgaben liegen unter derived/prep/, nicht mehr
 # unter output/).
-DEFAULT_OUTPUT = PREP_DIR / "at_dkm_gst_nfl_epsg31287.geoparquet"
-DEFAULT_SUMMARY_CSV = PREP_DIR / "at_dkm_gst_nfl_epsg31287_summary.csv"
+DEFAULT_OUTPUT = contract.PREP_FILES["kataster"]["at_dkm_gst_nfl"]
+# Die Summary-CSV ist ein Zwischenstand (kein Weitergabe-Produkt) -> derived/work/.
+DEFAULT_SUMMARY_CSV = contract.WORK["kataster"] / "at_dkm_gst_nfl_epsg31287_summary.csv"
 DEFAULT_OVERVIEW_MD = PREP_DIR / "at_dkm_gst_nfl_epsg31287_overview.md"
 
 # Zaehlt zum Fingerabdruck mit (W6.4, Punkt 45): eine Aenderung an dieser
@@ -111,6 +113,17 @@ def main() -> None:
     noe_stage_output = Path(args.noe_stage_output)
     symbol_csv = contract.RAW["kataster"]["symbol_csv"]
     shp_inputs = [contract.RAW["kataster"][archive.raw_key] for archive in DEFAULT_SHP_ARCHIVES]
+    if not args.overwrite and skip_without_raw(
+        "kataster", [symbol_csv, *shp_inputs, contract.RAW["kataster"]["noe_dxf_zip"]],
+        products=[output_path],
+        alt_products=[
+            contract.PREP_FILES["kataster"]["streusiedlung_kandidaten"],
+            contract.PREP_FILES["kataster"]["streusiedlung_garten"],
+            contract.PREP_REPORT_FILES["kataster"]["streusiedlung_bericht"],
+        ],
+        hint="data/kataster/ (KAT_DKM_*_SHP_*.zip je Bundesland, NÖ-DXF-ZIP, BEV_DKM_DXF_Symbole_V2.6.csv)",
+    ):
+        return
 
     # Selbst-Ueberspringer, gleiches Muster wie pipeline/prep/osm.py
     # (run_extract/run_layers): ein wiederholter `make all` ohne

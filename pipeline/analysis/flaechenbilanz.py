@@ -44,7 +44,6 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from pipeline import contract  # noqa: E402
-from pipeline.prep import admin as prep_admin  # noqa: E402
 from pipeline.analysis import flaechenanteile as fa  # noqa: E402
 from calc.band_manifest import manifest_path_for  # noqa: E402
 
@@ -117,10 +116,11 @@ AREA_KENNZAHLEN: list[tuple[str, tuple[str, ...], Mask]] = [
     ("kriterium.mensch.luftfahrt.anflugkorridor", ("airport_runway_corridor_5km",),
      lambda bb: bb["airport_runway_corridor_5km"]),
 
-    ("kriterium.natur.schutzgebiet", ("nature_protection_areas", "osm_nature_protection_areas"),
-     lambda bb: bb["nature_protection_areas"] | bb["osm_nature_protection_areas"]),
+    # Nur amtliche Schutzgebiete sind Ausschlusskriterium (== kategorie.natur);
+    # das OSM-Band 22 ist reine Information und fliesst NICHT in die Elternzeile.
+    ("kriterium.natur.schutzgebiet", ("nature_protection_areas",), lambda bb: bb["nature_protection_areas"]),
     ("kriterium.natur.schutzgebiet.amtlich", ("nature_protection_areas",), lambda bb: bb["nature_protection_areas"]),
-    ("kriterium.natur.schutzgebiet.osm", ("osm_nature_protection_areas",),
+    ("info.natur.schutzgebiet.osm", ("osm_nature_protection_areas",),
      lambda bb: bb["osm_nature_protection_areas"]),
 
     ("kriterium.geografie.hangneigung", ("geography_slope_too_steep",), lambda bb: bb["geography_slope_too_steep"]),
@@ -286,7 +286,7 @@ def compute_bilanz(tif_path: Path, bands_json: Path | None, wka_path: Path | Non
     schema = resolve_schema(manifest, ds)
     band_count = ds.count
 
-    regions_path = regions_path or (contract.PREP["admin"] / prep_admin.BUNDESLAND_MASKEN_FILENAME)
+    regions_path = regions_path or contract.PREP_FILES["admin"]["bundesland_masken"]
     regions = fa._load_regions(Path(regions_path))
     state_codes = [code for code, _name, _geom in regions]
     assert state_codes == STATE_ORDER, (

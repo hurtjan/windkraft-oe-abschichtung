@@ -26,11 +26,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from pipeline import contract
 from calc.abschichtung_common import (
     HIG_ADDRESS_RADIUS_M,
-    HIG_FILTER_BUFFER_M,
     HIG_GARDEN_RADIUS_M,
-    HIG_MAX_FOOTPRINT_M2,
     timed,
     uniform_buffer_cell_mask,
 )
@@ -44,11 +43,9 @@ from calc.hig_detection import (
     hull_polygons,
     label_mask,
     sample_labels,
-    scan_dkm_candidates,
+    load_candidate_scan,
 )
 from calc.hig_source_masks import (
-    candidate_filter_mask,
-    noe_pdf_mask,
     zoning_masks,
 )
 
@@ -77,9 +74,8 @@ def load_candidate_signals(
     *,
     zoning_dir: Path,
     noe_dir: Path,
-    dkm_parquet: Path,
-    address_dir: Path,
-    cache_dir: Path,
+    address_parquet: Path | None = None,
+    building_parquet: Path | None = None,
     include_noe_pdf: bool,
     bl_filter: set[str] | None,
     max_chain_m: float,
@@ -87,22 +83,25 @@ def load_candidate_signals(
     """Stufe A + DKM-Scan + BEV-Signale - der von allen Analysen geteilte teure Teil.
 
     Rückgabe: (zoning-Masken, CandidateScan, Signale je Gebäude).
-    ``include_noe_pdf=False`` lässt die SekROP-Zonen aus dem Filter - nötig,
-    wenn genau diese Zonen der Vergleichsmaßstab sind.
+    ``include_noe_pdf=False`` ist nicht mehr möglich (Filter im Prep-Produkt fest).
     """
     zoning = zoning_masks(Path(zoning_dir), grid)
-    noe_pdf = noe_pdf_mask(Path(noe_dir), grid) if include_noe_pdf else None
-    with timed("Kandidaten-Filter"):
-        filter_mask = candidate_filter_mask(zoning, noe_pdf, HIG_FILTER_BUFFER_M, grid)
-    with timed("DKM-Scan"):
-        scan = scan_dkm_candidates(
-            Path(dkm_parquet), grid, filter_mask, HIG_MAX_FOOTPRINT_M2,
+    if not include_noe_pdf:
+        raise ValueError(
+            "include_noe_pdf=False wird nicht mehr unterstützt: der DKM-Scan liegt "
+            "als Prep-Produkt (prep-kataster Stufe c) mit NÖ-PDF-Filter vor."
+        )
+    with timed("Kandidaten (Prep-Produkt)"):
+        files = contract.PREP_FILES["kataster"]
+        scan = load_candidate_scan(
+            files["streusiedlung_kandidaten"], files["streusiedlung_garten"],
+            contract.PREP_REPORT_FILES["kataster"]["streusiedlung_bericht"], grid,
             bl_filter=bl_filter, margin_m=chain_hull_params(max_chain_m)[0],
         )
         print(f"[info]  Kandidaten: {len(scan):,} von {scan.n_buildings_total:,} Bauflächen", flush=True)
     with timed("BEV-Signale"):
-        address_xy = load_address_points(Path(address_dir), cache_dir=Path(cache_dir))
-        bev = load_building_points(Path(address_dir), cache_dir=Path(cache_dir))
+        address_xy = load_address_points(address_parquet)
+        bev = load_building_points(building_parquet)
         signals = building_signals(
             scan, address_xy, bev, HIG_ADDRESS_RADIUS_M, HIG_GARDEN_RADIUS_M,
             industrie_widmung_mask=zoning["industrie_negativ"], grid=grid,

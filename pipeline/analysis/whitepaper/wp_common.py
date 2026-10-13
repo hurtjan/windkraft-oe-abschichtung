@@ -67,6 +67,16 @@ LABEL_NATUR_GEOGRAFIE = "Natur & Geografie"
 
 # --- Manifest / Baender -----------------------------------------------------
 
+def rel_path(p) -> str:
+    """Pfad repo-relativ (sonst unveraendert) fuer Herkunftsangaben."""
+    p = Path(p)
+    root = Path(__file__).resolve().parents[3]
+    try:
+        return str(p.resolve().relative_to(root))
+    except ValueError:
+        return str(p)
+
+
 def load_manifest(path: Path) -> dict:
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
@@ -141,18 +151,16 @@ def verify_sha256(path: Path, expected: str | None) -> str:
 # --- Bundeslandgrenzen: Rohquelle laden, dissolvieren, rasterisieren -------
 
 def load_bundeslaender(vgd_shp_path: Path) -> list[tuple[str, str, object]]:
-    """Laedt die VGD-Rohquelle und dissolviert sie nach 'BL' - dieselbe
-
-    Operation, die ``pipeline/prep/admin.py`` beim Bau von
-    ``bundesland_masken.gpkg`` einmalig ausfuehrt (siehe dessen Quellcode,
-    hier nachgebildet statt importiert). Liefert eine Liste
+    """Laedt das prep-Produkt ``bundesland_masken.parquet`` (aus der VGD des BEV,
+    Spalte 'BL') und dissolviert sicherheitshalber nach 'BL'. Liefert eine Liste
     ``(code, voller_name, geometry)`` in fester Reihenfolge B, K, N, O, S,
     ST, T, V, W.
     """
     vgd_shp_path = Path(vgd_shp_path)
     if not vgd_shp_path.is_file():
-        raise FileNotFoundError(f"Bundeslandgrenzen-Rohquelle fehlt: {vgd_shp_path}")
-    gdf = gpd.read_file(vgd_shp_path)
+        raise FileNotFoundError(f"Bundeslandgrenzen (prep-Produkt) fehlen: {vgd_shp_path}")
+    from pipeline.runtime import read_vector
+    gdf = read_vector(vgd_shp_path)
     if "BL" not in gdf.columns:
         raise ValueError(f"{vgd_shp_path}: erwartete Spalte 'BL' fehlt.")
     if gdf.crs is None or str(gdf.crs).upper() != TARGET_CRS:

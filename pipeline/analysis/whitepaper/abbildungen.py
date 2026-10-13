@@ -8,10 +8,12 @@ Klasseneinteilung und die Downsampling-Regel aus
 ``docs/whitepaper/abb/``.
 
 Die Kartenabbildungen (``abb1_v1_5klassen``, ``abb1_v2_8klassen``,
-``abb1_v3_kleinkarten``) werden nur als PNG geschrieben; ``abb2_balken`` und
+``abb1_v3_kleinkarten``, ``abb_methoden_uebersicht``) werden nur als PNG geschrieben; ``abb2_balken`` und
 ``abbD_wasserfall`` weiterhin als PNG+SVG.
 """
 from __future__ import annotations
+
+from pipeline import contract as _contract
 
 import json
 from pathlib import Path
@@ -20,6 +22,7 @@ import geopandas as gpd
 import matplotlib
 
 matplotlib.use("Agg")
+import matplotlib.legend_handler as mlh
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
@@ -28,17 +31,82 @@ from . import wp_common as wc
 
 CM = 1 / 2.54
 
-PALETTE = {
-    "mensch": "#d6604d",
-    "natur": "#4d9221",
-    "geografie": "#a6761d",
-    "alle_drei": "#525252",
-    "small_area": "#92c5de",
-    "eignung": "#08519c",
+def hex_to_rgb(h: str) -> np.ndarray:
+    h = h.lstrip("#")
+    return np.array([int(h[i: i + 2], 16) / 255.0 for i in (0, 2, 4)])
+
+
+# Aktuelle (unfreigegebene) Standardpalette, bleibt Default bis Jan eine Variante waehlt.
+_PALETTE_AKTUELL = {
+    "mensch": "#f46d43",
+    "natur": "#006d2c",
+    "geografie": "#807dba",
+    # Kombinationsklassen: eigene Farbtoene (rot+gruen -> gelb, rot+violett -> magenta,
+    # gruen+violett -> cyan), CVD-validiert (protan/deutan Delta E >= 9.5).
+    "mensch_natur": "#fed976",
+    "mensch_geografie": "#e7298a",
+    "natur_geografie": "#41b6c4",
+    "alle_drei": "#3a3a3a",
+    "small_area": "#c6dbef",
+    "eignung": "#084594",
     "outside": "#ffffff",
     "mehrfach": "#bdbdbd",
     "excluded_grey": "#e6e6e6",
+    "gesamt": "#999999",
 }
+
+
+def _blend(hexes: list[str], dunkler: float) -> str:
+    """Mittelwert der sRGB-Werte, um den Faktor ``dunkler`` (0..1) abgedunkelt, als Hex."""
+    m = np.mean([hex_to_rgb(h) for h in hexes], axis=0) * (1.0 - dunkler)
+    return "#" + "".join(f"{int(round(v * 255)):02x}" for v in np.clip(m, 0, 1))
+
+
+def _variant(mensch: str, natur: str, geografie: str, eignung: str = "#08519c",
+             small_area: str = "#9ecae1") -> dict[str, str]:
+    """Vollstaendige Palette aus den Basisfarben.
+
+    Mensch = orange/rot, Natur = gruen, Geografie = grau, Eignung = blau. Die
+    Kombinationsklassen haben keine eigenen Farbtoene: Balkendiagramm = diagonale
+    Streifen der beteiligten Basisfarben (siehe ``_draw_stripes``); in der
+    100-m-Karte (V2, Streifen nicht darstellbar) Mischton der Basisfarben, leicht
+    abgedunkelt (zwei Klassen 12 %, alle drei 55 %).
+    """
+    return {
+        "mensch": mensch, "natur": natur, "geografie": geografie,
+        "mensch_natur": _blend([mensch, natur], 0.12),
+        "mensch_geografie": _blend([mensch, geografie], 0.12),
+        "natur_geografie": _blend([natur, geografie], 0.12),
+        "alle_drei": _blend([mensch, natur, geografie], 0.55),
+        "small_area": small_area, "eignung": eignung,
+        "outside": "#ffffff", "mehrfach": "#3d3d3d", "excluded_grey": "#e6e6e6",
+        "gesamt": "#3d3d3d",
+    }
+
+
+# Farbvarianten fuer die Vorschau. Grau liegt jeweils klar neben Rot/Gruen in der
+# Helligkeit, Rot/Gruen trennen sich ueber die Helligkeit (CVD-Validator, siehe Bericht).
+PALETTE_VARIANTS: dict[str, dict[str, str]] = {
+    "aktuell": _PALETTE_AKTUELL,
+    # A: rotorange / dunkelgruen / mittelgrau
+    "A": _variant("#e8743b", "#00692f", "#8f8f8f"),
+    # B: Bernstein-Orange / dunkelgruen / mittelgrau
+    "B": _variant("#f28e2b", "#1b7837", "#8c8c8c"),
+    # C: Rot / hellgruen / dunkelgrau (Helligkeitsachse umgekehrt)
+    "C": _variant("#d7301f", "#7fbf7b", "#707070"),
+}
+DEFAULT_PALETTE = "B"
+
+PALETTE: dict[str, str] = dict(PALETTE_VARIANTS[DEFAULT_PALETTE])
+
+
+def set_palette(name: str) -> None:
+    """Schaltet ``PALETTE`` (in place, alle Zeichenfunktionen lesen das Modul-Dict) um."""
+    if name not in PALETTE_VARIANTS:
+        raise KeyError(f"unbekannte Palette {name!r}; verfuegbar: {sorted(PALETTE_VARIANTS)}")
+    PALETTE.clear()
+    PALETTE.update(PALETTE_VARIANTS[name])
+
 
 FULL_NAMES = wc.FULL_NAMES
 
@@ -57,17 +125,6 @@ def _savefig(fig, out_path_png: Path, out_path_svg: Path | None = None) -> None:
     if out_path_svg is not None:
         fig.savefig(out_path_svg, metadata={"Date": None, "Creator": None})
         print(f"[abb] {out_path_svg}")
-
-
-def hex_to_rgb(h: str) -> np.ndarray:
-    h = h.lstrip("#")
-    return np.array([int(h[i: i + 2], 16) / 255.0 for i in (0, 2, 4)])
-
-
-def mixed_lightened(c1: str, c2: str, lighten: float = 0.15) -> np.ndarray:
-    rgb1, rgb2 = hex_to_rgb(c1), hex_to_rgb(c2)
-    mixed = (rgb1 + rgb2) / 2.0
-    return np.clip(mixed + (1.0 - mixed) * lighten, 0, 1)
 
 
 def de1(x: float) -> str:
@@ -181,9 +238,9 @@ def fig_v1(npz, counts, prov, borders, out_dir: Path):
 
 def fig_v2(npz, counts, prov, borders, out_dir: Path):
     class_ds = npz["class_ds"]
-    mn = mixed_lightened(PALETTE["mensch"], PALETTE["natur"])
-    mg = mixed_lightened(PALETTE["mensch"], PALETTE["geografie"])
-    ng = mixed_lightened(PALETTE["natur"], PALETTE["geografie"])
+    mn = hex_to_rgb(PALETTE["mensch_natur"])
+    mg = hex_to_rgb(PALETTE["mensch_geografie"])
+    ng = hex_to_rgb(PALETTE["natur_geografie"])
     lut = {
         0: hex_to_rgb(PALETTE["outside"]),
         1: hex_to_rgb(PALETTE["mensch"]),
@@ -223,8 +280,24 @@ def fig_v3(npz, prov, borders, out_dir: Path):
     """Redesign: drei kleine Kategorie-Panels oben in einer Reihe, ein grosses
 
     Eignungs-Panel darunter ueber die volle Breite (bessere Sichtbarkeit der
-    Eignungsflaeche gegenueber der 2x2-Vorlage).
+    Eignungsflaeche gegenueber der 2x2-Vorlage). Uebrige Flaeche hellgrau.
     """
+    _kleinkarten(npz, prov, borders, out_dir, stem="abb1_v3_kleinkarten",
+                 rest_color=PALETTE["excluded_grey"],
+                 suptitle="Mensch, Natur, Geografie und Eignung im Vergleich",
+                 big_title="Eignung ≥ 10 ha", rest_label="übrige Fläche")
+
+
+def fig_methoden_uebersicht(npz, prov, borders, out_dir: Path):
+    """Uebersicht fuer das Methodendokument: wie V3, aber uebrige Flaeche weiss."""
+    _kleinkarten(npz, prov, borders, out_dir, stem="abb_methoden_uebersicht",
+                 rest_color=PALETTE["outside"],
+                 suptitle="Ausschlussflächen und Eignung in Österreich",
+                 big_title="Eignung ≥ 10 ha", rest_label=None)
+
+
+def _kleinkarten(npz, prov, borders, out_dir: Path, stem: str, rest_color: str,
+                 suptitle: str, big_title: str, rest_label: str | None):
     H_ds, N_ds, G_ds, class_ds = npz["H_ds"], npz["N_ds"], npz["G_ds"], npz["class_ds"]
     bounds = npz["bounds"]
     left, bottom, right, top = bounds
@@ -236,7 +309,7 @@ def fig_v3(npz, prov, borders, out_dir: Path):
         out[mask] = hex_to_rgb(color)
         return out
 
-    eign_grey = hex_to_rgb(PALETTE["excluded_grey"])
+    eign_grey = hex_to_rgb(rest_color)
     eign_blue = hex_to_rgb(PALETTE["eignung"])
     eign_rgb = np.tile(white, (*class_ds.shape, 1))
     eign_rgb[(class_ds >= 1) & (class_ds <= 8)] = eign_grey
@@ -269,18 +342,20 @@ def fig_v3(npz, prov, borders, out_dir: Path):
     ax_big.set_ylim(bottom, top)
     ax_big.set_aspect("equal")
     ax_big.axis("off")
-    ax_big.set_title("Eignung ≥ 10 ha", fontsize=9, pad=3)
+    ax_big.set_title(big_title, fontsize=9, pad=3)
 
-    fig.suptitle("Mensch, Natur, Geografie und Eignung im Vergleich", fontsize=10, y=0.985)
+    fig.suptitle(suptitle, fontsize=10, y=0.985)
 
     legend_items = [
         ("Mensch", PALETTE["mensch"]), ("Natur", PALETTE["natur"]), ("Geografie", PALETTE["geografie"]),
-        ("Eignung ≥ 10 ha", PALETTE["eignung"]), ("übrige Fläche", PALETTE["excluded_grey"]),
+        ("Eignung ≥ 10 ha", PALETTE["eignung"]),
     ]
+    if rest_label is not None:
+        legend_items.append((rest_label, rest_color))
     patches = [mpatches.Patch(facecolor=c, edgecolor="#333333", linewidth=0.3, label=lbl)
                for lbl, c in legend_items]
-    fig.legend(handles=patches, loc="lower center", ncol=3, fontsize=6.5, frameon=False,
-               bbox_to_anchor=(0.5, 0.075))
+    fig.legend(handles=patches, loc="lower center", ncol=len(patches) if len(patches) <= 4 else 3,
+               fontsize=6.5, frameon=False, bbox_to_anchor=(0.5, 0.075))
 
     footnote = (
         "Kartendarstellung auf 100 m aggregiert (4×4 Zellen à 25 m): Panels Mensch/Natur/"
@@ -291,25 +366,102 @@ def fig_v3(npz, prov, borders, out_dir: Path):
     fig.text(0.02, 0.045, footnote, fontsize=5.3, va="bottom", color="#333333", wrap=True)
     fig.text(0.02, 0.015, prov["figure_source_line"], fontsize=5.3, va="bottom", color="#333333")
 
-    _savefig(fig, out_dir / "abb1_v3_kleinkarten.png")
+    _savefig(fig, out_dir / f"{stem}.png")
     plt.close(fig)
 
 
-def fig_bars(counts, prov, out_dir: Path):
-    mn = mixed_lightened(PALETTE["mensch"], PALETTE["natur"])
-    mg = mixed_lightened(PALETTE["mensch"], PALETTE["geografie"])
-    ng = mixed_lightened(PALETTE["natur"], PALETTE["geografie"])
+# --- Diagonale Streifen fuer Kombinationsklassen (Balkendiagramm) -------------------------
+STRIPE_WIDTH_IN = 0.035   # Breite eines Einzelstreifens in Zoll (0,9 mm; ~2,5 pt)
 
+
+def _stripe_polys(w: float, h: float, ncol: int, width: float):
+    """Parallelogramme (je Farbe eine Liste) fuer Streifen '/' in einem Rechteck w x h.
+
+    Koordinaten relativ zur linken unteren Ecke, y nach oben, 45 Grad. Streifen
+    ``k`` (Laufvariable u = x - y) hat Farbindex ``k % ncol``; der erste Streifen
+    (Farbe 0) beginnt an der linken unteren Ecke.
+    """
+    out: list[list[list[tuple[float, float]]]] = [[] for _ in range(ncol)]
+    k_min = int(np.floor(-h / width)) - 1
+    k_max = int(np.ceil(w / width)) + 1
+    for k in range(k_min, k_max + 1):
+        u0, u1 = k * width, (k + 1) * width
+        out[k % ncol].append([(u0, 0.0), (u1, 0.0), (u1 + h, h), (u0 + h, h)])
+    return out
+
+
+class StripePatch(mpatches.Patch):
+    """Legenden-Proxy fuer eine gestreifte Klasse (``colors`` = Hex-Liste)."""
+
+    def __init__(self, colors: list[str], label: str):
+        super().__init__(facecolor=colors[0], edgecolor="none", label=label)
+        self.stripe_colors = list(colors)
+
+
+class HandlerStripes(mlh.HandlerBase):
+    def create_artists(self, legend, orig_handle, xdescent, ydescent, width, height, fontsize, trans):
+        cols = orig_handle.stripe_colors
+        base = mpatches.Rectangle((-xdescent, -ydescent), width, height, facecolor=cols[0],
+                                  edgecolor="none", linewidth=0, transform=trans)
+        arts = [base]
+        # Streifenbreite in Punkten (trans der Legende arbeitet in Punkten)
+        for ci, polys in enumerate(_stripe_polys(width, height, len(cols), STRIPE_WIDTH_IN * 72.0)):
+            if ci == 0:
+                continue
+            for poly in polys:
+                pts = [(-xdescent + x, -ydescent + y) for x, y in poly]
+                pa = mpatches.Polygon(pts, closed=True, facecolor=cols[ci], edgecolor="none",
+                                      linewidth=0, transform=trans)
+                pa.set_clip_path(base)
+                arts.append(pa)
+        return arts
+
+
+def _draw_stripes(ax, fig, x0: float, x1: float, y0: float, y1: float, colors: list[str]) -> None:
+    """Zeichnet in das Datenrechteck (x0..x1, y0..y1) diagonale Streifen der ``colors``.
+
+    Geometrie in Zoll (``fig.dpi_scale_trans``), damit der Winkel (45 Grad) und die
+    Streifenbreite unabhaengig von Achsenskalierung und Ausgabe-dpi (PNG/SVG) sind.
+    Muss nach dem endgueltigen Layout (subplots_adjust, Achsengrenzen) aufgerufen werden.
+    """
+    to_in = ax.transData + fig.dpi_scale_trans.inverted()
+    (ax_, ay_), (bx_, by_) = to_in.transform([(x0, y0), (x1, y1)])
+    left, right = min(ax_, bx_), max(ax_, bx_)
+    bottom, top = min(ay_, by_), max(ay_, by_)
+    w, h = right - left, top - bottom
+    clip = mpatches.Rectangle((x0, y0), x1 - x0, y1 - y0, transform=ax.transData,
+                              facecolor="none", edgecolor="none")
+    ax.add_patch(mpatches.Rectangle((x0, y0), x1 - x0, y1 - y0, facecolor=colors[0],
+                                    edgecolor="none", linewidth=0))
+    for ci, polys in enumerate(_stripe_polys(w, h, len(colors), STRIPE_WIDTH_IN)):
+        if ci == 0:
+            continue
+        for poly in polys:
+            pts = [(left + x, bottom + y) for x, y in poly]
+            pa = mpatches.Polygon(pts, closed=True, facecolor=colors[ci], edgecolor="none",
+                                  linewidth=0, transform=fig.dpi_scale_trans)
+            ax.add_patch(pa)
+            pa.set_clip_path(clip)
+
+
+def fig_bars(counts, prov, out_dir: Path):
+    """Gestapelte Balken je Bundesland.
+
+    Basisklassen (nur Mensch/Natur/Geografie) einfarbig, Kombinationsklassen als
+    diagonale Streifen der beteiligten Basisfarben (keine eigenen Farben).
+    """
+    pm, pn, pg = PALETTE["mensch"], PALETTE["natur"], PALETTE["geografie"]
+    # (Schluessel, Beschriftung, Farbliste; mehr als eine Farbe = Streifen)
     order_names = [
-        ("nur_mensch", "nur Mensch", hex_to_rgb(PALETTE["mensch"])),
-        ("mensch_geografie", wc.LABEL_MENSCH_GEOGRAFIE, mg),
-        ("nur_geografie", "nur Geografie", hex_to_rgb(PALETTE["geografie"])),
-        ("natur_geografie", wc.LABEL_NATUR_GEOGRAFIE, ng),
-        ("nur_natur", "nur Natur", hex_to_rgb(PALETTE["natur"])),
-        ("mensch_natur", wc.LABEL_MENSCH_NATUR, mn),
-        ("alle_drei", "alle drei", hex_to_rgb(PALETTE["alle_drei"])),
-        ("kleinflaechen", "Kleinflächen < 10 ha", hex_to_rgb(PALETTE["small_area"])),
-        ("available_cleaned_min_10ha", "Eignung ≥ 10 ha", hex_to_rgb(PALETTE["eignung"])),
+        ("nur_mensch", "nur Mensch", [pm]),
+        ("mensch_geografie", wc.LABEL_MENSCH_GEOGRAFIE, [pm, pg]),
+        ("nur_geografie", "nur Geografie", [pg]),
+        ("natur_geografie", wc.LABEL_NATUR_GEOGRAFIE, [pn, pg]),
+        ("nur_natur", "nur Natur", [pn]),
+        ("mensch_natur", wc.LABEL_MENSCH_NATUR, [pm, pn]),
+        ("alle_drei", "alle drei", [pm, pn, pg]),
+        ("kleinflaechen", "Kleinflächen < 10 ha", [PALETTE["small_area"]]),
+        ("available_cleaned_min_10ha", "Eignung ≥ 10 ha", [PALETTE["eignung"]]),
     ]
 
     def row_values(code: str):
@@ -331,6 +483,8 @@ def fig_bars(counts, prov, out_dir: Path):
     rows = [("AT", "Österreich", True)] + [(c, FULL_NAMES[c], False) for c in bl_sorted]
 
     fig, ax = plt.subplots(figsize=(16 * CM, 14 * CM), dpi=300)
+    bar_h = 0.72
+    segments = []  # (x0, x1, y0, y1, Farben) -> nach dem Layout gezeichnet
     y_positions, labels, bold_flags = [], [], []
     y = 0
     for code, name, is_at in rows:
@@ -339,8 +493,8 @@ def fig_bars(counts, prov, out_dir: Path):
         bold_flags.append(is_at)
         vals, eign_pct = row_values(code)
         left = 0.0
-        for (_key, _lbl, fc), v in zip(order_names, vals):
-            ax.barh(y, v, left=left, height=0.72, color=fc, edgecolor="none", linewidth=0)
+        for (_key, _lbl, cols), v in zip(order_names, vals):
+            segments.append((left, left + v, y - bar_h / 2, y + bar_h / 2, cols))
             left += v
         ax.text(101.5, y, de1(eign_pct), va="center", ha="left", fontsize=6.5)
         y += 1
@@ -354,23 +508,33 @@ def fig_bars(counts, prov, out_dir: Path):
             tick.set_fontweight("bold")
 
     ax.set_xlim(0, 112)
+    ax.set_ylim(y - 1 + 0.5 + 0.0, -0.5)  # invertiert (oben = Oesterreich)
     ax.set_xticks([0, 25, 50, 75, 100])
     ax.set_xticklabels(["0", "25", "50", "75", "100 %"], fontsize=7)
     ax.axvline(100, color="#999999", linewidth=0.5, linestyle=":")
-    ax.invert_yaxis()
     ax.spines[["top", "right", "left"]].set_visible(False)
     ax.tick_params(left=False)
 
     ax.set_title("Ausschluss und Eignung je Bundesland", fontsize=9, pad=8)
+    fig.subplots_adjust(left=0.16, right=0.94, top=0.92, bottom=0.20)  # Layout vor den Streifen
 
-    patches = [mpatches.Patch(facecolor=fc, edgecolor="none", label=lbl) for _k, lbl, fc in order_names]
-    fig.legend(handles=patches, loc="lower center", ncol=3, fontsize=6.5, frameon=False,
-               bbox_to_anchor=(0.5, 0.02))
+    for x0, x1, y0, y1, cols in segments:
+        if len(cols) == 1:
+            ax.add_patch(mpatches.Rectangle((x0, y0), x1 - x0, y1 - y0, facecolor=cols[0],
+                                            edgecolor="none", linewidth=0))
+        else:
+            _draw_stripes(ax, fig, x0, x1, y0, y1, cols)
+
+    handles = [StripePatch(cols, lbl) if len(cols) > 1
+               else mpatches.Patch(facecolor=cols[0], edgecolor="none", label=lbl)
+               for _k, lbl, cols in order_names]
+    fig.legend(handles=handles, handler_map={StripePatch: HandlerStripes()}, loc="lower center",
+               ncol=3, fontsize=6.5, frameon=False, bbox_to_anchor=(0.5, 0.02),
+               handlelength=2.6, handleheight=1.3)
 
     fig.text(0.99, 0.965, "Eignung % rechts an jedem Balken", fontsize=5.5, ha="right", color="#333333")
     fig.text(0.02, 0.145, prov["figure_source_line"], fontsize=5.5, va="bottom", color="#333333")
 
-    fig.subplots_adjust(left=0.16, right=0.94, top=0.92, bottom=0.20)
     _savefig(fig, out_dir / "abb2_balken.png", out_dir / "abb2_balken.svg")
     plt.close(fig)
 
@@ -393,7 +557,7 @@ def fig_waterfall(counts, prov, out_dir: Path):
     fig, ax = plt.subplots(figsize=(16 * CM, 9 * CM), dpi=300)
     xs = list(range(len(stages)))
     vals = [v for _l, v in stages]
-    colors = ["#999999", PALETTE["mensch"], PALETTE["natur"], PALETTE["geografie"], PALETTE["eignung"]]
+    colors = [PALETTE["gesamt"], PALETTE["mensch"], PALETTE["natur"], PALETTE["geografie"], PALETTE["eignung"]]
     ax.bar(xs, vals, color=colors, width=0.6)
     for x, v in zip(xs, vals):
         ax.text(x, v + 1.5, de1(v), ha="center", va="bottom", fontsize=7.5)
@@ -410,7 +574,9 @@ def fig_waterfall(counts, prov, out_dir: Path):
     plt.close(fig)
 
 
-def run(cache_dir: Path, grenzen_path: Path, out_root: Path) -> Path:
+def run(cache_dir: Path, grenzen_path: Path, out_root: Path, palette: str | None = None) -> Path:
+    if palette is not None:
+        set_palette(palette)
     npz, counts, prov_raw = load_cache(cache_dir)
     prov = dict(prov_raw)
     sha_short = prov["tif_sha256_short"]
@@ -424,6 +590,7 @@ def run(cache_dir: Path, grenzen_path: Path, out_root: Path) -> Path:
     fig_v1(npz, counts, prov, borders, abb_dir)
     fig_v2(npz, counts, prov, borders, abb_dir)
     fig_v3(npz, prov, borders, abb_dir)
+    fig_methoden_uebersicht(npz, prov, borders, abb_dir)
     fig_bars(counts, prov, abb_dir)
     fig_waterfall(counts, prov, abb_dir)
 
@@ -436,7 +603,9 @@ if __name__ == "__main__":
 
     ap = argparse.ArgumentParser()
     ap.add_argument("--cache-dir", required=True, type=Path)
-    ap.add_argument("--grenzen", required=True, type=Path)
+    ap.add_argument("--grenzen", type=Path, default=_contract.PREP_FILES["admin"]["bundesland_masken"])
     ap.add_argument("--out-root", required=True, type=Path)
+    ap.add_argument("--palette", default=None, choices=sorted(PALETTE_VARIANTS),
+                    help=f"Farbvariante (Default: {DEFAULT_PALETTE})")
     args = ap.parse_args()
-    run(args.cache_dir, args.grenzen, args.out_root)
+    run(args.cache_dir, args.grenzen, args.out_root, palette=args.palette)

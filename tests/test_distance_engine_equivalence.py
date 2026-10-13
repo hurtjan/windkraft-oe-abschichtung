@@ -50,7 +50,8 @@ from calc.distance_engine import fft_circle_dilation as fft_circle_dilation_new 
 from calc.distance_engine import ns_kind as ns_kind_new  # noqa: E402
 
 OLD_REPO_ROOT = os.environ.get(
-    "ABSCHICHTUNG_ALTREPO", "/Users/jhurt/Documents/windkraft_ö_karten"
+    "ABSCHICHTUNG_ALTREPO",
+    str((Path(__file__).resolve().parents[1] / ".." / ".." / "windkraft_ö_karten").resolve()),
 )
 OLD_MODULE_PATH = OLD_REPO_ROOT + "/windkraft/calc/kataster_layers.py"
 

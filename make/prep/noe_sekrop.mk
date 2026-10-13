@@ -1,7 +1,8 @@
 # make/prep/noe_sekrop.mk — Paket W1.P9 (docs/rewrite/PLAN.md §7).
 #
-# Zweistufige Domäne (siehe pipeline/contract.py:PREP["noe_sekrop"] und
-# make/prep/README.md): Stufe a (Alignment - Georeferenzierung der
+# Zweistufige Domäne (Alignment nach derived/work/noe_sekrop/, die drei
+# pdf_750m_*-Endprodukte als GeoParquet nach derived/prep/noe_sekrop/;
+# siehe pipeline/contract.py:PREP_FILES und make/prep/README.md): Stufe a (Alignment - Georeferenzierung der
 # PDF-Kartenseite) liest nur die vier GPTS-Eckpunkte und die Seitenhöhe,
 # Stufe b (Vektorisierung) liest das Alignment-Ergebnis von a und filtert
 # die PDF-Vektorpfade nach Farbe. `prep-noe-sekrop` ruft beide in der

@@ -1,0 +1,21 @@
+# Umweltbundesamt [7]: Schutzgebiete Österreich (SG_AT_2024), Stand 03.04.2024; Gebietszahl = Datensätze je Ebene (Zählung der Eingabedaten, nicht aus dem TIF).
+layer,kat_sub,gebiete,davon_punkte
+NP_AT_2024,,29,
+NSG_AT_2024,,499,
+ESG_AT_2024,,368,
+RAMSAR_AT_2024,,24,
+LSG_AT_2024,,277,
+GLT_AT_2024,,325,
+S_AT_2024,,58,
+S_AT_2024,RG,8,
+S_AT_2024,RZ,1,
+S_AT_2024,PSG,5,
+S_AT_2024,SSG,3,
+S_AT_2024,SAFM,1,
+S_AT_2024,SG §26,1,
+S_AT_2024,GB,3,
+S_AT_2024,GLR,6,
+S_AT_2024,GNÖB,18,
+S_AT_2024,ÖE,3,
+S_AT_2024,ÖSG,9,
+NDKM_AT_2024,,4517,1414

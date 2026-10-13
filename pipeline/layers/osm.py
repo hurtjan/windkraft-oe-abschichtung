@@ -20,7 +20,7 @@ Erzeuger-Funktionen ``build_osm_building_sources``/
 einer Änderung: wo das Original ``osm_layer_path()`` (ruft ``osmium``
 gegen die PBF-Rohdatei) + ``read_layer()`` aufruft, liest diese Stufe
 stattdessen aus den bereits von der Prep-Stufe erzeugten Parquet-Dateien
-unter ``derived/prep/osm/b_layers/`` (``pipeline/prep/osm.py``, Paket
+unter ``derived/prep/osm/`` (``pipeline/prep/osm.py``, Paket
 W1.P5) - siehe ``_read_prep_layer()`` unten. fclass/type-Ableitung und
 Reprojektion nach EPSG:31287 sind bereits Teil der Prep-Stufe
 (``pipeline/prep/osm.py:_read_exported()``, wortgleich zu
@@ -34,7 +34,7 @@ trägt diesen Schlüssel seit Paket W1.2 nicht mehr (siehe
 ``config.json:_comment_powerlines_gpkg_entfernt``), der Zweig griff also
 schon im Original nie. Ebenso entfallen die CLI-Parameter
 ``--osm-pbf``/``--osm-pbf-cache-dir``: die Quelle ist in dieser Stufe fest
-``pipeline.contract.PREP["osm"]["b_layers"]``, nicht mehr konfigurierbar.
+``pipeline.contract.PREP_FILES["osm"]``, nicht mehr konfigurierbar.
 
 ## Punkt 27 - Freileitungen >= 110 kV (Stand 30.09.2026, geaendert)
 ``power_380_400kv`` (v1, 150 m) war seit dem Clean-Schema Aug 2026 kein
@@ -63,7 +63,7 @@ Fingerabdruck erfasst den Quelltext dieser Stufe nicht).
 ``pipeline/fingerprint.py`` als Nebenbefund offene Frage, PLAN.md §12)
 
 Ja: diese Stufe prüft den Fingerabdruck ihrer tatsächlich gelesenen
-Prep-Eingaben (die acht ``derived/prep/osm/b_layers/*.parquet``-Dateien, die
+Prep-Eingaben (die acht ``derived/prep/osm/*.parquet``-Dateien, die
 ``build_osm_building_sources``/``build_infrastructure_masks``/
 ``build_airport_corridor_masks`` lesen - ``buildings``, ``windpower``,
 ``aerialways``, ``powerlines``, ``roads``, ``railways``, ``military``,
@@ -111,7 +111,7 @@ schon hart abbrechen lässt.
 
 Granularität: EIN Fingerabdruck-Tag für alle drei Checkpoint-Gruppen dieser
 Stufe (``OSM_LAYER_NAMES``, ``INFRA_LAYER_NAMES``, ``AIRPORT_LAYER_NAMES``),
-nicht drei getrennte - dieselbe Prep-Ausgabe (``b_layers/``) speist alle
+nicht drei getrennte - dieselbe Prep-Ausgabe (``derived/prep/osm/``) speist alle
 drei, eine Trennung nach einzelnen Parquet-Dateien wäre genauer (z. B.
 würde eine reine ``transport.parquet``-Änderung nur ``AIRPORT_LAYER_NAMES``
 betreffen), aber unnötig komplex für den Nutzen - ein Fingerabdruck-Mismatch
@@ -226,7 +226,7 @@ INFRA_LAYER_NAMES = [
 ]
 AIRPORT_LAYER_NAMES = ["airport_area_major", "airport_runway_corridor_5km"]
 
-# Die acht b_layers-Objektgruppen, die diese Stufe tatsächlich liest (siehe
+# Die acht OSM-Objektgruppen (derived/prep/osm/), die diese Stufe tatsächlich liest (siehe
 # build_osm_building_sources/build_infrastructure_masks/
 # build_airport_corridor_masks unten) - Basis des Prep-Fingerabdrucks, siehe
 # Moduldocstring. "nature"/"water" fehlen bewusst: kein Konsument hier.
@@ -236,13 +236,12 @@ PREP_INPUT_KEYS = [
 ]
 
 def _prep_inputs() -> list[Path]:
-    b_dir = contract.PREP["osm"]["b_layers"]
-    return [b_dir / f"{key}.parquet" for key in PREP_INPUT_KEYS]
+    return [contract.PREP_FILES["osm"][key] for key in PREP_INPUT_KEYS]
 
 
 def _fingerprint_tag() -> str:
     """SHA-256 über ``pipeline.fingerprint.compute()`` der acht tatsächlich
-    gelesenen ``b_layers``-Parquets, als ``PREP_FINGERPRINT``-Tag in jedem
+    gelesenen OSM-Parquets, als ``PREP_FINGERPRINT``-Tag in jedem
     Checkpoint dieser Stufe abgelegt - dieselbe Konvention wie
     ``pipeline/layers/hig.py``/``pipeline/layers/geo.py`` (siehe
     Moduldocstring "Fingerabdruck-Konvention"), an die diese Stufe beim
@@ -273,7 +272,7 @@ def _read_prep_layer(key: str, bounds: tuple[float, float, float, float] | None)
     nicht (siehe pipeline/prep/osm.py-Docstring, Abschnitt "Was NICHT
     nachgebaut wird" - dieselbe Abgrenzung, hier auf der Leserseite).
     """
-    path = contract.PREP["osm"]["b_layers"] / f"{key}.parquet"
+    path = contract.PREP_FILES["osm"][key]
     if not path.exists():
         return gpd.GeoDataFrame(geometry=[], crs=TARGET_CRS)
     gdf = gpd.read_parquet(path)
@@ -390,7 +389,7 @@ def build_osm_building_sources(cfg: dict, grid: dict, args: argparse.Namespace) 
     # Bewohnte Einzellagen (< 5 adressierte Objekte) und die Bauflächen der
     # NÖ-Streusiedlungs-Hüllen zählen zu den allgemeinen Gebäuden (25 m).
     dkm_footprints = read_layer_mask(_cover_layer_path("bewohnt_einzellage_source", legacy_cover_dir))
-    bl = admin_boundaries(cfg, grid["bounds"])
+    bl = admin_boundaries(grid["bounds"])
     noe = bl[bl["BL"].eq("Niederösterreich")] if "BL" in bl.columns else bl.iloc[0:0]
     if not noe.empty:
         noe_mask = raster_mask(noe[["geometry"]].copy(), 0.0, grid, "NÖ Landesfläche")
@@ -596,7 +595,7 @@ def build_airport_corridor_masks(cfg: dict, grid: dict, args: argparse.Namespace
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(
         description="OSM-Restlayer (Seilbahnen, sonstige Gebäude) + Infrastruktur/Flughäfen für "
-        "die Widmungs-Abschichtung v2 - Layer-Stufe, liest aus derived/prep/osm/b_layers/."
+        "die Widmungs-Abschichtung v2 - Layer-Stufe, liest aus derived/prep/osm/."
     )
     p.add_argument("--config", default="config.json")
     p.add_argument(
@@ -642,7 +641,7 @@ def main(argv: list[str] | None = None) -> None:
     # PREP_FINGERPRINT-Tag statt separater Fingerabdruck-Datei (siehe
     # Moduldocstring "Fingerabdruck-Konvention") - dieselbe Konvention wie
     # pipeline/layers/hig.py/geo.py: EIN Tag für alle drei Checkpoint-Gruppen
-    # dieser Stufe, weil dieselbe Prep-Ausgabe (b_layers/) alle drei speist.
+    # dieser Stufe, weil dieselbe Prep-Ausgabe (derived/prep/osm/) alle drei speist.
     derived_tags = {"PREP_FINGERPRINT": _fingerprint_tag()}
 
     def _tags_ok(expected: dict):

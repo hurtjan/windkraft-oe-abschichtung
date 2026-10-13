@@ -19,7 +19,7 @@ Jeder Lauf von `pipeline/finalize.py` (`make -f make/finalize/finalize.mk
 finalize`, bzw. `uv run python -m pipeline.finalize`) schreibt zwei Dateien,
 die zusammengehören und nur zusammen ausgeliefert werden:
 
-- **`out/abschichtung.tif`** — das eigentliche Raster, 44 Bänder, `uint8`,
+- **`out/abschichtung.tif`** — das eigentliche Raster, 45 Bänder, `uint8`,
   EPSG:31287, 25 m Pixelgröße.
 - **`out/abschichtung.bands.json`** — das Sidecar-Manifest
   (`<stem>.bands.json`), geschrieben von `windkraft/calc/band_manifest.py`
@@ -41,8 +41,8 @@ den Pfad ein zweites Mal hinzuschreiben.
 | | |
 |---|---|
 | Datei | `out/abschichtung.tif` |
-| `sha256` | `53cbc7800f28c49827786562d5312f58b3fceae55195996e7aeacbfeb6b653b6` |
-| Größe | 153.586.328 Bytes |
+| `sha256` | `58caa8ffa69454fdc691fff96d5734f0820dfac07be11238d38330a720ee3a93` |
+| Größe | 147.090.672 Bytes |
 | Bänder | 45 |
 | Manifest-`schema_version` | `2.3.0` |
 
@@ -51,6 +51,30 @@ jedem `make test` (siehe dort auch, wie der langlaufende Reproduktionstest
 gezielt ausgeführt wird). Sie ändert sich nicht beiläufig — wenn doch,
 gehört das gemessen, begründet und in `docs/rewrite/abweichungen.tsv`
 eingetragen.
+
+**Siebter Referenzwechsel (13.10.2026, Schutzgebiete nur verordnet):** Natur-Ausschluss (Band 28) = nur
+amtliche Schutzgebiete (Band 21), die nach Naturschutzrecht der Länder per
+Verordnung oder Bescheid festgelegt sind. Neu aus UBA: `GLT_AT_2024`,
+`NDKM_AT_2024` (Naturdenkmäler, auch Punkte) und `S_AT_2024` (alle gültigen
+`KAT_SUB`-Codes: RG, RZ, PSG, SSG, SAFM, `SG §26`, GB, GLR, GNÖB, ÖE, ÖSG). OSM-Schutzgebiete (Band 22)
+bleiben als reine Information (ohne Naturpark/Biosphärenpark, ohne schwache
+`protect_class` 5) und gehen weder in Band 28 noch in Band 43 ein. Bandzahl
+bleibt 45. Vorwert: sha256 `bdf0e41104b83a81567b94138c52a199cd984161dcc315cf3a42f04bd68b890e`,
+146.830.572 Bytes. Neuer Wert: sha256
+`58caa8ffa69454fdc691fff96d5734f0820dfac07be11238d38330a720ee3a93`,
+147.090.672 Bytes. Wirkung (AT, km2): Natur-Ausschluss (kategorie.natur)
+24.023 -> 23.648; amtliche Schutzgebiete 22.581 -> 23.648; OSM-Schutzgebiete
+(Information) 9.957 -> 6.664; Ausschluss gesamt 80.182 -> 80.169; Eignung >= 10 ha
+3.171 -> 3.177. Größte Länderverschiebung: Vorarlberg Natur 765 -> 449 km2, Tirol
+amtlich 2.545 -> 3.462 km2.
+
+**Sechster Referenzwechsel (12.10.2026, Landschaftsschutzgebiete aus UBA):**
+Landschaftsschutzgebiete kommen aus UBA (`LSG_AT_2024`), OSM liefert keinen
+Landschaftsschutz mehr. Schema `2.3.0`, 45 Bänder. Vorwert: sha256
+`b596fd021dbc42eb4bfa19b9caf8fead78cad6489f6f91e344dd3e645cf87700`,
+154.134.192 Bytes. Neuer Wert: sha256
+`bdf0e41104b83a81567b94138c52a199cd984161dcc315cf3a42f04bd68b890e`,
+146.830.572 Bytes, 45 Bänder.
 
 **Fünfter Referenzwechsel (30.09.2026, Freileitungen >= 110 kV):** neues Band 45
 `power_lines_110kv_plus` (spannungsabhängig ab OSM-Leitungsachse: 116 m bei
@@ -90,7 +114,7 @@ Abzug gegen `official_wind_zoning` — ein grenznaher Cluster konnte dadurch
 in eine amtliche Zone hineinragen, obwohl jede einzelne Anlage laut
 Punktabfrage außerhalb lag. Die Hülle wird jetzt explizit
 `& ~official_wind_zoning` zugeschnitten. Zweitens sechs additiv angehängte
-Bänder 39–44 (Schema `2.2.0`, siehe unten) — Bedeutung und Index der
+Bänder 39–44 (Schema `2.2.0`, historisch; aktuell 2.3.0 mit 45 Bändern, siehe unten) — Bedeutung und Index der
 Bänder 1–38 bleiben unverändert. Der bandweise Vergleich der ersten 38
 Bänder gegen die vorherige Referenz (`fb57c41d…232c30`) wird separat
 nachgereicht (noch nicht Teil dieses Dokuments).
@@ -106,12 +130,26 @@ veröffentlichte Potenzialfläche) wächst dadurch netto um rund 98,4 ha
 gegenüber der vorherigen Referenz (`4bdef6ad…6b1a13e`) — Details je Band
 in `docs/rewrite/abweichungen.tsv` unter `paket = W5.P2`.
 
-**Die Altkette existiert weiter** (`make widmung-v2`,
-`scripts/widmung_v2/04_create_distance_zones.py`) und schreibt nach
+**Die Altkette existiert weiter** (historisch: `make widmung-v2`,
+`scripts/widmung_v2/04_create_distance_zones.py`, Pfad aus dem Alt-Stand) und schreibt nach
 `output/abschichtung_widmung_v2/osm_wka_distance_zones_widmung_v2.tif`.
 Sie ist nicht das Auslieferungsartefakt. Wer aus einer älteren Integration
 noch auf jenen Pfad zeigt, liest ein Ergebnis der alten Kette — siehe
 „18 Bänder unterscheiden sich von `run1`" weiter unten.
+
+## Zweites Produkt: abschichtung_analyse.tif, nur Analyse, nicht Teil des Konsumentenvertrags
+
+`out/abschichtung_analyse.tif` und `out/abschichtung_analyse.bands.json`
+(`pipeline/analyse_raster.py`, `make analyse-raster`, läuft in `all` nach
+`finalize`) enthalten sieben Kataster-Nutzungsklassen (uint8 0/1) auf exakt dem
+Raster von `abschichtung.tif`: Wald (ns 56, 55), Forststraßen (58), Äcker,
+Wiesen, Weiden (48), Alpen (54), sonstige Landwirtschaft (40, 53, 57), Gärten
+(52), Bauflächen (41, 83). Quelle: Digitale Katastralmappe BEV
+(`NFL_V2`, `NFL_DXF_POLYGONIZED`, Zellmittelpunkt-Regel). Viewer, Dashboard und
+Export lesen die Datei nicht; sie gehört nicht zum Konsumentenvertrag, und das
+Hauptmanifest bleibt bei 45 Bändern. Aktueller sha256 der Analyse-TIF:
+`89b89f1fb66684b5d3f4ac78022e31136f54d338837b82b5b1ee9e1ee4f02ef4` (Stand 13.10.2026). Das Manifest trägt sha256 und Dateiname der
+Haupt-TIF, auf deren Raster es passt.
 
 ## Das Manifest-Schema, Feld für Feld
 
@@ -241,7 +279,7 @@ bleiben unverändert. Genau die Fälle, die `2.0.0` zur Hauptversion machten
 (Feldmenge je Band exakt zählen oder auf Gleichheit prüfen), sind hier
 nicht betroffen.
 
-### `2.2.0` (Paket W7.1, Struktur v4) — sechs neue Bänder, drei neue Felder je Band
+### `2.2.0` (Paket W7.1, Struktur v4) — sechs neue Bänder, drei neue Felder je Band (historisch; aktuell 2.3.0, 45 Bänder)
 
 **Nachgezogen (09.09.2026, Integration aller drei Bahnen von W7.1):** die
 „Aktuelle Referenzausgabe"-Tabelle weiter oben zeigt jetzt die echten
@@ -264,7 +302,7 @@ neuen Bänder 39–44 im Register (`docs/rewrite/abweichungen.tsv`) explizit
 als eigenen Status „ohne Gegenstück in `run1`" aus, statt abzubrechen oder
 sie stillschweigend zu übergehen.
 
-`band_count` steigt additiv von 38 auf 44: sechs neue Bänder 39–44
+(historisch, Schema 2.2.0; aktuell 45 Bänder, Schema 2.3.0) `band_count` steigt additiv von 38 auf 44: sechs neue Bänder 39–44
 (`haeuser_im_gruenen_source`, `general_buildings_roh_osm`,
 `general_buildings_roh_dkm`, `sources_human`, `sources_nature`,
 `sources_geography`) werden ans Ende angehängt, Bedeutung und Index der
@@ -308,7 +346,7 @@ und Salzburg sind zwei unterschiedliche Shapefiles.
 `familie`, `stufe` und `dashboard_layer` sind **informativ**, wie `puffer_m`
 und `quelle` — nicht Teil des Vertrags (siehe nächster Abschnitt).
 
-### Inhaltliche Änderung innerhalb `2.2.0` (09.09.2026, W7.5): Personenseilbahnen enger gefasst
+### Inhaltliche Änderung innerhalb `2.2.0` (09.09.2026, W7.5): Personenseilbahnen enger gefasst (historisch)
 
 Kein Schema-Wechsel (`band_count`/`schema_version` bleiben bei 44/`2.2.0`),
 aber eine inhaltliche Änderung an drei Bändern: Nutzerentscheidung vom
@@ -332,7 +370,7 @@ aber eine inhaltliche Änderung an drei Bändern: Nutzerentscheidung vom
 
 Einzige Definitionsstelle: `calc.abschichtung_common.PEOPLE_CARRYING_AERIALWAY_TYPES`.
 
-### `2.2.1` (Paket W7.6, 09.09.2026) — Kategorie-/Familien-/Stufentexte, drei neue Parameter, dritter Caveat
+### `2.2.1` (Paket W7.6, 09.09.2026) — Kategorie-/Familien-/Stufentexte, drei neue Parameter, dritter Caveat (historisch)
 
 Reine Textänderung, kein Pixel geändert (bandweise gemessen: `diff=0` über
 alle 44 Bänder), `band_count` bleibt 44. Zwei neue Top-Level-Schlüssel,
@@ -422,7 +460,7 @@ spiegeln.
    fehlen in `1.0.0`-Manifesten vollständig.
 
 Eine Referenzimplementierung dieses Vertrags existiert bereits auf der
-Dashboard-Konsumentenseite: `scripts/band_manifest.py` auf dem Branch
+Dashboard-Konsumentenseite: `scripts/band_manifest.py` (historisch) auf dem Branch
 `feat/band-manifest` (dort, nicht in diesem Repo) — als Beschreibung dessen,
 was existiert, nicht als hier geprüfter Code. Sie stammt aus der
 `1.0.0`-Zeit und kennt die fünf neuen Felder nicht.
@@ -588,7 +626,7 @@ Sache des jeweiligen Frontends.
 Zwei Änderungen sind nicht nur strukturell (Bandzahl/-index), sondern
 inhaltlich — wer Beschreibungstexte aus der v1-Ära weiterverwendet, muss
 sie an diesen Stellen anpassen. Beide sind gegen den Code verifiziert (die
-Datei-Tags setzt heute `pipeline/finalize.py`, wörtlich übernommen aus
+Datei-Tags setzt heute `pipeline/finalize.py`, wörtlich übernommen aus (historisch)
 `scripts/widmung_v2/04_create_distance_zones.py`):
 
 - **Stromleitungen: seit 30.09.2026 wieder ein Ausschlusskriterium, als

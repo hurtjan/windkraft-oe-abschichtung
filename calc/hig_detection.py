@@ -90,6 +90,7 @@ class CandidateScan:
     centroids: np.ndarray = field(default_factory=lambda: np.zeros((0, 2)))
     bundesland: np.ndarray = field(default_factory=lambda: np.array([], dtype=object))
     garden_xy: np.ndarray = field(default_factory=lambda: np.zeros((0, 2)))
+    garden_bundesland: np.ndarray = field(default_factory=lambda: np.array([], dtype=object))
     n_buildings_total: int = 0
     n_filtered: int = 0
     n_oversized: int = 0
@@ -192,6 +193,7 @@ def scan_dkm_candidates(
     bl_parts: list[np.ndarray] = []
     centroid_parts: list[np.ndarray] = []
     garden_parts: list[np.ndarray] = []
+    garden_bl_parts: list[np.ndarray] = []
     n_total = 0
     n_filtered = 0
     scanned = 0
@@ -211,6 +213,10 @@ def scan_dkm_candidates(
         is_garden = (kinds == "garden") & in_bounds
         if is_garden.any():
             garden_parts.append(xy[is_garden])
+            garden_bl_parts.append(np.array(
+                [DISPLAY_BUNDESLAND.get(data["bundesland"][i], data["bundesland"][i]) for i in np.flatnonzero(is_garden)],
+                dtype=object,
+            ))
         if not is_building.any():
             continue
 
@@ -232,6 +238,7 @@ def scan_dkm_candidates(
     if not wkb_parts:
         return CandidateScan(
             garden_xy=np.concatenate(garden_parts) if garden_parts else np.zeros((0, 2)),
+            garden_bundesland=np.concatenate(garden_bl_parts) if garden_bl_parts else np.array([], dtype=object),
             n_buildings_total=n_total,
             n_filtered=n_filtered,
         )
@@ -283,10 +290,110 @@ def scan_dkm_candidates(
         centroids=centroids,
         bundesland=bundeslaender,
         garden_xy=np.concatenate(garden_parts) if garden_parts else np.zeros((0, 2)),
+        garden_bundesland=np.concatenate(garden_bl_parts) if garden_bl_parts else np.array([], dtype=object),
         n_buildings_total=n_total,
         n_filtered=n_filtered,
         n_oversized=n_oversized,
         n_addressless_dropped=n_addressless_dropped,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Prep-Produkt "Streusiedlungs-Kandidaten" (prep-Grenze): der DKM-Scan läuft
+# einmal in pipeline/prep/kataster/c_streusiedlung.py, die Layer-Stufe liest
+# nur noch dessen kleines Ergebnis. Schnitt: direkt hinter scan_dkm_candidates()
+# (Widmungsfilter, Riesenflächen-Regel und Garten-Punkte sind angewendet).
+# ---------------------------------------------------------------------------
+
+def write_candidate_scan(scan: CandidateScan, candidates_path, garden_path, report_path, params: dict) -> None:
+    """Schreibt den Scan als zwei GeoParquet-Dateien (EPSG:31287) plus JSON-Bericht.
+
+    Kandidaten: ``bundesland``, ``cx``/``cy`` (Zentroid des ORIGINAL-Footprints,
+    auch bei Ersatz durch die 5-m-Scheibe), ``geometry``. Garten-Punkte: ``bundesland``,
+    ``geometry`` (Punkt). Koordinaten und Reihenfolge bleiben verlustfrei erhalten.
+    """
+    import json  # noqa: PLC0415
+
+    import geopandas as gpd  # noqa: PLC0415
+
+    cand = gpd.GeoDataFrame(
+        {
+            "bundesland": np.asarray(scan.bundesland, dtype=object),
+            "cx": scan.centroids[:, 0] if len(scan) else np.zeros(0),
+            "cy": scan.centroids[:, 1] if len(scan) else np.zeros(0),
+        },
+        geometry=gpd.GeoSeries(list(scan.geometries), crs="EPSG:31287"),
+        crs="EPSG:31287",
+    )
+    cand.to_parquet(candidates_path, index=False)
+    gx = scan.garden_xy
+    garden = gpd.GeoDataFrame(
+        {"bundesland": np.asarray(scan.garden_bundesland, dtype=object)},
+        geometry=gpd.points_from_xy(gx[:, 0], gx[:, 1]) if len(gx) else gpd.GeoSeries([], crs="EPSG:31287"),
+        crs="EPSG:31287",
+    )
+    garden.to_parquet(garden_path, index=False)
+    report = {
+        "n_buildings_total": int(scan.n_buildings_total),
+        "n_filtered": int(scan.n_filtered),
+        "n_oversized": int(scan.n_oversized),
+        "n_addressless_dropped": int(scan.n_addressless_dropped),
+        "n_candidates": int(len(scan)),
+        "n_garden_points": int(len(gx)),
+        **params,
+    }
+    report_path.write_text(json.dumps(report, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def load_candidate_scan(
+    candidates_path,
+    garden_path,
+    report_path,
+    grid: dict,
+    bl_filter: set[str] | None = None,
+    margin_m: float = 0.0,
+) -> CandidateScan:
+    """Liest das Prep-Produkt zurück - gleiche Auswahl wie der frühere Direktscan.
+
+    Zentroide außerhalb der um ``margin_m`` erweiterten Grid-Bounds und (bei
+    ``bl_filter``) andere Bundesländer entfallen, genau wie in ``scan_dkm_candidates``.
+    """
+    import json  # noqa: PLC0415
+    from pathlib import Path  # noqa: PLC0415
+
+    import geopandas as gpd  # noqa: PLC0415
+
+    for p in (candidates_path, garden_path, report_path):
+        if not Path(p).exists():
+            raise FileNotFoundError(
+                f"{p} fehlt - bitte `make prep-kataster` (Stufe c, Streusiedlungs-Kandidaten) ausführen"
+            )
+    report = json.loads(Path(report_path).read_text(encoding="utf-8"))
+    cand = gpd.read_parquet(candidates_path)
+    garden = gpd.read_parquet(garden_path)
+    bounds = (
+        grid["bounds"][0] - margin_m, grid["bounds"][1] - margin_m,
+        grid["bounds"][2] + margin_m, grid["bounds"][3] + margin_m,
+    )
+    centroids = np.column_stack([cand["cx"].to_numpy(), cand["cy"].to_numpy()])
+    keep = _within_bounds(centroids, bounds) if len(cand) else np.zeros(0, dtype=bool)
+    gxy = np.column_stack([garden.geometry.x.to_numpy(), garden.geometry.y.to_numpy()]) if len(garden) else np.zeros((0, 2))
+    gkeep = _within_bounds(gxy, bounds) if len(garden) else np.zeros(0, dtype=bool)
+    if bl_filter:
+        wanted = {DISPLAY_BUNDESLAND.get(to_dkm_bundesland(b), b) for b in bl_filter}
+        keep = keep & cand["bundesland"].isin(wanted).to_numpy()
+        gkeep = gkeep & garden["bundesland"].isin(wanted).to_numpy()
+    geoms = np.empty(int(keep.sum()), dtype=object)
+    geoms[:] = list(cand.geometry.to_numpy()[keep])
+    return CandidateScan(
+        geometries=geoms,
+        centroids=centroids[keep],
+        bundesland=cand["bundesland"].to_numpy(dtype=object)[keep],
+        garden_xy=gxy[gkeep],
+        n_buildings_total=int(report.get("n_buildings_total", 0)),
+        n_filtered=int(report.get("n_filtered", 0)),
+        n_oversized=int(report.get("n_oversized", 0)),
+        n_addressless_dropped=int(report.get("n_addressless_dropped", 0)),
     )
 
 

@@ -174,7 +174,7 @@ def _all_declared_paths():
     paths = list(RAW_PATHS)
     paths.extend(contract.LEGACY_TOT.values())
     paths.extend(contract.LEGACY_ENTFAELLT.values())
-    paths.extend(_iter_leaf_paths(contract.PREP))
+    paths.extend(_iter_leaf_paths(contract.PREP_FILES))
     paths.extend(contract.LAYERS.values())
     paths.extend(contract.PRODUCTS.values())
     return paths
@@ -198,7 +198,7 @@ def test_all_paths_are_absolute_and_within_root():
 
 def test_sections_do_not_overlap():
     raw = set(RAW_PATHS) | set(contract.LEGACY_TOT.values()) | set(contract.LEGACY_ENTFAELLT.values())
-    prep = set(_iter_leaf_paths(contract.PREP))
+    prep = set(_iter_leaf_paths(contract.PREP_FILES))
     layers = set(contract.LAYERS.values())
     products = set(contract.PRODUCTS.values())
 
@@ -211,7 +211,7 @@ def test_sections_do_not_overlap():
 
 
 def test_prep_and_layers_live_under_derived():
-    for path in _iter_leaf_paths(contract.PREP):
+    for path in _iter_leaf_paths(contract.PREP_FILES):
         assert contract.DERIVED in path.parents, f"PREP-Pfad nicht unter derived/: {path}"
     for path in contract.LAYERS.values():
         assert contract.DERIVED in path.parents, f"LAYERS-Pfad nicht unter derived/: {path}"
@@ -230,12 +230,6 @@ def test_prep_and_layers_live_under_derived():
 # von PREP - unabhängig davon, ob eine Domäne eine oder zwei Prep-Stufen hat.
 PREP_DOMAINS = frozenset(contract.RAW.keys())
 
-# Domänen mit zwei Prep-Stufen (PLAN.md §4/§7: teure Extraktion getrennt von
-# billigerer Ableitung) - alle anderen sieben Domänen haben genau eine Stufe,
-# also einen Path-Wert statt eines verschachtelten dict.
-PREP_TWO_STAGE_DOMAINS = frozenset({"kataster", "osm", "noe_sekrop"})
-
-
 def test_prep_covers_all_raw_data_domains():
     assert PREP_DOMAINS == frozenset({
         "admin", "kataster", "adressen", "widmung", "osm",
@@ -243,30 +237,27 @@ def test_prep_covers_all_raw_data_domains():
     })
     assert len(PREP_DOMAINS) == 10
     assert set(contract.PREP.keys()) == PREP_DOMAINS
+    assert set(contract.WORK.keys()) == PREP_DOMAINS
+    assert set(contract.PREP_FILES.keys()) == PREP_DOMAINS
 
 
-def test_prep_two_stage_domains_have_a_and_b_stage():
-    for domain in PREP_TWO_STAGE_DOMAINS:
-        stages = contract.PREP[domain]
-        assert isinstance(stages, dict), f"PREP[{domain!r}] sollte zwei Stufen haben (dict), ist {stages!r}"
-        # Jeder Stage-Schlüssel beginnt mit "a_" bzw. "b_" (erste vor zweiter
-        # Stufe) - siehe Kommentare je Domäne in contract.py.
-        assert {k[:2] for k in stages} == {"a_", "b_"}, (
-            f"PREP[{domain!r}] hat keine a_/b_-Stufen: {sorted(stages)}"
-        )
+def test_prep_and_work_are_flat_domain_dirs():
+    """prep-Grenze: PREP/WORK sind flach (eine Ebene je Domäne), keine a_/b_-Stufen."""
+    for domain in PREP_DOMAINS:
+        assert contract.PREP[domain] == contract.DERIVED_PREP / domain
+        assert contract.WORK[domain] == contract.DERIVED_WORK / domain
+        assert isinstance(contract.PREP[domain], Path)
 
 
-def test_prep_single_stage_domains_are_bare_paths():
-    for domain in PREP_DOMAINS - PREP_TWO_STAGE_DOMAINS:
-        assert isinstance(contract.PREP[domain], Path), (
-            f"PREP[{domain!r}] sollte eine einstufige Domäne sein (Path), "
-            f"ist {contract.PREP[domain]!r}"
-        )
+def test_prep_files_live_directly_in_domain_dir_with_product_suffix():
+    for domain, files in contract.PREP_FILES.items():
+        for key, path in files.items():
+            assert path.parent == contract.PREP[domain], f"{domain}/{key}: {path}"
+            assert path.suffix in contract.PREP_PRODUCT_SUFFIXES, f"{domain}/{key}: {path}"
 
 
 def test_prep_leaf_count():
-    # 7 einstufige Domänen + 3 zweistufige Domänen * 2 Stufen = 13 Pfade.
-    assert len(_iter_leaf_paths(contract.PREP)) == 13
+    assert len(_iter_leaf_paths(contract.PREP_FILES)) == 32
 
 
 def test_products_live_under_out():
@@ -275,7 +266,7 @@ def test_products_live_under_out():
     # 4 ursprüngliche Endprodukte + Punkte-Export und LAYER.md (W7.1,
     # schnittstelle-manifest-2.2.md §3) + LAYER-MANIFEST.md (W7.6, siebtes
     # Endprodukt) - siehe Kommentar bei contract.PRODUCTS.
-    assert len(contract.PRODUCTS) == 7
+    assert len(contract.PRODUCTS) == 9  # + abschichtung_analyse.tif/.bands.json (zweites Produkt)
 
 
 def test_raw_lives_under_data():
@@ -370,22 +361,23 @@ def test_layers_derive_path_from_name():
 # calc/config.py) - bewusst hier als Konstante festgehalten, damit dieser
 # Test trägt, auch wenn config.json und calc/config.py künftig
 # gemeinsam driften.
+# prep-Grenze: RAW-Pfade (vgd, osm_dir, wind_pd_*, dgm, nsg_zip, data_dir,
+# output_dir) stehen nicht mehr in cfg["paths"] (siehe test_prep_grenze).
 EXPECTED_PATHS_BEFORE_W02 = {
-    "data_dir": "data",
-    "vgd": "data/admin/VGD_Oesterreich_gen_50_20221002/VGD_50_generalisiert.shp",
-    "osm_dir": "data/osm/austria-260328-free.shp",
-    "wind_pd_150": "data/gelaende/AUT_power-density_150m.tif",
-    "wind_pd_100": "data/gelaende/AUT_power-density_100m.tif",
-    "dgm": "data/gelaende/DGM_R25.tif",
-    "nsg_zip": "data/natur/SG_AT_2024_v_April_Stand_3_April_2024.zip",
     "nsg_gpkg": "SG_AT_2024_v_April.gpkg",
-    "nsg_layers": ["NP_AT_2024", "NSG_AT_2024", "ESG_AT_2024", "RAMSAR_AT_2024"],
+    # LSG_AT_2024 seit 2026-10-12 (Nutzerentscheidung: Landschaftsschutzgebiete nur aus UBA).
+    "nsg_layers": ["NP_AT_2024", "NSG_AT_2024", "ESG_AT_2024", "RAMSAR_AT_2024", "LSG_AT_2024", "GLT_AT_2024", "S_AT_2024", "NDKM_AT_2024"],
     # powerlines_gpkg stand hier bis Paket W1.2 ("data/osm_power_lines.gpkg").
     # Mit der Datei ist auch pipeline.contract.LEGACY_ENTFAELLT["powerlines_gpkg"]
     # entfernt worden (siehe Bericht zu W1.2) - cfg["paths"] trägt den
     # Schlüssel seither nicht mehr, ein Vergleich hier wäre ein KeyError.
-    "output_dir": "output",
 }
+
+
+def test_load_config_has_no_raw_paths():
+    paths = load_config()["paths"]
+    for key in ("data_dir", "output_dir", "vgd", "osm_dir", "wind_pd_150", "wind_pd_100", "dgm", "nsg_zip"):
+        assert key not in paths
 
 
 def test_load_config_paths_unchanged():
