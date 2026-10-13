@@ -38,3 +38,10 @@ uv run python -m pipeline.analysis.whitepaper.run_all --tif out/abschichtung.tif
 - Baender per Name: `official_wind_zoning`, `wka_bestand_ausserhalb_zonen`, `available_cleaned_min_10ha` (Haupt-TIF); `kataster_wald`, `kataster_aecker_wiesen_weiden` (Analyse-Raster)
 - Bestand = official_wind_zoning ODER wka_bestand_ausserhalb_zonen; Potentialfläche = available_cleaned_min_10ha UND NICHT Bestand
 - Länderzuordnung: Zellmittelpunkt, BEV-Ländergrenzen wie oben (einzige Vektorquelle)
+
+## N1_natur_ebenen (UBA-Schutzgebietsebenen)
+
+- Eingabe: prep-Produkt `derived/prep/natur/schutzgebiete.parquet` (Original: Umweltbundesamt, Schutzgebiete Österreich SG_AT_2024, Stand 03.04.2024), nur gelesen
+- Ebenen und Teilmengen: wie im prep-Produkt enthalten (Gruppierung nach `layer`, bei S nach `KAT_SUB`)
+- AUSNAHME von der TIF-only-Regel: Zählung von Eingabedaten (Entscheidung Jan offen, siehe `OFFENE_ZAHLEN.md`)
+- Langnamen der KAT_SUB-Codes: UBA-Codeliste (Schutzgebietskategorien Österreich, Stand April 2024), fest in `natur_ebenen.py`

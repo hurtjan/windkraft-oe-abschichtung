@@ -89,7 +89,8 @@ def main() -> None:
     streusiedlung_umfang.run(args.tif, args.manifest, args.grenzen, args.out_root,
                              prov["tif_sha256"], prov["tif_date"])
     weitere_zahlen.run(args.tif, args.manifest, args.grenzen)
-    # N1: Zaehlung der UBA-Eingabedaten (Ausnahme von der TIF-only-Regel, siehe natur_ebenen.py)    natur_ebenen.run(args.out_root, contract.PREP_FILES["natur"]["schutzgebiete"])
+    # N1: Zaehlung der UBA-Eingabedaten (Ausnahme von der TIF-only-Regel, siehe natur_ebenen.py)
+    natur_ebenen.run(args.out_root, contract.PREP_FILES["natur"]["schutzgebiete"])
     # Abb. 3 und Abb. 4 (Beispielkarten) vor dem Render; Zahlen von Abb. 3 ins Register
     beispielkarten.run(args.out_root, args.tif, args.manifest)
     # Textfelder (Gemeinde, GKZ) sind keine Registerzahlen -> ueberspringen

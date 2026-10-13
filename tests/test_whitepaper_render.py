@@ -210,3 +210,10 @@ def test_readme_rendern(tmp_path):
     assert txt.startswith(render.KOPF_README) and "95,6 % sha abc" in txt
     with pytest.raises(SystemExit):
         render.run(tmp_path / "fehlt.md", ziel, {}, tmp_path, "s")
+
+
+def test_run_all_ruft_natur_ebenen_run():
+    import inspect
+    from pipeline.analysis.whitepaper import run_all
+    zeilen = inspect.getsource(run_all.main).splitlines()
+    assert any(z.strip().startswith("natur_ebenen.run(") for z in zeilen)
