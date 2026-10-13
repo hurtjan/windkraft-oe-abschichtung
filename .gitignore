@@ -16,11 +16,10 @@ venv/
 .ipynb_checkpoints/
 .DS_Store
 
-# Abbildungen und Plots werden erzeugt (make whitepaper, README-Karten) und
-# nicht versioniert.
+# Abbildungen und Plots werden erzeugt (make whitepaper) und nicht versioniert;
+# sie liegen am Release abbildungen-latest (paper.md verlinkt dorthin).
 /docs/img/
 /docs/whitepaper/abb/
 
 # Whitepaper-Arbeitsnotizen und das alte Gerüst vom 18.09. bleiben lokal.
 /docs/whitepaper/notizen/
-/docs/whitepaper/paper.md

@@ -52,6 +52,9 @@ def main() -> None:
     vorlage = args.out_root / "paper_vorlage.md"
     if not vorlage.is_file():
         raise SystemExit(f"Vorlage fehlt: {vorlage} (Quelle des White Papers; ohne sie kann nicht gerendert werden).")
+    readme_vorlage = args.out_root / "readme_vorlage.md"
+    if not readme_vorlage.is_file():
+        raise SystemExit(f"Vorlage fehlt: {readme_vorlage} (Quelle der README; ohne sie kann nicht gerendert werden).")
     zahlen.reset()
 
     for need in (args.analyse_tif, args.analyse_manifest):
@@ -102,9 +105,12 @@ def main() -> None:
     abb_dir = abbildungen.run(cache_dir, args.grenzen, args.out_root)
 
     print("=" * 70)
-    print("[run_all] 7/7 render.py (paper_vorlage.md -> paper.md)")
+    print("[run_all] 7/7 render.py (paper_vorlage.md -> paper.md, readme_vorlage.md -> README.md)")
     print("=" * 70)
-    render.run(vorlage, args.out_root / "paper.md", register, tabellen_dir, sha12, prov["tif_date"])
+    render.run(vorlage, args.out_root / "paper.md", register, tabellen_dir, sha12, prov["tif_date"],
+               bild_basis=render.RELEASE_ABB)
+    render.run(readme_vorlage, REPO_ROOT / "README.md", register, tabellen_dir, sha12, prov["tif_date"],
+               kopf=render.KOPF_README, strings={"tif_sha12": sha12})
 
     print("=" * 70)
     print("[run_all] fertig")

@@ -4,6 +4,7 @@ Platzhalter:
   ``{{z:KEY}}``        Zahl aus dem Register (zahlen.json), deutsch formatiert
   ``{{z:KEY|0}}``      mit 0 Nachkommastellen (Dezimalkomma)
   ``{{z:KEY|%1}}``     Prozent mit 1 Nachkommastelle, "12,3 %"
+  ``{{s:KEY}}``        Text aus dem ``strings``-Argument (z. B. ``tif_sha12``)
   ``{{tab:NAME}}``     Inhalt von tabellen/NAME.md (Tabelle + Legende)
 Tausendertrenner: einfaches Leerzeichen (wie im bisherigen Text).
 Unbekannte Schluessel/Tabellen sind harte Fehler.
@@ -14,7 +15,11 @@ import re
 from datetime import date
 from pathlib import Path
 
-PLATZHALTER = re.compile(r"\{\{\s*(z|tab)\s*:\s*([A-Za-z0-9_.]+)\s*(?:\|\s*(%?)(\d+))?\s*\}\}")
+PLATZHALTER = re.compile(r"\{\{\s*(z|tab|s)\s*:\s*([A-Za-z0-9_.]+)\s*(?:\|\s*(%?)(\d+))?\s*\}\}")
+KOPF_README = ("<!-- GENERIERT aus docs/whitepaper/readme_vorlage.md durch make whitepaper — "
+               "nicht von Hand ändern. -->")
+RELEASE_ABB = "https://github.com/hurtjan/windkraft-oe-abschichtung/releases/download/abbildungen-latest/"
+_ABB_LINK = re.compile(r"\]\(abb/([^)\s]+)\)")
 KOPF = ("<!-- GENERIERT aus paper_vorlage.md durch make whitepaper — nicht von Hand ändern. "
         "Stand: {datum}, TIF {sha} -->")
 
@@ -46,7 +51,8 @@ def _ohne_titel(text: str) -> str:
 
 
 def render(vorlage: str, zahlen: dict[str, dict], tabellen_dir: Path,
-           datum: str | None = None, sha: str = "?") -> tuple[str, set[str]]:
+           datum: str | None = None, sha: str = "?", kopf: str | None = None,
+           bild_basis: str | None = None, strings: dict[str, str] | None = None) -> tuple[str, set[str]]:
     """Gibt (gerenderter Text, benutzte Schluessel) zurueck. Fehler: RenderError."""
     used: set[str] = set()
     fehlt_z: list[str] = []
@@ -54,6 +60,11 @@ def render(vorlage: str, zahlen: dict[str, dict], tabellen_dir: Path,
 
     def repl(m: re.Match) -> str:
         kind, name, pct, dec = m.groups()
+        if kind == "s":
+            if name not in (strings or {}):
+                fehlt_z.append(name)
+                return m.group(0)
+            return str(strings[name])
         if kind == "z":
             if name not in zahlen:
                 fehlt_z.append(name)
@@ -77,16 +88,20 @@ def render(vorlage: str, zahlen: dict[str, dict], tabellen_dir: Path,
     rest = re.findall(r"\{\{.*?\}\}", body)
     if rest:
         raise RenderError(f"Nicht aufloesbare Platzhalter: {sorted(set(rest))}")
-    kopf = KOPF.format(datum=datum or date.today().isoformat(), sha=sha)
+    if bild_basis:
+        body = _ABB_LINK.sub(lambda m: f"]({bild_basis}{m.group(1)})", body)
+    kopf = (KOPF.format(datum=datum or date.today().isoformat(), sha=sha) if kopf is None else kopf)
     return kopf + "\n" + body, used
 
 
 def run(vorlage_path: Path, paper_path: Path, zahlen: dict[str, dict], tabellen_dir: Path,
-        sha: str, datum: str | None = None) -> set[str]:
+        sha: str, datum: str | None = None, kopf: str | None = None,
+        bild_basis: str | None = None, strings: dict[str, str] | None = None) -> set[str]:
     vorlage_path = Path(vorlage_path)
     if not vorlage_path.is_file():
         raise SystemExit(f"[render] Vorlage fehlt: {vorlage_path} (Quelle des White Papers).")
-    text, used = render(vorlage_path.read_text(encoding="utf-8"), zahlen, tabellen_dir, datum, sha)
+    text, used = render(vorlage_path.read_text(encoding="utf-8"), zahlen, tabellen_dir, datum, sha,
+                       kopf=kopf, bild_basis=bild_basis, strings=strings)
     Path(paper_path).write_text(text, encoding="utf-8")
     unused = sorted(set(zahlen) - used)
     print(f"[render] {paper_path}: {len(used)} Registerschluessel verwendet, {len(unused)} unbenutzt")

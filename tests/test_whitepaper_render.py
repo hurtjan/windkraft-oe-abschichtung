@@ -183,3 +183,30 @@ def test_tab_include_drops_leading_heading(tmp_path):
     text, _ = render.render("Kopf\n{{tab:X2}}\nEnde", {}, tmp_path, "2026-10-13", "abc")
     assert "L1 — Titel" not in text
     assert "Kopf\n| a |" in text and "*Quelle*" in text and "Legende" in text
+
+
+def test_string_placeholder(tmp_path):
+    out, _ = render.render("sha {{s:tif_sha12}}", {}, tmp_path, strings={"tif_sha12": "abc123def456"})
+    assert "sha abc123def456" in out
+    with pytest.raises(render.RenderError):
+        render.render("{{s:fehlt}}", {}, tmp_path, strings={})
+
+
+def test_bildlinks_umschreiben(tmp_path):
+    vor = "![a](abb/x.png) und [l](docs/y.md)"
+    out, _ = render.render(vor, {}, tmp_path, bild_basis=render.RELEASE_ABB)
+    assert f"]({render.RELEASE_ABB}x.png)" in out and "(docs/y.md)" in out
+    rel, _ = render.render(vor, {}, tmp_path)
+    assert "](abb/x.png)" in rel
+
+
+def test_readme_rendern(tmp_path):
+    vor = tmp_path / "readme_vorlage.md"
+    vor.write_text("# T\n{{z:a|%1}} sha {{s:tif_sha12}}\n", encoding="utf-8")
+    ziel = tmp_path / "README.md"
+    render.run(vor, ziel, {"a": {"wert": 95.64, "einheit": "%"}}, tmp_path, "s", "2026-01-01",
+               kopf=render.KOPF_README, strings={"tif_sha12": "abc"})
+    txt = ziel.read_text(encoding="utf-8")
+    assert txt.startswith(render.KOPF_README) and "95,6 % sha abc" in txt
+    with pytest.raises(SystemExit):
+        render.run(tmp_path / "fehlt.md", ziel, {}, tmp_path, "s")
